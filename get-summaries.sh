@@ -3,10 +3,14 @@
 # Define progress and summary files
 progress_file="progress.log"
 <<<<<<< HEAD
+<<<<<<< HEAD
 summary_file="memetic-cognition.txt"
 =======
 summary_file="physics-inoculation-theory.txt"
 >>>>>>> ab2fa95 (Macroscale Solutions)
+=======
+summary_file="memetic-cognition.txt"
+>>>>>>> 4533ee7 (Macroscale Solutions)
 main_dir=$(pwd)
 
 # Function to check if a file is already processed
@@ -57,10 +61,14 @@ process_files() {
 
                 # Split the file into chunks of 200 lines each
 <<<<<<< HEAD
+<<<<<<< HEAD
                 split -l 100 "$file" "$temp_dir/chunk_"
 =======
                 split -l 60 "$file" "$temp_dir/chunk_"
 >>>>>>> ab2fa95 (Macroscale Solutions)
+=======
+                split -l 100 "$file" "$temp_dir/chunk_"
+>>>>>>> 4533ee7 (Macroscale Solutions)
                 echo "File split into chunks: $(find "$temp_dir" -type f)" >> "$main_dir/$progress_file"
 
                 # Summarize each chunk and append to the summary file
