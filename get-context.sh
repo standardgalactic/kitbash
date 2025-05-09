@@ -2,7 +2,7 @@
 
 # Define progress and summary files
 progress_file="progress.log"
-summary_file="theory-overview.txt"
+summary_file="reverse-semiotics.txt"
 main_dir=$(pwd)
 
 # Function to check if a file is already processed
@@ -51,8 +51,8 @@ process_files() {
                 temp_dir=$(mktemp -d "$dir/tmp_${sanitized_name}_XXXXXX")
                 echo "Temporary directory created: $temp_dir" >> "$main_dir/$progress_file"
 
-                # Split the file into chunks of 200 lines each
-                split -l 102 "$file" "$temp_dir/chunk_"
+                # Split the file into chunks of 100 lines each
+                split -l 100 "$file" "$temp_dir/chunk_"
                 echo "File split into chunks: $(find "$temp_dir" -type f)" >> "$main_dir/$progress_file"
 
                 # Summarize each chunk and append to the summary file
