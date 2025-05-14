@@ -2,7 +2,7 @@
 
 # Define progress and summary files
 progress_file="progress.log"
-summary_file="reverse-semiotics.txt"
+summary_file="source-control.txt"
 main_dir=$(pwd)
 
 # Function to check if a file is already processed
@@ -52,39 +52,44 @@ process_files() {
                 echo "Temporary directory created: $temp_dir" >> "$main_dir/$progress_file"
 
                 # Split the file into chunks of 100 lines each
-                split -l 100 "$file" "$temp_dir/chunk_"
+                split -l 282 "$file" "$temp_dir/chunk_"
                 echo "File split into chunks: $(find "$temp_dir" -type f)" >> "$main_dir/$progress_file"
 
-                # Summarize each chunk and append to the summary file
-                for chunk_file in "$temp_dir"/chunk_*; do
-                    [ -f "$chunk_file" ] || continue
-                    echo "Summarizing chunk: $(basename "$chunk_file")"
-                    ollama run granite3.2:8b "Summarize in detail and explain:" < "$chunk_file" | tee -a "$main_dir/$summary_file"
-                    echo "" >> "$main_dir/$summary_file"
-                done
+		# Summarize each chunk and append to the summary file
+		# Add filename (without .txt) as section header
+		echo "### $(basename "$file" .txt)" >> "$main_dir/$summary_file"
+		echo "" >> "$main_dir/$summary_file"
 
-                # Remove the temporary directory
-                rm -rf "$temp_dir"
-                echo "Temporary directory $temp_dir removed" >> "$main_dir/$progress_file"
+		for chunk_file in "$temp_dir"/chunk_*; do
+			[ -f "$chunk_file" ] || continue
+				echo "Summarizing chunk: $(basename "$chunk_file")"
+					ollama run granite3.2:8b "Summarize in detail and explain:" < "$chunk_file" | tee -a "$main_dir/$summary_file"
+					echo "" >> "$main_dir/$summary_file"
+					done
 
-                # Mark the file as processed
-                echo "$file_name" >> "$main_dir/$progress_file"
-            fi
-        fi
-    done
+
+# Remove the temporary directory
+					rm -rf "$temp_dir"
+					echo "Temporary directory $temp_dir removed" >> "$main_dir/$progress_file"
+
+# Mark the file as processed
+					echo "$file_name" >> "$main_dir/$progress_file"
+					fi
+					fi
+					done
 }
 
 # Recursively process subdirectories
 process_subdirectories() {
-    local parent_dir=$1
-    
-    # Iterate over all subdirectories
-    for dir in "$parent_dir"/*/; do
-        if [ -d "$dir" ]; then
-            process_files "$dir"  # Process files in the subdirectory
-            process_subdirectories "$dir"  # Recursive call for nested subdirectories
-        fi
-    done
+	local parent_dir=$1
+
+# Iterate over all subdirectories
+		for dir in "$parent_dir"/*/; do
+			if [ -d "$dir" ]; then
+				process_files "$dir"  # Process files in the subdirectory
+					process_subdirectories "$dir"  # Recursive call for nested subdirectories
+					fi
+					done
 }
 
 # Main execution
