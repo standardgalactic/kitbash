@@ -2,9 +2,12 @@
 
 Self-Refactoring Crosslinking
 
+<<<<<<< HEAD
 ![Gaiacraft](gaiacraft.webp)
 
 <!--
+=======
+>>>>>>> ab2fa95 (Macroscale Solutions)
 ![](retro-01.jpg)
 ![](retro-02.jpg)
 ![](retro-03.jpg)
@@ -21,4 +24,7 @@ Self-Refactoring Crosslinking
 ![](retro-14.jpg)
 ![](retro-15.jpg)
 ![](retro-16.jpg)
+<<<<<<< HEAD
 -->
+=======
+>>>>>>> ab2fa95 (Macroscale Solutions)
