@@ -1,19 +1,8 @@
-# Kitbash
-
 Self-Refactoring Crosslinking
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 ![Gaiacraft](gaiacraft.webp)
 
 <!--
-=======
->>>>>>> ab2fa95 (Macroscale Solutions)
-=======
-![Gaiacraft](gaiacraft.webp)
-
-<!--
->>>>>>> 1d6db72 (Recursive Quantifiers)
 ![](retro-01.jpg)
 ![](retro-02.jpg)
 ![](retro-03.jpg)
@@ -30,11 +19,4 @@ Self-Refactoring Crosslinking
 ![](retro-14.jpg)
 ![](retro-15.jpg)
 ![](retro-16.jpg)
-<<<<<<< HEAD
-<<<<<<< HEAD
 -->
-=======
->>>>>>> ab2fa95 (Macroscale Solutions)
-=======
--->
->>>>>>> 1d6db72 (Recursive Quantifiers)
