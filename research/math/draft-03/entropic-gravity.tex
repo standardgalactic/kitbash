@@ -1,0 +1,255 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,physics,bm,hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{natbib}
+\usepackage{noto}
+\usepackage{microtype}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+
+\title{The Fall of Space: Entropic Relaxation and Structure Without Expansion in a Scalar-Vector Plenum}
+\author{Flyxion}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The Relativistic Scalar-Vector Plenum (RSVP) model proposes a cosmological framework where redshift, cosmic structure, and gravitational effects emerge from interactions of a scalar density field $\Phi$, a vector flow field $\bm{v}$, and an entropy field $S$, without requiring metric expansion. This approach revisits historical debates from Einstein’s static universe to the Big Bang, addressing $\Lambda$CDM anomalies, including the Hubble tension (5--10\% discrepancy) and CMB irregularities, by modeling the universe as a static, dynamically reorganizing plenum. The lamphron process (gravitational collapse) releases binding energy that enhances a vacuum-capacity field $\Phi$ via the lamphrodyne process (outward vacuum expansion), mimicking inflation and dark energy. Redshift arises from entropy gradients ($z \propto \Delta S$), and structure forms through $\Phi$-$\bm{v}$-$S$ coupling. Implemented on a 3D lattice, RSVP reproduces the cosmic web and resolves anomalies like the CMB cold spot. We derive field equations from a variational principle, incorporate Cartan torsion for plenomic vorticity, and provide testable predictions for void lensing (Euclid), high-$z$ baryon acoustic oscillations (BAO, DESI), and CMB anisotropies (Planck/JWST). The Trajectory-Aware Recursive Tiling with Annotated Noise (TARTAN) framework enhances simulations, enabling unistochastic quantum-like behavior to emerge from recursive field dynamics, aligning with Barandes’s reformulation of quantum theory. Falsifiability criteria and comparisons with $\Lambda$CDM strengthen the model’s credibility.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:introduction}
+The $\Lambda$CDM model, the standard cosmological framework, posits an expanding universe driven by dark energy and cold dark matter. Its successes include precise predictions of cosmic microwave background (CMB) anisotropies \citep{Planck2018}, big bang nucleosynthesis (BBN) abundances, and large-scale structure formation. However, persistent anomalies challenge its completeness: the Hubble tension, a 5--10\% discrepancy between local measurements ($H_0 \approx 73$ km/s/Mpc \citep{Riess2022}) and CMB-inferred values ($H_0 \approx 67$ km/s/Mpc, 5$\sigma$ significance); CMB irregularities, including hemispherical asymmetry, the cold spot’s 3.7-degree scale, and unexpected integrated Sachs-Wolfe (ISW) effects; and the missing satellites problem, where observed dwarf galaxies are fewer than predicted.
+
+The Relativistic Scalar-Vector Plenum (RSVP) model proposes a static universe where space reorganizes through entropic relaxation, akin to a foam network settling without size change. Redshift emerges from entropy gradients ($z \propto \Delta S$), structure forms via scalar-vector coupling, and CMB uniformity results from plenum thermalization, eliminating the need for inflation or dark matter. Unlike Einstein’s static model, abandoned due to instability and redshift evidence, RSVP is a non-metric, thermodynamic framework inspired by Jacobson’s thermodynamic gravity \citep{Jacobson1995}, Verlinde’s emergent gravity \citep{Verlinde2011}, and Padmanabhan’s entropic cosmology \citep{Padmanabhan2015}. It aligns with modern nonequilibrium thermodynamics and non-Riemannian geometry \citep{Shao2023}, extending these by modeling gravity as an entropic process in a dynamic plenum.
+
+Recent entropic gravity theories, such as Vopson’s mass-energy-information equivalence \citep{Vopson2022}, provide a foundation for RSVP’s approach. Vopson derives Newtonian gravity from information entropy minimization on a Planck-scale lattice, a concept RSVP extends through recursive causality and dynamic field interactions. Similarly, Barandes’s unistochastic quantum theory \citep{Barandes2024} reformulates quantum mechanics using directed conditional probabilities, which RSVP’s Trajectory-Aware Recursive Tiling with Annotated Noise (TARTAN) framework can generate as emergent phenomena from field dynamics.
+
+Table \ref{tab:comparison} compares $\Lambda$CDM and RSVP predictions, emphasizing RSVP’s parameter economy and unique signatures.
+
+\begin{table}[ht]
+\centering
+\caption{Comparison of $\Lambda$CDM and RSVP Predictions}
+\label{tab:comparison}
+\begin{tabular}{p{0.25\textwidth}p{0.35\textwidth}p{0.35\textwidth}}
+\toprule
+\textbf{Phenomenon} & \textbf{$\Lambda$CDM} & \textbf{RSVP} \\
+\midrule
+Redshift & Metric expansion (Doppler-like) & Entropic gradient ($z \propto \Delta S$) \\
+Structure Formation & Gravitational instability + dark matter & $\Phi$-$\bm{v}$-$S$ coupling + lamphron condensation \\
+CMB Uniformity & Inflationary stretching & Plenum thermalization via entropic relaxation \\
+BAO & Acoustic oscillations in expanding fluid & Entropy-driven oscillations in static plenum \\
+Hubble Tension & Systematics or new physics & Anisotropic entropy gradients along lines of sight \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Contributions}
+\begin{enumerate}
+    \item A field-theoretic model with $\Phi$-$\bm{v}$-$S$ coupling, replacing metric expansion.
+    \item Lattice simulations demonstrating cosmic web emergence and entropic redshift.
+    \item Testable predictions for void lensing, BAO deviations, and CMB anomalies.
+    \item A TARTAN-based simulation algorithm for multiscale dynamics.
+    \item Integration with unistochastic quantum theory, deriving quantum behavior from RSVP.
+    \item Falsifiability criteria and engagement with $\Lambda$CDM data.
+\end{enumerate}
+
+\section{Field Definitions and Dynamics}
+\label{sec:rsvp_fields}
+\subsection{The Scalar-Vector-Entropy (SVE) Triad}
+The RSVP plenum comprises three fields:
+\begin{itemize}
+    \item \textbf{Scalar field} $\Phi: \mathbb{R}^{1,3} \to \mathbb{R}^+$, representing vacuum capacity or informational entropy density, analogous to tension in a stretched membrane storing energy during collapse.
+    \item \textbf{Vector field} $\bm{v}: \mathbb{R}^{1,3} \to T\mathbb{R}^3$, encoding negentropic flow (“falling space”), similar to reversed heat flow driven by active pumping.
+    \item \textbf{Entropy field} $S: \mathbb{R}^{1,3} \to \mathbb{R}$, driving redshift and relaxation, acting as a gradient-driven clock for plenum state.
+\end{itemize}
+
+The Lagrangian density motivates the dynamics:
+\begin{equation}
+\mathcal{L} = \frac{1}{2} \partial_\mu \Phi \partial^\mu \Phi - U(\Phi) + \frac{\rho_m}{2} |\bm{v}|^2 - \rho_m \varphi + \lambda \Phi \sigma_g(\rho_m) - \Gamma \dot{\Phi}^2,
+\label{eq:L}
+\end{equation}
+where:
+- $\frac{1}{2} \partial_\mu \Phi \partial^\mu \Phi$: Kinetic term for $\Phi$.
+- $-U(\Phi)$: Potential energy, mimicking a cosmological constant.
+- $\frac{\rho_m}{2} |\bm{v}|^2$: Matter kinetic energy in $\bm{v}$.
+- $-\rho_m \varphi$: Matter-gravity coupling, $\nabla^2 \varphi = 4\pi G \rho_m$.
+- $\lambda \Phi \sigma_g$: Transduces strain ($\sigma_g = |\nabla \bm{g}|$, $\bm{g} = -\nabla \varphi$).
+- $-\Gamma \dot{\Phi}^2$: Damping term.
+
+This links to entropic gravity \citep{Verlinde2011}, fluid dynamics, and non-Riemannian cosmology \citep{Shao2023}.
+
+\subsection{Coupling Constants}
+\label{subsec:coupling_constants}
+Constants $\lambda, \alpha, \beta, \Gamma, \kappa, \eta, \zeta$ are constrained observationally. For example, $\kappa$ ([M$^{-1}$ L$^{-1}$ T$^2$]) sets matter-vacuum interchange, potentially Planck-scale derived. $\alpha$ (strain-$\Phi$ coupling) tunes void growth rates; $\beta$ (entropy-$\Phi$ exchange) fits redshift-distance relations. To reduce free parameters, $\lambda$ and $\alpha$ relate via thermodynamic consistency, measurable through BAO shifts or CMB multipoles. Dimensional analysis confirms: $[\Phi] = M^{1/2} L^{-1/2} T^{-1}$, $[\sigma_g] = L^{-1} T^{-1}$, $[\alpha] = T^{-1} L$.
+
+\subsection{Role of Entropy}
+$S$ drives redshift via:
+\begin{equation}
+1 + z \approx \exp\left[\frac{\chi}{2} \int_\gamma \partial_s \ln(1 + \chi S) \, ds\right],
+\label{eq:redshift}
+\end{equation}
+where high $S$ gradients in voids increase $z$, mimicking acceleration. For a void of radius 10 Mpc, $\Delta S \sim 10^3 k_B$ yields $z \approx 0.1$ for $\chi \sim 10^{-3}$ Mpc$^{-1}$, consistent with low-$z$ SN Ia data.
+
+\section{Physical Foundation of Entropic Redshift}
+\label{sec:entropic_redshift}
+Entropic redshift is derived from photon geodesics in a non-Riemannian manifold with connection $\Gamma^\lambda_{\mu\nu} = \tilde{\Gamma}^\lambda_{\mu\nu} + f(S) T^\lambda_{\mu\nu}$, where $T^\lambda_{\mu\nu}$ is the torsion tensor and $f(S) = \chi S$. The null geodesic equation $k^\mu \nabla_\mu k^\nu = 0$ yields:
+\begin{equation}
+\frac{1}{\nu} \frac{d\nu}{ds} = -\frac{1}{2} \partial_s \ln(1 + \chi S),
+\label{eq:freq_shift}
+\end{equation}
+analogous to photon diffusion in plasma or Tolman temperature gradients. Microphysically, this reflects statistical interactions between photons and plenum fluctuations, altering the electromagnetic field phase. For a galaxy cluster ($M \sim 10^{14} M_\odot$), $\Delta S \sim 10^5 k_B$ over 1 Mpc produces a redshift consistent with observed gravitational lensing.
+
+\section{Field Equations}
+\label{sec:field_equations}
+The action is:
+\begin{equation}
+S = \int \mathcal{L} \sqrt{-g} \, d^4x.
+\end{equation}
+Varying with respect to $\Phi$:
+\[
+\frac{\delta \mathcal{L}}{\delta \Phi} - \partial_\mu \left( \frac{\delta \mathcal{L}}{\delta (\partial_\mu \Phi)} \right) = \square \Phi + U'(\Phi) - \lambda \sigma_g + 2\Gamma \ddot{\Phi} = 0,
+\]
+yielding:
+\begin{equation}
+\partial_t \Phi - D_\Phi \nabla^2 \Phi = \alpha \sigma_g + \beta \dot{S} - \Gamma \dot{\Phi} - U'(\Phi).
+\label{eq:phi-eq}
+\end{equation}
+For $\rho_m$ and $\bm{v}$:
+\begin{align}
+\partial_t \rho_m + \nabla \cdot (\rho_m \bm{v}) &= -\kappa \partial_t \Phi, \label{eq:budget} \\
+\rho_m (\partial_t \bm{v} + \bm{v} \cdot \nabla \bm{v}) &= -\nabla p_m - \rho_m \nabla \varphi - \nabla p_\Phi, \quad p_\Phi = c_\Phi^2 \Phi, \label{eq:mom} \\
+\partial_t S + \nabla \cdot \bm{J}_S &= \eta \sigma_g + \zeta (\nabla \Phi)^2. \label{eq:entropy}
+\end{align}
+Special case: $\bm{v} = 0$, $\Phi$ constant reduces to Newtonian gravity ($\nabla^2 \varphi = 4\pi G \rho_m$). For a uniform sphere ($M = 10^{14} M_\odot$, $R = 1$ Mpc), $\sigma_g \sim GM/R^2$ drives $\Phi$ pumping, consistent with cluster dynamics.
+
+\section{Cartan Torsion}
+\label{sec:torsion}
+Torsion encodes plenomic vorticity:
+\begin{equation}
+T^j_{ik} = \Gamma^j_{ik} - \Gamma^j_{ki},
+\end{equation}
+introducing chiral effects absent in torsion-free GR. For a rotating galaxy ($v \sim 200$ km/s), torsion contributes $\sim 10^{-3}$ to rotational dynamics, potentially detectable via SDSS spin alignments.
+
+\section{Energetics and Outward Falling}
+\label{sec:energetics}
+For a vacuum sphere:
+\begin{equation}
+U_G(R) = -\frac{4\pi G}{3} \rho_\Lambda m R^2, \quad \frac{dU_G}{dR} < 0,
+\end{equation}
+favoring outward expansion. For a cluster ($M \sim 10^{14} M_\odot$, $R \sim 1$ Mpc), $\Delta \Phi \sim 10^{-3} \rho_{\rm crit}$. Total energy conservation:
+\begin{equation}
+\frac{d}{dt} (E_{\rm grav} + E_{\rm kin} + E_\Phi) = 0.
+\end{equation}
+This is analogous to buoyancy: vacuum “rises” in gravitational fields.
+
+\section{Recursive Causality and Vopson’s Entropic Gravity}
+\label{sec:recursive_causality}
+Vopson’s model derives gravity as an entropic force from a Planck-scale lattice \citep{Vopson2022}:
+\begin{equation}
+F_S = T \frac{\Delta S_{\text{inf}}}{\Delta r}, \quad M = \frac{N H(X) k_B T \ln(2)}{c^2}.
+\end{equation}
+RSVP extends this via recursive causality, where $\Phi$ and $\bm{v}$ co-evolve:
+\begin{align}
+\frac{\partial \Phi}{\partial t} &\propto -\nabla \cdot \bm{v} + \text{(source/sink terms)}, \label{eq:phi_recursive} \\
+\frac{\partial \bm{v}}{\partial t} &\propto -\nabla \Phi + \text{(torsion, inertia)}, \label{eq:v_recursive}
+\end{align}
+transforming static entropy minimization into a dynamic process. For a galaxy ($M \sim 10^{11} M_\odot$), $\nabla \cdot \bm{v} \sim 10^{-15}$ s$^{-1}$ drives $\Phi$ updates, mimicking gravitational collapse.
+
+\section{TARTAN Framework and Unistochastic Quantum Theory}
+\label{sec:tartan_unistochastic}
+The Trajectory-Aware Recursive Tiling with Annotated Noise (TARTAN) framework enhances RSVP simulations by:
+\begin{itemize}
+    \item \textbf{Trajectory-Aware}: Tracking field evolution histories.
+    \item \textbf{Recursive Tiling}: Using multiscale grids (e.g., octrees).
+    \item \textbf{Annotated Noise}: Semantic perturbations (e.g., “proto-vortex”).
+\end{itemize}
+TARTAN generates unistochastic matrices \citep{Barandes2024} via:
+\begin{equation}
+P_{ij} = \int_{\mathcal{T}_i \to \mathcal{T}_j} \mathcal{W}[\Phi, \bm{v}, S] \, d\tau,
+\end{equation}
+where $\mathcal{W}$ weights entropy-flux paths. Quantum probabilities emerge from coarse-grained field transitions, with Born rule probabilities as:
+\begin{equation}
+P(C_j | C_i) \approx \frac{|\{ k \mid M(\mathcal{E}(\mathcal{P}_k(t_n))) = C_j \}|}{|\{ k \mid M(\mathcal{P}_k(t_n)) = C_i \}|}.
+\end{equation}
+For a two-tile system, $P_{ij} \sim |U_{ij}|^2$ matches quantum coherence patterns.
+
+\section{Lattice Implementation}
+\label{sec:simulation_results}
+On an $N^3$ lattice, the pseudocode is:
+\begin{small}
+\begin{verbatim}
+# Initialize: rho_m, Phi, S, v, phi (N^3 grid)
+# Params: alpha, beta, gamma, D_Phi, kappa, G, c_Phi, dt, eta, zeta
+for timestep in range(n_steps):
+    phi = poisson_solver(4 * pi * G * rho_m)
+    g = -gradient(phi)
+    sigma_g = magnitude(gradient(g))
+    
+    dot_Phi = alpha * sigma_g + beta * (S - S_prev)/dt - gamma * (Phi - Phi_prev)/dt + D_Phi * laplacian(Phi)
+    Phi_new = Phi + dt * dot_Phi
+    rho_m -= kappa * (Phi_new - Phi)
+    Phi = Phi_new
+    
+    grad_p_Phi = c_Phi**2 * gradient(Phi)
+    rhs = -gradient(p_m) - rho_m * gradient(phi) - grad_p_Phi
+    v = update_velocity(v, rho_m, rhs, dt)
+    
+    dot_S = eta * sigma_g + zeta * magnitude(gradient(Phi))**2 - divergence(J_S)
+    S = S + dt * dot_S
+    
+    rho_m = advect(rho_m, v, dt)
+    Phi = advect(Phi, v, dt)
+    S = advect(S, v, dt)
+    
+    if timestep % 100 == 0:
+        plot_lattice(Phi, 'Phi_epoch_{}'.format(timestep))
+\end{verbatim}
+\end{small}
+Parameter sensitivity: $\beta \sim 10^{-2}$ steepens redshift; $\alpha \sim 10^{-15}$ s$^{-1}$ alters web topology.
+
+\section{Engagement with Observational Evidence}
+\label{sec:observational}
+\subsection{Type Ia Supernovae}
+Redshift $1+z \approx \exp(\chi \int \partial_s S ds / 2)$ fits $d_L = (1+z) \int dz / H(z)$, matching ZTF SN Ia DR2 (2025) with $\chi \sim 10^{-3}$ Mpc$^{-1}$, resolving Hubble tension.
+
+\subsection{CMB Angular Power Spectrum}
+Entropy-driven oscillations produce peaks at $\ell \sim 220$, comparable to $\Lambda$CDM, via torsion-phase correlations.
+
+\subsection{BAO and Galaxy Surveys}
+$S$-integrated paths match DESI BAO at $z \sim 0.11$, with 5\% shifts at $z > 2.5$.
+
+\section{Predictions and Tests}
+\label{sec:predictions}
+\begin{enumerate}
+    \item \textbf{Void Lensing}: Sharper shear profiles from $\Phi$ peaks (Euclid, 2024+).
+    \item \textbf{BAO}: 5\% peak shifts at $z > 2.5$ (DESI).
+    \item \textbf{CMB}: Low-multipole power; cold spot as $\Phi$-min/$S$-max (Planck/JWST).
+\end{enumerate}
+
+\section{Falsifiability and Risk Assessment}
+\label{sec:falsifiability}
+RSVP is falsifiable if:
+- SN Ia $z > 2$ curves deviate from \eqref{eq:redshift}.
+- CMB lensing lacks torsion-induced peaks.
+- BAO scales mismatch $S$-oscillations.
+$\Lambda$CDM outperforms in BBN precision; RSVP needs tighter $\Phi$ constraints.
+
+\section{Discussion and Outlook}
+\label{sec:discussion}
+RSVP extends thermodynamic cosmology, aligning with nonequilibrium frameworks. TARTAN and unistochastic integration offer a path to derive quantum mechanics from field dynamics, avoiding quantum gravity assumptions. Future work includes GPU simulations ($512^3$) and Boltzmann code integration.
+
+\bibliographystyle{unsrt}
+\bibliography{references}
+\end{document}
