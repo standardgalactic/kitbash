@@ -1,0 +1,1680 @@
+Arabic assembler calculus
+Skip to content
+Open sidebar
+ChatGPT
+5
+ChatGPT
+5
+Share
+You said:
+Tell me what you know about my Operator /Functional Mappings \-Arabic Assembler: typed lambda calculus over Arabic glyphs. 
+A-Arabic Assembler Typed lambda calculus over Arabic script Syntax/semantics rules
+ChatGPT said:
+From what I can piece together across your prior work and the way you describe it, your
+Operator / Functional Mappings - Arabic Assembler
+is an experimental programming language or formal system that tries to build a
+typed lambda calculus over Arabic script
+. Let me summarize the main aspects:
+1. Core Idea
+You are treating the
+Arabic alphabet
+not just as a writing system but as a
+formal operator grammar
+, where:
+Consonants
+act like
+generators
+(λ-abstractions or functional bases).
+Diacritics
+(fatha, kasra, damma, sukoon) operate as
+functional modifiers
+, turning bare consonantal operators into executable syllabic forms.
+Verb measures/forms (fa'ala, ifta'ala, etc.)
+function as
+higher-order combinators
+, encoding systematic morphosyntactic transformations in the same way typed λ-calculus encodes rules for application, abstraction, and type transformation.
+So the
+Arabic script itself
+becomes the
+syntax
+of the calculus, and the
+morphological rules of Arabic
+(root-and-pattern derivation, vowelization, affixation) become the
+semantics
+of function application and type construction.
+2. Syntax Layer
+Glyphs
+= atomic operators. Each Arabic letter corresponds to a primitive symbol in the calculus.
+Root patterns
+= λ-abstractions. The triconsonantal root template (f-'-l) provides placeholders (like variables) into which vowel or morphological operators are applied.
+Vowels/Diacritics
+= typed applications. A kasra/fatha/damma is not just phonetic but encodes a different typing context (like currying a function into different semantic domains).
+Word formation
+= β-reduction. A fully vocalized word is the "evaluated" form of a root-function.
+3. Semantics Layer
+Typed λ-calculus analogy
+:
+Variables: consonants (slots to be filled).
+Abstraction: root patterns (general templates).
+Application: vowel markers / affixes.
+Types: morphological categories (verb, noun, participle, etc.).
+Reduction rules
+mirror Arabic grammar:
+Application of a pattern yields a specific inflected or derived word.
+Functional composition corresponds to chaining measures or adding affixes.
+4. Operator / Functional Mapping
+Operators
+: Each diacritic or morphological transformation is an operator in the functional sense.
+Functions
+: Consonantal skeletons are functions waiting for operators to be applied.
+Assemblers
+: Complex words emerge as assembled outputs, much like assembly code emerges from mnemonic + operand mapping.
+5. Why "Assembler"?
+Like a low-level assembler, the system:
+Works directly with glyph-level primitives.
+Uses strict syntax rules (Arabic orthography).
+Assembles them into higher-order constructs (words, meanings, executable programs).
+It is "typed" because the morpho-semantic system of Arabic naturally enforces strong type rules: not all measures apply to all roots, and not all diacritics yield permissible forms.
+If you like, I can help you
+formalize this into a concrete typed λ-calculus specification
+, e.g.:
+Alphabet Σ = {Arabic consonants + diacritics}.
+Grammar G = production rules mapping glyph sequences to typed λ-terms.
+Semantics: interpretation function ⟦·⟧ mapping Arabic forms into functional programs.
+Would you like me to
+write this out in formal BNF + typing rules
+(like a draft of your "Syntax/Semantics rules" section), so you have a precise LaTeX-specification for the Arabic Assembler?
+You said:
+Sure
+ChatGPT said:
+Thought for 7s
+Great—here's a compact, LaTeX-ready specification for
+A — Arabic Assembler: a typed λ-calculus over Arabic script
+. It includes: (i) tokens & lexical layer, (ii) concrete→abstract syntax (BNF), (iii) kinds, types, and typing rules, (iv) operational semantics, and (v) worked examples (root
+ف-ع-ل
+). You can drop this into a paper's "Syntax/Semantics Rules" section.
+latex
+Copy code
+\section
+{Arabic Assembler: Syntax and Semantics}
+\subsection
+{Preliminaries and Alphabets}
+\paragraph
+{Glyph Alphabet.}
+Let
+$
+\Sigma
+_
+{
+\text
+{cons}}
+$
+be the set of base Arabic consonant glyphs
+\[
+\Sigma
+_
+{
+\text
+{cons}}=
+\{
+\text
+{ء, ا, ب, ت, ث, ج, ح, خ, د, ذ, ر, ز, س, ش, ص, ض, ط, ظ, ع, غ, ف, ق, ك, ل, م, ن, هـ, و, ي}
+\}
+.
+\]
+Let the diacritic set be
+\[
+\Sigma
+_
+{
+\text
+{dia}}=
+\{
+\text
+{َ}~(
+\text
+{fatha}),~
+\text
+{ِ}~(
+\text
+{kasra}),~
+\text
+{ُ}~(
+\text
+{damma}),~
+\text
+{ْ}~(
+\text
+{sukūn}),~
+\text
+{ ّ }~(
+\text
+{shadda})
+\}
+.
+\]
+Optionally, a set of templatic marks
+$
+\Sigma
+_
+{
+\text
+{tpl}}
+$
+designates canonical
+\emph
+{measures} (وزن) such as Form I-X.
+\paragraph
+{Lexical Items.}
+A
+\emph
+{root} is a finite nonempty sequence of consonant glyphs:
+\[
+\rho
+\in
+\Sigma
+_
+{
+\text
+{cons}}
+^
+{+}
+\quad
+\text
+{(typically tri-consonantal)}.
+\]
+A
+\emph
+{pattern}
+$
+P
+$
+is an element of a finite basis
+$
+\mathcal
+{P}
+$
+encoding a measure (e.g., Form~I, II, ...), possibly with vocalization and gemination slots.
+\subsection
+{Abstract Syntax (BNF)}
+
+We present the internal calculus as a typed λ-calculus with a
+\emph
+{templatic application} constructor. Terms
+$
+t
+$
+and types
+$
+A
+$
+:
+\[
+\begin
+{array}{lcl}
+\textbf
+{Kinds}~
+\kappa
+&
+::=
+&
+\Type
+\mid
+\Root
+\Rightarrow
+\Type
+\mid
+\Kind
+\Rightarrow
+\Kind
+\\
+\\
+\textbf
+{Types}~A,B
+&
+::=
+&
+\Base
+~
+\mid
+~
+\Verb
+~
+\mid
+~
+\Noun
+~
+\mid
+~
+\Partic
+~
+\mid
+~ A
+\to
+B ~
+\mid
+~
+\Pi
+x{:}A.
+\,
+B
+\\
+&
+&
+\mid
+~
+\Root
+~
+\mid
+~
+\Pattern
+~
+\mid
+~
+\Morph
+~
+\mid
+~
+\Templ
+~
+\mid
+~ A
+\times
+B
+\\
+\\
+\textbf
+{Terms}~t,u
+&
+::=
+&
+x ~
+\mid
+~
+\lambda
+x{:}A.
+\,
+t ~
+\mid
+~ t
+\,
+u ~
+\mid
+~
+\Lambda
+X{:}
+\kappa
+.
+\,
+t ~
+\mid
+~ t[A]
+\\
+&
+&
+\mid
+~
+\textsf
+{root}(
+\rho
+) ~
+\mid
+~
+\textsf
+{pat}(P) ~
+\mid
+~
+\textsf
+{apply}(P,
+\rho
+)
+\\
+&
+&
+\mid
+~
+\textsf
+{dia}(
+\delta
+) ~
+\mid
+~
+\textsf
+{vocalize}(t,
+\delta
+) ~
+\mid
+~
+\textsf
+{geminate}(t)
+\\
+&
+&
+\mid
+~
+\textsf
+{templ}(P) ~
+\mid
+~
+\textsf
+{assemble}(P,
+\rho
+,
+\overline
+{
+\delta
+})
+\\
+\\
+\textbf
+{Diacritics}~
+\delta
+&
+::=
+&
+\fatha
+\mid
+\kasra
+\mid
+\damma
+\mid
+\sukun
+\mid
+\shadda
+\\
+\\
+\textbf
+{Patterns}~P
+&
+::=
+&
+\FormI
+\mid
+\FormII
+\mid
+\cdots
+\mid
+\FormX
+\mid
+\cdots
+\\
+\end
+{array}
+\]
+Intuitively,
+\begin
+{itemize}
+\item
+$
+\textsf
+{root}(
+\rho
+)
+$
+is a
+\emph
+{typed operator} awaiting a pattern (measure) and vowels;
+\item
+$
+\textsf
+{pat}(P)
+$
+is a higher-order
+\emph
+{combinator} implementing a measure;
+\item
+$
+\textsf
+{apply}(P,
+\rho
+)
+$
+aligns
+$
+\rho
+$
+with
+$
+P
+$
+(consonant skeleton placement);
+\item
+$
+\textsf
+{vocalize}(
+\cdot
+,
+\delta
+)
+$
+and
+$
+\textsf
+{geminate}(
+\cdot
+)
+$
+refine the assembly according to diacritic operators;
+\item
+$
+\textsf
+{assemble}(P,
+\rho
+,
+\overline
+{
+\delta
+})
+$
+is a convenience macro expanding to a sequence of
+$
+\textsf
+{apply}
+$
+/
+$
+\textsf
+{vocalize}
+$
+/
+$
+\textsf
+{geminate}
+$
+steps determined by
+$
+P
+$
+.
+\end
+{itemize}
+\subsection
+{Static Semantics}
+\paragraph
+{Contexts.} Variable contexts
+$
+\Gamma
+$
+range over term and type variables. We assume primitive base types
+$
+\Base
+$
+(domain-specific), and morphological universes:
+\[
+\Root
+:
+\Type
+,
+\quad
+\Pattern
+:
+\Type
+,
+\quad
+\Morph
+:
+\Type
+,
+\quad
+\Templ
+:
+\Type
+.
+\]
+\paragraph
+{Well-formedness.}
+\[
+\infer
+{
+\Gamma
+\vdash
+\textsf
+{root}(
+\rho
+):
+\Root
+}{
+\rho
+\in
+\Sigma
+_
+{
+\mathrm
+{cons}}
+^
+{+}}
+\qquad
+\infer
+{
+\Gamma
+\vdash
+\textsf
+{pat}(P):
+\Pattern
+}{P
+\in
+\mathcal
+{P}}
+\qquad
+\infer
+{
+\Gamma
+\vdash
+\delta
+:
+\Morph
+}{
+\delta
+\in
+\Sigma
+_
+{
+\mathrm
+{dia}}}
+\]
+\paragraph
+{Typing of Measures as Functions.}
+Each
+$
+P
+\in
+\mathcal
+{P}
+$
+determines a (possibly dependent) type:
+\[
+\infer
+{
+\Gamma
+\vdash
+\textsf
+{pat}(P):
+\Root
+\to
+\Templ
+}{
+  P
+\in
+\mathcal
+{P}
+}
+\qquad
+\infer
+{
+\Gamma
+\vdash
+\textsf
+{apply}(P,
+\rho
+):
+\Templ
+}{
+\Gamma
+\vdash
+\textsf
+{pat}(P):
+\Root
+\to
+\Templ
+&
+\Gamma
+\vdash
+\textsf
+{root}(
+\rho
+):
+\Root
+}
+\]
+\paragraph
+{Diacritic Operators as Type-Refining Morphisms.}
+We internalize diacritics as morphisms from templates to lexeme types:
+\[
+\infer
+{
+\Gamma
+\vdash
+\textsf
+{vocalize}(t,
+\delta
+):A}{
+\Gamma
+\vdash
+t:
+\Templ
+&
+\Gamma
+\vdash
+\delta
+:
+\Morph
+&
+\Phi
+_
+{
+\text
+{voc}}(t,
+\delta
+)=A
+}
+\]
+where
+$
+\Phi
+_
+{
+\text
+{voc}}
+$
+is a (total) type assignment function that maps a (partially) assembled template plus a diacritic to a linguistic category (e.g.,
+$
+\Verb
+$
+in perfective/indicative, or
+$
+\Noun
+$
+for a deverbal). Gemination is similar:
+\[
+\infer
+{
+\Gamma
+\vdash
+\textsf
+{geminate}(t):
+\Templ
+}{
+\Gamma
+\vdash
+t:
+\Templ
+}
+\]
+\paragraph
+{End-to-End Assembly.}
+\[
+\infer
+{
+\Gamma
+\vdash
+\textsf
+{assemble}(P,
+\rho
+,
+\overline
+{
+\delta
+}):A}{
+\Gamma
+\vdash
+\textsf
+{apply}(P,
+\rho
+):
+\Templ
+&
+\Gamma
+\vdash
+\overline
+{
+\delta
+}:
+\Morph
+^
+{*}
+&
+\Phi
+_
+{
+\text
+{asm}}(P,
+\rho
+,
+\overline
+{
+\delta
+})=A
+}
+\]
+$
+\Phi
+_
+{
+\text
+{asm}}
+$
+encodes per-measure well-typedness constraints (not all diacritic sequences are admissible for all
+$
+P
+$
+) and yields a final category
+$
+A
+$
+.
+\paragraph
+{Embedding into λ-Terms.}
+We interpret assembled lexemes as typed λ-terms via an interpretation
+$
+\llbracket
+\cdot
+\rrbracket
+$
+:
+\[
+\infer
+{
+\Gamma
+\vdash
+\llbracket
+\textsf
+{assemble}(P,
+\rho
+,
+\overline
+{
+\delta
+})
+\rrbracket
+:
+\tau
+(P,
+\rho
+,
+\overline
+{
+\delta
+})}{
+\Gamma
+\vdash
+\textsf
+{assemble}(P,
+\rho
+,
+\overline
+{
+\delta
+}) : A
+&
+\Theta
+(A)=
+\tau
+(P,
+\rho
+,
+\overline
+{
+\delta
+})
+}
+\]
+Here
+$
+\Theta
+$
+maps linguistic categories
+$
+A
+$
+to object-level types (e.g.,
+$
+\Verb
+\mapsto
+\sigma
+\to
+\sigma
+$
+for event transformers,
+$
+\Noun
+\mapsto
+\iota
+$
+for individuals, or richer ontology as needed). This lets Arabic morphology
+\emph
+{determine} λ-types.
+\subsection
+{Operational Semantics}
+
+We use call-by-value β-reduction for λ-constructs and a small-step templatic evaluator for assembly.
+\paragraph
+{λ-Core.}
+\[
+(
+\lambda
+x{:}A.
+\,
+t)
+\,
+v
+\;
+\longrightarrow
+_
+\beta
+\;
+t[x:=v]
+\qquad
+t
+\longrightarrow
+t'
+\Rightarrow
+t
+\,
+u
+\longrightarrow
+t'
+\,
+u
+\qquad
+t
+\longrightarrow
+t'
+\Rightarrow
+\lambda
+x{:}A.
+\,
+t
+\longrightarrow
+\lambda
+x{:}A.
+\,
+t'
+\]
+\paragraph
+{Templatic Reduction.}
+\[
+\textsf
+{apply}(P,
+\rho
+)
+\longrightarrow
+\textsf
+{templ}(P
+\cdot
+\rho
+)
+\]
+\[
+\textsf
+{vocalize}(
+\textsf
+{templ}(T),
+\delta
+)
+\longrightarrow
+\textsf
+{templ}(T
+\triangleright
+\delta
+)
+\qquad
+\textsf
+{geminate}(
+\textsf
+{templ}(T))
+\longrightarrow
+\textsf
+{templ}(
+\text
+{gem}(T))
+\]
+\[
+\textsf
+{assemble}(P,
+\rho
+,
+\delta
+_
+1
+\cdots
+\delta
+_
+n)
+\Longrightarrow
+\textsf
+{templ}(T
+^
+\star
+)
+\]
+where
+$
+T
+^
+\star
+$
+is the normal form obtained by sequentially applying the measure's determinization procedure (slot alignment, optional shadda insertion, and per-slot vocalization). If
+$
+\Phi
+_
+{
+\text
+{asm}}
+$
+rejects a sequence, evaluation
+\emph
+{stuck} states are ruled out at the type level (progress).
+\subsection
+{Measure Library (Sketch)}
+
+For concreteness, we give the first three verbal measures as higher-order combinators over roots
+$
+\rho
+=c
+_
+1 c
+_
+2 c
+_
+3
+$
+:
+\[
+\begin
+{array}{ll}
+\FormI
+&
+:
+\rho
+\mapsto
+\textsf
+{templ}
+\big
+(c
+_
+1~c
+_
+2~c
+_
+3
+\big
+)
+\\
+\FormII
+&
+:
+\rho
+\mapsto
+\textsf
+{templ}
+\big
+(c
+_
+1~
+\shadda
+(c
+_
+2)~c
+_
+3
+\big
+)
+\\
+\FormIII
+&
+:
+\rho
+\mapsto
+\textsf
+{templ}
+\big
+(c
+_
+1~
+\text
+{ā}~c
+_
+2~c
+_
+3
+\big
+)
+\\
+\end
+{array}
+\]
+Each
+$
+\FormK
+$
+carries a slot specification
+$
+\mathcal
+{S}
+_
+K
+$
+with vocalization policy; e.g., for perfective active, Form~I commonly admits /a-a/ on
+$
+c
+_
+1,c
+_
+2
+$
+and default suffixing.
+\subsection
+{Safety (Metatheory, Outline)}
+\begin
+{theorem}[Preservation]
+If
+$
+\Gamma
+\vdash
+t:A
+$
+and
+$
+t
+\longrightarrow
+t'
+$
+, then
+$
+\Gamma
+\vdash
+t':A
+$
+.
+\end
+{theorem}
+\begin
+{theorem}[Progress]
+If
+$
+\emptyset
+\vdash
+t:A
+$
+, then either
+$
+t
+$
+is a value or there exists
+$
+t'
+$
+with
+$
+t
+\longrightarrow
+t'
+$
+.
+\end
+{theorem}
+
+Proofs proceed by standard induction on typing derivations; the only nonstandard cases are the templatic rules, which rely on totality/compatibility of
+$
+\Phi
+_
+{
+\text
+{voc}}
+$
+and
+$
+\Phi
+_
+{
+\text
+{asm}}
+$
+with the per-measure slot policies
+$
+\mathcal
+{S}
+_
+K
+$
+.
+\subsection
+{Worked Examples (Root
+\texorpdfstring
+{
+$
+\rho
+=
+\text
+{ف-ع-ل}
+$
+}{f-ʿ-l})}
+\paragraph
+{Form I, perfective active (faʿala).}
+\[
+\begin
+{aligned}
+&
+\textsf
+{assemble}(
+\FormI
+,
+\textsf
+{root}(
+\text
+{فعل}),
+\;
+\overline
+{
+\delta
+}=
+\langle
+\fatha
+,
+\fatha
+,
+\sukun
+\rangle
+)
+\\
+&
+\Longrightarrow
+\textsf
+{templ}
+\big
+(
+\text
+{فَ}
+\,
+\text
+{عَ}
+\,
+\text
+{لْ}
+\big
+)
+\\
+&
+\llbracket
+\cdot
+\rrbracket
+:
+\Verb
+_
+{
+\mathrm
+{perf,act}}
+\cong
+\sigma
+\to
+\sigma
+\end
+{aligned}
+\]
+\paragraph
+{Form II, causative/intensive (faʿʿala).}
+\[
+\begin
+{aligned}
+&
+\textsf
+{assemble}(
+\FormII
+,
+\textsf
+{root}(
+\text
+{فعل}),
+\;
+\overline
+{
+\delta
+}=
+\langle
+\fatha
+,
+\fatha
+,
+\sukun
+\rangle
+)
+\\
+&
+\Longrightarrow
+\textsf
+{templ}
+\big
+(
+\text
+{فَ}
+\,
+\text
+{عّ}
+\,
+\text
+{لَ}
+\big
+)
+\\
+&
+\llbracket
+\cdot
+\rrbracket
+:
+\Verb
+_
+{
+\mathrm
+{caus/int}}
+\cong
+(
+\sigma
+\to
+\sigma
+)
+\to
+(
+\sigma
+\to
+\sigma
+)
+\end
+{aligned}
+\]
+\paragraph
+{Form III, associative (fāʿala).}
+\[
+\begin
+{aligned}
+&
+\textsf
+{assemble}(
+\FormIII
+,
+\textsf
+{root}(
+\text
+{فعل}),
+\;
+\overline
+{
+\delta
+}=
+\langle
+\text
+{ā},
+\fatha
+,
+\sukun
+\rangle
+)
+\\
+&
+\Longrightarrow
+\textsf
+{templ}
+\big
+(
+\text
+{فَا}
+\,
+\text
+{عَ}
+\,
+\text
+{لَ}
+\big
+)
+\\
+&
+\llbracket
+\cdot
+\rrbracket
+:
+\Verb
+_
+{
+\mathrm
+{assoc}}
+\cong
+\sigma
+\to
+\sigma
+\end
+{aligned}
+\]
+\paragraph
+{Nominalizations.}
+Given a nominal pattern
+$
+P
+_
+{
+\mathrm
+{masdar}}
+$
+with policy
+$
+\mathcal
+{S}
+_
+{
+\mathrm
+{mas}}
+$
+:
+\[
+\textsf
+{assemble}(P
+_
+{
+\mathrm
+{masdar}},
+\textsf
+{root}(
+\text
+{فعل}),
+\overline
+{
+\delta
+}
+_
+{
+\mathrm
+{mas}}) :
+\Noun
+\quad
+\text
+{and}
+\quad
+\Theta
+(
+\Noun
+)=
+\iota
+.
+\]
+\subsection
+{Programmatic Use (Combinators over Assembled Forms)}
+
+Once assembled, lexemes can serve as λ-level functions. Example: a derived Form~II verb acting as an
+\emph
+{intensifier} on event transformers:
+\[
+\begin
+{aligned}
+&
+\textsf
+{let}~
+\textsf
+{do} =
+\llbracket
+\textsf
+{assemble}(
+\FormI
+,
+\textsf
+{root}(
+\text
+{فعل}),
+\overline
+{
+\delta
+}
+_
+{I})
+\rrbracket
+:
+\sigma
+\to
+\sigma
+\\
+&
+\textsf
+{let}~
+\textsf
+{intensify} =
+\llbracket
+\textsf
+{assemble}(
+\FormII
+,
+\textsf
+{root}(
+\text
+{فعل}),
+\overline
+{
+\delta
+}
+_
+{II})
+\rrbracket
+: (
+\sigma
+\to
+\sigma
+)
+\to
+(
+\sigma
+\to
+\sigma
+)
+\\
+&
+\textsf
+{in}~
+\textsf
+{intensify}~
+\textsf
+{do} :
+\sigma
+\to
+\sigma
+\end
+{aligned}
+\]
+\subsection
+{Determinization Policies (Sketch for
+\texorpdfstring
+{
+$
+\Phi
+$
+}{Phi})}
+
+Each pattern
+$
+P
+$
+ships with a slot policy
+$
+\mathcal
+{S}
+_
+P
+$
+:
+\[
+\mathcal
+{S}
+_
+P =
+\big
+\langle
+\text
+{skeleton},~
+\text
+{shadda
+\_
+positions},~
+\text
+{vowel
+\_
+slots},~
+\text
+{admissible
+\_
+sequences}(
+\overline
+{
+\delta
+}),~
+\text
+{category
+\_
+map}
+\big
+\rangle
+.
+\]
+Then
+\[
+\Phi
+_
+{
+\text
+{asm}}(P,
+\rho
+,
+\overline
+{
+\delta
+}) =
+\begin
+{cases}
+A
+&
+\text
+{if }
+\overline
+{
+\delta
+}
+\in
+\text
+{admissible
+\_
+sequences}
+\land
+\text
+{category
+\_
+map returns } A
+\\
+\text
+{undefined}
+&
+\text
+{otherwise}
+\end
+{cases}
+\]
+and
+$
+\Phi
+_
+{
+\text
+{voc}}
+$
+is the stepwise version of the same policy.
+\subsection
+{Design Notes}
+\begin
+{itemize}
+\item
+\textbf
+{Types as morpho-semantics.} Categories such as
+\Verb
+,
+\Noun
+,
+\Partic
+act as first-class types;
+$
+\Theta
+$
+embeds them into the host λ-ontology.
+\item
+\textbf
+{Soundness.} Rejecting inadmissible
+$
+\overline
+{
+\delta
+}
+$
+at type-checking time ensures progress (no stuck assemblies).
+\item
+\textbf
+{Extensibility.} New measures (Forms XI+, noun patterns, broken plurals) extend
+$
+\mathcal
+{P}
+$
+and
+$
+\Phi
+$
+without changing the λ-core.
+\item
+\textbf
+{Orthography vs. Semantics.} The templatic layer is purely operational; interpretation
+$
+\llbracket
+\cdot
+\rrbracket
+$
+decouples orthographic assembly from computational meaning.
+\end
+{itemize}
+Minimal "How to Implement" Notes (optional)
+Encode each
+Form
+P
+P
+P
+as a record carrying its slot policy
+S
+P
+\mathcal{S}_P
+S
+P
+​
+.
+Implement
+assemble
+\textsf{assemble}
+assemble
+as a deterministic transducer:
+(
+P
+,
+ρ
+,
+δ
+‾
+)
+↦
+T
+⋆
+(P,\rho,\overline{\delta}) \mapsto T^\star
+(
+P
+,
+ρ
+,
+δ
+)
+↦
+T
+⋆
+or type error.
+Provide a small
+Θ
+\Theta
+Θ
+library mapping \Verb/\Noun/\Partic (with aspect/voice features if desired) to λ-types in your host semantics.
+If you want, I can add (a) a concrete
+S
+P
+\mathcal{S}_P
+S
+P
+​
+table for Forms I-X (perfective/imperfective/active/passive), (b) feature-rich types (voice, aspect, number, case) via dependent records, or (c) a full inference algorithm sketch for $\Phi_{\text{asm}}$ and $\Phi_{\text{voc}}$.
+ChatGPT can make mistakes. Check important info. See
+Cookie Preferences
+.
