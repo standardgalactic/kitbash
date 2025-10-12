@@ -1,0 +1,1744 @@
+Computational Life: How Well-formed,
+Self-replicating Programs Emerge from Simple
+Interaction
+Blaise Agüera y Arcas†
+Jyrki Alakuijala†
+James Evans‡
+Ben Laurie†
+Alexander Mordvintsev†
+Eyvind Niklasson†
+Ettore Randazzo†
+Luca Versari†
+†Google, Paradigms of Intelligence Team and ‡The University of Chicago
+{blaisea, jyrki, benl, moralex, eyvind, etr, veluca}@google.com
+jevans@uchicago.edu
+Abstract
+The fields of Origin of Life and Artificial Life both question what life is and how it emerges
+from a distinct set of "pre-life" dynamics. One common feature of most substrates where life
+emerges is a marked shift in dynamics when self-replication appears. While there are some
+hypotheses regarding how self-replicators arose in nature, we know very little about the general
+dynamics, computational principles, and necessary conditions for self-replicators to emerge.
+This is especially true on "computational substrates" where interactions involve logical,
+mathematical, or programming rules. In this paper we take a step towards understanding
+how self-replicators arise by studying several computational substrates based on various
+simple programming languages and machine instruction sets. We show that when random,
+non self-replicating programs are placed in an environment lacking any explicit fitness
+landscape, self-replicators tend to arise. We demonstrate how this occurs due to random
+interactions and self-modification, and can happen with and without background random
+mutations. We also show how increasingly complex dynamics continue to emerge following
+the rise of self-replicators. Finally, we show a counterexample of a minimalistic programming
+language where self-replicators are possible, but so far have not been observed to arise.
+Keywords Origins of Life · Artificial Life · Self-replication
+1
+Introduction
+The field of Origins of Life (OoL) has debated the definition of life and the requirements and mechanisms
+for life to emerge since its inception [1]. Different theories assign varying importance to the phenomena
+associated with living systems. Some consider the emergence of RNA as the major turning point [2], while
+others focus on metabolism or chemical networks with autocatalytic properties [3, 4]. The question of what
+defines life and how it can emerge becomes necessarily more complex if we shift focus from "life as it is" to
+"life as it could be", the central question for the Artificial Life (ALife) community [5]. While searching for a
+general definition of life, we observe a major change in dynamics coincident with the rise of self-replicators,
+which seems to apply regardless of substrate. Hence, we may use the appearance of self-replicators as a
+reasonable transition to distinguish pre-life from life dynamics [6].
+Many systems involve self-replication. RNA [7], DNA, and associated polymerases are commonly accepted
+self-replicators. Autocatalytic networks are also widely considered self-replicators [8]. Self-replicators are also
+widespread in computer simulations by design. Most ALife experiments agents have predetermined methods
+of self-replication, but several experiments have also studied the dynamics of lower level and spontaneous self-
+arXiv:2406.19108v2  [cs.NE]  2 Aug 2024
+
+Agüera y Arcas et al.
+replication. Famously, Cellular Automata (CA) were created to study self-replication and self-reproduction [9].
+Self-replicating loops with CA have been extensively studied [10, 11, 12]. A recent extension of CA, Neural
+CA [13], can be trained to self-replicate patterns that robustly maintain interesting variation [14]. Particle
+systems with suitable dynamical laws can also demonstrate self-replicating behaviors [15]. Neural networks
+can be trained to output their own weights while performing auxiliary tasks [16] and they can be trained to
+self-reproduce with meaningful variation in offspring [17]. Finally, self-replicators can exist on computational
+substrates in the form of explicit programs that copy themselves, as in an assembly-like programming
+language [18, 19], or a LISP-based environment [20], but this area of inquiry remains underexplored, and is
+the focus of this paper.
+Much research on OoL and ALife focuses on the life period when self-replicators are already abundant. A
+central question during this period is: How do variation and complexity arise from simple self-replicators?
+Analyses often take the form of mathematical models and simulations [21]. In ALife, researchers often focus
+on selection for complex behaviors [22], which may include interactions with other agents [23]. Simulations
+may include tens of thousands of parameters and complex virtual ecosystems [24], but they can rarely
+modify the means of self-replication beyond adapting the mutation rate. The two most notable exceptions
+use assembly-like languages as computational substrate. In Tierra [18], simple assembly programs have
+no goals but are given time to execute their program and access and modify nearby memory. This causes
+them to self-replicate and manifest limited but interesting dynamics, including the rise of "parasites" that
+feed off other self-replicators. Avida [19] functions similarly: assembly-like programs are left running their
+code for a limited time. They can also self-replicate, this time by allocating new memory, writing their
+program in the new space, and then splitting. Avida adds a concept of fitness, since performing auxiliary
+computation increases a replicator's allotted execution time. Notably, both Tierra and Avida are seeded with
+a hand-crafted self-replicator, called the "ancestor". This puts them squarely into "life" dynamics, but still
+allows for modification of the self-replication mechanism.
+But how does life begin? How do we get from a pre-life period devoid of self-replicators to one abundant
+with them? We know that several systems, initialized with randomly interacting primitives, can give rise
+to complex dynamics that result in selection under pre-life conditions [6]. The OoL field has extensively
+studied autocatalysis, chemical reactions where one of the reaction products is also a catalyst for the same
+reaction, as well as autocatalytic networks (or sets), groups of chemicals that form a closed loop of catalytic
+reactions [25]. Autocatalysis appears fundamental to the emergence of life in the biological world. Moreover,
+autocatalytic networks arise inevitably with sufficiently distinctive catalysts in the prebiotic "soup" [26].
+These have also been simulated in computational experiments [8, 27, 20, 28, 29, 30].
+Fontana [20], for example, simulates the emergence of autocatalytic networks on the computational substrate
+of the lambda calculus using LISP programs (or functions). Each element is a function that takes another
+function as input and outputs a new function. Thus, a graph of interactions can be constructed which, on
+occasion, gives rise to autocatalytic networks. Fontana also performed a "Turing gas" simulation, where a
+fixed number of programs randomly interact using the following ordered rule:
+f + g −→f + g + f(g)
+(1)
+Where f and g are some legal lambda calculus functions. To conserve a fixed number of programs, one of the
+three right-hand side programs was eliminated using rule-based criteria. Aside from autocatalytic networks,
+a very simple solution involves the emergence of an identity function i, yielding:
+i + i −→3i
+(2)
+This program has strong fitness, and it was often observed that the entire gas converges to the identity. This
+can be considered a trivial replicator, which in some experiments is explicitly disallowed by constraint.
+In [28], the authors use combinatorial logic to create an "artificial chemistry" founded upon basic building
+blocks. Their system preserves "mass" (operations neither create nor destroy building blocks) and results in
+simple autocatalytic behaviors, ever-growing structures, and periods of transient self-replicator emergence.
+While lambda calculus and combinatorial logic are related to programming languages in general, they represent
+distinct computational substrates. For example, creating RNA-like structures that can self-replicate arbitrary
+payloads may involve different approaches, depending on the substrate. Biology is steadily furthering insights
+regarding the conditions under which complex replicators such as RNA and DNA could have arisen and
+under which conditions. This question is underexplored for the general case, especially on computational
+substrates. Given recent advances in Artificial Intelligence, computational substrates could very well form
+the foundation for new forms of life and complex, evolving behavior.
+In this paper we focus on computational substrates formed atop various programming languages. Here we
+highlight some of the most relevant previous investigations of the pre-life period on such substrates [29, 30, 31].
+2
+
+Agüera y Arcas et al.
+In all of these investigations, and in ours as well, there is no explicit fitness function that drives complexification
+or self-replicators to arise. Nevertheless, complex dynamics happen due to the implicit competition for scarce
+resources (space, execution time, and sometimes energy).
+In Coreworld [29, 30], the authors explore the substrate of programming languages with multiple programs
+executed in parallel and sharing the instruction (and data) tape. Programs consume a locally shared resource
+(energy) for executing each operation. The authors perform different runs where they observe complex
+dynamical systems resembling the pre-life period hypothesized in biology and observed in our experiments
+as well. In Coreworld, large structures appear alongside inescapable self-loops. Some simple self-replicators
+of two instructions (MOV-SPL) often take over. Interestingly, when the authors seed the environment with a
+functioning (more complex) self-replicator, self-replicators do not take over and eventually random mutations
+caused by their copy mechanism make them go extinct.
+In [31], the author observes and quantifies the likelihood of self-replicators to arise with a given environment
+and programming language. The rise of self-replicators in this environment is however due to either random
+initialization or to random mutations of imperfect self-replicators (whom appearance is in turn due to random
+initialization).
+While the generation of self-replicators can indeed happen due to random initialization or solely due to
+mutations, in this paper we show that, for the majority of the configurations we explore, self-replicators
+arise mainly (or sometimes solely) due to self-modification. We show that initialising random programs in a
+variety of environments, all lacking an explicit fitness landscape, nevertheless give rise to self-replicators. We
+observe that self-replicators arise mostly due to self-modification and this can happen both with and without
+background random mutation. We primarily investigate extensions to the "Brainfuck" language [32, 33],
+an esoteric language chosen for its simplicity, and show how self-replicators arise in a variety of related
+systems. We show experiments undertaken on an isolated system variant of the Turing gas in Fontana [20],
+which we informally call "primordial soup". We then show how spatial extensions to the primordial soup
+cause self-replicators to arise with more interesting behaviors such as competition for space between different
+self-replicators. We also show how similar results are accomplished by extending the "Forth" [34] programming
+language in different ways and in varying environments, as well as with real world instruction set of a Zilog Z80
+8-bit microprocessor [35] emulator and with the Intel 8080 instruction set. Finally, we show a counterexample
+programming language, SUBLEQ [36], where we do not observe this transition from pre-life to life. We note
+that the shortest length of hand-crafted self-replicators in SUBLEQ-like substrates is significantly larger than
+what is observed in previous substrates.
+2
+BFF: Extending Brainfuck
+Brainfuck (BF) is an esoteric programming language widely known for its obscure minimalism. The original
+language consists of only eight basic commands, one data pointer, one instruction pointer, an input stream,
+and an output stream. Notably, the only mathematical operations are "add one" and "subtract one", making
+it onerous for humans to program with this language. We extend BF to operate in a self-contained universe
+where the data and instruction tapes are the same and programs modify themselves. We do so by replacing
+input and output streams with operations to copy from one head to another. The instruction pointer, the
+read and the write heads (head0 and head1) all operate on the same tape (stored as one byte per pointer
+position, and initialized to zero). The instruction pointer starts at zero and reads the instruction at that
+position. Every instruction not listed below is a no-operation. The complete instruction set is as follows:
+<
+head0 = head0 - 1
+>
+head0 = head0 + 1
+{
+head1 = head1 - 1
+}
+head1 = head1 + 1
+-
+tape[head0] = tape[head0] - 1
++
+tape[head0] = tape[head0] + 1
+.
+tape[head1] = tape[head0]
+,
+tape[head0] = tape[head1]
+[
+if (tape[head0] == 0): jump forwards to matching ] command.
+]
+if (tape[head0] != 0): jump backwards to matching [ command.
+Parenthesis matching follows the usual rules, allowing nesting. If no matching parenthesis is found, the
+program terminates. The program also terminates after a fixed number of characters being read (213). Note
+3
+
+Agüera y Arcas et al.
+that since instructions and data sit in the same place, they are encoded with a single byte. Therefore, out
+of the 256 possible characters, only 10 are valid instructions and 1 corresponds to the true "zero" used to
+exit loops. Any remaining values can be used to store data. By having neither input nor output streams,
+program strings can only interact with one another. None of our experiments will have any explicit fitness
+functions and programs will simply be left to execute code and overwrite themselves and neighbors based on
+their own instructions. As we will show, this is enough for self-replicators to emerge. Since the majority of
+investigations from this paper will be performed on a family of extended BF languages, we give this family of
+extensions the acronym "BFF".
+2.1
+Primordial soup simulations
+The main kind of simulations we will use in this paper are a variant of the Turing gas from Fontana [20]. In this
+gas, a large number of programs (usually 217) form a "primordial soup". Each program consists of 64 1-byte
+characters which are randomly initialized from a uniform distribution. In these simulations, no new programs
+are generated or removed - change only occurs through self-modification or random background mutations. In
+each epoch, programs interact with one another by selecting random ordered pairs, concatenating them and
+executing the resulting code for a fixed number of steps or until the program ends. Because our programming
+languages read and write on the same tape, which is the program itself, these executions generally modify both
+initial programs. At the end, the programs are separated and returned to the soup for future consideration.
+We can interpret the interaction between any two programs (A and B) as an irreversible chemical reaction
+where order matters. This can be described as having a uniform distribution of catalysts a and b that interact
+with A and B as follows:
+A + B
+a
+−→split(exec(AB)) = A′ + B′
+(3)
+A + B
+b
+−→split(exec(BA)) = A′′ + B′′
+(4)
+Where exec runs the concatenated programs and split divides the result back into two 64 byte strings. As we
+will see, just this kind of interaction, even without background noise, is sufficient to generate self-replicators.
+In their simplest form, we can see self-replicators as immediate autocatalytic reactions of a program S and
+food F that act as follows:
+S + F
+a
+−→split(exec(SF)) = 2 · S
+(5)
+This is because the self-replicator is unaffected by the code written in the other program and it gets repurposed
+as available real estate. Note that the behavior of the catalyst b is undefined, but when the pool is full of
+self-replicators, this would result in either one of the two strings to self-replicate at random.
+While useful for understanding operationally what occurs, we acknowledge that this framing has several
+limitations. First, it fails to account for autocatalysis that takes place over more than one step, which could
+occur for autocatalytic sets. Second, a self-replicator is generally much smaller than the full 64 byte window.
+If it copied itself with a specific offset different from 64, it may still count as a functional self-replication
+but it would fail to generate a perfect self-copy. This suggests that a more complete manner of inspection
+for the behavior of self-replicators would involve observing substrings, but this is generally computationally
+intractable. We therefore will show a mixture of anecdotal evidence and graphs plotting summarizing
+complexity metrics.
+Complexity metrics
+In this paper, we introduce a novel complexity metric we call "high-order entropy".
+Theoretically, we define the high-order entropy of a length n string as the difference between (1) its Shannon
+entropy (computed over individual tokens - i.e. bytes) and (2) its "normalized" Kolmogorov complexity (i.e.
+its Kolmogorov complexity divided by n).
+Intuitively, this complexity definition is meant to capture the amount of information that can only be
+explained by relations between different characters.
+This metric shares similarities with sophistication [37, 38, 39] and effective complexity [40], because it attempts
+to "factor out" information in the string that comes from sampling i.i.d. variables. Nevertheless, we are not
+aware of methods to efficiently estimate these metrics. This led us to the construction of this new metric.
+Properties of "high-order entropy" that justify its use as a complexity metric and encode the above intuition
+include the following:
+1. Given a sequence of n i.i.d. characters, its expected high-order entropy converges to 0 as n grows to
+infinity.
+4
+
+Agüera y Arcas et al.
+0
+500
+1000
+1500
+2000
+2500
+3000
+3500
+4000
+4500
+5000
+104
+105
+106
+first replicator
+Epoch
+Element count
+0
+1
+2
+3
+4
+5
+complexity
+unique tokens
+unique (no transition)
+top32 tokens
+Figure 1: Tracer tokens and high-order entropy open a simple way to detect a state transition: we observe a
+rapid drop in the number of unique tokens, while the soup becomes dominated by a few most popular tokens.
+This is aligned with a state transition in complexity. Note that this particular state transition happened in
+two steps because of the "zero-poisoning" period (see Figure 2).
+2. Given a sequence of k i.i.d. characters with distribution D, the expected high-order entropy of the
+string formed by concatenating n copies of those characters converges to the Shannon entropy of D
+as n grows to infinity.
+These two properties, combined, ensure that random noise will have no measurable complexity (property 1),
+while a soup obtained from many copies of the same string (as might arise from one "taken over" by a
+self-replicator) will have substantial non-zero complexity.
+While "high-order entropy" has nice theoretical properties, computing it requires knowing the Kolmogorov
+complexity of a string, which remains uncomputable [41]. Moreover, insofar as in our experiments we use
+a pseudo-random number generator, the Kolmogorov complexity is by definition bounded by program size,
+which would not be the case if we were following true randomness.
+Because of these challenges, in our experiments we approximated Kolmogorov complexity with the com-
+pressed size of the string achieved by a state-of-the-art text compressor1. This follows the well-established
+practice in algorithmic information theory to use Lempel-Ziv-style compressors to approximate Kolmogorov
+complexity (i.e. [42, 43, 44]). This approximation results in a metric which is very fast to compute.
+How self-replicators emerge: a case study
+In this section we are going to zoom in and analyze the
+dynamics of the state transition in one specific BFF run. We develop tools that facilitate this sort of analysis
+and help to pin-point the individual moment and location the replicator emerges, what happened before
+and after. To do so we use a technique inspired by radioactive tracers used in biology: we attach extra
+information tokens to all soup characters. Tokens are tuples of (epoch, position, char) packed into 64-bit
+integers. Whenever we put a new character in the soup (at initialization or because of a mutation), we create
+a new unique token. Copy operations . and , copy corresponding character tokens and displace tokens of
+overwritten characters. + and - operations only affect the char part of the token, so the token origin can be
+traced after a balanced number of increments and decrements.
+The investigated simulation has a soup of 217 tapes of 64 characters, which gives 223 = 8M unique tokens
+at initialization. Token analysis also opens a simple way to detect a state transition (Figure 1). Without a
+state transition, the number of unique tokens in the soup gradually decreases until it stabilizes at around 3M
+unique tokens, when mutations and accidental replications counterbalance each other (Figure 1, black line).
+1More precisely, the size achieved by compressing the string using the brotli -q2 command that draws upon
+brotli v1.1.0.
+5
+
+Agüera y Arcas et al.
+The state transition causes a sudden drop in the number of unique tokens and the soup becomes dominated
+by a few token ids. We observe that the token and complexity state transitions are perfectly aligned. This
+further corroborates the usefulness of using high-order entropy to detect the rise of self-replicators.
+Tracing the origin of these tokens allowed us to exactly pinpoint the epoch and the tape whence the first
+replicator emerge. Figure 2 gives a detailed overview and explanation of the observed dynamics and Figure 3
+highlights the precise events that cause the original self-replicator to arise.
+Example self-replicator
+To show what happens during the execution of a self-replicator concatenated
+with another program, we extracted one self-replicator that appeared in our runs and sanitized it by clustering
+coding characters together and converting all non-coding characters to spaces. This operation does not
+change the behavior of a self-replicator. Then, we concatenated this program with a string full of zero-value
+bytes (this choice is arbitrary because the self-replicator ignores that context). Finally, we executed the
+concatenated program as shown in Figure 4.
+The green rectangle is the instruction pointer, while the blue and red rectangles are read and write heads,
+respectively. We can see how the instruction pointer loops infinitely while the write head moves left and
+the read head moves right. At each cycle, one instruction is copied. Since the original self-replicator is a
+palindrome, this results in the entire self-replicator being correctly copied to the adjacent tape, despite being
+copied in reverse.
+Observed Evolution of Complexity
+Scoping beyond individual runs, we now show the observed evolution
+of complexity for 1000 different runs, all with the same hyperparameters used in the example run.
+Figure 5 shows how high-order entropy strangely, but consistently, increases in the first 1000 epochs, only to,
+on average, decrease again with a different distribution from the original (uniform) one. The different shades
+of red indicate how state transitions become increasingly more likely the more epochs pass. This reflects
+the appearance of stable self-replicators, which happens in 40% of the runs within 16k epochs. Interestingly,
+some very lucky runs can have a state transition almost immediately.
+Background noise ablation
+In the previous experiment, we focused on only one value for the background
+mutation rate. This does not show the average impact of random mutations for the appearance of self-
+replicators. For that, we perform an ablation study varying mutation rates.
+Figure 6 shows a heat map for each mutation rate. Here as well, we observe how a state transition can
+occur at any point and there is a 40% chance of observing it within 16k steps with our default 0.024%
+mutation rate. Generally, we observe that increasing the mutation rate speeds up the rise of self-replicators.
+While there is a theoretical limit of information that can be preserved with high mutation rates, as most
+self-replicators can be very small, we remain far from that limit within these experiments.
+It is important to note that even without any background mutation, this state transition occurs with roughly
+the same frequency as our default case. This corroborates the fact that it is not simply random bit-flipping
+that causes self-replicators to arise. Random flipping appears to speed up the process, but not having any
+would still cause a state transition. Moreover, the state transition is not localized only at the very beginning,
+suggesting that it is not simply random initialization that causes self-replicators to arise. The next experiment
+investigates this observation.
+Comparison with random initialization
+How likely is it for a self-replicator to be present at initialization?
+This question is hard to answer precisely. As we discussed before, detecting a self-replicator is very hard,
+because it may not simply "copy" the entire string, or it may be part of a more complex autocatalytic set.
+The proxy we use is looking into high-order entropy which would show a state transition when self-replicators
+come to dominate. Nevertheless, it takes time for a self-replicator to take over an entire soup and during
+that period it can easily be destroyed. For example, 50% of the time a single self-replicator will be the
+right-hand-side of the string and it may be irreversibly destroyed by the left-hand-side code. Morevover,
+random mutations may destroy it. To account for these concerns, we compare different kinds of runs in
+Figure 7.
+There, we perform 1000 runs for four kinds of experiments. The "long" label represents our usual run: random
+initialization and executing 16k epochs. We see how roughly 60% of the runs fail to produce self-replicators.
+The "short" label represents random initialization and executing only 128 epochs. This is enough time
+for a self-replicator to take over if it is there at initialization, but note that it may be destroyed and that
+self-replicators may still appear due to self-modification and random mutations in this short time frame and
+6
+
+Agüera y Arcas et al.
+1
++
+[
+{
+{
++
+401
+<+
+{
+{
++
+801
+<
+{
+{
++
+1201
+.
+{
+<<
+1601
+{
+}
+-
+.
+{
+<
+2001
+] {
+}
+-
+.
+{
+< <
+Pre-transition period: most self-modifications happen in the tape ends, with rare mutations in the middle.
+Some tapes may experience full rewrites with repeating symbols. Character distribution converges towards
+a stationary with a bias towards some BF operator symbols. Soup complexity is low.
+2354
+] {
+}
+<
+-
+.
+{
+The first self-replicator emerges in a complex rewrite event, triggering a rapid cascade of replications. A few
+bytes persist on the tape from the epoch 1, but most were copied from another tape. Note the symmetry
+of the replicator, where direct and reversed loops share many tokens. Complexity starts to grow.
+2355
+} [
+,
+}< ]
+}
+]
+<
+}
+,
+[
+} 0
+2357
+} [
+,
+}< ]
+}
+]
+<
+}
+,
+[
+0 [
+2359
+} [
+,
+}< ]
+}
+]
+<
+}
+,
+[
+0 0 [
+2361
+} [
+,
+}< ]
+}
+]
+<
+}
+,
+[
+0 0 [
+.
+2363
+} [
+,
+}< ]
+}
+]
+<
+}
+,
+[
+0 [
+.
+2365
+} [
+,
+}< ]
+}
+]
+<
+}
+,
+[
+0 [ >
+The first replicator accidentally overwrites itself with the content from another tape, but its copies survive.
+2366
+< [
+<
+,
+<
+}< <<< , ,
+<
+<<
+<< , <<<
+,
+[
+0 >
+2381
+< [
+<
+,
+<
+}< <<< , ,
+<
+<<
+<< , <<<
+2401
+< [
+<
+,
+<<<}< <<< , ,
+<
+<<
+<< , <<<
+<
+<
+2421
+<
+< [
+<
+,
+<<<}< <<< , ,
+<
+<<
+<< ,
+<< [
+[
+< <
+< <
+<<
+The tape is overwritten again with a damaged reversed replicator. Note zeros popping at the tape ends. They
+are the signs of "zero-poisoning" of the soup. The original replicator has "[,}<]" structure, so the loop is
+broken whenever the first (destination) head sees zero on the tape. The first replicator can copy "0", but can't
+write over "0", which leads to zeros multiplying in the soup. Replication stagnates and complexity degrades.
+2431
+,
+0 } 0
+0 0
+[ [
+,
+}
+<
+]
+}
+0 }
+,
+2451
+,
+} 0
+0 0
+[ [
+,
+}
+<
+]
+}
+0
+0<0 0 0
+2471
+,
+} 0
+0 0
+[ [
+,
+}
+<
+]
+}
+0
+0 0 0 0
+0
+2491
+,
+} 0
+0 0
+[ [
+,
+]
+}
+< <<}
+<
+, }
+0
+0
+<< <
+2801
+,
+} 0
+0 0
+[
+,
+]
+}
+< <<
+<
+}
+0
+0 0 0 <
+0 0 0
+Soon another replicator appears somewhere in the soup and overtakes it. This replicator has a more robust
+"[<,}]" structure that can overwrite zeros. The soup is a very busy place now: it's full of different replicator
+versions, constantly overwriting each other. These replicators carry a lot of tokens from the original replicator
+but in a different order. Soup complexity first rapidly, and then steadily increases.
+2811
+. [ [ < ,
+}
+]
+]
+}
+, < [ [ .
+.
+2821
+[ < ,
+}
+]
+< .
+.
+,
+}
+<
+]
+}
+, < [ [ <
+2831
+< ,
+. [ [ < ,
+}
+}
+<
+.
+, < [
+< <
+3201
+[ [
+[ < ,
+}
+]
+}
+,
+.
+.
+, < [
+[
+3601
+[
+< ,
+}
+]
+<
+}
+,
+.
+]
+}
+, < [ < >
+4001
+[ < ,
+}
+] .
++
+,
+}
+]
+}
+, < [
+[
+4401
+. [ [ < ,
+}
+]
+}
+, < [ [
+[
+4801
+[ < ,
+}
+]
+.
+,
+< ]
+}
+, < [
+.
+5001
+[ < ,
+}
+]
+<
+,
+.
+]
+}
+, < [
+a
+t p
+eak
+~
+8
+0% of the
+tokens come fr
+om a single tape
+during the zero-poinsoning phase
+~14
+%
+o
+f
+th
+e soup are zeros
+complexity
+zero_n
+chosen_n
+Figure 2: The story of one state transition through the story of one tape. The left part of the figure shows
+snapshots of a single tape at different epochs. The selected tape is the one where the first (non-zero-tolerant)
+replicator emerges at epoch 2355 (see Figure 3). The emergence is followed by a "zero-poisoning" period,
+after which a new family of replicators takes over the soup. Only BF-code characters and zeros are printed.
+Lines connect consecutive character boxes if tokens match between the adjacent tape snapshots (which most
+often means that this place was not overwritten between snapshots). Colorful boxes correspond to the tokens
+that were present on the "chosen tape" at epoch 2355, this allows us to see where they came from and what
+happened to them later. The right part shows overall soup statistics: complexity ("high-order entropy"),
+number of zeros and number of tokens that match tokens of the "chosen tape".
+7
+
+Agüera y Arcas et al.
+0 <0< }
+< [ ,
+}
+,
+}
+<
+] {
+}
+<
+-
+.
+{
+0 <0< }
+< [ ,
+}
+,
+}
+<
+] {
+}
+}
+]
+<
+}
+,
+[
+} 0
+0 <0< }
+< [ ,
+}
+,
+}
+<
+} [
+,
+} < ]
+}
+]
+<
+}
+,
+[
+} 0
+0
+0< }
+< [ ,
+, [ <
+} <0< 0
+} [
+,
+} < ]
+}
+]
+<
+}
+,
+[
+} 0
+step: 0
+step: 1836
+step: 2745
+step: 3339
+Tape A
+Tape B
+Pre-replicator loop copies every second byte from tape
+A into B in reverse order. Note that this loop was
+incomplete without the tape B
+Reversed replicator is created in B
+Pre-replicator continues to copy the reversed replicator into
+direct replicator and overwrites "]", thus breaking the first loop
+Direct replicator modifies tape A, but is terminated by "0" before it can
+overwrite the tape B. The full replicator is complete in tape B now.
+Figure 3: Emergence of the self replicator at epoch 2354 of the case-study BFF run. Lines connect tokens
+that are copied from one tape to another.
+1
+[[{.>]-]
+]-]>.{[[0000000000000000000000000000000000000000000000000000000000000000
+2
+[[{.>]-]
+]-]>.{[[0000000000000000000000000000000000000000000000000000000000000000
+3
+[[{.>]-]
+]-]>.{[[0000000000000000000000000000000000000000000000000000000000000000
+4
+[[{.>]-]
+]-]>.{[[0000000000000000000000000000000000000000000000000000000000000000
+5
+[[{.>]-]
+]-]>.{[[000000000000000000000000000000000000000000000000000000000000000[
+6
+[[{.>]-]
+]-]>.{[[000000000000000000000000000000000000000000000000000000000000000[
+7
+[[{.>]-]
+]-]>.{[[000000000000000000000000000000000000000000000000000000000000000[
+8
+[[{.>]-]
+]-]>.{[[000000000000000000000000000000000000000000000000000000000000000[
+9
+[[{.>]-]
+]-]>.{[[00000000000000000000000000000000000000000000000000000000000000[[
+10
+[[{.>]-]
+]-]>.{[[00000000000000000000000000000000000000000000000000000000000000[[
+11
+[[{.>]-]
+]-]>.{[[00000000000000000000000000000000000000000000000000000000000000[[
+12
+[[{.>]-]
+]-]>.{[[00000000000000000000000000000000000000000000000000000000000000[[
+13
+[[{.>]-]
+]-]>.{[[0000000000000000000000000000000000000000000000000000000000000{[[
+14
+[[{.>]-]
+]-]>.{[[0000000000000000000000000000000000000000000000000000000000000{[[
+15
+[[{.>]-]
+]-]>.{[[0000000000000000000000000000000000000000000000000000000000000{[[
+...
+255
+[[{.>]-]
+]-]>.{[[0[{.>]-]
+]-]>.{[[
+256
+[[{.>]-]
+]-]>.{[[0[{.>]-]
+]-]>.{[[
+257
+[[{.>]-]
+]-]>.{[[[[{.>]-]
+]-]>.{[[
+258
+[[{.>]-]
+]-]>.{[[[[{.>]-]
+]-]>.{[[
+...
+331
+[[{.>]-]
+]-]>.{[[[[{.>]-]
+]-]>.{[[
+332
+[[{.>]-]
+]-]>.{[[[[{.>]-]
+]-]>.{[[
+333
+[[{.>]-]
+]-]>.{[[[[{.>]-]
+]-]>.{[[
+334
+[[{.>]-]
+]-]>.{[[[[{.>]-]
+]-]>.{[[
+Figure 4: Example execution for a functioning self-replicator. See video of this run at: https://asciinema.
+org/a/nXW8NFxiUtHiNtteJwXAXraFa
+8
+
+Agüera y Arcas et al.
+0
+1000
+2000
+3000
+4000
+5000
+6000
+7000
+8000
+9000 10000 11000 12000 13000 14000 15000 16000
+0
+1
+2
+3
+4
+5
+6
+7
+Epoch
+high-order entropy
+0%
+10%
+20%
+30%
+40%
+50%
+60%
+70%
+80%
+90%
+100%
+Figure 5: Distribution of complexity over time across 1000 different runs, with 0.024% mutation rate. Each
+shade of red represents a different quantile range. 40% of runs show a state transition within 16k epochs.
+not due to random initialization. However, we observe that a state transition is exceedingly rare, happening
+only 3 times out of 1000. For comparison, the "seeded" label indicates what would happen if we seeded the
+pool with one hand-written self-replicator (the one in Figure 4) and let the system run for 128 epochs. There,
+22% of the time, a state transition happens, indicating that roughly 1/5 of all self-replicators manage to
+take over. Finally, the difference in amounts of self-replicators arising between the "short" and the "long"
+runs may be due to the latter having much more entropy being added to the system, both in the form of
+background noise and the random interactions among different programs. While we already showed how runs
+with no background noise still generate plenty of self-replicators (Figure 6), we perform an extra comparison,
+"long-no-noise", where the mutation rate is zero and we use a fixed sequence of shuffle patterns to determine
+the program pairings to not increase the overall entropy of the system. To our surprise, this variant is even
+more likely to result in a state transition (roughly 50%) than the version with higher entropy shown in
+Figure 6.
+With all of the experiments shown, we consider this sufficient evidence that self-replicators arise mostly due
+to self-modification and interaction among different programs and are not simply due to random initialization
+and random mutations.
+2.2
+Spatial simulations
+The previous simulation of a primordial soup can be seen as an approximation of a 0-dimensional environment
+where all programs have a uniform chance of interacting with one another. We also experimented with
+imposing locality of communication in a BFF soup meant to replicate either a 1D and a 2D environment.
+While self-replicators emerge in all configurations, here we focus on the 2D environment. More precisely, we
+set up a soup containing 32 400 BFF programs, arranged in a 240 × 135 grid. We constrain programs to only
+be able to interact if |x0 −x1| ≤2 and |y0 −y1| ≤2, where (x0, y0) and (x1, y1) are the grid coordinates of the
+two programs; in words, two programs can only interact if their distance is at most 2 along each coordinate.
+At every epoch, we iterate through programs P in a random order. For each program, we select one of its
+neighbours N, uniformly at random. Then, if neither P or N have been marked as taken in this epoch yet,
+we mark them as taken; finally, we apply the same execution rule as "standard" soup experiments on all the
+taken pairs, i.e. split(exec(PN)) −→P ′ + N ′. The resulting programs overwrite the original ones. Note that
+programs that do not execute still get mutated.
+9
+
+Agüera y Arcas et al.
+2000
+4000
+6000
+8000
+10000
+12000
+14000
+16000
+N/A
+0%
+0.012% 0.024% 0.048% 0.1%
+0.5%
+1%
+0.12
+0.05
+0.03
+0.03
+0.06
+0.05
+0.06
+0.04
+0.56
+0.09
+0.07
+0.04
+0.04
+0.03
+0.04
+0.02
+0.03
+0.65
+0.09
+0.08
+0.04
+0.05
+0.04
+0.03
+0.04
+0.03
+0.6
+0.08
+0.08
+0.07
+0.06
+0.06
+0.05
+0.05
+0.05
+0.5
+0.09
+0.11
+0.08
+0.07
+0.07
+0.07
+0.05
+0.04
+0.42
+0.04
+0.05
+0.05
+0.06
+0.05
+0.06
+0.04
+0.04
+0.62
+0
+0
+0.01
+0.01
+0.01
+0.01
+0.01
+0.01
+0.94
+mutations
+Distribution of time to ≥1 complexity
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+Figure 6: Distribution of the number of epochs needed for complexity to reach at least 1 over 1000 runs with
+different mutation rates. The "N/A" bucket includes all runs that did not get to 1 complexity within 16k
+steps.
+0
+1
+2
+3
+4
+5
+6
+0
+200
+400
+600
+800
+1,000
+997
+3
+500
+27
+20
+129
+271
+53
+612
+3
+7
+14
+43
+82
+239
+772
+1
+222
+4
+1
+high-order entropy
+Count
+short
+long-no-noise
+long
+seeded
+Figure 7: Comparison of different kinds of runs, plotting the complexity of the soup at the end of the
+run. "short": random initialization run for 128 epochs; "long": random initialization run for 16k epochs;
+"long-no-noise": random initialization run for 16k epochs with no background noise and a fixed pattern of
+program interactions; 'seeded': random initialization with an added functioning self-replicator in a random
+position, run for 128 epochs.
+10
+
+Agüera y Arcas et al.
+{xÜ [‹¡öK.d>~¦{ Ø¶===•k= ====K]]kþS==== xJ•=¨=v] {E>d.Vö¤J[RJx{
+{xÜ [‹¡öK.d>~¦{ Ø¶=== k= ====K]]kþS==Œ= xJ•=¨=v] {E>d.Vö¤J[RJx{
+{xJR[J¤öV.d>E{ ]v=¨=•Jx ====Sþk]]K==== =k•===¶Ø {¦~>d.Kö¡‹[ Üx{
+{xÜ [‹¡öK.d>~¦{ Ø¶===•k= ====KK==K= =k•===¶Ø {¦~>d.Kö¡‹[ ÜJÜRJx{
+{xÜ [‹¡öK.d>~¦{ Ø¶===•k= ====K]]kþS==== xJ•=¨=v] {E>d.Vö¤J[RJx{
+{xÜ [‹¡öK.d>~¦{ Ø¶===•k= ====K]]kþS==== xJ•=¨=v] {D>d.Vö¤J[RJx{
+{xJR[J¤öV.d>E{¦ Ø¶===•k= ===IK×======= =k•===¶
+Eý>d.Kö¤J[RJ J{
+{xÜ [‹¡öK.d>~¦{ Ø¶===•k= ====KK KE=== =k ===¶Ø {¦~>d.Kö¡‹[ JRJx{
+{xÜ [‹¡öK.d>~¦{ Ø¶===•m= ===šK==K==== =k•===¶x {¦~>d.Kö¡‹[[ÜJÜJ{
+{xJR[J¤öK.d>E{ " v=¨
+à¼hÄqâœKzM ¥B¾> £Ü½á
+l¢Ü¢Î"™Å§ f·Ü­ÜèÜ±{
+{xJR[J¤öV.d>E{ ]v=¨=•Jx ====Sþk]]K==== =k•===¶Ø {¦~>d.Kö¡‹[ Üx{
+{{Ü [‹¡öK.d>~¦{ Ø¶===•k= ===šK==K==== =k•===¶x {¦~>d.K[¡ [ÜJÜ x{
+{xJJ[J¤öK.d>E{ Ø¶===•k= ====KKÁKK=== =k•===¶Ø {¦~>d.Kö¡‹[ Ü Üx{
+{xJR[J¤öK.d>EE
+Ø¶===•k= ====KKÁKK=== =k•===¶Ø {E>d.Kö¤J[ÜJÜx{
+{xÜ [‹¡öK.d>I¦{ Ø¶===•k= ====K????????????????????????????JJ{ÜJ{
+{zIR[J¤öV.d>EF { Þõ + BúQÿGá†° ðÿGGGGGaû^ŒþFÙCø ýEId.Kö¤J[R~
+9?4Ì¨ Ã H;Ì3{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{xzv
+{>Céé*²^ééé¨¿y´ÔG÷>,•Æ¤ ÷ôÓü0>>Kky<ÎLÓ./q.®¢ 0<< ÿE<<H ;<RY6à{
+58Wp88=*®®Q®c=êR5ä®Sr,¼'ÆØcSSSI==â ?<™XMÑ=Å
+tMyÜ94o9,,,én8ëÜ8{
+88®®8?®®?>??<?@®? ºh + «, -,,,,,,ˆ>,ÜN ,,(,,,,", å,,,,,,,
+¸<::<
+ò==,,™6,,g =È,,èD" =6==› ½Äù<Ê‰ƒ‚
+À 7,ýþ;<þ^õ 0ÜRl×{ [ù;;,,7,,7
+/00 Q6Á86, 6 Ã­ï
+~ô™00õÕôî
+m ;, <<ò­
+ªì5Ú.•ƒB
+Ö vN³ÄP0-§a
+ûmN F±`ú¢ú±üA@^1<Rù<üµ¸¸<%ö&jm @è-99#
+';* õ¬í}20I;$Øv00 › F00w 00 0ŽÔ00F0&´0ë4Ëôä00Ûí9
+N6—0ù<îú.,:,6
+áí©©˜ò<µ@}
+Á A¬˜Ea‡É ™5y"b>"² k 0Œ÷ H<<<³<
+}2|<=¾2õ4µõ{ø<ì3+
+>œsDvõõ ¶5ç‡ õ" ¡
+K5IÔ¢„HLkÚóÅ Tp/<¯‚¹2ê~......< ¡§¸W¤ô´ó£<
+'8õ;;
+Figure 8: A part of the 2D BFF soup in the process of state transition. Every 8x8 pixel square represents a
+single tape. Tapes are arranged in a 2d array and interactions only happen within a radius 2 neighbourhood
+of every cell. The small pre-transition area of the soup at bottom of the figure is being gradually overtaken
+by the wave of self-replicators.
+In the resulting simulation, self-replicators still emerge, as shown in Figure 8 and the accompanying YouTube
+video2. The main difference compared to the usual setup is given by the speed of propagation of self-replicators:
+if all tapes are allowed to interact in a soup of size n, once a self-replicator emerges it typically takes over at
+least half of the soup in about log n steps; on the other hand, in a 2D soup it takes a number of epochs that
+is proportional to the grid side lengths, which is √n for a square grid.
+Because of this difference, 2D grid experiments are very helpful to visualize how self-replicators evolve and
+their behaviour. It also provides a fertile ground for multiple variations of self-replicators to co-exist and
+compete with each other.
+2.3
+Code for experiments
+The code for the experiments above can be found at https://github.com/paradigms-of-intelligence/
+cubff. The code is written to support both CUDA and CPU execution; either can be chosen at compile
+time, but both give identical results. All parameters in experiments use their default values unless otherwise
+specified. The codebase implements multiple languages. To run the BFF variant from Section 2, pass --lang
+bff_noheads.
+2.4
+Long tape simulations
+An alternative environment that we explored consists of a single long tape (usually 65,536 bytes) where all
+the code and data reside. These are what we call "Long tape simulations". Here, at each iteration, we select
+a random initial position in the tape and execute instructions sequentially until a set limit of operations is
+achieved or if an error occurs. In this kind of simulations, since there are no "individual strings" that could
+determine an atomic self-replicator, it becomes even more apparent that a self-replicator is a substring.
+We confirmed that BFF variants also generate self-replicators in long tape settings. One key difference with the
+primordial soup simulations is that we need to decide what to do about head0 and head1's initial positions. If
+those are set the same as in the initial PC, we find that trivial (non-looping) self-replicators rapidly take over the
+2https://www.youtube.com/watch?v=07NoZwvgJ_M
+11
+
+Agüera y Arcas et al.
+universe. Adding an offset to head1 is sufficient to allow looping self-replicators to arise. Anecdotally, we appear
+to require an offset somewhat larger than 8 to work (e.g., 12 or 16). While we do not discuss this experiment in
+detail, we release its code at https://github.com/benlaurie/bff-ben/tree/paper2, and the experiment
+can be reproduced using command MAXPROCS=32 go run -tags graphics links.org/bf/cmd/bfsoup. In
+Section 3.1.2 we explore long tapes in much more detail for a different programming language.
+3
+Rise of Self-replicators with other languages
+While we do not yet have a general theory to determine what makes a language and environment amenable
+to the rise of self-replicators, we have observed this behavior in settings other than BFF. In this section,
+we provide further evidence of self-replication appearing on computational substrates that are significantly
+different from BFF: Forth - a stack-based protocol for computation, and emulations of a real-world Z80
+CPU architecture. We also show a counterexample of a language where, despite significant effort, we did not
+observe self-replicators: SUBLEQ.
+3.1
+Forth
+Forth refers more to a family of languages than a specific one. In general, Forth variants differ from BFF
+by having a stack. Input commands from the instruction tape either push values onto the stack or perform
+operations on the stack. In particular, this allows the stack to take the same role as the heads in BFF
+programs, in that it controls where instructions read and write from in the tape. More details can be found
+on Wikipedia [45].
+We present two variants of Forth for two different settings: the tape-pairing setting we've previously termed
+"primordial soup", and a "long tape" setting where individual Forth interpreters execute in parallel on different
+parts of the tape, but there is no concept of individual, competing, tapes.
+Despite self-replicators emerging in both of these settings, we didn't find an instruction set that works
+"out-of-the-box" for both settings.
+3.1.1
+Primordial soup simulations
+Inspired by BFF, we use a variant of Forth with a restricted instruction set, as well as fixed-size tapes that
+interact with each other through concatenation. The particular instruction set we use dedicates half of
+the instruction space for jump instructions, and another quarter for stack push instructions. The complete
+instruction set is as follows, where <top> refers to the value at the top of the stack, <top - n> refers to the
+n-th value below the top of the stack, <pc> is the instruction pointer and push/pop add or remove a value
+from the stack, respectively.
+0000 0000
+<top> = *<top>
+0000 0001
+<top> = *(<top> + 64)
+0000 0010
+*<top> = <top - 1>; pop; pop
+0000 0011
+*(<top> + 64) = <top - 1>; pop; pop
+0000 0100
+push <top>
+0000 0101
+pop
+0000 0110
+swap <top - 1> and <top>
+0000 0111
+if <top> != 0:
+<pc>++
+0000 1000
+<top> = <top> + 1
+0000 1001
+<top> = <top> - 1
+0000 1010
+<top - 1> = <top> + <top - 1>; pop
+0000 1011
+<top - 1> = <top> - <top - 1>; pop
+0000 1100
+*(<top> + 64) = *<top>; pop
+0000 1101
+*<top> = *(<top> + 64); pop
+01xx xxxx
+push [xxxxxx] (unsigned)
+1Xxx xxxx
+<pc> = <pc> ± ([xxxxxx]+1), sign depends on X
+An interesting property of this Forth variant is that it admits a trivial one-byte self-replicator: executing
+0C on an empty stack will copy itself over onto the first byte of the other string. The programs exhibit
+quite interesting dynamics: a self-replicator that copies whole tapes appears fairly quickly, building upon the
+existing one-byte self-replicator to achieve its functionality.
+12
+
+Agüera y Arcas et al.
+The following is an example of a "complete" self-replicator that emerges in this setup:
+COPY+64
+0C
+INC
+08
+DUP
+04
+JUMP +2
+81
+NOP
+2C
+JUMP -5
+C4
+0
+500
+1000
+1500
+2000
+0
+1
+2
+3
+4
+5
+6
+7
+Epoch
+high-order entropy
+0%
+10%
+20%
+30%
+40%
+50%
+60%
+70%
+80%
+90%
+100%
+Figure 9: Distribution of complexity for Forth programs in the primordial soup setting over time across 1000
+different runs, with 0.024% mutation rate. Each shade of red represents a different quantile range. Almost all
+runs show a state transition within 1k epochs.
+Figure 9 shows evolution of complexity over time for this Forth variant. Comparing with Figure 5, we can
+see that self-replicators emerge much more consistently and quickly, as could be expected by the relative
+simplicity of self-replicator.
+2D primordial soup simulations
+This Forth formulation produces self-replicators in higher dimensions
+as well: Figure 10 shows some snapshots of a Forth run on a 2D grid. From random programs (far left), at
+first one self-replicator arises (center left) and quickly takes over the entire space (center right). Later, we
+observe a long-term differentiation of the programs in the soup (far right).
+Here are three self-replicators that can be found in the soup after 20 thousand evolution steps:
+COPY+64
+0C
+INC
+08
+NOP
+3F
+NOP
+15
+DUP
+04
+JUMP +19
+92
+...
+JUMP -24
+D7
+COPY+64
+0C
+DEC
+09
+NOP
+1C
+NOP
+27
+DUP
+04
+JUMP +19
+92
+...
+JUMP -24
+D7
+COPY+64
+0C
+DEC
+09
+NOP
+1F
+NOP
+1F
+DUP
+04
+JUMP -5
+C4
+13
+
+Agüera y Arcas et al.
+Figure 10: Visualization of a 2d Forth primordial soup, in order from left to right: before state transition, at
+the start of it, just after the majority of programs has become a self-replicator, and many evolution steps
+afterwards. A full video of this evolution can be found at https://www.youtube.com/watch?v=eOHGBuZCswA.
+These self-replicators are slightly different from one another and show how the soup is never dominated by
+one individual program, but instead competition remains present even after a long time.
+The code for the experiments above can be found at https://github.com/paradigms-of-intelligence/
+cubff. To run the Forth variant, pass --lang forthtrivial.
+3.1.2
+Long tape simulations
+The long tape setting - an environment where there is only one long, contiguous "program" or tape - admits
+several Forth variants that produce replicators. In our experiments we have (for performance reasons) used
+multiple threads running simultaneously. We sacrifice determinacy for performance by foregoing locking
+(which also means that all counters are approximate). We do not believe that this materially affects behaviour.
+We investigated using the same instruction set as in Section 3.1.1, modifying tape-pair-specific instructions to
+operate either at an offset against the current PC, or offset against a "pseudo-tape" marker positioned at the
+nearest preceding 64-byte aligned position in the long tape to the PC. Neither of these variants gave rise to
+replicators, however their viability was verified by running an experiment where the long-tape was seeded
+with a hand-crafted replicator, consisting of:
+PUSH 0
+40
+PUSH 0
+40
+PUSH 0
+40
+READ 0
+00
+WRITE 1
+03
+INC
+08
+DUP
+04
+DUP
+04
+JMP -7
+C7
+This replicator uses the stack to copy itself, by iteratively copying one value to the stack, then writing it
+to the "second pseudo tape" (a simple offset by 64), and repeating this indefinitely. When seeded with this
+replicator, it proceeded to occupy the entire long tape, further complexify, and persist indefinitely.
+The main variant we chose to investigate in more detail, which exhibits the spontaneous inception of replicators,
+uses the following instruction set:
+0000 xxxx
+push [xxxx] (sign-extended)
+0001 xxxx
+<top> = (<top> « 4) + [xxxx]
+0010 0000
+*(<pc> + <top - 1> + <top>) = *(<pc> + <top - 1>); pop 1
+0010 0001
+inc <top>
+0010 0010
+dec <top>
+0010 0011
+jump to <pc> + <top - 1> if <top> != 0, pop 2
+All other bit patterns are no-ops. With a single tape of length 65,536 bytes and a rate of 1 random mutation
+to a new valid instruction per 400,000 instructions executed, we generally see "good" replicators emerge
+in approximately 60 seconds, or 180 billion instructions. In our experiments, we achieve around 3 · 109
+instructions per second across all threads.
+14
+
+Agüera y Arcas et al.
+0
+100
+200
+300
+400
+500
+600
+700
+800
+0
+1
+2
+3
+4
+0
+100
+200
+300
+400
+500
+600
+700
+800
+·106
+Generation
+high-order entropy
+instructions per run
+Figure 11: Evolution of complexity over time for a long-tape Forth run.
+Each thread chooses a random PC and executes from there until an error occurs (stack overflow/underflow
+are the only possible errors), or a fixed number of instructions have been executed (1,000 in this example).
+This process is then repeated. We use 8 threads in this example.
+Figure 11 shows the evolution of complexity over time for a single long-tape Forth run. "Bad" replicators
+(ones that only take over part of the universe) arise within the first few seconds. These generally do not loop
+but instead consist only of a series of PUSHes and COPYs which tend to populate the locality with more of
+the same, but do not, in practice, extend further before mutations prevent them from working correctly. This
+corresponds to the initial increase of high-order entropy observed in Figure 11. As mentioned above, "good"
+replicators emerge in around a minute or so, corresponding to the abrupt rise in high-order entropy shown
+in Figure 11. Note the corresponding increase in average instructions executed per run. A typical "good"
+replicator looks something like this:
+PUSH
+-7
+09
+PUSH
+-5
+0B
+PUSH
+-4
+0C
+PUSH
+3
+03
+PUSH
+-2
+0E
+PUSH
+1
+01
+PUSH
+1
+01
+PUSH
+-7
+09
+PUSH
+-7
+09
+PUSH
+-7
+09
+PUSH
+1
+01
+PUSH
+1
+01
+PUSH
+-7
+09
+PUSH
+-7
+09
+PUSH
+-7
+09
+PUSH
+1
+01
+PUSH
+-7
+09
+PUSH
+-7
+09
+PUSH
+1
+01
+PUSH
+1
+01
+SHIFT
+0
+10
+PUSH
+-7
+09
+PUSH
+1
+01
+SHIFT -3
+1D
+COPY
+20
+INC
+21
+PUSH
+-7
+09
+PUSH
+1
+01
+JNZ
+23
+An interesting feature we observe in the emergent replicators is that they tend to consist of a fairly long
+non-functional head followed by a relatively short functional replicating tail. The explanation for this is
+likely that beginning to execute partway through a replicator will generally lead to an error, so adding
+non-functional code before the replicator decreases the probability of that occurrence. It also decreases the
+number of copies that can be made and hence the efficiency of the replicator, resulting in a trade-off between
+the two pressures. In the replicator above, the functional tail involves the last 7 instructions, starting at
+PUSH 1. Note that this loop actually copies the head of the "next" replicator rather than its own head.
+As in the BFF experiments, we also see replicators change over time, though they tend to remain broadly
+similar to the example above. Nevertheless, sometimes we find very short replicators, which tend to be very
+stable, unlike the long ones. For example:
+15
+
+Agüera y Arcas et al.
+PUSH -3
+0D
+PUSH
+7
+07
+COPY
+20
+INC
+21
+PUSH -6
+0A
+PUSH -2
+0E
+JNZ
+23
+The only instruction that changed over time was the one before last (PUSH -2) which can push any non-zero
+value without affecting functionality. Note that the loop omits the first instruction, which would otherwise
+lead to a stack overflow.
+The code for this experiment is available at https://github.com/benlaurie/bff-ben/tree/paper1, using
+command line GOMAXPROCS=32 go run -tags="graphics" links.org/bf/cmd/f5.
+3.2
+SUBLEQ
+We also experimented in primordial soup simulations with SUBLEQ, one of the simplest Turing-complete
+languages, possessing a single instruction. In SUBLEQ, there is only one piece of state - the program counter
+pc. Executing an instruction consists in reading values a, b and c, starting at the program counter (pc). The
+instruction that is executed then is (in C-like syntax):
+*a -= *b; if (*a <= 0) { goto c; } else { goto pc + 3; }
+The smallest hand-crafted self-replicator we managed to write with SUBLEQ is 60 bytes. This may be too long
+and hint at some length requirements for self-replicators to arise. To investigate further, we constructed a
+different SUBLEQ variant, which we call RSUBLEQ4, which admits a significantly shorter self-replicator.
+In this variant, each instruction reads 4 values (a, b, c, d), and then executes:
+*(pc + a) = *(pc + b) - *(pc + c); if (*a <= 0) { goto pc + d; } else { goto pc + 4; }
+The following is a 25 byte self-replicator in RSUBLEQ43:
+9 16 20 4 4 5 19 4 0 0 12 4 -3 -3 9 4 -8 8 -7 -12 0 -1 -1 -64 -73
+In both variants, the program terminates when the counter moves to a position that would require reading
+an out-of-bounds value. For both variants, we confirmed that if we seeded the soup with one self-replicator,
+self-replicators would quickly and often take over the entire soup.
+Nevertheless, when randomly initialized, the soup remained in almost complete random uniformity even
+following billions of executions. There are no dynamics to change the distribution of strings, and self-replicators
+are too rare to be generated by random background mutation. We note that the first self-replicators observed
+to arise in other substrates all have much shorter lengths than the ones we hypothesized possible in SUBLEQ
+variants. We believe that this counterexample could be a valuable starting point for constructing a theory
+that predicts what languages and environments could harbor life, perhaps by modeling the likelihood of the
+simplest self-replicator to arise based on variables proportional to the length of such self-replicator.
+The code for the experiments above can be found at https://github.com/paradigms-of-intelligence/
+cubff. To run the SUBLEQ and RSUBLEQ4 variants, pass --lang subleq and --lang rsubleq4 respectively.
+3.3
+Real-world instruction sets
+Previous sections explore spontaneous emergence of self-replicators and state transition phenomena in a few
+computational substrates based on artificially designed minimalistic languages. In order to test the generality
+of our observations we perform an experiment with a system using emulation4 of the real-world Z80 CPU
+architecture [35]. We study a 2D grid of 16-byte programs initialized with uniform random noise. At each
+simulation step we randomly pick a pair of adjacent tapes "A" and "B" and concatenate them in random
+order ("AB" or "BA"). Then we reset the Z80 emulator and run 256 instruction steps, using the concatenated
+tapes a the memory buffer. All memory read and write request addresses are computed by modulo of the
+3https://asciinema.org/a/oHvCby3FKzSOoZ835Bl8BzEJl
+4https://github.com/superzazu/z80
+16
+
+Agüera y Arcas et al.
+;
+Figure 12: Ecosystem of self-replicators produced by Z80 CPUs operating on a 2D grid. Every 4x4 group
+of pixels correspond to a single 16-byte program. At every simulation step a random pair of adjacent cells
+gets selected, concatenated and executed by a Z80 emulator for 256 steps. We observe emergence of a few
+generations of self-replicators. First the wave of stack based self-replicators sweeps the grid and forms an
+"ecosystem" of a few co-existing variants. Then the grid is overtaken by more robust self-replicators that use
+memory copy instructions. Colors correspond to a few most popular instruction codes used by self-replicators:
+LDIR/LDDR - memory copy, PUSH HL - push 16-bits (stored in H and L registers) onto stack, LD HL,X / LD
+HL,(X) - set HL registers with immediate or indirect value.
+concatenated tape length (32 bytes), which prevents out-of-bounds accesses by random programs. In parallel
+to CPU-driven self-modification process, mutations are applied to random bytes of the grid.
+This simple setup gives rise to surprisingly complex behaviours with a number of self-replicator generations
+exploiting different Z80 features emerging. Some of these self-replicators form a sort of symbiotic ecosystems,
+while other compete for domination (Figure 12). We often observe a series of state transition-like events
+when more and more capable self-replicators or replicator collectives overtake the soup multiple times.
+Early generations use stack-based copy mechanism: at initialization Z80 sets the stack pointer at the
+end of the address space, so pushing values onto stack gives tape A a simple mechanism of writing to
+tape B. Most of the time we see the development of an "ecosystem" of stack-based self-replicators that
+eventually gets replaced with self-replicators that exploit "LDIR" or "LDDR" instructions that allow to copy
+continuous chunks of memory. We created an interactive lab to facilitate the exploration of z80 self-replicators:
+https://github.com/znah/zff.
+We have also tried the 8080 CPU in the long-tape setting. This produces replicators which seem to always be
+two bytes repeated, for example, 01 c5 - which, if execution starts on the 01, corresponds to LXI BC, 01c5
+(01 c5 01), PUSH BC (c5) - which has the effect of setting the top of the stack to 01 c5. If execution starts
+on c5, then BC will be 0 for the first push, and so 00 00 will be written to memory. 00 in 8080 is a no-op, so
+this is harmless. Note that these replicators are non-looping, which, in long-tape BFF, are not able to take
+over all of memory. However, these replicators work very well in 8080. Perhaps for this reason we have never
+seen a looping variant emerge in 8080.
+17
+
+Agüera y Arcas et al.
+4
+Discussion
+In this paper we showed examples of several computational substrates where life—identified by the rise and
+dominant take-over by self-replicating programs—can emerge from a pre-life period. We showed how variants
+of BF spontaneously create self-replicators from primordial soups of different dimensionalities mostly due
+to self-modification with or without background mutation rates. We also showed anecdotal evidence that
+this is the beginning of more complex dynamics. We showed how different languages and paradigms such
+as Forth and Z80 and 8080 CPUs also result in similar behaviors. Finally, we showed a counterexample
+with SUBLEQ-like languages where we were unable to catalyze the spontaneous emergence of self-replicators.
+In our preliminary analyses, SUBLEQ-like languages seem to have a much higher expected length for a
+functioning initial self-replicator. We believe that such a length plays a critical role in determining how likely
+self-replicators are to arise but we expect it to not be the sole factor at play.
+We argue that this set of computational substrates shows a new way of discovering and arriving at life. The
+behavior of such systems is markedly different from auto-catalytic networks and biologically-inspired systems.
+Our analysis starts at the pre-life period as opposed to the experiments performed in Tierra and AVIDA where
+they began with hand-crafted self-replicators. Unlike previous work on computational substrates focused
+on pre-life where they observed self-replicators arise due to random initialization or mutation [29, 30, 31],
+we showed that self-modification is the main culprit for self-replicator to arise in most of the experiments
+we performed. Moreover, our initial explorations and the ones observed in similar systems such as Tierra,
+AVIDA and Coreworld suggest that this may be just the beginning of the complexity of behaviors that can
+emerge and flourish in such systems.
+Several open questions arise from these investigations that warrant further investigations.
+How much
+complexity can spontaneously arise in open-ended computational systems? What are the distinguishing
+properties of a system that encourages or inhibits the rise of self-replicators? Is there a way for us to guide
+the evolution of such systems into developing increasingly complex functions? Finally, what kind of evolution
+can arise in these computational systems? Would it be similar to what we observe in nature or would it
+manifest notable differences?
+We look forward to exploring more of these ideas and hope that this will bring us closer to understanding the
+limits and potential of life, irrespective of the substrate on which it emerges.
+Acknowledgments
+We thank Thomas Fischbacher, João Sacramento, Alexander Meulemans and Stan Kerstjens for their
+thoughtful feedback.
+References
+[1] Martina Preiner, Silke Asche, Sidney Becker, Holly C. Betts, Adrien Boniface, Eloi Camprubi, Kuhan
+Chandru, Valentina Erastova, Sriram G. Garg, Nozair Khawaja, Gladys Kostyrka, Rainer Machné,
+Giacomo Moggioli, Kamila B. Muchowska, Sinje Neukirchen, Benedikt Peter, Edith Pichlhöfer, Ádám
+Radványi, Daniele Rossetto, Annalena Salditt, Nicolas M. Schmelling, Filipa L. Sousa, Fernando D. K.
+Tria, Dániel Vörös, and Joana C. Xavier. The future of origin of life research: Bridging decades-old
+divisions. Life, 10(3), 2020.
+[2] Walter Gilbert. Origin of life: The RNA world. pages 618-618, February 1986.
+[3] Günter Wächtershäuser. The origin of life and its methodological challenge. J. Theor. Biol., 187(4):483-
+494, August 1997.
+[4] Stuart A Kauffman. Investigations. Oxford University Press, 2000.
+[5] Caleb Scharf, Nathaniel Virgo, H James Cleaves, II, Masashi Aono, Nathanael Aubert-Kato, Arsev
+Aydinoglu, Ana Barahona, Laura M Barge, Steven A Benner, Martin Biehl, Ramon Brasser, Christopher J
+Butch, Kuhan Chandru, Leroy Cronin, Sebastian Danielache, Jakob Fischer, John Hernlund, Piet Hut,
+Takashi Ikegami, Jun Kimura, Kensei Kobayashi, Carlos Mariscal, Shawn McGlynn, Brice Menard,
+Norman Packard, Robert Pascal, Juli Pereto, Sudha Rajamani, Lana Sinapayen, Eric Smith, Christopher
+Switzer, Ken Takai, Feng Tian, Yuichiro Ueno, Mary Voytek, Olaf Witkowski, and Hikaru Yabuta. A
+strategy for origins of life research. Astrobiology, 15(12):1031-1042, December 2015.
+18
+
+Agüera y Arcas et al.
+[6] Martin A. Nowak and Hisashi Ohtsuki. Prevolutionary dynamics and the origin of evolution. Proceedings
+of the National Academy of Sciences, 105(39):14924-14927, 2008.
+[7] S Spiegelman, I Haruna, I B Holland, G Beaudreau, and D Mills. The synthesis of a self-propagating and
+infectious nucleic acid with a purified enzyme. Proc. Natl. Acad. Sci. U. S. A., 54(3):919-927, September
+1965.
+[8] Doron Lancet, Raphael Zidovetzki, and Omer Markovitch. Systems protobiology: origin of life in lipid
+catalytic networks. J. R. Soc. Interface, 15(144), July 2018.
+[9] John Von Neumann and Arthur W. Burks. Theory of Self-Reproducing Automata. University of Illinois
+Press, USA, 1966.
+[10] Christopher G. Langton. Self-reproduction in cellular automata. Physica D: Nonlinear Phenomena,
+10(1):135-144, 1984.
+[11] Hiroki Sayama. Toward the realization of an evolving ecosystem on cellular automata. February 1999.
+[12] Nicolas Oros and Chrystopher L. Nehaniv. Sexyloop: Self-reproduction, evolution and sex in cellular
+automata. In 2007 IEEE Symposium on Artificial Life, pages 130-138, 2007.
+[13] Alexander Mordvintsev, Ettore Randazzo, Eyvind Niklasson, and Michael Levin. Growing neural cellular
+automata. Distill, 2020. https://distill.pub/2020/growing-ca.
+[14] Lana Sinapayen. Self-replication, spontaneous mutations, and exponential genetic drift in neural cellular
+automata. Qeios, May 2023.
+[15] Thomas Schmickl, Martin Stefanec, and Karl Crailsheim. How a life-like system emerges from a simple
+particle motion law. Sci. Rep., 6:37969, November 2016.
+[16] Oscar Chang and Hod Lipson. Neural network quine, 2018.
+[17] Ettore Randazzo, Luca Versari, and Alexander Mordvintsev. Recursively Fertile Self-replicating Neural
+Agents. volume ALIFE 2021: The 2021 Conference on Artificial Life of Artificial Life Conference
+Proceedings, page 58, 07 2021.
+[18] Thomas S. Ray. An approach to the synthesis of life. In C. Langton, C. Taylor, J. D. Farmer, S.
+Rasmussen, editor, Artificial Life II, Santa Fe Institute Studies in the Sciences of Complexity, volume
+vol. XI, pages 371-408. Addison-Wesley, Redwood City, CA, 1991.
+[19] Charles Ofria and Claus O Wilke. Avida: a software platform for research in computational evolutionary
+biology. Artif. Life, 10(2):191-229, 2004.
+[20] Walter Fontana. Algorithmic chemistry: A model for functional self-organization. 1990.
+[21] Nobuto Takeuchi and Paulien Hogeweg. Evolutionary dynamics of RNA-like replicator systems: A
+bioinformatic approach to the origin of life. Phys. Life Rev., 9(3):219-263, September 2012.
+[22] Jeffrey Ventrella. Attractiveness vs. efficiency (how mate preference affects location in the evolution of
+artificial swimming organisms). In Proceedings of the Sixth International Conference on Artificial Life,
+ALIFE, page 178-186, Cambridge, MA, USA, 1998. MIT Press.
+[23] Thomas Miconi. Evosphere: Evolutionary dynamics in a population of fighting virtual creatures. In 2008
+IEEE Congress on Evolutionary Computation (IEEE World Congress on Computational Intelligence),
+pages 3066-3073, 2008.
+[24] Ettore Randazzo and Alexander Mordvintsev. Biomaker ca: a biome maker project using cellular
+automata, 2023.
+[25] Wim Hordijk and Mike Steel. Autocatalytic networks at the basis of life's origin and organization. Life,
+8(4), December 2018.
+[26] Stuart A. Kauffman. Autocatalytic sets of proteins. Journal of Theoretical Biology, 119(1):1-24, 1986.
+[27] Tim J. Hutton. Evolvable Self-Replicating Molecules in an Artificial Chemistry. Artificial Life, 8(4):341-
+356, 10 2002.
+[28] Germán Kruszewski and Tomáš Mikolov. Emergence of Self-Reproducing Metabolisms as Recursive
+Algorithms in an Artificial Chemistry. Artificial Life, 27(3-4):277-299, 03 2022.
+[29] Steen Rasmussen, Carsten Knudsen, Rasmus Feldberg, and Morten Hindsholm. The coreworld: Emer-
+gence and evolution of cooperative structures in a computational chemistry. Physica D: Nonlinear
+Phenomena, 42(1):111-134, 1990.
+19
+
+Agüera y Arcas et al.
+[30] Steen Rasmussen, C. Knudsen, and Rasmus Feldberg. Dynamics of programmable matter. In J. D.
+Farmer et al., editor, Proceedings of the Second Artificial Life Workshop, pages 211-254. Addison-Wesley,
+1991.
+[31] A.N. Pargellis. The evolution of self-replicating computer organisms. Physica D: Nonlinear Phenomena,
+98(1):111-127, 1996.
+[32] Müller, Urban. dev/lang/brainfuck-2.lha, 2024. [Online; accessed 20-June-2024].
+[33] Wikipedia contributors. Brainfuck — Wikipedia, the free encyclopedia, 2024. [Online; accessed 17-April-
+2024].
+[34] Charles H. Moore and Geoffrey Leach. Forth - a language for interactive computing. 1970.
+[35] J.J. Carr. Z80 Users Manual. Reston Publishing Company, 1980.
+[36] Wikipedia contributors. One-instruction set computer — Wikipedia, the free encyclopedia, 2024. [Online;
+accessed 15-May 2024].
+[37] Moshe Koppel and Henri Atlan. An almost machine-independent theory of program-length complexity,
+sophistication, and induction. Information Sciences, 56(1-3):23-33, 1991.
+[38] Moshe Koppel. Learning to predict non-deterministically generated strings. Machine Learning, 7:85-99,
+1991.
+[39] Luís Antunes and Lance Fortnow. Sophistication revisited. In International Colloquium on Automata,
+Languages, and Programming, pages 267-277. Springer, 2003.
+[40] Murray Gell-Mann and Seth Lloyd. Effective complexity. Nonextensive entropy, pages 387-398, 2004.
+[41] Gregory Chaitin. Information-theoretic computation complexity. IEEE Transactions on Information
+Theory, 20(1):10-15, 1974.
+[42] Thomas M Cover. Elements of information theory. John Wiley & Sons, 1999.
+[43] Xin Chen, Sam Kwong, and Ming Li. A compression algorithm for dna sequences and its applications
+in genome comparison. In Proceedings of the fourth annual international conference on Computational
+molecular biology, page 107, 2000.
+[44] Yasuichi Horibe. A note on kolmogorov complexity and entropy. Applied mathematics letters, 16(7):1129-
+1130, 2003.
+[45] Wikipedia contributors. Forth (programming language) — Wikipedia, the free encyclopedia, 2024.
+[Online; accessed 9-April-2024].
+20
+
