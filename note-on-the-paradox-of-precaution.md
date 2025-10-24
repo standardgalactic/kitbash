@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 Here is a summary and analysis of the provided paper, "The Paradox of Precaution: How AGI Safety Could Erode Human Trust,".
+=======
+Here is a summary and analysis of the provided paper, "The Paradox of Precaution: How AGI Safety Could Erode Human Trust," in English.
+>>>>>>> 49f5642 (Add summary of 'The Paradox of Precaution' paper)
 
 Core Thesis
 
