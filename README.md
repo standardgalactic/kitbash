@@ -1,8 +1,29 @@
 Self-Refactoring Crosslinking
 
-![](poster-01.png)
+
+![](social-05.png)
+Technium
+https://www.facebook.com/share/17ib4cRMeC/
+
+![](social-01.png)
+A10
+https://www.facebook.com/share/1DhRZstUSa/
+
+![](social-02.png)
+Paperbot
+https://www.facebook.com/share/1biFwpZ7nY/
+
+![](social-03.png)
+Boso
+https://www.facebook.com/share/1AFqYJHXjf/
+
+![](social-04.png)
+Playfloor
+https://www.facebook.com/share/1LLKuQd63w/
 
 <!--
+![](poster-01.png)
+
 ![Gaiacraft](gaiacraft.webp)
 
 ![](retro-01.jpg)
