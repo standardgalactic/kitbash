@@ -1,8 +1,12 @@
 Self-Refactoring Crosslinking
 
-![Gaiacraft](gaiacraft.webp)
+![](poster-01.png)
+![](poster-02.png)
+![](poster-03.png)
 
 <!--
+![Gaiacraft](gaiacraft.webp)
+
 ![](retro-01.jpg)
 ![](retro-02.jpg)
 ![](retro-03.jpg)
