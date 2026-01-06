@@ -1,25 +1,24 @@
 Self-Refactoring Crosslinking
 
-
 ![](social-05.jpg)
-Technium
-https://www.facebook.com/share/17ib4cRMeC/
+
+[Technium](https://www.facebook.com/share/17ib4cRMeC/) 
 
 ![](social-01.jpg)
-A10
-https://www.facebook.com/share/1DhRZstUSa/
+
+[A10](https://www.facebook.com/share/1DhRZstUSa/) 
 
 ![](social-02.jpg)
-Paperbot
-https://www.facebook.com/share/1biFwpZ7nY/
+
+[Paperbot](https://www.facebook.com/share/1biFwpZ7nY/) 
 
 ![](social-03.jpg)
-Boso
-https://www.facebook.com/share/1AFqYJHXjf/
+
+[Boso](https://www.facebook.com/share/1AFqYJHXjf/) 
 
 ![](social-04.jpg)
-Playfloor
-https://www.facebook.com/share/1LLKuQd63w/
+
+[Playfloor](https://www.facebook.com/share/1LLKuQd63w/)
 
 <!--
 ![](poster-01.png)
