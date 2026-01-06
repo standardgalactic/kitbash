@@ -1,4 +1,5 @@
 Self-Refactoring Crosslinking
+<<<<<<< HEAD
 
 <<<<<<< HEAD
 =======
@@ -45,3 +46,5 @@ Self-Refactoring Crosslinking
 ![](retro-16.jpg)
 -->
 >>>>>>> 3cd36ef (Just for Fun)
+=======
+>>>>>>> 2762bb5 (Flyxion Node Index)
