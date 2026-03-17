@@ -1,0 +1,42 @@
+# Patch node_weight to correctly sum incident edge weights
+import networkx as nx
+
+def node_weight(G: nx.Graph, node, scheme: str = "strength") -> float:
+    if scheme == "degree":
+        return float(G.degree(node))
+    elif scheme == "strength":
+        total = 0.0
+        for u, v, w in G.edges(node, data="weight", default=1.0):
+            total += float(w)
+        return total
+    elif scheme == "uniform":
+        return 1.0
+    else:
+        # default to strength
+        total = 0.0
+        for u, v, w in G.edges(node, data="weight", default=1.0):
+            total += float(w)
+        return total
+
+# Re-run demo
+res = geometric_hyperscanning_pipeline(
+    signals_A, signals_B, Fs,
+    window_len_sec=2.0, step_sec=0.25,
+    ibs_metric="PLV", prune_percentile=80.0,
+    entropy_method="kde",
+    compute_orc=False
+)
+
+fig, ax = plt.subplots(figsize=(8, 4))
+ax.plot(res.times, res.entropy_FRC, label="H(FRC)")
+ax.plot(res.times, res.corridor_score, label="Negentropic corridor score")
+for cp in res.cps_FRC:
+    ax.axvline(res.times[cp], linestyle="--", alpha=0.5)
+ax.set_xlabel("Time (s)")
+ax.set_ylabel("Value")
+ax.set_title("Curvature–Entropy and Corridor Score over Time")
+ax.legend()
+plt.show()
+
+print("Detected change-points (FRC entropy):", res.cps_FRC)
+print("Ground-truth regime change at ~", regime_change_sec, "sec")

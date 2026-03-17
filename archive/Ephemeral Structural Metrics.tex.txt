@@ -1,0 +1,1028 @@
+\documentclass[12pt]{article}
+
+\usepackage[letterpaper,left=1.25in,right=1.25in,top=1in,bottom=1in]{geometry}
+\usepackage{setspace}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{mathtools}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{natbib}
+
+\setstretch{1.15}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.75em}
+
+\title{Ephemeral Structural Metrics:\\
+Goodhart Dynamics, Arbitrary Indices, and the Necessity of Metric Rotation}
+
+\author{Flyxion}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+
+This essay formalizes a family of structural metrics designed to characterize the dynamical properties of public code ecosystems. The indices include activity velocity, language entropy, concentration measures, dormancy fractions, coupling coefficients, instability scores, and Goodhart divergence. These metrics are explicitly acknowledged to be arbitrary constructions rather than intrinsic properties of repositories or contributors. The central thesis is that such arbitrariness is not a defect but a structural necessity in any measurable system subject to Goodhart's law. Once a metric becomes a target, it ceases to function as an unbiased measure. Therefore, any metric framework must be treated as provisional and periodically redefined. The essay argues that metric rotation and index diversification are essential to prevent gamification and preserve informational signal within public telemetry systems.
+\end{abstract}
+
+\newpage
+\section{Introduction}
+
+Public code ecosystems such as those hosted on distributed version-control platforms present an observable but complex field of activity. Repositories accumulate stars, forks, commits, issues, and structural growth over time. It is tempting to treat such quantities as objective indicators of quality, impact, or productivity. However, any metric that becomes visible and comparable acquires strategic significance. Once actors optimize toward it, the metric begins to distort the behavior it was intended to describe.
+
+The telemetry system under consideration introduces a family of derived metrics that describe structural and dynamical properties of such ecosystems. These metrics are not presented as intrinsic measures of value. Rather, they are operational instruments for detecting patterns, concentration, volatility, and coupling across distributed accounts. Their design is intentionally explicit and mathematically transparent.
+
+\section{Formal Definitions}
+
+Let \( u \) index users and \( r \) index repositories. Let snapshots occur at discrete times \( t_k \).
+
+\subsection{Creation Velocity}
+
+For window \( W \) days, define
+\[
+v_u(t_k) = \frac{C_u(t_k, W)}{W},
+\]
+where \( C_u(t_k, W) \) is the number of repositories created by user \( u \) within the preceding \( W \) days.
+
+\subsection{Language Entropy}
+
+Let \( n_L \) denote the number of repositories written in language \( L \). Define
+\[
+p_L = \frac{n_L}{\sum_L n_L},
+\quad
+H = -\sum_L p_L \log p_L.
+\]
+This entropy measures diversification across technological domains.
+
+\subsection{Structural Concentration (HHI)}
+
+Let \( s_r \) denote the star count of repository \( r \). Define
+\[
+p_r = \frac{s_r}{\sum_r s_r},
+\quad
+HHI = \sum_r p_r^2.
+\]
+Higher values indicate concentration of attention in fewer repositories.
+
+\subsection{Dormancy Index}
+
+For dormancy threshold \( D \),
+\[
+d_u(t_k) =
+\frac{\#\{ r \in u : \text{age since push} \ge D \}}{\#\{ r \in u \}}.
+\]
+
+\subsection{Fork and Size Velocity}
+
+For snapshots \( t_{k-1}, t_k \),
+\[
+\Delta F_u = \sum_{r \in u} \big( forks_r(t_k) - forks_r(t_{k-1}) \big),
+\]
+\[
+\Delta S_u = \sum_{r \in u} \big( size_r(t_k) - size_r(t_{k-1}) \big).
+\]
+
+\subsection{Instability Index}
+
+Let
+\[
+\Delta Stars_u(t_k) =
+\sum_{r \in u} stars_r(t_k) - stars_r(t_{k-1}).
+\]
+Define rolling mean \( \mu(t_k) \) and variance \( \sigma^2(t_k) \). The instability score is
+\[
+Z_u(t_k) =
+\frac{\Delta Stars_u(t_k) - \mu(t_k)}{\sigma(t_k)}.
+\]
+
+\subsection{Goodhart Divergence}
+
+Define
+\[
+G_u(t_k) =
+\Delta Stars_u(t_k) - \alpha \cdot Commits_{7d,u}(t_k),
+\]
+with scaling constant \( \alpha \). This measures divergence between visibility growth and activity growth.
+
+\section{Arbitrariness as Structural Necessity}
+
+These metrics are not derived from a universal theory of software value. The choice of entropy over Simpson diversity, HHI over Gini, or z-scores over alternative anomaly detection schemes is contingent. The parameter \( \alpha \) in the Goodhart divergence is conventional. The dormancy threshold \( D \) is adjustable. The rolling window size is selected pragmatically.
+
+This arbitrariness is unavoidable. Any metric is a projection from a high-dimensional behavioral space onto a scalar observable. That projection necessarily discards structure. Different projections yield different orderings.
+
+The important property is not uniqueness but transparency and revisability.
+
+\section{Goodhart Dynamics}
+
+Goodhart's law states that when a measure becomes a target, it ceases to be a good measure. Once public telemetry exists, actors may optimize for:
+
+\begin{itemize}
+\item Star accumulation through promotion rather than development,
+\item Rapid repository creation to inflate velocity,
+\item Artificial commit inflation to simulate activity,
+\item Language diversification for entropy maximization,
+\item Fork engineering to boost replication signals.
+\end{itemize}
+
+Under such conditions, static metrics decay into signaling equilibria.
+
+The Goodhart divergence metric attempts to detect this by comparing star growth to activity growth, but this too may be gamed once known.
+
+\section{Metric Rotation and Index Diversification}
+
+To preserve informational content, metrics must not become fixed targets. Instead:
+
+\begin{enumerate}
+\item Parameters such as window size, \( \alpha \), and dormancy threshold should vary periodically.
+\item New indices should be introduced while others are retired.
+\item Composite measures should be avoided or reweighted unpredictably.
+\item Historical comparisons should emphasize trends rather than rankings.
+\end{enumerate}
+
+This rotation ensures that optimization cannot stably converge on a narrow metric attractor.
+
+\section{Ephemerality and Observational Modesty}
+
+These indices are diagnostic instruments, not evaluative judgments. They are designed to observe:
+
+\begin{itemize}
+\item Diversification,
+\item Concentration,
+\item Volatility,
+\item Coupling,
+\item Activity regimes.
+\end{itemize}
+
+They do not measure quality, insight, originality, or long-term impact. They measure surface-visible structural properties.
+
+Their legitimacy depends on their provisional status.
+
+The telemetry framework formalizes a set of arbitrary but mathematically precise metrics for observing distributed code ecosystems. Their arbitrariness is a structural feature, not a flaw. Any measurable system exposed to strategic agents will experience Goodhart drift. To preserve signal, metrics must remain transparent, revisable, and periodically replaced.
+
+The goal is not to define value but to detect pattern. The system therefore treats its own indices as transient instruments within a larger, evolving observational practice.
+
+\section{Thermodynamic Constraint, Displacement, and Metric Dynamics}
+
+The introduction of public telemetry into a distributed code ecosystem does not occur in a vacuum. Metrics alter the behavioral field they observe. In this section, we formalize this interaction as a constrained dynamical system subject to displacement and conservation principles analogous to thermodynamic regulation.
+
+\subsection{Metric Projection as Information Compression}
+
+Let the full behavioral state of an ecosystem at time \( t \) be represented by a high-dimensional vector
+\[
+X(t) \in \mathbb{R}^N,
+\]
+where coordinates encode latent factors such as cognitive effort, collaboration networks, technical difficulty, aesthetic decisions, strategic communication, and infrastructural cost.
+
+A metric is a projection operator
+\[
+M: \mathbb{R}^N \to \mathbb{R}^k,
+\]
+with \( k \ll N \). The telemetry dashboard computes observables
+\[
+Y(t) = M(X(t)).
+\]
+
+Because \( M \) is many-to-one, it necessarily discards structural information. Optimization over \( Y \) does not uniquely determine optimization over \( X \). Consequently, actors can modify unobserved components of \( X \) while maintaining or increasing \( Y \).
+
+This compression establishes the structural precondition for Goodhart drift.
+
+\subsection{Optimization Under Constraint}
+
+Suppose agents attempt to maximize a scalar metric component \( Y_i \). Let their feasible behavioral space be constrained by finite time, energy, and cognitive resources. Let total resource expenditure be represented by a conserved quantity
+\[
+R(t).
+\]
+
+Assume
+\[
+R(t) = E_{\text{visible}}(t) + E_{\text{hidden}}(t),
+\]
+where \( E_{\text{visible}} \) is effort directly contributing to measured outputs and \( E_{\text{hidden}} \) is structural burden not captured by the metric.
+
+If \( Y_i \) rewards visible effort, actors reallocate:
+\[
+\Delta E_{\text{visible}} > 0,
+\quad
+\Delta E_{\text{hidden}} < 0,
+\]
+subject to the conservation constraint
+\[
+\Delta R = 0.
+\]
+
+The result is not elimination of hidden cost but displacement. Structural obligations migrate to unmeasured dimensions.
+
+\subsection{Metric Entropy and Concentration Drift}
+
+Consider the star distribution \( \{ s_r \} \). Define entropy
+\[
+H = -\sum_r p_r \log p_r,
+\quad
+p_r = \frac{s_r}{\sum_r s_r}.
+\]
+
+If star count becomes a target, agents may concentrate attention on a subset of repositories designed for visibility amplification. This induces a reduction in entropy and an increase in concentration index \( HHI \).
+
+Thus optimization of visibility may decrease structural diversification.
+
+The system experiences concentration drift analogous to energy localization in a physical field.
+
+\subsection{Instability as Spectral Redistribution}
+
+Let star growth be a discrete-time process
+\[
+\Delta S(t_k).
+\]
+
+Define rolling mean \( \mu \) and variance \( \sigma^2 \). The instability index
+\[
+Z(t_k) = \frac{\Delta S(t_k) - \mu}{\sigma}
+\]
+detects deviations from expected growth.
+
+When metrics are targeted, growth may shift from distributed increments to punctuated bursts driven by coordinated signaling or promotion. This corresponds to a redistribution of spectral energy from low-frequency gradual growth to high-amplitude shocks.
+
+Metric optimization therefore changes the dispersion relation of observable growth.
+
+\subsection{Goodhart Divergence as Thermodynamic Gradient}
+
+Define Goodhart divergence
+\[
+G(t) = \Delta Stars(t) - \alpha \cdot Commits_{7d}(t).
+\]
+
+Let commits represent activity input and stars represent visibility output. If \( G(t) \gg 0 \), visibility exceeds activity. If \( G(t) \ll 0 \), activity exceeds visibility.
+
+This expresses a gradient imbalance between productive work and attention allocation. In thermodynamic analogy, stars represent extracted work and commits represent energy input. Persistent imbalance indicates a decoupling between input and observable reward.
+
+Such decoupling is unstable. Either visibility collapses or activity declines.
+
+\subsection{Metastability and Regime Shifts}
+
+Define rolling variance-to-mean ratio
+\[
+M(t) = \frac{\mathrm{Var}(C)}{\mathrm{Mean}(C)},
+\]
+where \( C \) denotes commit activity.
+
+Large values of \( M(t) \) indicate regime volatility. Sustained low values indicate stable operational states. Transitions between these regimes resemble phase transitions in constrained dynamical systems.
+
+Metric visibility can induce such regime shifts by altering incentive gradients.
+
+\subsection{Metric Rotation as Entropic Regulation}
+
+If a metric becomes a fixed target, the projection \( M \) aligns with optimization gradients in \( X \). The behavioral manifold collapses toward metric-efficient subspaces.
+
+To counteract this collapse, redefine
+\[
+M \to M'(t),
+\]
+with time-varying weights, parameters, or functional form.
+
+Periodic metric rotation introduces epistemic entropy into the measurement process. It prevents long-term convergence to degenerate attractors defined by single scalar optimization.
+
+This functions analogously to a regulator term in a dispersion relation. Just as a \( k^4 \) term bounds ultraviolet divergence in a field model, metric rotation bounds optimization divergence in behavioral space.
+
+\subsection{Conservation of Structural Burden}
+
+At no point does metric optimization eliminate constraint. Instead, burden is redistributed across dimensions of \( X \).
+
+The system conserves total resource expenditure while altering its allocation.
+
+Thus the telemetry framework is not a theory of value but a study of displacement dynamics under measurement.
+
+\section*{Synthesis}
+
+Public telemetry is an intervention in a dynamical system. It compresses high-dimensional behavior into low-dimensional observables. Once agents respond to those observables, displacement, concentration drift, instability, and regime shifts follow.
+
+The appropriate response is not to seek perfect metrics, but to accept metric ephemerality. Indices must remain provisional, parameterized, and revisable. Their role is diagnostic rather than normative.
+
+In this way, metric systems can function as observational instruments rather than control targets, preserving informational signal in the presence of strategic adaptation.
+
+\section{Renormalization, Conservation of Difficulty, and Scale-Dependent Metrics}
+
+The previous section established that metric systems function as projections from a high-dimensional behavioral space into a reduced observable space. We now formalize this in terms of scale, conservation, and renormalization dynamics.
+
+\subsection{Behavioral Field and Observational Scale}
+
+Let the ecosystem state be described by a behavioral field
+\[
+X(t) \in \mathcal{B},
+\]
+where \( \mathcal{B} \subset \mathbb{R}^N \) represents the full space of structural behaviors, including cognitive effort, collaboration topology, infrastructural maintenance, promotional activity, and technical innovation.
+
+Define an observational coarse-graining operator
+\[
+\mathcal{C}_\Lambda : \mathcal{B} \to \mathcal{B}_\Lambda,
+\]
+where \( \Lambda \) represents the measurement scale. For example:
+
+\begin{itemize}
+\item Repository-level aggregation,
+\item User-level aggregation,
+\item Ecosystem-level aggregation,
+\item Rolling time-window smoothing.
+\end{itemize}
+
+A metric is then a functional
+\[
+M_\Lambda : \mathcal{B}_\Lambda \to \mathbb{R}.
+\]
+
+Thus every metric implicitly depends on scale:
+\[
+M = M_\Lambda \circ \mathcal{C}_\Lambda.
+\]
+
+Changing window size, aggregation level, or smoothing width alters \( \Lambda \), thereby changing the effective theory.
+
+\subsection{Conservation of Difficulty}
+
+Let total system burden be
+\[
+D(t) = \sum_{i=1}^N X_i(t),
+\]
+representing total resource expenditure across all behavioral dimensions.
+
+Introduce a decomposition:
+\[
+D(t) = D_{\text{explicit}}(t) + D_{\text{hidden}}(t),
+\]
+where explicit difficulty contributes directly to observable metrics and hidden difficulty lies outside measurement.
+
+If agents optimize a metric \( M \), they increase alignment between \( D_{\text{explicit}} \) and \( M \), but total burden satisfies
+\[
+\Delta D = 0,
+\]
+under fixed resource constraints.
+
+Hence,
+\[
+\Delta D_{\text{explicit}} = - \Delta D_{\text{hidden}}.
+\]
+
+This is a conservation-of-difficulty principle. Measurement redistributes visible effort and hidden structural load without eliminating constraint.
+
+\subsection{Renormalization Flow of Metrics}
+
+Let metric parameters be denoted collectively by \( \theta \) (window sizes, weights, thresholds). Define an effective metric
+\[
+M_\theta.
+\]
+
+Behavioral adaptation induces a feedback:
+\[
+X \mapsto X'(M_\theta).
+\]
+
+This defines a flow in parameter space:
+\[
+\frac{d\theta}{d\log \Lambda} = \beta(\theta),
+\]
+where \( \Lambda \) is observational scale and \( \beta \) captures distortion introduced by strategic optimization.
+
+If \( \beta(\theta) = 0 \), the metric is scale-invariant and stable. In practice, \( \beta(\theta) \neq 0 \). Fixed metrics drift under adaptation.
+
+Metric rotation corresponds to perturbing \( \theta \) away from unstable fixed points.
+
+\subsection{Spectral Redistribution Under Optimization}
+
+Let the time series of observable metric \( Y(t) \) be decomposed into frequency components:
+\[
+Y(t) = \int_0^\infty \hat{Y}(\omega) e^{i \omega t} d\omega.
+\]
+
+Optimization for short-term visibility amplifies high-frequency components (bursts, promotional spikes). Long-term structural development manifests as low-frequency components.
+
+A static metric encourages concentration of power in specific spectral bands.
+
+Metric diversification redistributes spectral weight, preventing dominance of narrow optimization modes.
+
+\subsection{Phase Transitions in Behavioral Regimes}
+
+Let regime parameter \( \lambda \) represent intensity of metric-targeting behavior.
+
+Below threshold \( \lambda_c \), metrics track behavior.
+
+Above \( \lambda_c \), behavior tracks metrics.
+
+This bifurcation can be represented schematically as
+\[
+\frac{dX}{dt} = F(X) + \lambda G(M(X)).
+\]
+
+When \( \lambda \) exceeds critical value, attractors shift. The system enters a metric-dominated phase characterized by concentration drift, volatility spikes, and Goodhart divergence.
+
+Periodic metric redefinition reduces effective \( \lambda \), returning the system to exploratory regimes.
+
+\subsection{Metric Ephemerality as Regulatory Term}
+
+In field-theoretic analogy, an unregulated dispersion relation may admit unbounded amplification. Introducing a higher-order term constrains ultraviolet divergence.
+
+Similarly, static metrics produce optimization divergence.
+
+Metric rotation acts as a regulatory term:
+
+\[
+M(t) = M_{\theta(t)},
+\]
+
+with slowly varying \( \theta(t) \).
+
+This temporal modulation prevents long-term convergence toward degenerate optimization equilibria.
+
+\subsection{Synthesis}
+
+Measurement compresses behavior. Compression creates gradients. Gradients induce adaptation. Adaptation distorts measurement.
+
+No scalar index can remain permanently stable in an adaptive ecosystem. Therefore, metric systems must be dynamic, multi-scalar, and explicitly provisional.
+
+The telemetry framework is thus not a value theory but a renormalizable observational instrument. Its parameters must evolve in response to behavioral drift, preserving informational signal under strategic pressure.
+
+Conservation of difficulty ensures that no metric eliminates constraint. Renormalization ensures that no metric remains immune to distortion. Together they imply that measurement itself must remain dynamic.
+
+Public telemetry operates within a constrained dynamical field. Its indices are arbitrary projections that inevitably influence the system they observe. Through conservation-of-difficulty dynamics and renormalization flow, metric systems must be rotated, diversified, and periodically reconstructed to avoid degeneracy.
+
+In this view, metric ephemerality is not instability but regulatory necessity.
+
+\section{A Variational Formulation: Lagrangian and Hamiltonian Telemetry Dynamics}
+
+This section formalizes metric exposure, strategic optimization, and periodic metric rotation within a single variational scaffold. The purpose is not to claim that public ecosystems are literally Hamiltonian, but to provide a disciplined template in which (i) constraints appear as conserved or nearly conserved quantities, (ii) measurement enters as a low-dimensional coupling, and (iii) Goodhart drift is expressed as a feedback-induced potential that reshapes attractors.
+
+\subsection{State, Projection, and Resource Constraint}
+
+Let the ecosystem microstate be represented by a configuration vector
+\[
+q(t) \in \mathbb{R}^N,
+\]
+whose components encode latent behavioral and infrastructural degrees of freedom. A telemetry system exposes a low-dimensional observable
+\[
+y(t) = M_{\theta(t)}(q(t)) \in \mathbb{R}^k,
+\]
+where \(M_{\theta}\) is a measurement functional parameterized by \(\theta(t)\), which encodes tunable choices such as window lengths, thresholds, weights, and the selection of indices. The explicit time dependence \(\theta(t)\) represents metric rotation.
+
+Resource limitation is modeled as a holonomic or nearly holonomic constraint on a scalar ``budget'' functional \(R(q,\dot q)\). For a strict constraint one may impose
+\[
+\Phi(q,\dot q) = R(q,\dot q) - R_0 = 0,
+\]
+where \(R_0\) is a fixed expenditure envelope. In practice one often prefers a soft constraint implemented as a penalty term.
+
+\subsection{A Telemetry Lagrangian}
+
+Introduce a baseline Lagrangian for unconstrained ecosystem evolution,
+\[
+L_0(q,\dot q) = \frac{1}{2}\dot q^\top A \dot q - U(q),
+\]
+where \(A\) is positive definite and encodes inertial or adjustment-cost structure, while \(U(q)\) encodes intrinsic tensions and costs of maintaining certain organizational or developmental configurations.
+
+To represent measurement exposure and targeting, define a ``target functional'' \(\mathcal{T}:\mathbb{R}^k\to\mathbb{R}\). A simple choice is \(\mathcal{T}(y)=w^\top y\), but the formalism permits nonlinear scoring. Let \(\lambda\ge 0\) denote the intensity with which agents optimize the exposed score. Then introduce a coupling term
+\[
+L_{\mathrm{met}}(q,t) = \lambda\,\mathcal{T}\!\big(M_{\theta(t)}(q)\big).
+\]
+Because agents maximize the score, the term is added to the Lagrangian so that the induced Euler--Lagrange dynamics include a force in the direction of increasing \(\mathcal{T}\circ M_{\theta(t)}\). Equivalently, one may regard this as subtracting an effective potential \(V_{\mathrm{met}}=-\lambda\,\mathcal{T}(M_{\theta(t)}(q))\).
+
+Hard or soft resource constraint is implemented either with a Lagrange multiplier \(\mu(t)\) or with a penalty. The constrained Lagrangian may be written as
+\[
+L(q,\dot q,t)=\frac{1}{2}\dot q^\top A \dot q - U(q) + \lambda\,\mathcal{T}\!\big(M_{\theta(t)}(q)\big) + \mu(t)\,\Phi(q,\dot q),
+\]
+or, for a soft constraint with stiffness \(\kappa_R>0\),
+\[
+L(q,\dot q,t)=\frac{1}{2}\dot q^\top A \dot q - U(q) + \lambda\,\mathcal{T}\!\big(M_{\theta(t)}(q)\big)
+-\frac{\kappa_R}{2}\big(R(q,\dot q)-R_0\big)^2.
+\]
+
+Goodhart distortion is expressed by the fact that the metric coupling depends on a projection \(M_{\theta}\) with \(k\ll N\). The resulting force field depends only on the gradient of \(\mathcal{T}\circ M_{\theta}\), leaving a large nullspace in which agents can move while preserving or increasing the exposed score. In this formulation, Goodhart drift is not an external pathology but a geometric consequence of dimensional collapse.
+
+\subsection{Dissipation and Irreversibility}
+
+Ecosystem adaptation is not conservative. Irreversibility enters through dissipation, which can be represented by a Rayleigh dissipation functional
+\[
+\mathcal{D}(\dot q)=\frac{1}{2}\dot q^\top B \dot q,
+\]
+with \(B\succeq 0\). The equations of motion are then
+\[
+\frac{d}{dt}\Big(\frac{\partial L}{\partial \dot q}\Big)-\frac{\partial L}{\partial q}
++\frac{\partial \mathcal{D}}{\partial \dot q}=0,
+\]
+together with the constraint \(\Phi(q,\dot q)=0\) when enforced hard.
+
+This places ``mortal computation'' directly into the mechanics: adjustment consumes budget and exports dissipation, and therefore cannot be reduced to reversible information processing even if the exposed metric appears clean and frictionless.
+
+\subsection{Canonical Momenta and Hamiltonian}
+
+Assume for clarity a hard constraint that does not depend on \(\dot q\) (or treat constraints by standard Dirac methods when necessary). Define canonical momenta
+\[
+p := \frac{\partial L}{\partial \dot q} = A\dot q,
+\]
+for the baseline kinetic form. The Legendre transform yields the Hamiltonian
+\[
+H(q,p,t)=p^\top \dot q - L
+= \frac{1}{2}p^\top A^{-1}p + U(q) - \lambda\,\mathcal{T}\!\big(M_{\theta(t)}(q)\big),
+\]
+with the understanding that additional terms appear for soft constraints and that the multiplier formulation yields constraint submanifolds in phase space.
+
+Hamilton's equations become
+\[
+\dot q = \frac{\partial H}{\partial p}=A^{-1}p,
+\qquad
+\dot p = -\frac{\partial H}{\partial q}
+= -\nabla U(q) + \lambda\,J_{M}(q,\theta(t))^\top \nabla \mathcal{T}(y),
+\]
+where \(J_{M}(q,\theta)\) is the Jacobian of \(M_{\theta}\) with respect to \(q\), and \(y=M_{\theta}(q)\). The metric-targeting force is therefore the pullback of the target gradient through the measurement map. This is the precise point at which projection geometry enters the dynamics: a low-dimensional observable induces a force field in a high-dimensional configuration space by Jacobian transpose transport.
+
+When dissipation is present, the Hamiltonian system is augmented by a non-Hamiltonian term, for example
+\[
+\dot p = -\frac{\partial H}{\partial q} - B\dot q
+= -\frac{\partial H}{\partial q} - BA^{-1}p,
+\]
+which yields monotone decay of the baseline mechanical energy in the absence of time-dependent driving. Metric rotation \(\theta(t)\) acts as explicit time-dependent driving.
+
+\subsection{Metric Rotation as Regulatory Driving}
+
+Metric rotation is the controlled time dependence \(\theta(t)\). In the Hamiltonian, this appears as explicit time dependence through \(\mathcal{T}(M_{\theta(t)}(q))\). The power injected (or removed) by metric motion is captured by
+\[
+\frac{dH}{dt} = \frac{\partial H}{\partial t}
+= -\lambda\,\frac{\partial}{\partial t}\mathcal{T}\!\big(M_{\theta(t)}(q)\big),
+\]
+modulo dissipative losses. Thus metric rotation is formally analogous to a moving potential well: it prevents long-lived convergence to a single metric-defined attractor by continually reorienting the measurement gradient field. In the language of regulation, \(\theta(t)\) serves as a stabilizing perturbation that bounds the extent of strategic convergence in the null directions of the measurement map.
+
+\subsection{A Conserved-Burden Constraint in Canonical Form}
+
+To encode the conservation-of-difficulty principle, introduce a budget functional \(R(q,\dot q)\) and enforce \(R=R_0\) (hard) or penalize deviations (soft). In the Hamiltonian picture, one may treat \(R(q,p)\) as a first integral in the ideal limit, or as a slowly varying adiabatic invariant under dissipation and driving. The salient point is that, even as the metric term redirects trajectories to increase \(\mathcal{T}(M_{\theta}(q))\), the constraint prevents unbounded reduction of effort: optimization can only redistribute burden across coordinates of \(q\), not eliminate it. The conservation law is therefore expressed as confinement to a constraint manifold in phase space, while Goodhart drift corresponds to motion along directions that are weakly penalized or weakly observed.
+
+\subsection{Interpretive Consequence}
+
+Within this variational scaffold, the qualitative claims become formally legible. Enframing corresponds to the dominance of a measurement-induced potential that reconfigures the accessible region of state space. Mortality of computation corresponds to the necessity of dissipation and constraint, which prohibit purely formal, reversible optimization. Goodhart's law corresponds to the geometric fact that the measurement map is low-dimensional, creating null directions and degeneracies that strategic agents exploit. Metric rotation corresponds to explicit time dependence in the Hamiltonian, acting as a regulatory perturbation that prevents the system from collapsing into a single metric-efficient attractor.
+
+The framework is intentionally schematic, but it cleanly separates what is structural from what is contingent: the exact forms of \(U\), \(\mathcal{T}\), \(M_{\theta}\), and \(\mathcal{D}\) are conventional, whereas the existence of projection-induced degeneracy, dissipation, and constraint is unavoidable in any measured adaptive ecosystem.
+
+\section{Conclusion: Metric Ephemerality as Structural Law}
+
+This paper has developed a unified account of public telemetry in distributed code ecosystems. Beginning from explicit operational metrics—creation velocity, entropy, concentration, dormancy, coupling, instability, Goodhart divergence, and metastability—it proceeded to formalize their behavior under adaptive optimization. The central claim is not that these indices measure intrinsic value, nor that they are uniquely correct. Rather, the claim is structural: any metric exposed within an adaptive system becomes a dynamical force.
+
+The analysis began with projection. Metrics are low-dimensional functionals
+\[
+M_{\theta}: \mathcal{B} \to \mathbb{R}^k,
+\]
+mapping high-dimensional behavioral fields into compressed observables. This compression creates null directions in behavioral space. Once actors respond to exposed metrics, strategic adaptation redistributes effort into these null directions. Goodhart drift is therefore not accidental but geometric.
+
+We then introduced conservation of difficulty. Under finite resource constraints,
+\[
+D = D_{\text{explicit}} + D_{\text{hidden}},
+\quad
+\Delta D = 0,
+\]
+optimization reallocates burden but cannot eliminate it. Visible effort may increase or decrease, but hidden structural load compensates. Constraint is conserved even when metrics fluctuate.
+
+Renormalization extended this insight across scales. Metrics depend on observational scale \( \Lambda \). Parameter choices \( \theta \) define effective theories of ecosystem behavior. Adaptation induces flows in parameter space,
+\[
+\frac{d\theta}{d\log \Lambda} = \beta(\theta),
+\]
+revealing that no metric remains stable under prolonged exposure. Fixed indices become attractors for strategic convergence.
+
+The variational formulation synthesized these elements into a single dynamical system. A baseline Lagrangian described intrinsic ecosystem tension. A measurement-induced coupling
+\[
+\lambda \, \mathcal{T}\!\big(M_{\theta}(q)\big)
+\]
+introduced a directed gradient toward metric optimization. Dissipation encoded irreversibility and mortality. Constraint manifolds enforced finite resource allocation. The Hamiltonian formalism made explicit that metric exposure reshapes potential landscapes and induces forces in state space. Metric rotation appeared as time-dependent driving, preventing degeneracy.
+
+Across these formalisms, a single structural conclusion emerges.
+
+Metrics are not neutral descriptors; they are partial potentials. Once public, they enter the dynamical field they measure. Optimization shifts spectral weight, concentrates attention, induces volatility, and redistributes burden. No scalar index can remain permanently stable in such a system.
+
+Therefore, metric ephemerality is not methodological weakness but structural necessity.
+
+Rotation, diversification, parameter drift, and provisional interpretation are regulatory instruments. They serve the same function that higher-order stabilizing terms serve in field theory: bounding divergence, preventing collapse into degenerate attractors, and preserving informational signal under adaptive pressure.
+
+The telemetry framework does not claim to measure value. It claims only to observe pattern under constraint. Its indices are tools, not verdicts. Their legitimacy depends precisely on their arbitrariness, transparency, and revisability.
+
+In this sense, the measurement system mirrors the ecosystem it observes. Both are constrained, dissipative, adaptive, and scale-dependent. Both resist permanent reduction to a single scalar quantity. Both require continual adjustment to maintain structural coherence.
+
+Metric systems, like the code ecosystems they describe, must remain dynamic if they are to remain meaningful.
+
+\newpage
+\section{Appendices} 
+
+\appendix
+\section{Minimal Reference Implementation}
+
+This appendix provides a minimal, self-contained implementation of the telemetry framework described in the main text. The goal is not production deployment but conceptual transparency. The code demonstrates that the metric system requires no backend infrastructure and can be implemented using a static HTML page and a small JavaScript analysis layer.
+
+\subsection{Repository Structure}
+
+A minimal deployment consists of:
+
+\begin{verbatim}
+ecosystem-telemetry/
+├── index.html
+├── dashboard.js
+└── data/history.json
+\end{verbatim}
+
+The file \texttt{history.json} contains a time series of snapshots with the structure defined in Section 3.
+
+\subsection{Minimal HTML Interface}
+
+The following file renders a single entropy and activity chart.
+
+\begin{verbatim}
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Minimal Telemetry</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<h1>Minimal Ecosystem Telemetry</h1>
+
+<canvas id="activityChart"></canvas>
+<canvas id="entropyChart"></canvas>
+
+<script src="dashboard.js"></script>
+
+</body>
+</html>
+\end{verbatim}
+
+\subsection{Minimal JavaScript Analysis Layer}
+
+The following script loads historical data, computes global commit activity and language entropy, and renders both as time series.
+
+\begin{verbatim}
+async function loadHistory() {
+  const r = await fetch("data/history.json");
+  return await r.json();
+}
+
+function entropy(counts) {
+  const total = counts.reduce((a,b)=>a+b,0);
+  if (total === 0) return 0;
+  let H = 0;
+  for (let v of counts) {
+    if (v > 0) {
+      const p = v / total;
+      H -= p * Math.log(p);
+    }
+  }
+  return H;
+}
+
+function languageEntropy(snapshot) {
+  const counts = {};
+  snapshot.users.forEach(u => {
+    u.repos.forEach(r => {
+      if (!r.language) return;
+      counts[r.language] = (counts[r.language] || 0) + 1;
+    });
+  });
+  return entropy(Object.values(counts));
+}
+
+function totalCommits(snapshot) {
+  let sum = 0;
+  snapshot.users.forEach(u => {
+    u.repos.forEach(r => {
+      sum += (r.commits_7d || 0);
+    });
+  });
+  return sum;
+}
+
+async function render() {
+  const history = await loadHistory();
+  const dates = history.map(h => h.date);
+
+  const commits = history.map(totalCommits);
+  const entropies = history.map(languageEntropy);
+
+  new Chart(document.getElementById("activityChart"), {
+    type: "line",
+    data: {
+      labels: dates,
+      datasets: [{
+        label: "Total Commits (7d)",
+        data: commits
+      }]
+    }
+  });
+
+  new Chart(document.getElementById("entropyChart"), {
+    type: "line",
+    data: {
+      labels: dates,
+      datasets: [{
+        label: "Language Entropy",
+        data: entropies
+      }]
+    }
+  });
+}
+
+render();
+\end{verbatim}
+
+\subsection{Minimal History Example}
+
+A single entry in \texttt{history.json} has the form:
+
+\begin{verbatim}
+[
+  {
+    "date": "2026-02-01T00:00:00Z",
+    "users": [
+      {
+        "user": "example",
+        "repos": [
+          {
+            "name": "repoA",
+            "language": "Python",
+            "stars": 10,
+            "forks": 2,
+            "size": 120,
+            "commits_7d": 4,
+            "created_at": "...",
+            "pushed_at": "..."
+          }
+        ]
+      }
+    ]
+  }
+]
+\end{verbatim}
+
+\subsection{Interpretive Note}
+
+The implementation intentionally avoids ranking, scoring, or normative labeling. It computes structural quantities directly from stored state and renders them transparently. No hidden weights, proprietary algorithms, or opaque transformations are employed.
+
+The minimal version demonstrates the following:
+
+\begin{enumerate}
+\item All metrics are computable as explicit functionals of repository state.
+\item The system requires no privileged data access.
+\item Metric transparency is achievable without complexity.
+\item Arbitrary parameters (window size, entropy base, thresholds) are visible and modifiable.
+\end{enumerate}
+
+The reference implementation therefore reinforces the central thesis of the paper: metrics are constructed projections. Their authority derives from transparency and revisability rather than permanence.
+
+\section{Technical Supplement: Automated Ingestion and Statistical Robustness}
+
+This supplement provides (i) a minimal automated ingestion workflow suitable for static deployment environments such as GitHub Pages, and (ii) a short discussion of estimator bias, sampling limitations, and robustness considerations.
+
+\subsection{Automated Data Ingestion via Scheduled Workflow}
+
+Because static hosting environments do not permit server-side execution, historical data must be generated externally. A scheduled workflow can periodically query the public GitHub API and append snapshots to a JSON file.
+
+A minimal GitHub Actions workflow is given below.
+
+\begin{verbatim}
+name: Update Telemetry Data
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch Public Repo Data
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          USERS=("exampleUser")
+          echo "[" > data/latest.json
+
+          for USER in "${USERS[@]}"; do
+            curl -s \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              "https://api.github.com/users/$USER/repos?per_page=100" \
+              > temp.json
+
+            echo "{\"user\":\"$USER\",\"repos\":$(cat temp.json)}," \
+              >> data/latest.json
+          done
+
+          sed -i '$ s/,$//' data/latest.json
+          echo "]" >> data/latest.json
+
+      - name: Commit Snapshot
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add data/latest.json
+          git commit -m "Update telemetry data" || exit 0
+          git push
+\end{verbatim}
+
+This workflow demonstrates the essential mechanism: periodic polling of public repository state and versioned archival within the repository itself. The telemetry dashboard then consumes this file as a time series.
+
+\subsection{GraphQL Variant}
+
+The REST API returns limited metadata per request. For richer ingestion (e.g., commit counts, contributor counts, dependency graphs), the GraphQL API permits batched queries.
+
+A minimal GraphQL query for repository metadata:
+
+\begin{verbatim}
+query($login:String!) {
+  user(login:$login) {
+    repositories(first:100) {
+      nodes {
+        name
+        stargazerCount
+        forkCount
+        diskUsage
+        primaryLanguage { name }
+        pushedAt
+        createdAt
+      }
+    }
+  }
+}
+\end{verbatim}
+
+GraphQL reduces request count and improves rate-limit efficiency, but does not alter the structural analysis.
+
+\subsection{Sampling Bias and API Limitations}
+
+Public GitHub telemetry reflects only observable repository-level activity. It excludes:
+
+\begin{itemize}
+\item Private repositories,
+\item Off-platform collaboration,
+\item External dependency maintenance,
+\item Non-commit cognitive effort,
+\item Time invested without versioned output.
+\end{itemize}
+
+Star counts and fork counts represent attention and replication signals rather than quality or complexity. Commit counts are coarse proxies for activity and vary widely in granularity across workflows.
+
+Consequently, all metrics derived from these quantities inherit sampling bias.
+
+\subsection{Estimator Variance}
+
+Let \( X(t) \) denote a measured time series (e.g., commits). The rolling variance estimator
+\[
+\hat{\sigma}^2(t) =
+\frac{1}{W}
+\sum_{i=t-W+1}^{t}
+\big(X(i) - \bar{X}(t)\big)^2
+\]
+is biased for small window sizes \( W \). Increasing \( W \) reduces variance but increases temporal lag.
+
+The choice of window size is therefore a bias–variance tradeoff rather than an intrinsic property of the ecosystem.
+
+\subsection{Goodhart Sensitivity}
+
+Consider the Goodhart divergence metric
+\[
+G(t) = \Delta Stars(t) - \alpha \cdot Commits_{7d}(t).
+\]
+
+Parameter \( \alpha \) determines the relative weight of visibility versus activity. Small perturbations in \( \alpha \) may significantly change the sign structure of \( G(t) \).
+
+Thus \( G(t) \) is not a stable invariant but a diagnostic functional whose interpretation depends on parameter calibration.
+
+\subsection{Robustness Strategies}
+
+Several strategies improve interpretive robustness:
+
+\begin{enumerate}
+\item Compare trends rather than absolute values.
+\item Use multiple window sizes simultaneously.
+\item Track sign persistence rather than magnitude alone.
+\item Combine entropy and concentration measures.
+\item Periodically rotate parameter values.
+\end{enumerate}
+
+These strategies reduce overfitting to any single scalar representation.
+
+\subsection{Epistemic Status}
+
+The telemetry system provides structured observation, not valuation. It detects concentration, diversification, volatility, and activity regimes under measurement exposure.
+
+Its statistical properties are transparent but not exhaustive. The system should therefore be understood as a provisional analytic layer rather than a canonical index of ecosystem health.
+
+\section*{Summary of Technical Supplement}
+
+The minimal ingestion pipeline demonstrates feasibility under static hosting constraints. The statistical notes clarify that all derived indices depend on parameter choice, sampling structure, and API visibility. These dependencies reinforce the main thesis of the paper: metrics are operational constructs embedded within constrained dynamical systems and must remain revisable.
+
+\newpage
+\begin{thebibliography}{99}
+
+\bibitem{Goodhart1975}
+Goodhart, C. A. E. (1975).
+Problems of Monetary Management: The U.K. Experience.
+In \emph{Papers in Monetary Economics}, Reserve Bank of Australia.
+
+\bibitem{Strathern1997}
+Strathern, M. (1997).
+'Improving Ratings': Audit in the British University System.
+\emph{European Review}, 5(3), 305--321.
+
+\bibitem{Campbell1979}
+Campbell, D. T. (1979).
+Assessing the Impact of Planned Social Change.
+\emph{Evaluation and Program Planning}, 2(1), 67--90.
+
+\bibitem{Muller2018}
+Muller, J. Z. (2018).
+\emph{The Tyranny of Metrics}.
+Princeton University Press.
+
+\bibitem{ManheimGarrabrant2019}
+Manheim, D., \& Garrabrant, S. (2019).
+Categorizing Variants of Goodhart’s Law.
+\emph{arXiv:1803.04585}.
+
+\bibitem{Shannon1948}
+Shannon, C. E. (1948).
+A Mathematical Theory of Communication.
+\emph{Bell System Technical Journal}, 27, 379--423.
+
+\bibitem{Jaynes1957}
+Jaynes, E. T. (1957).
+Information Theory and Statistical Mechanics.
+\emph{Physical Review}, 106(4), 620--630.
+
+\bibitem{RenormalizationWilson1975}
+Wilson, K. G. (1975).
+The Renormalization Group: Critical Phenomena and the Kondo Problem.
+\emph{Reviews of Modern Physics}, 47(4), 773--840.
+
+\bibitem{Goldenfeld1992}
+Goldenfeld, N. (1992).
+\emph{Lectures on Phase Transitions and the Renormalization Group}.
+Addison-Wesley.
+
+\bibitem{LandauLifshitzMechanics}
+Landau, L. D., \& Lifshitz, E. M. (1976).
+\emph{Mechanics} (3rd ed.).
+Pergamon Press.
+
+\bibitem{Arnold1989}
+Arnold, V. I. (1989).
+\emph{Mathematical Methods of Classical Mechanics} (2nd ed.).
+Springer.
+
+\bibitem{Noether1918}
+Noether, E. (1918).
+Invariante Variationsprobleme.
+\emph{Nachrichten von der Gesellschaft der Wissenschaften zu Göttingen}, 235--257.
+
+\bibitem{Prigogine1984}
+Prigogine, I., \& Stengers, I. (1984).
+\emph{Order Out of Chaos}.
+Bantam Books.
+
+\bibitem{Ashby1956}
+Ashby, W. R. (1956).
+\emph{An Introduction to Cybernetics}.
+Chapman \& Hall.
+
+\bibitem{Simon1962}
+Simon, H. A. (1962).
+The Architecture of Complexity.
+\emph{Proceedings of the American Philosophical Society}, 106(6), 467--482.
+
+\bibitem{Flake1998}
+Flake, G. W. (1998).
+\emph{The Computational Beauty of Nature}.
+MIT Press.
+
+\bibitem{Huberman2001}
+Huberman, B. A. (2001).
+\emph{The Laws of the Web}.
+MIT Press.
+
+\bibitem{Taleb2012}
+Taleb, N. N. (2012).
+\emph{Antifragile}.
+Random House.
+
+\bibitem{Tainter1988}
+Tainter, J. A. (1988).
+\emph{The Collapse of Complex Societies}.
+Cambridge University Press.
+
+\bibitem{Heidegger1954}
+Heidegger, M. (1954).
+Die Frage nach der Technik.
+In \emph{Vorträge und Aufsätze}.
+Neske.
+
+\end{thebibliography}
+
+\end{document} 

@@ -1,0 +1,99 @@
+// Update statistics
+        function updateStats() {
+            const phiEnergy = phiField.reduce((sum, val) => sum + val*val, 0) / phiField.length;
+            const vectorMagnitude = Math.sqrt(
+                (vectorFieldX.reduce((sum, val) => sum + val*val, 0) + 
+                 vectorFieldY.reduce((sum, val) => sum + val*val, 0)) / vectorFieldX.length
+            );
+            const entropyRate = entropyField.reduce((sum, val) => sum + Math.abs(val), 0) / entropyField.length;
+            
+            const alpha = parseFloat(document.getElementById('phi-v-coupling').value);
+            const beta = parseFloat(document.getElementById('v-s-torsion').value);
+            const gamma = parseFloat(document.getElementById('s-phi-damping').value);
+            
+            const couplingStrength = (alpha + beta + gamma) / 3;
+            const coherence = Math.exp(-Math.abs(phiEnergy - vectorMagnitude));
+            const complexity = Math.log(1 + entropyRate * vectorMagnitude);
+            
+            document.getElementById('phi-energy').textContent = phiEnergy.toFixed(2);
+            document.getElementById('vector-magnitude').textContent = vectorMagnitude.toFixed(2);
+            document.getElementById('entropy-rate').textContent = entropyRate.toFixed(2);
+            document.getElementById('coupling-strength').textContent = couplingStrength.toFixed(2);
+            document.getElementById('coherence').textContent = coherence.toFixed(2);
+            document.getElementById('complexity').textContent = complexity.toFixed(2);
+        }
+        
+        // Update interpretation
+        function updateInterpretation() {
+            const alpha = parseFloat(document.getElementById('phi-v-coupling').value);
+            const beta = parseFloat(document.getElementById('v-s-torsion').value);
+            const gamma = parseFloat(document.getElementById('s-phi-damping').value);
+            
+            let interpretation = "";
+            
+            if (alpha > 1.5 && beta > 1.2) {
+                interpretation = "High Φ-𝒗 coupling with strong torsion creates consciousness-like resonant vortices. This regime exhibits self-organizing criticality—the hallmark of conscious awareness emerging from field instabilities.";
+            } else if (gamma > 1.5) {
+                interpretation = "Dominant entropic damping creates stable attractor states. This represents memory consolidation and pattern crystallization—the substrate of persistent thought structures.";
+            } else if (beta > 1.5) {
+                interpretation = "High vector-entropy torsion generates turbulent flow patterns. This chaotic regime may correspond to creative ideation and free-associative thought processes.";
+            } else {
+                interpretation = "Balanced field dynamics show gentle wave propagation. This stable regime represents baseline consciousness—the quiet hum of awareness without intense cognitive activity.";
+            }
+            
+            document.getElementById('interpretation-text').textContent = interpretation;
+        }
+        
+        // Animation loop
+        function animate() {
+            if (!isRunning) return;
+            
+            time += 0.1;
+            updateFields();
+            renderFields();
+            updateStats();
+            updateInterpretation();
+            
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        // Toggle simulation
+        function toggleSimulation() {
+            isRunning = !isRunning;
+            const playButton = document.getElementById('play-text');
+            
+            if (isRunning) {
+                playButton.textContent = '⏸ Pause RSVP Fields';
+                initializeFields();
+                animate();
+            } else {
+                playButton.textContent = '▶ Activate RSVP Fields';
+                cancelAnimationFrame(animationId);
+            }
+        }
+        
+        // Control event listeners
+        document.getElementById('phi-v-coupling').addEventListener('input', (e) => {
+            document.getElementById('phi-v-value').textContent = e.target.value;
+        });
+        
+        document.getElementById('v-s-torsion').addEventListener('input', (e) => {
+            document.getElementById('v-s-value').textContent = e.target.value;
+        });
+        
+        document.getElementById('s-phi-damping').addEventListener('input', (e) => {
+            document.getElementById('s-phi-value').textContent = e.target.value;
+        });
+        
+        document.getElementById('resonance').addEventListener('input', (e) => {
+            document.getElementById('resonance-value').textContent = e.target.value;
+        });
+        
+        // Initialize visualization
+        initializeFields();
+        renderFields();
+        updateStats();
+        updateInterpretation();
+    </script>
+</body>
+</html>

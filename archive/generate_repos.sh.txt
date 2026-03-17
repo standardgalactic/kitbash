@@ -1,0 +1,129 @@
+#!/usr/bin/env bash
+
+set -e
+
+JSON_FILE="projects.json"
+VISIBILITY="public"   # change to private if desired
+
+if ! command -v jq &> /dev/null; then
+  echo "jq is required but not installed."
+  exit 1
+fi
+
+if ! command -v gh &> /dev/null; then
+  echo "GitHub CLI (gh) is required but not installed."
+  exit 1
+fi
+
+PROJECT_COUNT=$(jq length "$JSON_FILE")
+
+echo "Found $PROJECT_COUNT projects."
+
+for i in $(seq 0 $((PROJECT_COUNT - 1))); do
+  NAME=$(jq -r ".[$i].name" "$JSON_FILE")
+  DESC=$(jq -r ".[$i].description" "$JSON_FILE")
+
+  echo "Creating repository: $NAME"
+
+  # Create repo if it does not already exist
+  if ! gh repo view "$NAME" &> /dev/null; then
+    gh repo create "$NAME" --"$VISIBILITY" --description "$DESC" --confirm
+  else
+    echo "Repository $NAME already exists, skipping creation."
+  fi
+
+  # Clone if directory does not exist
+  if [ ! -d "$NAME" ]; then
+    gh repo clone "$NAME"
+  fi
+
+  cd "$NAME"
+
+  # Create README
+  cat > README.md <<EOF
+# $NAME
+
+$DESC
+
+## Overview
+
+This repository contains:
+
+- An essay outlining the theoretical framing.
+- A Jupyter notebook implementing simulations.
+
+## Structure
+
+- \`essay.md\`
+- \`simulation.ipynb\`
+EOF
+
+  # Create essay template
+  cat > essay.md <<EOF
+# ${NAME//-/ }
+
+## Abstract
+
+This essay develops the conceptual and mathematical framing for this project.
+
+## Introduction
+
+Describe the problem domain and motivating questions.
+
+## Model
+
+Define equations, assumptions, and structural constraints.
+
+## Simulation
+
+See simulation.ipynb for numerical experiments.
+
+## Conclusion
+
+Summarize findings and future extensions.
+EOF
+
+  # Create minimal Jupyter notebook
+  cat > simulation.ipynb <<EOF
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# ${NAME//-/ } Simulation\\n",
+    "$DESC"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import numpy as np\\n",
+    "import matplotlib.pyplot as plt\\n",
+    "\\n",
+    "x = np.linspace(0, 10, 500)\\n",
+    "y = np.sin(x)\\n",
+    "\\n",
+    "plt.plot(x, y)\\n",
+    "plt.title('Demo Simulation')\\n",
+    "plt.show()"
+   ]
+  }
+ ],
+ "metadata": {},
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
+EOF
+
+  git add .
+  git commit -m "Initial commit for $NAME"
+  git push origin main || git push origin master
+
+  cd ..
+done
+
+echo "All repositories processed."

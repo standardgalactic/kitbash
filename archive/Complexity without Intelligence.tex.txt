@@ -1,0 +1,592 @@
+\documentclass[11pt]{article}
+
+% ----------------------------
+% Page layout and typography
+% ----------------------------
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+\setstretch{1.25}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+% ----------------------------
+% Mathematics and symbols
+% ----------------------------
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+
+% ----------------------------
+% Figures and tables
+% ----------------------------
+\usepackage{graphicx}
+\usepackage{booktabs}
+
+% ----------------------------
+% Citations and quotations
+% ----------------------------
+\usepackage{csquotes}
+
+% ----------------------------
+% Hyperlinks
+% ----------------------------
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=black,
+  urlcolor=black
+}
+
+% ----------------------------
+% Section formatting
+% ----------------------------
+\usepackage{titlesec}
+
+\titleformat{\section}
+  {\normalfont\Large\bfseries}
+  {\thesection}
+  {1em}
+  {}
+
+\titleformat{\subsection}
+  {\normalfont\large\bfseries}
+  {\thesubsection}
+  {1em}
+  {}
+
+% ----------------------------
+% Title metadata
+% ----------------------------
+\title{\textbf{Complexity without Intelligence}}
+\author{Flyxion}
+\date{\today}
+
+% ----------------------------
+% Document
+% ----------------------------
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+
+Accounts of agent complexity in cognitive science and artificial intelligence have frequently conflated complexity with intelligence, treating deliberation, planning, learning capacity, or representational sophistication as defining features of complex systems. This paper challenges that assumption by developing an affordance-based account of agent complexity that is explicitly independent of intelligence understood as reflective problem-solving or future-oriented learning. Complexity is characterized as a synchronic property of agents, grounded in the organization, diversity, and stability of present modes of activity arising from agent--environment coupling.
+
+Drawing on ecological, embodied, and dynamical approaches (Baker & Roberts, 2025; Clark 1997; Chemero 2009), the analysis reconceives complexity as a structural feature of activity spaces rather than an internal cognitive achievement. The paper examines the role of constraints, absence, and stabilization in shaping affordance spaces, arguing that principled limitation and relegation of control are enabling conditions for complex behavior rather than impediments to it. Robustness is treated as the maintenance of viable activity spaces across perturbation, and breakdown is analyzed as an informative moment that reveals the layered organization of agency.
+
+The account further clarifies the status of intentional explanation, treating goal attribution as a pragmatic explanatory tool rather than a marker of internal representational states. This permits principled comparison across heterogeneous biological and artificial agents while accommodating plurality and indeterminacy where global rankings are inappropriate. By disentangling complexity from intelligence, the paper provides a framework for analyzing what agents can do now, how that capacity is organized, and why rich forms of agency need not be intelligent in order to be real.
+
+\end{abstract}
+
+\newpage
+\section{Introduction}
+
+The concept of agent complexity has historically been entangled with notions of intelligence, learning capacity, or representational sophistication. Within both cognitive science and artificial intelligence, complex agents are frequently assumed to be those that deliberate, plan, reason abstractly, or exhibit flexible learning across domains. Such assumptions have encouraged the development of scalar measures that implicitly rank agents according to proximity to human cognition or to centralized computational architectures. While these approaches have yielded important insights, they obscure a crucial distinction between an agent's capacity to acquire new abilities and the organization of activity that an agent presently sustains.
+
+Recent work in embodied and ecological approaches to cognition has challenged this conflation by emphasizing the role of agent--environment relations in shaping behavior. In particular, affordance-based accounts propose that what an agent can do at a given moment is determined not solely by internal structure but by the coupling between morphology, internal state, and environmental features (Gibson 1979; Turvey 1992; Chemero 2009, Baker & Roberts 2025). On this view, complexity is not reducible to internal information processing, nor does it scale monotonically with the number of components or representations an agent possesses. Instead, complexity concerns the diversity, structure, and generality of an agent's modes of activity within a specific ecological context.
+
+This paper advances the thesis that agent complexity can be rigorously characterized without appeal to intelligence understood as deliberation, planning, or the potential for future learning. Complexity, as analyzed here, is a synchronic property of agents: it concerns the range and organization of activities that are presently admissible, regardless of how those activities were acquired or how they may change over time. An agent may therefore be highly complex while exhibiting little or no capacity for explicit reasoning, symbolic manipulation, or adaptive learning in novel environments.
+
+The motivation for this position is not merely terminological. Conflating complexity with intelligence introduces systematic distortions into comparative analysis. Agents that rely on stable embodiment, environmental structure, or reliable dynamics are often classified as simple, despite exhibiting rich repertoires of activity. Conversely, agents with extensive internal machinery may be classified as complex even when their behavior is narrow, brittle, or tightly constrained. A framework that disentangles complexity from intelligence is therefore required in order to compare biological and artificial agents on principled grounds (Ladyman, Lambert, and Wiesner 2013; Krakauer et al. 2020).
+
+An affordance-based approach provides the resources for such a disentanglement. By focusing on modes of activity rather than internal computation, it allows complexity to be assessed directly at the level of behavior and interaction. Importantly, this assessment does not presuppose that activities are selected through explicit evaluation or conscious control. Many forms of behavior are enacted fluently, without deliberation, having become stabilized through repeated engagement with a structured environment (Clark 1997; Wimsatt 2007). From the standpoint of complexity, such activities are no less significant than those accompanied by reflective reasoning.
+
+The central aim of this paper is to clarify the conceptual commitments of an affordance-based account of agent complexity and to examine its implications for comparative analysis, robustness, intentional explanation, and indeterminacy. The discussion proceeds by articulating complexity as a present-tense property of organized activity, situating it within the broader literature on embodiment and complexity, and identifying both the strengths and the deliberate limitations of this perspective. Throughout, the analysis remains neutral with respect to questions of learning, intelligence, and representation, treating them as orthogonal dimensions rather than constitutive features of complexity.
+
+\subsection*{Formal Characterization: Agents, Affordances, and Synchronic Complexity}
+
+Let an agent be represented as a system $A$ embedded in an environment $E$. Let $S_A$ denote the internal state space of the agent and $S_E$ the relevant state space of the environment. The joint state space is given by
+\[
+S = S_A \times S_E.
+\]
+
+An affordance is defined as a relation between agent and environment states that admits the execution of a particular activity. Formally, let $\mathcal{A}$ be a set of activity types. For each $a \in \mathcal{A}$, define an affordance relation
+\[
+\mathcal{F}_a \subseteq S
+\]
+such that $(s_A, s_E) \in \mathcal{F}_a$ if and only if activity $a$ is executable by the agent in that joint state.
+
+The affordance set available to the agent at time $t$ is then given by
+\[
+\mathcal{F}(t) = \{ a \in \mathcal{A} \mid (s_A(t), s_E(t)) \in \mathcal{F}_a \}.
+\]
+
+Agent complexity at time $t$ is defined as a function of the structure of $\mathcal{F}(t)$:
+\[
+C(A, t) = \Phi(\mathcal{F}(t)),
+\]
+where $\Phi$ is a measure sensitive to the diversity, organization, and generality of activities in $\mathcal{F}(t)$, but not to the internal mechanisms by which those activities are selected or controlled.
+
+Crucially, $C(A, t)$ is independent of any function describing the agent's capacity to expand $\mathcal{F}(t)$ through learning. Let $L_A$ denote a learning operator acting on $S_A$ over time. The existence or effectiveness of $L_A$ does not enter into the definition of $C(A, t)$, which depends solely on the current affordance structure.
+
+This formalization captures the core thesis of complexity without intelligence: an agent's complexity is fully determined by the organization of its present activity space, irrespective of deliberative capacity, representational richness, or future potential for adaptation.
+
+\section{Synchronic Complexity and Modes of Activity}
+
+An affordance-based account of agent complexity rests on a decisive shift in explanatory focus: from internal capacities or latent potentials to the organization of activity that an agent presently sustains. Complexity, on this view, is not an achievement condition tied to learning history or developmental sophistication, but a structural feature of what the agent can currently do. This synchronic orientation distinguishes complexity from intelligence and renders it directly observable in patterns of interaction between agent and environment. The account should be distinguished from views that identify intelligence with exploratory hypothesis formation, causal learning, or model revision, capacities that expand future repertoires but are not constitutive of present activity organization (Gopnik et al. 2004; Gopnik 2010).
+
+Modes of activity are understood here as stable, goal-explainable patterns of engagement that an agent can enact within its ecological niche. These modes need not be accompanied by explicit deliberation, symbolic reasoning, or internal evaluation. Indeed, many paradigmatic cases of complex behavior are executed fluently and without reflective oversight, relying instead on reliable couplings between morphology, dynamics, and environmental structure (Clark 1997; Chemero 2009). From the standpoint of complexity, such fluency is not a reduction but an amplification: it permits the agent to sustain multiple activities without incurring additional cognitive overhead.
+
+The synchronic characterization of complexity also resists the tendency to treat agents as temporally extended projects whose significance lies in what they might become. While learning and adaptation undoubtedly matter for many purposes, incorporating them into the definition of complexity conflates present organization with future possibility. An agent that currently exhibits a wide range of activities across diverse environmental contexts is complex in virtue of that organization alone, regardless of whether it can further expand its repertoire (Newell 1990; Ladyman, Lambert, and Wiesner 2013).
+
+This perspective clarifies why complexity need not scale with internal computation. Agents that rely on centralized planning mechanisms may exhibit narrow activity profiles despite extensive internal processing, whereas agents with minimal internal structure may exhibit broad and flexible repertoires through embodiment and environmental exploitation. Such cases illustrate that complexity is not additive in parts or representations, but relational in activity (Silvestrini 2021; Wimsatt 2007; Mitchell 2009).
+
+Importantly, synchronic complexity accommodates the fact that many activities are enacted without active selection. Stable environments and repeated engagement allow aspects of control to recede from attention, enabling agents to operate at higher levels of organization without constant recoordination. When activity unfolds smoothly, fine-grained control structures remain latent, becoming salient only when breakdown or novelty disrupts established couplings. This relegation of control does not diminish complexity; rather, it is a precondition for sustaining complex repertoires at scale (Kelso 1995; Kitano 2004).
+
+By defining complexity in terms of present modes of activity, the affordance-based account provides a framework for comparing agents without presupposing intelligence, representation, or learning capacity. Complexity becomes a matter of what is organized and available now, not of what might be achieved under ideal conditions or extended training.
+
+\subsection*{Formal Characterization: Activity Sets and Synchronic Measures}
+
+Let $\mathcal{A}$ denote the space of all activity types definable within a given agent--environment system. At time $t$, the agent's available activity set is
+\[
+\mathcal{A}(t) \subseteq \mathcal{A}.
+\]
+
+Each activity $a \in \mathcal{A}(t)$ is associated with a goal-explanatory description $G(a)$, which licenses intentional interpretation without implying deliberative selection (Dennett 1987; Gładziejewski 2019). Let
+\[
+\Gamma(t) = \{ G(a) \mid a \in \mathcal{A}(t) \}
+\]
+denote the space of goal-explanatory activities at time $t$.
+
+Synchronic complexity is then defined as a functional over $\mathcal{A}(t)$ that is insensitive to internal implementation. One minimal formalization is
+\[
+C(A, t) = \int_{\mathcal{A}(t)} w(a) \, da,
+\]
+where $w(a)$ weights activities by ecological generality, robustness across contexts, or degree of coordination required. Importantly, $w(a)$ does not encode the computational cost or representational depth of activity execution.
+
+To model the relegation of control, define a control salience function
+\[
+\sigma : \mathcal{A}(t) \rightarrow [0,1],
+\]
+where $\sigma(a) \approx 0$ indicates fluent, unattended execution and $\sigma(a) \approx 1$ indicates active coordination or breakdown-sensitive control. Synchronic complexity is invariant under changes in $\sigma$ so long as $a \in \mathcal{A}(t)$ remains executable.
+
+Thus, for any two agents $A_1$ and $A_2$ with identical activity sets,
+\[
+\mathcal{A}_1(t) = \mathcal{A}_2(t),
+\]
+it follows that
+\[
+C(A_1, t) = C(A_2, t),
+\]
+even if the internal processes governing control allocation differ substantially.
+
+This formal result captures the core intuition of complexity without intelligence: the richness of an agent's present activity space fully determines its complexity, independent of whether those activities are enacted through deliberation, automation, or embodied dynamics.
+
+\section{Constraints, Absence, and the Structure of Limitation}
+
+An affordance-based account of complexity would be incomplete without a careful treatment of constraint. While complexity is defined in terms of the presence and organization of available activities, the absence of affordances and the limits imposed by agent--environment coupling play a decisive role in shaping what an agent can do. Constraints do not merely subtract from complexity; they structure it by delimiting which activities are admissible, which are irrelevant, and which never arise as possibilities at all.
+
+Within this framework, constraints are not understood primarily as internal prohibitions or externally imposed rules. Rather, they emerge from the relational structure of the agent--environment system (Baker & Roberts 2025). An environment may fail to afford certain activities for a given agent not because the agent is defective or inhibited, but because the relevant relations do not obtain. A human submerged underwater lacks the affordance of breathing not due to internal malfunction, but due to an ecological mismatch. Such absences are constitutive features of the agent's activity space, not contingent failures (Gibson 1979; Lewontin 2000).
+
+The absence of affordances is informative for comparative purposes. Two agents may differ not only in the number of activities they can perform, but in the kinds of absences that structure their interaction with the world. These absences reflect deep differences in morphology, physiology, and ecological embedding. Importantly, absences need not be explicitly represented or enforced; they are often invisible to the agent precisely because they never arise as candidates for action. In this sense, constraint is prior to choice.
+
+Constraints also play a crucial role in the economization of activity. Stable agent--environment couplings allow many aspects of action to be executed without ongoing coordination. When constraints reliably exclude certain possibilities, attention need not be allocated to evaluating them. This selective invisibility permits agents to sustain complex repertoires without being overwhelmed by combinatorial explosion (Wimsatt 2007; Mitchell 2009). Constraints do not merely restrict action; they function as enabling conditions that shape the space of possible trajectories without prescribing specific outcomes, a hallmark of self-organizing behavior in complex systems (Juarrero 1999).
+
+The role of constraint becomes especially salient in cases of breakdown. When environmental conditions shift or internal states degrade, previously reliable exclusions may no longer hold. Activities that were once automatically excluded re-enter the space of consideration, and fine-grained control must be re-engaged. Such moments expose the layered structure of activity organization that ordinarily remains concealed. The need to renegotiate constraints does not imply a loss of complexity; rather, it reveals the depth of organization required to sustain it (Kelso 1995; Kitano 2004).
+
+From the perspective of complexity without intelligence, it is essential to distinguish between unavailable affordances and suppressed ones. The former never arise within the agent's activity space, while the latter may be actively excluded by internal control processes. The affordance-based framework remains largely neutral on this distinction, treating both as absences relative to current modes of activity. The emergence of composite activities from stabilized lower-level dynamics reflects a form of constraint-based organization in which higher-order patterns arise from the selective inhibition and channeling of degrees of freedom (Juarrero 1999).
+
+By foregrounding constraint as a structural feature of activity spaces, the affordance-based account avoids treating complexity as mere accumulation. Complexity is not increased by maximizing options indiscriminately, but by sustaining a coherent and navigable space of activity shaped by principled exclusions. An agent that can do many things only by continuously reconsidering what not to do may be less complex, in this sense, than an agent whose constraints reliably organize action without constant intervention.
+
+\subsection*{Formal Characterization: Constraint-Induced Structure on Activity Spaces}
+
+Let $\mathcal{A}$ denote the universal space of definable activities, and let $\mathcal{A}(t) \subseteq \mathcal{A}$ be the activity set available to an agent at time $t$. Define the constraint set as
+\[
+\mathcal{C}(t) = \mathcal{A} \setminus \mathcal{A}(t).
+\]
+
+Constraints partition $\mathcal{A}$ into admissible and inadmissible regions. Importantly, $\mathcal{C}(t)$ need not be explicitly encoded by the agent; it is defined extensionally by the absence of corresponding affordance relations.
+
+To model the role of constraint in organizing activity, define a relevance function
+\[
+\rho : \mathcal{A} \rightarrow \mathbb{R}_{\geq 0},
+\]
+where $\rho(a) = 0$ for all $a \in \mathcal{C}(t)$. Activities with zero relevance never enter the agent's activity dynamics.
+
+Let activity selection be modeled as a flow on $\mathcal{A}(t)$:
+\[
+\frac{da}{dt} = F(a),
+\]
+where $F$ is a vector field defined only on admissible activities. The effective dimensionality of the flow is therefore determined not by $|\mathcal{A}|$, but by the structure of $\mathcal{A}(t)$.
+
+Constraint stability can be modeled by a persistence function
+\[
+\pi : \mathcal{C}(t) \rightarrow [0,1],
+\]
+where $\pi(c) \approx 1$ indicates a constraint that reliably excludes activity $c$ across perturbations. High average constraint persistence reduces the need for active coordination and permits higher-level organization.
+
+Thus, synchronic complexity depends jointly on the richness of $\mathcal{A}(t)$ and the stability of $\mathcal{C}(t)$. An agent with a moderately sized activity set but highly stable constraints may sustain greater effective complexity than an agent with a larger but weakly constrained activity space.
+
+This formalization reinforces the central claim that complexity is structured as much by principled absence as by presence, and that intelligence, understood as explicit reasoning about alternatives, is not required for such structure to arise.
+
+\section{Structure and Composition of Affordance Spaces}
+
+Affordance spaces are not flat enumerations of independent activities. Rather, they exhibit internal structure, compositional relations, and dependencies that profoundly shape agent complexity. An affordance-based account that treats activities as isolated possibilities risks obscuring the organizational principles through which complex behavior emerges. To adequately characterize complexity without intelligence, it is therefore necessary to examine how affordances compose, stabilize, and give rise to higher-order modes of activity.
+
+Basic affordances correspond to relatively simple agent--environment relations, often grounded in morphology or low-level sensorimotor coupling. Examples include locomotion, grasping, or orientation toward salient features. Composite affordances, by contrast, presuppose the reliable availability of multiple basic affordances and consist in structured patterns of activity unfolding over time. Tool use, navigation, and adaptive interaction with dynamic environments are paradigmatic cases of such composite organization (Bechtel 2008; Craver 2007).
+
+Crucially, the emergence of composite affordances does not require centralized control or explicit planning. When basic activities become stable, their coordination can be relegated from active control, allowing higher-level patterns to emerge without additional cognitive burden. This relegation is not a loss of detail but a transformation in how detail is managed. Lower-level dynamics continue to operate, but they no longer demand continuous oversight. In this way, complexity increases through compression rather than expansion of control (Wimsatt 2007; Kelso 1995).
+
+This hierarchical organization explains why complexity does not scale monotonically with the number of parts or mechanisms. Additional components may remain inert if they do not participate in new patterns of activity, while minimal architectures may support rich affordance spaces through tight coupling and reliable dynamics. The relevant unit of analysis is therefore not the component, but the pattern of activity that the system can sustain (Mitchell 2009; Ladyman, Lambert, and Wiesner 2013).
+
+The structured nature of affordance spaces also clarifies the relationship between behavioral and cognitive complexity. Cognitive activities such as attending, remembering, or anticipating can be understood as affordances in their own right, provided they contribute to the organization of action. These activities may themselves become stabilized and relegated from attention, functioning as background conditions for more elaborate patterns of engagement. Cognitive complexity, on this view, is not reducible to internal representation but consists in the availability of such organizing activities (Kaplan 2012; Chemero 2009).
+
+Importantly, affordance composition is context-sensitive. The same set of basic activities may give rise to different composite affordances depending on environmental structure and task demands. This context dependence reinforces the relational character of complexity and resists attempts to assign fixed complexity scores independent of ecological embedding. Complexity is thus better understood as a structured space of possibilities than as a scalar quantity.
+
+By attending to the internal organization of affordance spaces, the affordance-based framework captures a form of complexity that is both robust and flexible, grounded in activity rather than intelligence. Higher-order behavior emerges not through the accumulation of deliberative capacities, but through the reliable composition of activities that no longer require explicit coordination.
+
+\subsection*{Formal Characterization: Compositional Structure of Affordances}
+
+Let $\mathcal{A}(t)$ be the set of admissible activities at time $t$. Define a partial order $\preceq$ on $\mathcal{A}(t)$ such that
+\[
+a_i \preceq a_j
+\]
+if and only if the execution of $a_j$ presupposes the reliable availability of $a_i$.
+
+Basic affordances are minimal elements under $\preceq$, while composite affordances correspond to upper elements formed through the coordination of multiple lower elements. Let
+\[
+\mathcal{B}(t) = \{ a \in \mathcal{A}(t) \mid \nexists b \in \mathcal{A}(t) \text{ such that } b \prec a \}
+\]
+denote the set of basic affordances.
+
+Define a composition operator
+\[
+\circ : \mathcal{A}(t) \times \mathcal{A}(t) \rightarrow \mathcal{A}(t),
+\]
+where $a_i \circ a_j$ is defined only when $a_i$ and $a_j$ are jointly executable and temporally compatible. Composite affordances arise as fixed points of iterated composition:
+\[
+a^{*} = a_1 \circ a_2 \circ \dots \circ a_n.
+\]
+
+The stability of composite affordances depends on the persistence of their constituents. Let $\kappa(a)$ denote the reliability of activity $a$. Then the reliability of a composite affordance satisfies
+\[
+\kappa(a^{*}) \leq \min_i \kappa(a_i).
+\]
+
+However, when $\kappa(a_i)$ is sufficiently high for all constituents, the composite affordance can be treated as a primitive at higher levels of organization. This relegation is captured by a projection operator
+\[
+P : \mathcal{A}(t) \rightarrow \tilde{\mathcal{A}}(t),
+\]
+which maps stable composites to single effective activities.
+
+Synchronic complexity is invariant under such projections:
+\[
+\Phi(\mathcal{A}(t)) = \Phi(\tilde{\mathcal{A}}(t)),
+\]
+provided that the space of effective activities preserves the same patterns of interaction. This invariance formalizes the claim that complexity increases through the organization of activity, not through the maintenance of explicit control over its constituents.
+
+\section{Robustness, Flexibility, and Breakdown}
+
+A central virtue of an affordance-based account of complexity is its capacity to accommodate robustness without equating it with rigidity. Robust agents are often described as those that preserve function under perturbation, yet such descriptions can obscure an important distinction between invariance and adaptability. Within the present framework, robustness is understood not as the preservation of a single activity across all conditions, but as the maintenance of a viable activity space across environmental and internal variation.
+
+An agent exhibits robust complexity when it can sustain multiple modes of activity across a wide range of contexts, shifting fluidly among them as conditions change. This form of robustness emphasizes flexibility rather than resistance to change. An agent engineered to execute a single task with high precision under narrowly specified conditions may be reliable, but it is not thereby complex. By contrast, an agent that can reorganize its activity in response to perturbation exhibits a richer form of organization, even if individual activities are occasionally disrupted (Juarrero 1999, Kitano 2004; Krakauer et al. 2020).
+
+Breakdown plays a constructive role in this account. When an activity fails due to environmental change or internal degradation, aspects of organization that are ordinarily relegated from attention become salient once again. The agent must renegotiate the relations that previously sustained fluent activity. These episodes expose the layered structure of the affordance space and the dependencies that underwrite composite activities. Rather than indicating a loss of complexity, breakdown reveals the depth of coordination required to maintain it (Kelso 1995; Nicolis and Prigogine 1977).
+
+Importantly, the re-engagement of fine-grained control during breakdown does not imply the presence of intelligence in the sense of deliberative problem-solving. Reorganization may proceed through local adjustments, exploratory dynamics, or morphological interaction with the environment. The capacity to recover viable activity does not depend on explicit representation of alternatives, but on the existence of multiple admissible trajectories through the affordance space (Chemero 2009; Clark 1997).
+
+This perspective clarifies why robustness and complexity are not synonymous. A highly robust but narrowly specialized agent may exhibit less complexity than a more fragile agent whose activity space is broad and heterogeneous. Complexity concerns the structure of possibilities, not the reliability of any single outcome. Robustness contributes to complexity insofar as it preserves access to diverse activities, not insofar as it enforces uniformity.
+
+The affordance-based account thus reframes breakdown as an ordinary and informative feature of complex systems. Far from being pathological, breakdown episodes are integral to understanding how activity spaces are organized, stabilized, and reorganized over time. They mark points at which the normally hidden structure of constraints, dependencies, and coordination becomes visible.
+
+\subsection*{Formal Characterization: Robust Activity Spaces and Perturbation}
+
+Let $\mathcal{A}(t)$ be the set of admissible activities at time $t$, and let $E(t)$ denote the environmental state. Define a perturbation $\delta E$ as a transformation of the environment such that
+\[
+E'(t) = E(t) + \delta E.
+\]
+
+The perturbed activity set is
+\[
+\mathcal{A}'(t) = \{ a \in \mathcal{A} \mid (s_A(t), E'(t)) \in \mathcal{F}_a \}.
+\]
+
+Robustness can be defined as the persistence of nontrivial activity under perturbation:
+\[
+R(A, t) = \mathbb{E}_{\delta E} \left[ |\mathcal{A}'(t)| \right].
+\]
+
+However, robustness in this sense does not require that $\mathcal{A}'(t) = \mathcal{A}(t)$. Rather, it requires that
+\[
+|\mathcal{A}'(t)| > 0
+\]
+across a broad class of perturbations.
+
+Define a breakdown event as a perturbation $\delta E$ such that
+\[
+a \notin \mathcal{A}'(t)
+\]
+for some $a \in \mathcal{A}(t)$ that previously supported composite activity. Breakdown thus induces a reconfiguration of the activity space.
+
+Let $\mathcal{T}(t)$ denote the set of admissible trajectories through activity space over a time interval $[t, t+\Delta t]$. Flexibility is then characterized by the cardinality and diversity of $\mathcal{T}(t)$:
+\[
+F(A, t) = |\mathcal{T}(t)|.
+\]
+
+An agent exhibits robust complexity when $F(A, t)$ remains high even as individual activities enter or exit $\mathcal{A}(t)$. This formalization captures the claim that complexity resides in the richness of alternative paths through activity space, not in the preservation of any particular activity.
+
+Thus, robustness contributes to complexity insofar as it sustains a navigable space of activity under perturbation, reinforcing the central thesis that complexity can arise without intelligence.
+
+\section{Intentionality, Explanation, and the Status of Behavior}
+
+Any account of agent complexity that proceeds through activity must address the question of intentionality. Not all activity qualifies as behavior, and not all behavior admits the same kind of explanation. The affordance-based framework adopts a pragmatic approach to this issue by treating intentionality not as an intrinsic property of internal states, but as a feature of explanatory practice. An activity counts as behavior when it is explanatorily fruitful to describe it in terms of goals, purposes, or directedness, regardless of whether the agent explicitly represents such goals (Dennett 1987).
+
+This stance allows the framework to remain neutral on contested metaphysical questions while retaining explanatory power. Activities such as locomotion, foraging, or tool use can be described as goal-directed insofar as such descriptions unify and predict patterns of action. At the same time, processes such as digestion or cellular metabolism, while essential to the agent's continued existence, do not typically benefit from intentional explanation. The distinction between behavior and mere activity thus tracks explanatory utility rather than internal architecture.
+
+Crucially, intentional explanation does not imply deliberation. An agent may reliably act in ways that are well explained by reference to goals even when those actions are executed fluently and without reflective oversight. Habitual actions, skilled performances, and embodied routines frequently exhibit a high degree of organization while remaining opaque to introspection. Such cases illustrate that intentionality, as employed here, is compatible with automaticity and does not presuppose intelligence understood as conscious reasoning or problem-solving (Clark 1997; Gładziejewski 2019).
+
+This perspective is especially important for comparative analysis. When assessing the complexity of agents with radically different internal organizations, insisting on representational or deliberative criteria risks excluding systems whose behavior is nevertheless richly structured. By grounding behavioral attribution in explanatory success rather than internal similarity to human cognition, the affordance-based account permits principled comparison across biological and artificial domains (Chemero 2009; Kaplan 2012).
+
+The intentional stance also accommodates graded and context-sensitive attribution. In some cases, it may be appropriate to ascribe goals at a coarse level, while finer-grained explanations appeal to dynamical or mechanical processes. The affordance-based framework does not require a sharp boundary between intentional and non-intentional descriptions; instead, it allows multiple explanatory perspectives to coexist, each illuminating different aspects of activity organization (Bechtel 2008; Craver 2007).
+
+From the standpoint of complexity without intelligence, intentionality functions as an explanatory filter rather than a constitutive feature of agency. The presence of intentional descriptions signals that an activity is organized in a way that supports goal-directed explanation, not that the agent possesses internal representations of those goals. Complexity thus tracks the structure of behavior as it appears under successful explanation, independent of the cognitive mechanisms that realize it.
+
+\subsection*{Formal Characterization: Intentional Description as an Explanatory Mapping}
+
+Let $\mathcal{A}(t)$ be the set of activities available to an agent at time $t$. Define a set of explanatory descriptions $\mathcal{D}$, where each $d \in \mathcal{D}$ maps activities to goal-oriented predicates.
+
+An intentional description is a mapping
+\[
+\iota : \mathcal{A}(t) \rightarrow \mathcal{G},
+\]
+where $\mathcal{G}$ is a space of goal descriptions. The mapping $\iota$ is partial and context-dependent: it is defined only for those activities for which goal attribution yields explanatory compression or predictive success.
+
+Let $E(d \mid a)$ denote the explanatory adequacy of description $d$ for activity $a$. An activity $a$ qualifies as behavior if there exists some $d \in \mathcal{D}$ such that
+\[
+E(d \mid a) > \theta,
+\]
+for a context-sensitive threshold $\theta$.
+
+This criterion does not depend on the agent's internal representation of $d$ or $\mathcal{G}$. Two agents with distinct internal architectures may therefore support identical intentional descriptions if their activity patterns are sufficiently similar.
+
+Define behavioral complexity as
+\[
+C_B(A, t) = \Phi(\{ a \in \mathcal{A}(t) \mid \exists d \text{ such that } E(d \mid a) > \theta \}),
+\]
+where $\Phi$ is the same structural measure introduced earlier.
+
+This formulation captures the pragmatic role of intentionality in the affordance-based account. Intentional descriptions carve activity space along lines that are explanatorily salient, but they do not add new activities to $\mathcal{A}(t)$, nor do they increase complexity by themselves. Complexity remains grounded in the organization of activity, not in the representational commitments of the explanatory stance.
+
+\section{Comparison, Plurality, and Indeterminacy}
+
+A central motivation for separating complexity from intelligence is to enable principled comparison across heterogeneous agents (Baker & Roberts 2025; Ladyman, Lambert, and Wiesner 2013). Traditional approaches often assume that agents can be ranked along a single dimension, typically associated with cognitive sophistication or representational power. Such assumptions break down when comparing agents with radically different morphologies, ecological niches, or organizational principles.
+
+An affordance-based account of complexity avoids this difficulty by grounding comparison in present modes of activity rather than internal similarity or developmental potential. While some agents acquire new affordances through exploratory learning and causal inference, others sustain rich activity spaces without such capacities, reinforcing the need to separate complexity from intelligence in comparative analysis (Gopnik and Wellman 2012).
+
+Within this framework, comparison proceeds by examining the structure of agents' affordance spaces (Baker & Roberts 2025). In some cases, one agent's activity set may strictly include another's, permitting a straightforward ordering. More often, however, affordance spaces differ qualitatively rather than by inclusion. One agent may support a wide range of sensorimotor activities across variable environments, while another exhibits fewer but more internally mediated forms of coordination. Neither need be more complex simpliciter; each may be complex in different respects (Ladyman, Lambert, and Wiesner 2013; Krakauer et al. 2020).
+
+Such cases motivate the acceptance of indeterminacy as a substantive result rather than a methodological failure. When no principled ordering exists between two agents' affordance structures, the appropriate conclusion is not that the framework is incomplete, but that complexity itself is plural and context-sensitive. Insisting on total orderings risks reintroducing covert intelligence metrics under the guise of complexity measures (Mitchell 2009).
+
+The affordance-based approach therefore permits task-relative and dimension-specific comparisons. Agents may be compared with respect to locomotion, manipulation, social interaction, or cognitive organization, depending on the explanatory interests at stake. These localized comparisons are often more informative than global rankings, as they reveal how different organizational strategies support different forms of activity (Kaplan 2012; Chemero 2009).
+
+Plurality also arises from differences in how complexity is distributed across levels of control. Some agents sustain complexity through broad, stable repertoires that rarely require reconfiguration, while others rely on frequent re-engagement with fine-grained coordination. These differences reflect distinct styles of agency rather than differences in overall complexity. An affordance-based account accommodates such diversity without forcing it into a single metric.
+
+Indeterminacy, on this view, is not an epistemic limitation but a reflection of the underlying structure of agent--environment relations. Where affordance spaces intersect only partially or along incomparable dimensions, there may simply be no fact of the matter about which agent is more complex. Recognizing this fact preserves the integrity of the framework and aligns with broader philosophical accounts of complexity that resist reduction to scalar measures (Wimsatt 2007; Mitchell 2009).
+
+\subsection*{Formal Characterization: Partial Orderings and Incomparability}
+
+Let $\mathcal{A}_1(t)$ and $\mathcal{A}_2(t)$ be the activity sets of agents $A_1$ and $A_2$ at time $t$. Define a preorder $\sqsubseteq$ on activity sets such that
+\[
+\mathcal{A}_1(t) \sqsubseteq \mathcal{A}_2(t)
+\]
+if and only if there exists an embedding
+\[
+f : \mathcal{A}_1(t) \rightarrow \mathcal{A}_2(t)
+\]
+that preserves activity structure, composition, and relevance.
+
+If $\mathcal{A}_1(t) \sqsubseteq \mathcal{A}_2(t)$ and $\mathcal{A}_2(t) \sqsubseteq \mathcal{A}_1(t)$, the agents are equivalent in complexity. If one relation holds without the other, a strict ordering is defined. If neither relation holds, the agents are incomparable.
+
+Let
+\[
+\mathcal{A}_1(t) \parallel \mathcal{A}_2(t)
+\]
+denote incomparability. In such cases, no scalar complexity measure can faithfully represent the relationship between the agents.
+
+Define a family of projection operators
+\[
+P_i : \mathcal{A}(t) \rightarrow \mathcal{A}_i(t),
+\]
+each corresponding to a task-relevant subspace of activities. Comparisons may then be performed locally:
+\[
+\mathcal{A}_{1,i}(t) \sqsubseteq \mathcal{A}_{2,i}(t),
+\]
+even when $\mathcal{A}_1(t) \parallel \mathcal{A}_2(t)$ globally.
+
+This formalism captures the plural and context-sensitive nature of complexity comparison. It provides a principled basis for accepting indeterminacy while retaining meaningful comparative structure where it exists. In doing so, it reinforces the core thesis that complexity without intelligence is best understood as a structured, relational property rather than a single scalar attribute.
+\section{Discussion and Conclusion}
+
+This paper has argued that agent complexity can be rigorously characterized without appeal to intelligence understood as deliberation, planning, or the capacity for future learning. By adopting an affordance-based framework (Baker & Roberts 2025), complexity is redefined as a synchronic property of agents: a matter of the organization, diversity, and stability of present modes of activity within an ecological context. This reconceptualization enables principled comparison across heterogeneous agents while avoiding anthropocentric or representational biases.
+
+A central implication of this approach is that complexity does not scale with internal machinery, computational depth, or explicit control. Agents may sustain richly structured activity spaces through embodiment, environmental coupling, and stable constraints, even when control processes are minimal or relegated from attention. Conversely, agents with extensive internal resources may exhibit limited complexity when their activity repertoires are narrow or brittle. Complexity, on this view, is not an achievement condition tied to learning history or developmental sophistication, but a structural feature of what the agent can currently do (Baker & Roberts 2025).
+
+The analysis has highlighted the constructive role of constraint in organizing activity, situating complexity within accounts that emphasize the selective shaping of possibility spaces rather than their expansion through learning or hypothesis revision (Juarrero 1999; Gopnik et al. 2004). Absence, exclusion, and limitation are not merely deficits to be overcome but are constitutive features of coherent affordance spaces. Stable constraints economize attention, reduce coordination costs, and enable higher-order organization, while moments of breakdown reveal the layered structure through which activity is ordinarily sustained.
+
+The treatment of intentionality further supports the separation of complexity from intelligence. Intentional explanations function as pragmatic tools for organizing and predicting behavior rather than as indicators of internal representational states, allowing agents to be appropriately described as acting toward goals even when their behavior is fluent, habitual, or dynamically organized.
+
+Comparative analysis under this framework naturally gives rise to plurality and indeterminacy. When agents differ in the structure or organization of their affordance spaces, there may be no principled basis for global ranking. Such indeterminacy is not a weakness of the framework but reflects the heterogeneity of agency itself, revealing complexity as a family of relational properties rather than a single scalar magnitude. 
+
+Taken together, these considerations support a view of agent complexity grounded in present activity rather than future potential. Intelligence, learning, and representation remain important topics in their own right, but they are not prerequisites for complexity. By disentangling these dimensions, the affordance-based account clarifies what agents can do now, how that capacity is organized, and why complex behavior need not be intelligent to be real. 
+
+\newpage
+\begin{thebibliography}{99}
+
+\bibitem{BakerRoberts2025}
+Baker, B., \& Roberts, S. (2025).
+\textit{Understanding agent complexity through affordances}.
+\textit{Minds and Machines}, 35, 51.
+\url{https://doi.org/10.1007/s11023-025-09748-7}.
+
+\bibitem{Bechtel2008}
+Bechtel, W. (2008).
+\textit{Mental Mechanisms: Philosophical Perspectives on Cognitive Neuroscience}.
+New York: Routledge.
+
+\bibitem{Chemero2009}
+Chemero, A. (2009).
+\textit{Radical Embodied Cognitive Science}.
+Cambridge, MA: MIT Press.
+
+\bibitem{Clark1997}
+Clark, A. (1997).
+\textit{Being There: Putting Brain, Body, and World Together Again}.
+Cambridge, MA: MIT Press.
+
+\bibitem{Craver2007}
+Craver, C. F. (2007).
+\textit{Explaining the Brain}.
+Oxford: Oxford University Press.
+
+\bibitem{Dennett1987}
+Dennett, D. C. (1987).
+\textit{The Intentional Stance}.
+Cambridge, MA: MIT Press.
+
+\bibitem{DiPaolo2017}
+Di Paolo, E. A., Buhrmann, T., \& Barandiaran, X. (2017).
+\textit{Sensorimotor Life: An Enactive Proposal}.
+Oxford: Oxford University Press.
+
+\bibitem{Gibson1979}
+Gibson, J. J. (1979).
+\textit{The Ecological Approach to Visual Perception}.
+Boston, MA: Houghton Mifflin.
+
+\bibitem{Gladziejewski2019}
+Gładziejewski, P. (2019).
+Predictive processing, representation, and the intentional stance.
+\textit{Synthese}, 196(6), 2467--2487.
+
+\bibitem{Gopnik2004}
+Gopnik, A., Meltzoff, A. N., \& Kuhl, P. K. (2004).
+\textit{The Scientist in the Crib: What Early Learning Tells Us About the Mind}.
+New York: William Morrow.
+
+\bibitem{Gopnik2010}
+Gopnik, A. (2010).
+The philosophical baby.
+\textit{Synthese}, 177(3), 349--365.
+
+\bibitem{GopnikWellman2012}
+Gopnik, A., \& Wellman, H. M. (2012).
+Reconstructing constructivism: Causal models, Bayesian learning mechanisms, and the theory theory.
+\textit{Psychological Bulletin}, 138(6), 1085--1108.
+
+\bibitem{HuttoMyin2013}
+Hutto, D. D., \& Myin, E. (2013).
+\textit{Radicalizing Enactivism: Basic Minds Without Content}.
+Cambridge, MA: MIT Press.
+
+\bibitem{Juarrero1999}
+Juarrero, A. (1999).
+\textit{Dynamics in Action: Intentional Behavior as a Complex System}.
+Cambridge, MA: MIT Press.
+
+\bibitem{Juarrero2002}
+Juarrero, A. (2002).
+Dynamics and narrative explanation.
+\textit{Synthese}, 131(3), 329--356.
+
+\bibitem{Kaplan2012}
+Kaplan, D. M. (2012).
+How to demarcate the boundaries of cognition.
+\textit{Biology \& Philosophy}, 27(4), 545--570.
+
+\bibitem{KaplanCraver2011}
+Kaplan, D. M., \& Craver, C. F. (2011).
+The explanatory force of dynamical and mathematical models in neuroscience: A mechanistic perspective.
+\textit{Philosophy of Science}, 78(4), 601--627.
+
+\bibitem{Kelso1995}
+Kelso, J. A. S. (1995).
+\textit{Dynamic Patterns: The Self-Organization of Brain and Behavior}.
+Cambridge, MA: MIT Press.
+
+\bibitem{Kirchhoff2018}
+Kirchhoff, M. D. (2018).
+Autopoiesis, enactivism, and the life--mind continuity thesis.
+\textit{Synthese}, 195(6), 2519--2540.
+
+\bibitem{Kitano2004}
+Kitano, H. (2004).
+Biological robustness.
+\textit{Nature Reviews Genetics}, 5(11), 826--837.
+
+\bibitem{Krakauer2020}
+Krakauer, D. C., Flack, J. C., et al. (2020).
+\textit{The Complexity of Complexity: A Guided Tour}.
+Santa Fe, NM: Santa Fe Institute Press.
+
+\bibitem{Ladyman2013}
+Ladyman, J., Lambert, J., \& Wiesner, K. (2013).
+What is a complex system?
+\textit{European Journal for Philosophy of Science}, 3(1), 33--67.
+
+\bibitem{Lewontin2000}
+Lewontin, R. C. (2000).
+\textit{The Triple Helix: Gene, Organism, and Environment}.
+Cambridge, MA: Harvard University Press.
+
+\bibitem{Mitchell2009}
+Mitchell, S. D. (2009).
+\textit{Unsimple Truths: Science, Complexity, and Policy}.
+Chicago, IL: University of Chicago Press.
+
+\bibitem{Newell1990}
+Newell, A. (1990).
+\textit{Unified Theories of Cognition}.
+Cambridge, MA: Harvard University Press.
+
+\bibitem{NicolisPrigogine1977}
+Nicolis, G., \& Prigogine, I. (1977).
+\textit{Self-Organization in Nonequilibrium Systems}.
+New York: Wiley.
+
+\bibitem{RietveldKiverstein2014}
+Rietveld, E., \& Kiverstein, J. (2014).
+A rich landscape of affordances.
+\textit{Ecological Psychology}, 26(4), 325--352.
+
+\bibitem{Silvestrini2021}
+Silvestrini, P. (2021).
+\textit{The synchronic principle for a new scientific method}.
+\textit{arXiv}:2112.08946.
+\url{https://arxiv.org/abs/2112.08946}.
+
+\bibitem{Turvey1992}
+Turvey, M. T. (1992).
+Affordances and prospective control.
+\textit{Theory \& Psychology}, 2(3), 411--430.
+
+\bibitem{Wimsatt2007}
+Wimsatt, W. C. (2007).
+\textit{Re-Engineering Philosophy for Limited Beings}.
+Cambridge, MA: Harvard University Press.
+
+\end{thebibliography}
+
+\end{document}
+

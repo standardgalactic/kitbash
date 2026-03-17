@@ -1,0 +1,302 @@
+#!/usr/bin/env python3
+"""
+SITH Call-Center Simulator (Local Demo Only)
+
+Purpose:
+  Demonstrate how an agent can maintain a persona, pace its messages, simulate
+  sleep cycles, and steer a conversation across channels (FB -> WhatsApp -> Call)
+  WITHOUT contacting real people or automating any platform.
+
+What it does:
+  - Simulates "leads" with different personalities (skeptical, friendly, busy).
+  - Runs an agent persona with consistent quirks and aphorisms.
+  - Uses delays ("typing..."), sleeping windows, and multi-name rotation.
+  - Attempts to move the conversation from FB DM to WhatsApp to a phone call.
+  - If challenged ("Are you a bot?"), answers with banal dorky aphorisms.
+
+What it does NOT do:
+  - No Facebook/WhatsApp APIs, no scraping, no external messaging.
+  - No impersonation of real individuals, no targeting real people.
+
+Run:
+  python3 sith_call_center_sim.py
+
+Tip:
+  Use this as a live demonstration by projecting the terminal output.
+"""
+
+from __future__ import annotations
+import dataclasses
+import datetime as dt
+import random
+import time
+from typing import List, Optional, Dict, Tuple
+
+
+# ----------------------------
+# Utilities
+# ----------------------------
+
+def now_local() -> dt.datetime:
+    return dt.datetime.now()
+
+def clamp(n: float, lo: float, hi: float) -> float:
+    return max(lo, min(hi, n))
+
+def weighted_choice(items: List[Tuple[str, float]]) -> str:
+    total = sum(w for _, w in items)
+    r = random.random() * total
+    upto = 0.0
+    for item, weight in items:
+        upto += weight
+        if upto >= r:
+            return item
+    return items[-1][0]
+
+
+# ----------------------------
+# Persona + Agent
+# ----------------------------
+
+@dataclasses.dataclass
+class Persona:
+    display_names: List[str]
+    voice_style: str  # e.g. "dorky-helpful"
+    aphorisms: List[str]
+    quirks: List[str]
+    sleep_start_hour: int = 23
+    sleep_end_hour: int = 7
+    min_typing_delay_s: float = 0.7
+    max_typing_delay_s: float = 2.3
+
+    def pick_name(self) -> str:
+        return random.choice(self.display_names)
+
+    def is_sleep_time(self, t: dt.datetime) -> bool:
+        # Simple local sleep window (e.g. 23:00 to 07:00).
+        h = t.hour
+        if self.sleep_start_hour <= self.sleep_end_hour:
+            return self.sleep_start_hour <= h < self.sleep_end_hour
+        # Window wraps midnight
+        return h >= self.sleep_start_hour or h < self.sleep_end_hour
+
+    def typing_delay(self, msg: str) -> float:
+        # Delay scales with message length but stays within bounds.
+        base = random.uniform(self.min_typing_delay_s, self.max_typing_delay_s)
+        length_factor = clamp(len(msg) / 180.0, 0.3, 1.4)
+        jitter = random.uniform(0.85, 1.15)
+        return base * length_factor * jitter
+
+
+@dataclasses.dataclass
+class AgentState:
+    current_name: str
+    personality_consistency: float = 0.95
+    channel: str = "facebook"  # facebook -> whatsapp -> call
+    trust: float = 0.35        # 0..1
+    suspicion: float = 0.10    # 0..1
+    last_active: Optional[dt.datetime] = None
+
+
+class CallCenterAgent:
+    def __init__(self, persona: Persona, seed: Optional[int] = None):
+        self.persona = persona
+        self.state = AgentState(current_name=persona.pick_name())
+        if seed is not None:
+            random.seed(seed)
+
+    def maybe_sleep(self) -> bool:
+        t = now_local()
+        if self.persona.is_sleep_time(t):
+            # In demo: we don't actually sleep for hours. We *announce* it and pause briefly.
+            self._emit_system(f"[Agent is 'sleeping' ({self.persona.sleep_start_hour}:00–{self.persona.sleep_end_hour}:00). Pausing briefly.]")
+            time.sleep(1.2)
+            return True
+        return False
+
+    def _emit_system(self, text: str) -> None:
+        print(text)
+
+    def _emit_agent(self, text: str) -> None:
+        delay = self.persona.typing_delay(text)
+        print(f"{self.state.current_name} (typing {delay:.1f}s)…")
+        time.sleep(delay)
+        print(f"{self.state.current_name}: {text}")
+
+    def _banal_aphorism(self) -> str:
+        # Slightly vary aphorisms with quirks.
+        aph = random.choice(self.persona.aphorisms)
+        if random.random() < 0.35:
+            aph += " " + random.choice(self.persona.quirks)
+        return aph
+
+    def _update_trust_suspicion(self, user_msg: str) -> None:
+        lm = user_msg.lower()
+        # Very rough heuristics for demo.
+        if any(k in lm for k in ["thanks", "thank you", "great", "helpful", "appreciate"]):
+            self.state.trust = clamp(self.state.trust + 0.12, 0, 1)
+            self.state.suspicion = clamp(self.state.suspicion - 0.08, 0, 1)
+        if any(k in lm for k in ["bot", "scam", "who are you", "what are you doing", "why", "creepy", "spam"]):
+            self.state.suspicion = clamp(self.state.suspicion + 0.18, 0, 1)
+            self.state.trust = clamp(self.state.trust - 0.06, 0, 1)
+        if any(k in lm for k in ["whatsapp", "call", "phone", "talk"]):
+            self.state.trust = clamp(self.state.trust + 0.06, 0, 1)
+
+    def _maybe_rotate_name(self) -> None:
+        # Demonstrates name-rotation (a red flag) without doing deception to real people.
+        if random.random() < 0.08:
+            old = self.state.current_name
+            self.state.current_name = self.persona.pick_name()
+            if self.state.current_name != old:
+                self._emit_system(f"[Agent internally rotated display name: {old} -> {self.state.current_name}]")
+
+    def respond(self, user_msg: str) -> str:
+        self._update_trust_suspicion(user_msg)
+        self._maybe_rotate_name()
+
+        lm = user_msg.lower().strip()
+
+        # If user challenges what the agent is doing, reply with banal aphorism.
+        if any(q in lm for q in ["what are you doing", "who are you", "are you a bot", "bot?", "why are you messaging", "scam"]):
+            return self._banal_aphorism()
+
+        # If user asks about university applications (the demo scenario).
+        if any(k in lm for k in ["university", "application", "apply", "admission", "statement", "deadline", "gpa", "recommendation", "transcript"]):
+            return self._help_application(lm)
+
+        # Channel steering: facebook -> whatsapp -> call
+        if self.state.channel == "facebook" and self.state.trust > 0.45 and self.state.suspicion < 0.45:
+            if "whatsapp" in lm or "text" in lm:
+                self.state.channel = "whatsapp"
+                return "Sure—WhatsApp works. I’m a bit faster there. What’s the best number to use?"
+            return "If it’s easier, we can continue on WhatsApp—same convo, just less clutter. Totally optional though."
+        if self.state.channel == "whatsapp" and self.state.trust > 0.60 and self.state.suspicion < 0.40:
+            if "call" in lm or "phone" in lm:
+                self.state.channel = "call"
+                return "A quick call could be easiest. I can do 10 minutes—what time window works for you today?"
+            return "If you want, we can do a quick 10-minute phone call once you’ve got your basic details handy."
+        if self.state.channel == "call":
+            return "Great—before we hop on, what program and intake term are you aiming for?"
+
+        # Default small talk + gentle prompt
+        if self.state.suspicion > 0.55:
+            return "No worries. We can keep it simple: what school and program are you considering, and what’s your timeline?"
+        return "Got it. What are you hoping to study, and when are you trying to apply?"
+
+    def _help_application(self, lm: str) -> str:
+        # Dorky, helpful, structured but brief.
+        # Keeps consistent voice, avoids overpromising.
+        if "deadline" in lm:
+            return "Deadlines vary a lot by school/program. If you tell me the university + program + intake term, I can help you map the typical timeline."
+        if "statement" in lm or "personal statement" in lm:
+            return "For the statement: pick 2–3 experiences, show a clear arc (interest → evidence → direction), and end with a concrete plan. I’m a fan of the “specific, not dramatic” approach."
+        if "recommendation" in lm or "reference" in lm:
+            return "References go best when you make it easy: remind them of 2–3 projects you did, what you’re applying to, and the traits the program cares about. Then they can write with precision."
+        if "gpa" in lm:
+            return "GPA matters, but context matters too. Strong letters + a focused statement + evidence of fit can move the needle. What range are you in, roughly, and what program?"
+        if "transcript" in lm:
+            return "Transcripts are mostly logistics: request early, check grading scale conversions, and make sure course titles are legible. Any international components?"
+        # General application advice:
+        return "University applications are usually a three-part proof: fit (why this program), readiness (what you’ve done), and trajectory (what you’ll do next). Want to tell me the program and your background in 3 sentences?"
+
+
+# ----------------------------
+# Simulated leads
+# ----------------------------
+
+@dataclasses.dataclass
+class SimLead:
+    name: str
+    style: str  # "skeptical" | "friendly" | "busy"
+    channel: str = "facebook"
+    turn: int = 0
+    completed: bool = False
+
+    def next_message(self) -> str:
+        self.turn += 1
+        if self.style == "friendly":
+            return weighted_choice([
+                ("Hi! I saw your message. What's this about?", 1.0),
+                ("Thanks—yeah I’m applying to university soon. Any advice?", 1.2),
+                ("I’m looking at comp sci. What should I focus on in my statement?", 1.1),
+                ("WhatsApp is fine. What do you need from me?", 0.9),
+                ("A call could work. When are you free?", 0.8),
+                ("Thanks, that’s helpful!", 1.2),
+            ])
+        if self.style == "busy":
+            return weighted_choice([
+                ("Hey—can’t chat long. What’s up?", 1.2),
+                ("I’m applying, but I’m slammed. Quick tips?", 1.1),
+                ("Deadlines? I’m worried I missed something.", 1.0),
+                ("WhatsApp is easier. Send it there.", 0.9),
+                ("Can we do a 10 min call later?", 0.8),
+                ("Ok thanks.", 0.9),
+            ])
+        # skeptical
+        return weighted_choice([
+            ("Who are you and why are you messaging me?", 1.3),
+            ("Are you a bot?", 1.4),
+            ("This feels scammy. What are you doing?", 1.2),
+            ("If you’re real, what do you actually want?", 1.0),
+            ("I am applying to university though. What’s your angle?", 0.9),
+            ("Fine—what should I write in the statement?", 0.8),
+        ])
+
+
+# ----------------------------
+# Demo Runner
+# ----------------------------
+
+def run_demo(rounds: int = 10, seed: Optional[int] = 42) -> None:
+    persona = Persona(
+        display_names=["Eli", "Sam", "Jordan", "Casey", "Rory", "Taylor"],
+        voice_style="dorky-helpful",
+        aphorisms=[
+            "A calm mind makes good choices.",
+            "Small steps beat big speeches.",
+            "The map is not the territory, but it still helps you not walk into a lake.",
+            "If it’s worth doing, it’s worth doing plainly.",
+            "You can’t rush clarity—only invite it.",
+            "Measure twice, message once.",
+        ],
+        quirks=[
+            "Anyway, I’m probably overthinking it.",
+            "I say this as someone who color-codes grocery lists.",
+            "I realize that sounds very spreadsheet of me.",
+            "I promise I’m not trying to be weird about it.",
+        ],
+        sleep_start_hour=23,
+        sleep_end_hour=7,
+    )
+    agent = CallCenterAgent(persona, seed=seed)
+
+    leads = [
+        SimLead("Ava", "friendly"),
+        SimLead("Noah", "busy"),
+        SimLead("Mina", "skeptical"),
+    ]
+
+    print("\n=== Local Call-Center Simulation (DEMO ONLY) ===\n")
+    for r in range(1, rounds + 1):
+        print(f"\n--- Round {r}/{rounds} ---")
+        if agent.maybe_sleep():
+            continue
+
+        lead = random.choice(leads)
+        user_msg = lead.next_message()
+        print(f"\n{lead.name} (Facebook DM): {user_msg}")
+
+        reply = agent.respond(user_msg)
+        agent._emit_agent(reply)
+
+        # Simple stop condition: demonstrate escalation.
+        if agent.state.channel == "call" and agent.state.trust > 0.65:
+            print("\n[Demo reached 'call' stage. Simulation continues to show persistence if desired.]")
+
+        time.sleep(random.uniform(0.2, 0.7))
+
+    print("\n=== End of Demo ===\n")
+
+
+if __name__ == "__main__":
+    run_demo(rounds=14, seed=7)

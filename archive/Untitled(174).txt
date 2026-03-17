@@ -1,0 +1,588 @@
+\documentclass[12pt]{article}
+
+% ------------------------------------------------------------
+% Encoding, Fonts, and Math Packages
+% ------------------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+
+\usepackage{amsmath, amssymb, amsthm, mathtools}
+\usepackage{bm}
+\usepackage{bbm}
+\usepackage{physics}
+\usepackage{enumitem}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{xurl}
+\usepackage{csquotes}
+\usepackage{hyperref}
+
+\geometry{margin=1in}
+\setstretch{1.15}
+
+% ------------------------------------------------------------
+% Bibliography
+% ------------------------------------------------------------
+\usepackage[
+backend=biber,
+style=authoryear,
+natbib=true,
+maxbibnames=10,
+maxcitenames=2,
+doi=false,
+url=true
+]{biblatex}
+
+\addbibresource{references.bib}
+
+% ------------------------------------------------------------
+% Theorem Environments
+% ------------------------------------------------------------
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% ------------------------------------------------------------
+% Custom Math Operators
+% ------------------------------------------------------------
+\DeclareMathOperator{\Ric}{Ric}
+\DeclareMathOperator{\vol}{vol}
+\DeclareMathOperator{\Span}{Span}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\dimstratum}{dim}
+\DeclareMathOperator{\Hess}{Hess}
+\DeclareMathOperator{\Div}{div}
+
+% ------------------------------------------------------------
+% Notational Macros
+% ------------------------------------------------------------
+\newcommand{\ThetaSpace}{\Theta}
+\newcommand{\ModelMap}{f_\theta}
+\newcommand{\ParamJac}{J_\theta}
+\newcommand{\Stratum}{\mathcal{S}}
+\newcommand{\Realization}{\Phi}
+\newcommand{\FreeEnergy}{\mathcal{F}}
+\newcommand{\LamEnergy}{\mathcal{L}_{\mathrm{lam}}}
+\newcommand{\SI}{\mathsf{SI}}
+\newcommand{\Null}{\mathcal{N}}
+\newcommand{\TartanOp}{\mathsf{T}}
+\newcommand{\LamFlow}{\mathsf{L}}
+
+% Remove paragraph indentation but add spacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+% ------------------------------------------------------------
+% Document Metadata
+% ------------------------------------------------------------
+\title{%
+{\Large \bf Geometry of Recursive Agency}\[4pt]
+A Unified Mathematical Framework for Stratified Representation, \
+Fiber Geometry, Lamphrodynamic Complexity, and Multiscale Trajectories}
+\author{Flyxion}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introduction}
+
+Modern learning systems inhabit intricate landscapes of representation, control, and uncertainty. Deep neural networks, variational inference schemes, and multi-agent controllers all instantiate a common pattern: a high-dimensional parameter manifold, a stratified structure of effective capacities, and dynamical flows that attempt to reduce loss or free energy under finite computational resources. This article develops a unified mathematical framework for what may be called \emph{recursive agency}: the ability of a system not only to respond to data, but to recursively shape its own geometry of representation and control.
+
+The central objects of study are threefold. First, we treat the parameter space of a model as a Riemannian manifold, endowed with information-geometric structures derived from likelihoods and losses \citep{amari2016information,cover2006elements}. Second, we study the \emph{stratified geometry} of this manifold: different regions support representations of different effective dimension and complexity, separated by singular strata where the rank of realization maps drops and symmetry groups enlarge. Third, we introduce a family of \emph{lamphrodynamic} functionals that penalize excessive curvature and roughness in both input and representation space, yielding gradient flows that couple representational capacity, stability, and free-energy-like quantities.
+
+The article is organized as follows. Section~\ref{sec:preliminaries} collects the necessary background from differential geometry, stratified spaces, and information geometry. Section~\ref{sec:repr-manifolds} formalizes representation manifolds and develops a stratified capacity index via Jacobian ranks. Section~\ref{sec:fiber-geometry} analyzes the fiber structure over representation manifolds, emphasizing symmetry groups and null directions. Section~\ref{sec:semantic-fields} introduces semantic flows on representation manifolds and establishes basic well-posedness results. Section~\ref{sec:multiscale} develops a multiscale trajectory formalism, inspired by wavelets and Gaussian aura fields'', and connects it to stability of recursive inference. Section~\ref{sec:lamphro} defines lamphrodynamic energy and derives its Euler--Lagrange equations and gradient flows. Section~\ref{sec:freeenergy} constructs a stratified free-energy functional and ties it to variational inference. Section~\ref{sec:predictive-silence} studies harmonicity and predictive silence'' as limiting regimes of recursive agency. Section~\ref{sec:mortality} develops the notion of computational mortality, emphasizing thermodynamic and control-theoretic constraints on long-lived computation.
+
+The appendices extend the main text in several directions. Appendix~\ref{app:functorial} outlines a derived functorial semantics for recursive agency. Appendix~\ref{app:operator} describes operator-algebraic encodings of lamphrodynamic Hamiltonians. Appendix~\ref{app:priors-mortal} explains how programmability in mortal computers corresponds to selecting priors over trajectories and control laws. Appendix~\ref{app:renorm-priors} develops a renormalization perspective on multi-scale priors and agency.
+
+Throughout, we emphasize explicit definitions, lemmas, and theorems. Proofs are presented in sufficient detail to make each step transparent, while leaving routine calculations to the reader. The goal is not to exhaust all possible generalizations but to demonstrate that the geometry of recursive agency can be formulated within a rigorous yet flexible mathematical framework.
+
+\section{Mathematical Preliminaries} \label{sec:preliminaries}
+
+\subsection{Riemannian Manifolds and Curvature}
+
+Let $(M,g)$ be a smooth $d$-dimensional Riemannian manifold. We write $\nabla$ for the Levi-Civita connection of $g$, $\Delta = \Div \circ \nabla$ for the Laplace--Beltrami operator, and $\Ric$ for the Ricci curvature tensor \citep{petersen2006riemannian,lee2018riemannian}. We recall a few standard facts used repeatedly below.
+
+\begin{lemma}[Bochner Identity] \label{lem:bochner} Let $f \colon M \to \mathbb{R}$ be smooth. Then
+
+\frac{1}{2} \Delta \|\nabla f\|^2
+= \|\Hess f\|^2 + \langle \nabla f, \nabla (\Delta f) \rangle + \Ric(\nabla f,\nabla f).
+
+\begin{proof} This is the classical Bochner identity; see, for example, \citet[Theorem~2.12]{petersen2006riemannian}. It follows from the commutation of covariant derivatives and the definition of $\Ric$ in terms of the Riemann tensor. \end{proof}
+
+We will frequently impose a lower bound on Ricci curvature.
+
+\begin{assumption}[Ricci Lower Bound] \label{ass:ricci-lower} There exists $K \in \mathbb{R}$ such that $\Ric \geq K g$ in the sense of quadratic forms. \end{assumption}
+
+Under Assumption~\ref{ass:ricci-lower}, we have standard comparison theorems for volumes, heat kernels, and geodesic spreading \citep{petersen2006riemannian}. These will be used to control the behavior of flows on parameter and representation manifolds.
+
+\subsection{Stratified Spaces and Semi-Algebraic Geometry}
+
+Many spaces of interest in learning theory are not smooth manifolds but stratified spaces: unions of smooth manifolds of varying dimension glued along singular loci \citep{goresky1988stratified}. We briefly recall the Whitney stratification framework.
+
+\begin{definition}[Whitney Stratified Space] A subset $X \subset \mathbb{R}^n$ is said to be \emph{Whitney stratified} if it can be written as a finite disjoint union
+
+X = \bigsqcup_{\alpha \in A} S_\alpha
+
+\begin{enumerate}[label=(\roman*)] \item Each $S_\alpha$ is locally closed in $X$. \item The closure $\overline{S_\alpha}$ is a union of strata. \item The collection ${S_\alpha}$ satisfies Whitney's conditions (A) and (B). \end{enumerate} \end{definition}
+
+Semi-algebraic sets admit canonical Whitney stratifications with additional structure.
+
+\begin{theorem}[Stratification of Semi-Algebraic Sets] \label{thm:semi-alg-strat} Let $X \subset \mathbb{R}^n$ be semi-algebraic. Then $X$ admits a finite Whitney stratification ${S_\alpha}$ such that each $S_\alpha$ is semi-algebraic and connected. Moreover, $\dim S_\alpha$ is locally constant on each stratum. \end{theorem}
+
+We will apply Theorem~\ref{thm:semi-alg-strat} to the images of realization maps and to fibers of parameter-to-function maps.
+
+\subsection{Information Geometry and Fisher Metrics}
+
+Consider a parametric family of probability distributions ${p_\theta}{\theta \in \ThetaSpace}$ on a measurable space $(\mathcal{X},\mathcal{A})$, dominated by a reference measure $\mu$, with densities $p\theta(x)$ smooth in $\theta$. The Fisher information metric \citep{amari2016information} is defined by
+
+g_{ij}(\theta)
+= \mathbb{E}_{x \sim p_\theta}\!\bigg[\frac{\partial \log p_\theta(x)}{\partial \theta_i}
+\frac{\partial \log p_\theta(x)}{\partial \theta_j}\bigg].
+
+\begin{proposition}[Fisher Metric via KL Divergence] \label{prop:fisher-kl} Let $D_{\mathrm{KL}}(p_\theta \Vert p_{\theta'})$ be the Kullback--Leibler divergence. Then
+
+D_{\mathrm{KL}}(p_\theta \Vert p_{\theta + \delta\theta})
+= \frac{1}{2} g_{ij}(\theta) \delta\theta_i \delta\theta_j + o(\|\delta\theta\|^2).
+
+\begin{proof} Expand $\log p_{\theta + \delta\theta}(x)$ in $\delta\theta$ and take expectations. The vanishing of the first-order term follows from $\mathbb{E}{p\theta}[\nabla_\theta \log p_\theta] = 0$. \end{proof}
+
+The Fisher metric is invariant under sufficient statistics and affine reparameterizations of exponential families, making it a natural object for studying representation manifolds and free-energy flows.
+
+\section{Representation Manifolds and Stratum Geometry} \label{sec:repr-manifolds}
+
+\subsection{Realization Maps and Representation Manifolds}
+
+Let $\ThetaSpace \subset \mathbb{R}^P$ be a parameter domain for a model class, and let $\mathcal{H}$ be a function space (e.g.\ continuous functions on a compact domain). We define the realization map
+
+\Realization \colon \ThetaSpace \to \mathcal{H}, \qquad
+\theta \mapsto \ModelMap(\cdot;\theta).
+
+In finite-dimensional settings, it is often convenient to consider evaluations on a fixed finite design set ${x_1,\dots,x_N}$ and study
+
+\Phi_\mathrm{disc} \colon \ThetaSpace \to \mathbb{R}^N,\quad
+\theta \mapsto \big(\ModelMap(x_1;\theta),\dots,\ModelMap(x_N;\theta)\big).
+
+\begin{definition}[Representation Manifold] The \emph{representation manifold} $M$ is defined as the image
+
+M = \Realization(\ThetaSpace) \subset \mathcal{H},
+
+\end{definition}
+
+The map $\Realization$ (or $\Phi_\mathrm{disc}$) is in general neither injective nor immersive. Its differential
+
+\ParamJac_\theta \colon T_\theta \ThetaSpace \to T_{\Realization(\theta)} M
+
+\begin{definition}[Jacobian Rank Stratification] For $0 \leq r \leq P$, define
+
+\Stratum_r = \{\theta \in \ThetaSpace : \rank \ParamJac_\theta = r\}.
+
+The sets $\Stratum_r$ partition $\ThetaSpace$ into rank strata. Under mild regularity assumptions, each $\Stratum_r$ is a union of smooth submanifolds of constant rank, and the collection ${\Stratum_r}$ can be refined to a Whitney stratification.
+
+\subsection{Existence and Regularity of the Realization Map}
+
+We sketch a basic regularity result for $\Realization$ in the discretized setting, sufficient to ensure that $\Phi_\mathrm{disc}$ admits a stratification by rank.
+
+\begin{assumption}[Polynomial Architecture] \label{ass:poly-arch} Each component of $\Phi_\mathrm{disc}(\theta)$ is given by a composition of polynomial maps and coordinatewise analytic nonlinearities. \end{assumption}
+
+\begin{lemma}[Continuity and Smoothness] Under Assumption~\ref{ass:poly-arch}, the map $\Phi_\mathrm{disc} \colon \ThetaSpace \to \mathbb{R}^N$ is real-analytic on the interior of $\ThetaSpace$. \end{lemma}
+
+\begin{proof} Compositions of analytic maps are analytic. Coordinatewise nonlinearities such as polynomials, exponentials, hyperbolic tangents, and piecewise-analytic functions yield analytic dependence on the parameters away from activation kinks. Restricting to regions of constant activation pattern yields analytic charts, and $\ThetaSpace$ can be decomposed into finitely many such regions. \end{proof}
+
+\begin{proposition}[Stratification by Rank] \label{prop:rank-strat} Under Assumption~\ref{ass:poly-arch}, there exists a Whitney stratification ${\Stratum_\alpha}$ of $\ThetaSpace$ such that the rank of $\ParamJac_\theta$ is locally constant on each stratum $\Stratum_\alpha$. \end{proposition}
+
+\begin{proof} The rank of a matrix-valued analytic function is upper semi-continuous and can be expressed as the vanishing of minors. The sets where a given collection of minors vanish or not are semi-analytic. Applying Theorem~\ref{thm:semi-alg-strat} to these level sets yields a Whitney stratification on which the rank is constant. \end{proof}
+
+\subsection{Stratum Capacity and a Stratum Index}
+
+We now define a scalar index that summarizes how parameter mass is distributed across rank strata.
+
+\begin{definition}[Stratum Capacity Index] Let $\mu$ be a probability measure on $\ThetaSpace$ (for example, induced by a prior or by sampling checkpoints along training). For each rank $r$, define
+
+p_r = \mu(\Stratum_r).
+
+\SI(\mu)
+= \sum_{r=0}^P w(r)\, p_r \, r,
+
+\end{definition}
+
+One natural choice is $w(r) = 1$ (the unweighted mean rank). Exponential or inverse-rank weights accentuate low-rank or high-rank strata, respectively. The index $\SI(\mu)$ can be estimated empirically via random sampling of parameters and approximate Jacobian ranks, as in randomized SVD schemes.
+
+\begin{proposition}[Bounds on the Stratum Index] For any probability measure $\mu$ on $\ThetaSpace$ and weights $w(r) \in [w_{\min},w_{\max}]$ we have
+
+w_{\min} \mathbb{E}_\mu[\rank \ParamJac_\theta]
+\leq \SI(\mu)
+\leq w_{\max} \mathbb{E}_\mu[\rank \ParamJac_\theta].
+
+\begin{proof} This follows immediately from $p_r \geq 0$, $\sum_r p_r = 1$, and the bounds on $w(r)$. \end{proof}
+
+The Stratum Index thus provides a coarse summary of how a training process explores strata of different effective dimension.
+
+\section{Fiber Geometry and Symmetry} \label{sec:fiber-geometry}
+
+\subsection{Fibers of the Realization Map}
+
+For each representation $h \in M$, the \emph{fiber}
+
+\Realization^{-1}(h) = \{\theta \in \ThetaSpace : \Realization(\theta) = h\}
+
+\begin{definition}[Fiber Dimension] For $\theta \in \ThetaSpace$, define the fiber through $\theta$ as
+
+F(\theta) = \Realization^{-1}(\Realization(\theta)).
+
+\dim F(\theta) = \dimstratum F(\theta).
+
+Assuming $\Realization$ is a submersion at $\theta$, the implicit function theorem implies that $F(\theta)$ is a smooth submanifold of codimension equal to the rank of $\ParamJac_\theta$.
+
+\begin{proposition}[Fiber Dimension Formula] \label{prop:fiber-dim} Suppose $\Realization$ is $C^1$ and $\ParamJac_\theta$ has constant rank $r$ on a neighborhood of $\theta$. Then there exists a neighborhood $U$ of $\theta$ such that $F(\theta) \cap U$ is a $C^1$ submanifold with
+
+\dim F(\theta) = \dim \ThetaSpace - r.
+
+\begin{proof} This is the standard rank theorem \citep{lee2013smooth}, applied to $\Realization$ at $\theta$. \end{proof}
+
+The fibers induce a foliation of $\ThetaSpace$ on each rank stratum. From the perspective of agency, motion along fibers preserves functional behavior and can be exploited for regularization, pruning, or symmetry reduction.
+
+\subsection{Symmetry Groups and Orbit Structure}
+
+Let $G$ be a Lie group acting smoothly on $\ThetaSpace$ via $\rho \colon G \times \ThetaSpace \to \ThetaSpace$. We say that $G$ is a symmetry group of $\Realization$ if
+
+\Realization(\rho(g,\theta)) = \Realization(\theta)
+\quad\text{for all }g \in G,\, \theta \in \ThetaSpace.
+
+\begin{proposition}[Group Orbits inside Fibers] If $G$ is a symmetry group of $\Realization$, then for each $\theta \in \ThetaSpace$ the orbit
+
+G \cdot \theta = \{\rho(g,\theta) : g \in G\}
+
+\end{proposition}
+
+When $G$ acts freely and properly on a subset of $\ThetaSpace$, the quotient space $\ThetaSpace / G$ inherits a smooth structure, and $\Realization$ factors through the quotient. This removes redundant degrees of freedom, a standard operation in gauge theory and constrained mechanics \citep{arnold1989mathematical}.
+
+\subsection{Vertical and Horizontal Distributions}
+
+On regions where $\Realization$ has constant rank, we may decompose the tangent bundle into vertical and horizontal components.
+
+\begin{definition}[Vertical and Horizontal Subspaces] At $\theta \in \ThetaSpace$, define the vertical subspace
+
+V_\theta = \ker \ParamJac_\theta \subset T_\theta \ThetaSpace.
+
+T_\theta \ThetaSpace = V_\theta \oplus H_\theta.
+
+A smooth choice of $H_\theta$ defines a connection on the trivial bundle $\ThetaSpace \times M$ with projection $\Realization$. Parallel transport along $H_\theta$ paths yields changes in parameters that preserve representation in first-order approximation.
+
+\begin{proposition}[Existence of Local Splitting] On any rank-constant stratum, there exists a smooth assignment $\theta \mapsto H_\theta$ such that $T_\theta \ThetaSpace = V_\theta \oplus H_\theta$. \end{proposition}
+
+\begin{proof} This follows from the smooth dependence of $\ParamJac_\theta$ on $\theta$ and the existence of smooth complements to smooth subbundles of finite-dimensional bundles. \end{proof}
+
+This splitting underlies a geometric view of pruning and nullspace projection: updates may be decomposed into vertical components, which change parameters while preserving representations, and horizontal components, which alter the induced function.
+
+\section{Semantic Fields and Recursive Agency} \label{sec:semantic-fields}
+
+\subsection{Semantic Flows on Representation Manifolds}
+
+Let $(M,g)$ be a representation manifold, endowed with a Riemannian metric derived from the Fisher information or another information-geometric structure. A semantic field is a time-dependent map
+
+t \mapsto f_t \colon M \to \mathbb{R}^k
+
+We consider gradient flows of a functional $\mathcal{E}$ on a suitable function space $\mathcal{C}$, such as
+
+\mathcal{E}(f) = \int_M \big( V(f(x)) + \tfrac{1}{2} \|\nabla f(x)\|^2 \big)\, d\vol_g(x),
+
+\begin{definition}[Semantic Flow] The \emph{semantic flow} induced by $\mathcal{E}$ is the evolution
+
+\partial_t f_t = - \frac{\delta \mathcal{E}}{\delta f}(f_t),
+
+\end{definition}
+
+In the simplest case with quadratic $V$, the Euler--Lagrange equations yield a reaction--diffusion equation
+
+\partial_t f_t = \Delta f_t - \nabla V(f_t),
+
+\subsection{Well-Posedness of the Flow}
+
+We consider a scalar field $f_t \colon M \to \mathbb{R}$ satisfying \begin{equation} \label{eq:semantic-flow} \partial_t f_t = \Delta f_t - \nabla V(f_t) \cdot 1, \end{equation} with initial condition $f_0 \in H^1(M)$.
+
+\begin{assumption}[Growth and Regularity of $V$] The potential $V \colon \mathbb{R} \to \mathbb{R}$ is $C^2$, with
+
+|\nabla V(u)| \leq C_1 + C_2 |u|, \quad
+\nabla^2 V(u) \geq - C_3
+
+\end{assumption}
+
+\begin{theorem}[Global Existence and Uniqueness] \label{thm:semantic-wellposed} Under Assumption~\textup{\ref{ass:ricci-lower}} with $K$ bounded below and the assumptions on $V$, for any $f_0 \in H^1(M)$ there exists a unique global solution
+
+f \in C([0,\infty); H^1(M)) \cap L^2_{\mathrm{loc}}([0,\infty); H^2(M))
+
+\end{theorem}
+
+\begin{proof} This is a standard semilinear parabolic problem on a compact Riemannian manifold; existence and uniqueness follow from the theory of analytic semigroups and energy estimates \citep{evans2010partial}. The lower bound on $\nabla^2 V$ and the Ricci bound ensure appropriate coercivity and comparison principles. \end{proof}
+
+\subsection{Lyapunov Functions and Coherent Agency}
+
+We interpret $\mathcal{E}$ as a Lyapunov functional governing the coherence of semantic fields.
+
+\begin{proposition}[Energy Dissipation] Let $f_t$ satisfy \eqref{eq:semantic-flow}. Then
+
+\frac{d}{dt} \mathcal{E}(f_t)
+= - \int_M |\partial_t f_t|^2 \, d\vol_g \leq 0.
+
+\begin{proof} Differentiate $\mathcal{E}(f_t)$ under the integral sign and substitute $\partial_t f_t$ from \eqref{eq:semantic-flow}; integrate by parts to obtain the negative of the $L^2$-norm of $\partial_t f_t$. \end{proof}
+
+This monotonic decay of $\mathcal{E}$ embodies a notion of coherent agency: trajectories evolve toward lower-energy configurations, smoothing out irregularities while remaining constrained by the geometry of $M$.
+
+\section{Multiscale Trajectories and TARTAN Geometry} \label{sec:multiscale}
+
+\subsection{Multiscale Aura Fields}
+
+Let ${z_t}_{t=0}^T \subset \mathbb{R}^d$ be a discrete trajectory of hidden states produced by a model. A multiscale smoothing operator $\TartanOp$ maps this trajectory to a smoothed version ${\tilde{z}_t}$ via Gaussian-weighted averages over a buffer of past states:
+
+\tilde{z}_t = z_t - \lambda \big( z_t - a_t \big),
+\quad
+a_t = \frac{\sum_{k=0}^{K-1} \exp\!\big(-\tfrac{\|z_t - b_k\|^2}{2\sigma^2}\big)\, b_k}
+{\sum_{k=0}^{K-1} \exp\!\big(-\tfrac{\|z_t - b_k\|^2}{2\sigma^2}\big)},
+
+This operator can be viewed as a discrete analog of a heat flow on trajectories, with an additional attraction toward previously visited regions.
+
+\begin{proposition}[Nonexpansiveness in the Small-Step Regime] For sufficiently small $\lambda \in (0,1)$, the mapping $z_t \mapsto \tilde{z}_t$ is nonexpansive:
+
+\|\tilde{z}_t - \tilde{z}_t'\|
+\leq \|z_t - z_t'\|
+
+\end{proposition}
+
+\begin{proof} The operator is a convex combination of the identity and a Lipschitz map $z_t \mapsto a_t$. For sufficiently small $\lambda$, the combined Lipschitz constant remains at most one. \end{proof}
+
+This construction underlies a multiscale trajectory-aware smoothing layer that can be integrated into recurrent or transformer architectures.
+
+\section{Lamphrodynamic Complexity and Energy Functionals} \label{sec:lamphro}
+
+\subsection{Lamphrodynamic Energy}
+
+We now introduce a functional that penalizes large gradients and curvature in the model outputs with respect to inputs. Let $f_\theta \colon \mathbb{R}^d \to \mathbb{R}^k$ be a differentiable model. Define the lamphrodynamic energy
+
+\LamEnergy(\theta)
+= \int_{\mathbb{R}^d} \Big( \alpha \|\nabla_x f_\theta(x)\|^2
++ \beta \|\Hess_x f_\theta(x)\|^2 \Big)\, d\mu(x),
+
+\begin{remark} In practice, $\LamEnergy$ is approximated by Monte Carlo sampling of inputs and randomized estimates of gradients and Hessians, leading to regularization terms that can be combined with task losses. \end{remark}
+
+\subsection{Euler--Lagrange Equations}
+
+Formally treating $\LamEnergy$ as a functional of $f$, the first variation yields
+
+\frac{\delta \LamEnergy}{\delta f}(x)
+= - 2\alpha \Delta_x f(x) + 2\beta \Delta_x^2 f(x),
+
+\partial_t f_t(x) = 2\alpha \Delta_x f_t(x) - 2\beta \Delta_x^2 f_t(x).
+
+\begin{theorem}[Existence of Lamphrodynamic Flow] Assume suitable boundary conditions and regularity for $f_0$. Then the gradient flow of $\LamEnergy$ admits a unique solution
+
+f \in C([0,\infty); H^2) \cap L^2_{\mathrm{loc}}([0,\infty); H^4),
+
+\end{theorem}
+
+\begin{proof} This is a standard result for bi-harmonic heat equations; see, for instance, the theory of higher-order parabolic equations in \citet{evans2010partial}. \end{proof}
+
+From the perspective of recursive agency, lamphrodynamic flows suppress high-frequency fluctuations and promote smooth, coherent responses to input perturbations.
+
+\section{Stratified Free Energy and Variational Inference} \label{sec:freeenergy}
+
+\subsection{Free Energy on Stratified Representation Manifolds}
+
+Consider a generative model $p_\theta(x,z)$ with latent variables $z$ and parameters $\theta \in \ThetaSpace$. A variational distribution $q_\phi(z \mid x)$ with parameters $\phi$ aims to approximate the posterior. The standard variational free energy for data $x$ is
+
+\FreeEnergy(\theta,\phi;x)
+= \mathbb{E}_{q_\phi(z \mid x)}[\log q_\phi(z \mid x) - \log p_\theta(x,z)].
+
+We now regard $(\theta,\phi)$ as belonging to a stratified parameter manifold with rank strata determined by the joint realization map $(\theta,\phi) \mapsto (p_\theta,q_\phi)$. The behavior of gradient flows of $\FreeEnergy$ may differ dramatically across strata.
+
+\begin{definition}[Stratified Free Energy] Let $\Sigma$ be a stratification of the joint parameter space. The \emph{stratified free energy} is the pair $(\FreeEnergy,\Sigma)$, together with the induced gradient flows restricted to each stratum. \end{definition}
+
+\subsection{Critical Points and Morse--Stratified Structure}
+
+Under suitable regularity conditions, critical points of $\FreeEnergy$ within each stratum can be analyzed using Morse theory adapted to stratified spaces \citep{goresky1988stratified}.
+
+\begin{theorem}[Stratified Criticality] Suppose $\FreeEnergy$ is $C^2$ on each stratum and its restriction to each stratum satisfies the Morse nondegeneracy condition. Then the set of critical points decomposes into a finite union of Morse strata, each of which contributes to the topological invariants of sublevel sets of $\FreeEnergy$. \end{theorem}
+
+This viewpoint suggests that optimization dynamics of variational objectives may be constrained not only by local curvature but by the stratified topology of parameter space.
+
+\section{Predictive Silence and Harmonic Agency} \label{sec:predictive-silence}
+
+\subsection{Harmonic Maps and Silent Predictions}
+
+Consider a representation manifold $(M,g)$ and a target manifold $(N,h)$. A map $u \colon M \to N$ is harmonic if it is a critical point of the Dirichlet energy
+
+E(u) = \frac{1}{2} \int_M \|\nabla u\|^2 \, d\vol_g.
+
+We interpret a harmonic map as a state of \emph{predictive silence}: local variability is minimized subject to boundary or data constraints, and the system ceases to emit new gradients except where forced by boundary conditions.
+
+\begin{theorem}[Uniqueness under Convex Boundary Conditions] Let $M$ be compact with smooth boundary and $N = \mathbb{R}^k$. Suppose boundary data $u\vert_{\partial M}$ is fixed. Then there exists a unique harmonic map $u \colon M \to \mathbb{R}^k$ with this boundary data. \end{theorem}
+
+\begin{proof} For $N = \mathbb{R}^k$ the problem decomposes into $k$ scalar Laplace equations. Standard elliptic theory yields existence and uniqueness for each component with Dirichlet boundary conditions \citep{evans2010partial}. \end{proof}
+
+In the context of recursive agency, harmonic maps arise as limiting states of regularized training dynamics: the system converges to a configuration that balances representational capacity and smoothness.
+
+\section{Computational Mortality and Resource-Bounded Agency} \label{sec:mortality}
+
+\subsection{Energy Budgets and Drift}
+
+Real computational systems operate under finite energy budgets, memory, and time. Let $E(t)$ denote the available energy at time $t$, and let $P(t)$ be the instantaneous power consumption associated with computation, communication, and maintenance. A simple balance law is
+
+\frac{dE}{dt} = - P(t) + I(t),
+
+We define a notion of computational mortality.
+
+\begin{definition}[Computational Mortality Time] Given a control policy $\pi$ that governs computational actions, the \emph{mortality time} $T_\mathrm{mort}(\pi)$ is the infimum of $t$ such that $E(t)$ falls below a critical threshold $E_\mathrm{min}$ required to sustain computation. \end{definition}
+
+The design of policies $\pi$ that maximize $T_\mathrm{mort}$ subject to performance constraints is naturally formulated as an optimal control problem.
+
+\subsection{Control-Theoretic Formulation}
+
+Let $x_t$ be the internal state of the computing system, $u_t$ a control action (for example, changing model architecture, adaptation rate, or computational load), and let
+
+\dot{x}_t = F(x_t,u_t), \quad
+\dot{E}_t = - P(x_t,u_t) + I_t.
+
+J(\pi) = \mathbb{E}\Big[ \int_0^{T_\mathrm{mort}(\pi)} \ell(x_t,u_t)\, dt \Big],
+
+The associated Hamilton--Jacobi--Bellman equation captures the trade-offs between immediate reward and preservation of future computational capacity \citep{bertsekas2005dynamic}. This viewpoint makes explicit how priors over control policies correspond to implicit choices about how to spend finite computational life.
+
+\section{Conclusion}
+
+We have developed a geometric and variational framework for recursive agency, organizing concepts from representation manifolds, fiber geometry, lamphrodynamic complexity, and multiscale trajectories into a coherent mathematical structure. The central theme is that agency is inseparable from geometry: the way a system represents, infers, and acts is constrained and guided by the curvature, stratification, and energetic costs of the spaces it inhabits.
+
+Several directions invite further work. On the theoretical side, a deeper analysis of stratified Morse theory for variational objectives could clarify the landscape of local and global optima. On the computational side, implementing lamphrodynamic regularizers and trajectory-aware smoothing layers in large-scale architectures may yield practical benefits in robustness and calibration. On the conceptual side, the study of computational mortality and multi-scale priors suggests a bridge between statistical learning, thermodynamics, and the long-term sustainability of intelligent systems.
+
+\appendix
+
+\section{Derived Functorial Semantics} \label{app:functorial}
+
+This appendix sketches a categorical perspective on recursive agency. Let $\mathbf{C}$ be a category of semantic objects (e.g.\ tasks, datasets, or environments) and $\mathbf{A}$ a category of agents, with morphisms encoding admissible transformations.
+
+We view a learning system as a functor
+
+F \colon \mathbf{C} \to \mathbf{A},
+
+\mathcal{U} \colon \mathbf{C}^{\Delta} \to \mathbf{A},
+
+Derived functorial semantics enters when we attempt to capture not only pointwise behaviors but also homological and cohomological invariants of these functors. For example, one may define a chain complex associated with a sequence of agent updates and consider its derived functors, measuring obstructions to consistent adaptation across scales. In this view, lamphrodynamic energies and free-energy functionals can be interpreted as measures of the failure of certain diagrams to commute, with homotopy classes of corrections corresponding to different strategies for reconciling conflicting objectives.
+
+A systematic development of this perspective would require specifying model categories on $\mathbf{C}$ and $\mathbf{A}$, defining suitable Quillen adjunctions, and identifying meaningful homotopy limits and colimits that correspond to merged'' or composed'' agencies. Although we do not pursue this in detail here, the categorical language provides a natural setting for future work on compositionality and modularity of recursive agents.
+
+\section{Operator Algebras and Lamphrodynamic Hamiltonians} \label{app:operator}
+
+Lamphrodynamic flows can be recast in operator-theoretic terms. Consider a Hilbert space $\mathcal{H}$ of functions on an input domain, with inner product induced by an input distribution. For each parameter $\theta$, the model output $f_\theta$ is an element of $\mathcal{H}$. Differential operators such as the gradient and Laplacian act on $\mathcal{H}$, and the lamphrodynamic energy may be expressed as
+
+\LamEnergy(\theta)
+= \langle f_\theta, H f_\theta \rangle_{\mathcal{H}}
+
+In the simplest case, $H$ is a polynomial in the Laplacian $-\Delta$, such as $H = \alpha (-\Delta) + \beta (-\Delta)^2$. More generally, one can consider self-adjoint operators in a $C^*$-algebra generated by differential operators and multiplication operators corresponding to input-dependent weights. The spectral properties of $H$ then control the smoothing behavior of lamphrodynamic flows: eigenfunctions with large eigenvalues are strongly damped, while low-eigenvalue modes persist.
+
+This operator-algebraic viewpoint suggests connections with quantum mechanics and statistical field theory, where Hamiltonians encode energy landscapes and dynamics \citep{bible2003methods}. In particular, lamphrodynamic Hamiltonians may be designed to preserve or damp specific semantic modes, opening the possibility of tailoring agency to emphasize or suppress particular directions in representation space.
+
+\section{Programmability, Priors, and Mortal Computers} \label{app:priors-mortal}
+
+Programmability in mortal computers---systems with finite time, energy, and memory---can be understood as the selection of priors over trajectories of computation and control. Each program encodes a distribution over possible future states of the system, constrained by resource budgets and environmental interactions.
+
+Formally, let $\Omega$ denote the space of possible computational histories, and let $\mathcal{P}(\Omega)$ be the space of probability measures on $\Omega$. A program $\pi$ induces a prior $P_\pi \in \mathcal{P}(\Omega)$, reflecting the system's expectations about its own behavior under that program. Resource constraints impose feasibility conditions on $P_\pi$, such as expected energy consumption and memory usage.
+
+The act of programming becomes the selection of a prior $P_\pi$ from a feasible set $\mathcal{F} \subset \mathcal{P}(\Omega)$, subject to preferences over performance and survival. Mortal computation forces a trade-off: programs that achieve high task performance may consume resources quickly, shortening the mortality time, while programs that conserve resources may sacrifice accuracy or responsiveness.
+
+In this view, higher-level agency corresponds to the ability to revise the prior $P_\pi$ in light of observed outcomes, effectively reprogramming the system to balance performance and longevity. Recursive agency then emerges when the system maintains a meta-prior over programs themselves, updating not only beliefs about the world but also beliefs about which programs are viable under current and anticipated resource conditions.
+
+\section{Renormalization of Priors and Multi-Scale Computational Agency} \label{app:renorm-priors}
+
+Mortal computation unfolds across multiple temporal, spatial, and energetic scales. Biological organisms, artificial systems, and hybrid architectures continually balance fine-grained representational detail against coarse-grained constraints imposed by energy budgets, entropy production, and structural fragility. This appendix develops a renormalization framework for understanding how priors evolve across scales, and how computational agency arises from maintaining coherence between these scales under resource limitations.
+
+The central claim is that renormalization of priors is the mechanism through which a mortal computational system regulates its expressive capacity. Coarse-grained priors determine the macroscopic organization of representations and actions, while fine-grained priors govern local inference, control, and adaptation. The multi-scale consistency of these priors defines the system's agency: its ability to maintain stable, goal-directed computation under finite resources.
+
+\subsection*{O.1 Priors Across Scales in Mortal Computational Systems}
+
+Let $\ThetaSpace$ denote the representational manifold of a mortal computational system. At any scale $\ell$, the system employs a prior
+
+p_\ell(\theta),
+\qquad \theta \in \Theta_\ell,
+
+\Theta_0 \supset \Theta_1 \supset \cdots \supset \Theta_L,
+
+The prior at each scale reflects feasible access to states at that scale: \begin{itemize} \item energy: the cost of maintaining or transitioning between fine-grained configurations; \item entropy: the expected dissipation associated with fine-grained distinctions; \item curvature: the geometric stability or instability of the coarse-grained manifold. \end{itemize} Thus, each $p_\ell$ is an effective prior induced by the resource budget available at scale $\ell$.
+
+\subsection*{O.2 Renormalization of Priors}
+
+Renormalization maps the fine-scale prior $p_{\ell}$ to a coarser prior $p_{\ell+1}$. Define a coarse-graining operator
+
+\mathcal{R}_\ell \colon p_\ell \mapsto p_{\ell+1}
+
+p_{\ell+1}(\theta_{\ell+1})
+= \int_{\pi_\ell^{-1}(\theta_{\ell+1})}
+\exp\big(-\mathcal{C}_\ell(\theta)\big)\, d\mu_\ell(\theta).
+
+\begin{proposition}[Gibbs Stability under Renormalization] If the fine-scale prior has Gibbs form
+
+p_\ell(\theta) \propto \exp\big(-\beta_\ell \mathcal{C}_\ell(\theta)\big),
+
+p_{\ell+1}(\theta_{\ell+1})
+\propto \exp\big(-\beta_{\ell+1} \mathcal{C}_{\ell+1}(\theta_{\ell+1})\big),
+
+\end{proposition}
+
+This property reflects the thermodynamic consistency of mortal computation: resource constraints propagate structurally across scales.
+
+\subsection*{O.3 Flow Equations for Prior Geometry}
+
+The renormalization operator induces a flow on the space of priors,
+
+\frac{d p_\ell}{d\ell} = \mathcal{F}(p_\ell),
+
+In the information-geometric formulation, the Fisher--Rao metric $g_\ell$ associated with $p_\ell$ evolves according to
+
+\frac{d g_\ell}{d\ell}
+= -2\, \mathbb{E}_{p_\ell}[\Ric_\ell] + \text{dissipative terms}.
+
+\subsection*{O.4 Multi-Scale Agency and Coherent Priors}
+
+A mortal computational system acts coherently when its priors across scales are mutually compatible. Define the consistency condition
+
+\mathcal{R}_\ell(p_\ell) \approx p_{\ell+1},
+
+At coarse scales, agency is determined by slow, high-amplitude priors reflecting stable goals, metabolic constraints, and structural motifs. These priors resist rapid change and define macroscopic behavior. At fine scales, agency emerges from rapid updates, local inference, and real-time adaptation. These priors respond quickly to sensory data but remain constrained by the coarse-scale structural prior.
+
+True computational agency requires the renormalization flow to remain subcritical:
+
+D_{\mathrm{KL}}\big(p_{\ell+1} \,\Vert\, \mathcal{R}_\ell(p_\ell)\big) < \varepsilon_{\ell},
+
+\subsection*{O.5 Renormalization Fixed Points and Agency Collapse}
+
+When the renormalization flow admits a fixed point
+
+p_\infty = \mathcal{R}(p_\infty),
+
+If energy or memory budgets shrink, the renormalization flow accelerates. The representational manifold collapses to lower dimensions, and the induced prior becomes sharply peaked. Agency collapses to reflexes or simple attractor dynamics. Conversely, if resources increase, additional scales can be sustained. The manifold expands, priors flatten, and higher-order abstractions become feasible. Agency becomes more flexible and anticipatory.
+
+\subsection*{O.6 Semantic Horizons and Multi-Scale Inference}
+
+Just as a cosmological horizon limits accessible information in cosmology, a \emph{semantic horizon} bounds the depth of viable inference in mortal computation. Let $\ell_{\max}$ be the finest scale that can be stably maintained. Then the semantic horizon satisfies
+
+\ell_{\max}
+= \sup\big\{ \ell : \beta_\ell \|\nabla \mathcal{C}_\ell\| \leq E_{\max} \big\},
+
+This horizon marks the limit at which distinctions cease to be meaningful and are renormalized away. Multi-scale agency requires inference to operate strictly within this domain. The semantic horizon therefore defines the maximum attainable level of representational differentiation before thermodynamic smoothing forces renormalization.
+
+\subsection*{O.7 Summary}
+
+Renormalization of priors is the structural mechanism through which mortal computational systems manage finite resources across scales. Fine-scale distinctions are continually integrated into coarse-scale regularities, while coarse-scale priors constrain which fine-scale updates remain feasible. Computational agency emerges precisely from maintaining consistent priors across scales, ensuring that local inference and global structure remain aligned under thermodynamic, geometric, and entropic constraints.
+
+\printbibliography
+
+\end{document}

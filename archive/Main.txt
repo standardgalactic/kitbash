@@ -1,0 +1,1292 @@
+\section{Introduction and Motivation}
+
+Across psychology, neuroscience, cybernetics, control theory, and contemporary theories of cognition, one finds a recurring structural motif: adaptive agents maintain themselves by keeping their \emph{perceptions} within an acceptable range of \emph{internally specified normative models}. This architecture emerges independently in William Powers’ Perceptual Control Theory (PCT), William Glasser’s Choice Theory, Karl Friston’s Free Energy Principle (FEP) with active inference, and—more implicitly—in computational theories of narrative-driven or simulated agency based on sparse semantic projection. Each tradition arrives at the same canonical insight: behaviour is not the control of action, but the control of perception through the minimisation of a discrepancy functional.
+
+The convergence is historically surprising. Glasser and Powers derived their theories from clinical observation and cybernetic reasoning long before Bayesian brain theories were articulated. Friston’s work arises from variational calculus and thermodynamics, supported by deep hierarchical generative models. Sparse semantic projection emerges from representational compression and narrative selection in high-dimensional cognitive architectures. Yet when formalised, all three show that adaptive agents employ exactly two degrees of freedom: \begin{enumerate} \item \textbf{Act upon the environment} to make sensory evidence conform to the internal model. \item \textbf{Modify the internal model} to better accommodate sensory evidence. \end{enumerate} The central thesis of this paper is that this duality is not merely a suggestive analogy but a mathematically enforced constraint of any bounded, self-maintaining, self-evidencing system.
+
+\subsection*{1.1 The Need for a Unified Framework}
+
+Despite parallel insights, the literatures remain siloed: \begin{itemize} \item Clinical psychology lacks a variational or probabilistic grounding for reorganisation processes. \item Active inference lacks psychologically interpretable constructs such as \emph{quality world}, \emph{reference signals}, or \emph{total behaviour}. \item Sparse semantic projection models emphasise narrative coherence but seldom connect narrative selection to formal control dynamics. \end{itemize} A unified framework is needed not simply to compare these systems but to reveal the abstract control architecture they each instantiate. Such unification serves three goals: \begin{enumerate}[label=(\alph*)] \item \textbf{Theoretical clarity}: Identifying the minimal mathematical structure that explains adaptive behaviour across biological, psychological, and artificial systems. \item \textbf{Rigor}: Demonstrating equivalence via explicit generative models, linear-Gaussian reductions, and categorical representations rather than intuitive metaphor. \item \textbf{Applicability}: Providing a common language for clinical intervention, computational modelling, and AI design. \end{enumerate}
+
+\subsection*{1.2 Structure of This Paper}
+
+This essay builds such a unified framework in five steps:
+
+\begin{enumerate} \item \textbf{Universal Control Duality.}
+We begin by formalising the abstract dual-control architecture using functional analysis. We introduce the discrepancy functional and prove that its minimisation necessarily decomposes into two gradient flows: one in action space and one in model space. This establishes the structural necessity of the duality across all adaptive systems.
+
+\item \textbf{Choice Theory and Perceptual Control Theory.} We provide a technically rigorous treatment of PCT, including hierarchical control levels, reference-value dynamics, and mathematically explicit reorganisation. This section clarifies why PCT anticipates modern predictive frameworks. \item \textbf{Free Energy Principle and Active Inference.} FEP is introduced from first principles, beginning with variational free energy and continuing through expected free energy, epistemic vs pragmatic value decomposition, and continuous-time gradient flows. We introduce the nonequilibrium steady-state (NESS) interpretation, demonstrating how normative preferences encode implicit thermodynamic boundary conditions. \item \textbf{Formal Equivalence: PCT as a Special Case of Active Inference.} This is the mathematical core of the paper. We show via a linear-Gaussian generative model with quadratic preferences that active inference yields exactly the PCT control law. The result extends to higher levels of the PCT hierarchy under mild assumptions. We further formalise Glasserian reorganisation as prior learning in a variational hierarchy. \item \textbf{Sheaf-Theoretic, Field-Theoretic, and Sparse-Projection Extensions.} We reinterpret perception and reference values as sheaf sections, discrepancy as a natural transformation, and psychological conflict as a cohomological obstruction. We embed the architecture into RSVP scalar-vector-entropy fields, framing discrepancy as a field gradient. Finally, we show that sparse semantic projection instantiates the same duality at a narrative-compressional level. 
+
+\end{enumerate}
+
+\subsection*{1.3 Why This Convergence Matters}
+
+The results presented here are not merely comparative but explanatory. They show that: \begin{itemize} \item Any system that maintains itself far from thermodynamic equilibrium must implement a dual process of action and belief updating. \item Any agent with internal normative structure must constrain perception via reference values or priors. \item Any system that compresses its world-model into a sparse, narrative-like form must enact behaviour that minimises projection error. \end{itemize} The convergence is therefore not an artifact of analogy but a reflection of deep mathematical invariants governing adaptive behaviour.
+
+\subsection*{1.4 Contributions}
+
+This essay makes the following contributions: \begin{enumerate} \item Proves a universal control duality theorem for adaptive agents. \item Provides the most complete derivation to date showing that PCT is a special case of active inference. \item Introduces a sheaf-theoretic semantics for reference signals and discrepancy. \item Embeds discrepancy-based control into RSVP scalar-vector-entropy fields. \item Shows how sparse narrative templates instantiate the same architecture. \item Presents a unified categorical framework for control, inference, and reorganisation. \end{enumerate}
+
+
+
+\section{The Universal Control Duality}
+
+Every adaptive agent—biological, cognitive, artificial, or hybrid—must maintain its internal organisation in the face of a changing environment. This requirement forces a particular form onto the control architecture. In this section we formalise this constraint and prove that any system seeking to minimise a perceptual discrepancy functional must do so through two and only two types of operations: (i) changes to the world via action, and (ii) changes to the internal normative model via inference or reorganisation. This duality is structurally inevitable, independent of representational format, implementation substrate, or physical embodiment.
+
+We begin with a minimal formalisation of an agent–environment coupling and then derive the two corresponding gradient flows that define the duality.
+
+\subsection*{2.1 Agent–Environment Structure}
+
+Let the environment be modelled as a measurable state space
+
+\mathcal{X} \subseteq \mathbb{R}^n 
+
+Define: \begin{itemize} \item \textbf{Observation map:}
+
+h : \mathcal{X} \to \mathcal{O} \item \textbf{Action map:} f : \mathcal{A} \times \mathcal{X} \to \mathcal{X} \item \textbf{Internal normative model:} m \in \mathcal{M} 
+
+\end{itemize}
+
+These components suffice to state the central requirement: the agent must regulate its perceptual inputs relative to its internal model.
+
+\subsection*{2.2 Discrepancy Functional}
+
+Let
+
+D : \mathcal{M} \times \mathcal{O} \to \mathbb{R}_{\ge 0} 
+
+Examples include: \begin{itemize} \item Quadratic error: . \item KL divergence: . \item Variational free energy: . \item Bregman divergence with potential . \end{itemize}
+
+We do not assume any specific form; only that is differentiable almost everywhere in each argument and coercive (i.e., grows unbounded as mismatch increases), guaranteeing well-posed minimisation.
+
+\subsection*{2.3 Control Objective}
+
+The agent's objective is:
+
+\min_{(a,m)} \; D\big(m, \, h(x(a))\big), 
+
+The optimisation variable is two-dimensional:
+
+(a, m) \in \mathcal{A} \times \mathcal{M}. 
+
+\subsection*{2.4 Formal Decomposition of the Gradient}
+
+We now compute the directional derivatives of with respect to actions and model parameters.
+
+\paragraph{Gradient with respect to action.}
+
+Since action affects discrepancy only indirectly via its effect on state and thus on observations, the derivative is:
+
+\frac{d}{da}D\big(m, h(x(a))\big) = \nabla_o D(m,o) \cdot J_h(x(a)) \cdot J_f(x(a),a), 
+
+Define:
+
+\mathcal{G}_a = \nabla_a D(m,o) = \nabla_o D(m,o) \, J_h \, J_f. \dot{a} = -\eta_a \mathcal{G}_a, 
+
+\paragraph{Gradient with respect to the internal model.}
+
+By direct differentiation:
+
+\mathcal{G}_m = \nabla_m D(m,o). \dot{m} = -\eta_m \mathcal{G}_m. 
+
+\paragraph{Immediate Corollary.} Since the two gradients are defined on distinct manifolds and affect through independent channels, the decomposition is mathematically forced.
+
+\subsection*{2.5 Universal Control Duality Theorem}
+
+\begin{theorem}[Universal Control Duality] Let be a discrepancy functional satisfying: \begin{enumerate}[label=(\roman*)] \item differentiability in both arguments, \item coercivity, \item boundedness below, \item nondegeneracy in the sense that for each fixed , the set of minimisers in is non-empty. \end{enumerate} Let be an action–state map with continuous derivatives, and .
+
+Then the gradient flow that minimises decomposes uniquely into two orthogonal flows:
+
+\dot{a} = -\eta_a \nabla_a D(m,h(x(a))), \qquad \dot{m} = -\eta_m \nabla_m D(m,h(x(a))). 
+
+\end{theorem}
+
+\begin{proof} Direct from multivariate calculus: since is defined on the product manifold , its gradient decomposes additively:
+
+\nabla D = (\nabla_a D, \nabla_m D). \partial D/\partial a \perp \partial D/\partial m. 
+
+\end{proof}
+
+\subsection*{2.6 Interpretive Consequences}
+
+The theorem implies:
+
+\begin{itemize} \item \textbf{All adaptive behaviour is control of perception.}
+Action exists only to reduce mismatch between perception and model.
+
+\item \textbf{Inference and reorganisation are not optional.} If action cannot reduce discrepancy (e.g., physical constraints, social constraints, conflicting goals), the agent must adjust its internal model. \item \textbf{Behaviour–belief duality is universal.} Every adaptive agent, regardless of complexity or implementation (biological, neural, symbolic, generative, narrative), must perform both. \item \textbf{Psychological distress corresponds to persistent non-zero discrepancy.} Chronic error indicates failure of both action-path and model-path minimisation, leading to the need for higher-order reorganisation (meta-priors, narrative refurbishment, identity shifts). \item \textbf{Active inference and PCT are structurally identical at this level.} Their differences concern representational format, not functional architecture. \item \textbf{Sparse narrative agency is forced into the same duality.} Narrative selection corresponds to model updating; enactment corresponds to action. 
+
+\end{itemize}
+
+\subsection*{2.7 Higher-Order Duality: Meta-Control}
+
+Higher layers of the PCT hierarchy, as well as meta-inference in active inference, arise when the discrepancy minimisation is itself insufficient. Then higher-order model parameters regulate the space of possible first-order models . The same duality applies recursively:
+
+\dot{m}^{(2)} \in -\nabla_{m^{(2)}} D^{(2)}(m^{(2)},m). 
+
+
+
+\section{Choice Theory and Perceptual Control Theory}
+
+Perceptual Control Theory (PCT), originally formulated by William T. Powers, represents one of the earliest and most precise mathematical theories of behaviour in psychology. Glasser’s Choice Theory later translated the same structure into clinically grounded terminology. The conceptual core is robust: organisms do not behave to control actions or outputs; they behave to control \emph{perceptions}. Behaviour is the process of selecting actions whose environmental consequences bring perceptual signals into alignment with internally generated reference conditions.
+
+This section provides a formal and extended treatment of the cybernetic architecture underpinning PCT, the role of reference values and perceptual functions, the mechanics of continuous control, and Glasser’s reformulation as clinical theory. We establish the formal apparatus necessary for later equivalence with active inference.
+
+\subsection*{3.1 Historical and Conceptual Foundations}
+
+The roots of PCT lie in the classical cybernetics of Ashby, Wiener, McCulloch, and Rosenblueth. However, where earlier cybernetic models treated behaviour primarily as stimulus–response or as regulation of outputs, Powers’ central insight is that the regulated quantity is \emph{internal}: not the behaviour itself, but the perceptual consequences of behaviour.
+
+This inversion produces a control architecture that anticipates the predictive-processing and active-inference paradigm by decades. It also provides an empirical and operational definition of psychological function: an agent’s successful control of perceptual variables.
+
+Glasser’s later work in Choice Theory reframed these cybernetic mechanisms in clinical terms. His “Quality World”—a structured internal representation of desired states—maps directly onto Powers’ hierarchy of reference signals, while Glasser’s notion of “total behaviour” corresponds to the entire closed-loop control cycle.
+
+\subsection*{3.2 Architecture of a Single Control Unit}
+
+A PCT control unit regulates a single perceptual variable. Formally, define:
+
+\begin{itemize} \item : reference signal (desired internal value) \item : perceptual signal (current sensed value) \item : error signal \item : output function transforming error into action \item : environmental feedback function involving disturbances \end{itemize}
+
+Together, these equations define a closed-loop control system. The goal is not to produce a predetermined action, but to ensure:
+
+p(t) \approx r(t) 
+
+\subsection*{3.3 Mathematical Dynamics}
+
+Assume differentiability of and . The dynamics are expressible as:
+
+\dot{q}(t) = \frac{\partial f}{\partial e} \cdot \frac{\partial e}{\partial p} \cdot \frac{\partial p}{\partial q}, \dot{q}(t) = f'(e(t)) \left( -\frac{\partial p}{\partial q} \right). 
+
+In standard control-theoretic terms, stability follows from Lyapunov analysis with candidate function:
+
+V(e) = \frac{1}{2}e^2. \dot{V} = e \cdot \dot{e} = - e \cdot \frac{\partial p}{\partial q} \cdot f'(e). 
+
+This provides the formal guarantee that PCT’s core mechanism indeed regulates perception.
+
+\subsection*{3.4 Hierarchical Organisation}
+
+Crucially, PCT is not a single-level controller but a \emph{hierarchy} of such units, each controlling perceptual variables at increasing levels of abstraction. Powers articulated seven canonical levels: \begin{enumerate} \item Intensities
+\item Sensations
+\item Configurations
+\item Transitions
+\item Events
+\item Programs
+\item Principles
+\item System Concepts (later versions) \end{enumerate}
+
+Formally, let:
+
+p_{k}(t) = g_k(p_{k-1}(t)) r_{k}(t) e_k(t) = r_k(t) - p_k(t), r_{k-1}(t) = h_k(q_k(t)). 
+
+This produces a tower of coupled differential equations, yielding a multi-scale control architecture.
+
+\subsection*{3.5 Reference Signals and the Quality World}
+
+Reference signals encode desired perceptual states. They may be: \begin{itemize} \item innately specified (e.g., physiological variables), \item learned through experience, \item inherited from higher-level conceptual structures, \item socially mediated or normatively informed. \end{itemize}
+
+Glasser’s \textit{Quality World} corresponds to a collection of relatively stable high-level reference signals. We may model it as:
+
+\mathcal{Q} = \{ r^{(k)} : k = \text{principles, system concepts} \}. 
+
+The Quality World is therefore formally equivalent to a set of high-level priors over desired states.
+
+\subsection*{3.6 The Role of Disturbances}
+
+Disturbances are exogenous influences that affect independently of the agent's actions. PCT’s emphasis on disturbance rejection rather than stimulus–response correlation is central. The system is judged by its ability to counteract disturbances and preserve perceptual targets.
+
+Given:
+
+p(t) = h(q(t), d(t)), \frac{\partial p}{\partial d} = \text{small or cancelled}. 
+
+\subsection*{3.7 Reorganisation: The Failure Mode of Control}
+
+When perception cannot be made to match reference values—due to physical impossibility, conflicting goals, inadequate perceptual functions, or pathological reference settings—the agent enters a mode Powers calls \emph{reorganisation}. This is a higher-order mechanism that modifies: \begin{itemize} \item reference values , \item perceptual functions , \item gain parameters in , \item structural connectivity within the hierarchy. \end{itemize}
+
+Formally, reorganisation is defined by a stochastic or gradient-based process:
+
+\dot{\theta} = -\eta_\theta \nabla_\theta D(r,p), 
+
+This is a key conceptual precursor to variational inference and hierarchical model learning in FEP.
+
+\subsection*{3.8 Behaviour as Phenomenological Consequence}
+
+In PCT, \emph{behaviour is a side effect}. The critical controlled variable is internal:
+
+e(t) = r(t) - p(t). 
+
+\begin{itemize} \item Apparent behaviour depends on the environment’s inverse dynamics.
+\item Different behaviours can achieve the same perceptual target.
+\item Behaviour cannot be interpreted without reference to the controlled perceptual variable. \end{itemize}
+
+Glasser’s concept of \emph{total behaviour}—acting, thinking, feeling, and physiology—acknowledges that the entire organism participates in control. All are downstream manifestations of internal error correction.
+
+\subsection*{3.9 Clinical Interpretation (Glasser)}
+
+Glasser integrates PCT’s cybernetic architecture with therapeutic insights: \begin{itemize} \item Psychological suffering arises from chronic, unresolved discrepancy . \item Conflict occurs when two high-level reference signals cannot be simultaneously satisfied. \item Therapy facilitates reorganisation by helping clients adjust maladaptive reference values or develop new behavioural strategies. \end{itemize}
+
+Formally:
+
+\lim_{t\to \infty} |e(t)| \not\to 0 \quad \Longrightarrow \quad \exists k \, \text{such that} \, \dot{r}_k(t) \neq 0. 
+
+\subsection*{3.10 Summary}
+
+PCT and Choice Theory jointly provide: \begin{itemize} \item a mathematically principled negative-feedback architecture, \item a hierarchical organisation of perceptual control, \item explicit mechanisms for reorganisation, \item an operational definition of psychological “needs” and “goals” as reference conditions, \item a clinical interpretation of chronic discrepancy. \end{itemize}
+
+These structures set the stage for the next section, where we show that the variational mechanics of active inference reproduce these same dynamics under Bayesian assumptions.
+
+
+
+\section{The Free Energy Principle and Active Inference}
+
+The Free Energy Principle (FEP), due primarily to Karl Friston, is a unifying theoretical framework that describes how biological and cognitive systems resist the natural tendency toward disorder by minimising a variational upper bound on surprisal. Whereas PCT frames behaviour as the control of perception, FEP frames action and perception as forms of Bayesian model inversion: agents maintain themselves in nonequilibrium steady states by inferring and enacting the causes of their sensory impressions.
+
+The syntactic differences between these frameworks conceal a deeper equivalence. PCT describes how agents regulate perceptual variables relative to internally specified reference values. FEP formalises those reference values as priors or preferences over sensory states. Both insist that adaptive behaviour requires two coupled processes: action on the environment and inference over internal models.
+
+This section provides a rigorous reconstruction of FEP from first principles, introduces active inference as the dual gradient flows on actions and beliefs, and clarifies the thermodynamic foundations that motivate the framework. These results prepare the ground for the equivalence proof in Section 5.
+
+\subsection*{4.1 Generative Models and Bayesian Agents}
+
+Under the Bayesian brain hypothesis, an agent maintains a probabilistic generative model:
+
+p(o, s \mid m) 
+
+\begin{itemize} \item are observations, \item are latent states or causes of observations, \item parameterises the generative model (structure, priors, likelihood functions). \end{itemize}
+
+The generative model factorises as:
+
+p(o, s) = p(o \mid s) \, p(s), 
+
+Inference corresponds to inverting the generative model to compute:
+
+p(s \mid o) = \frac{p(o,s)}{p(o)}. 
+
+\subsection*{4.2 Variational Inference and Free Energy}
+
+Let be a tractable density approximating . Variational inference selects by minimising the Kullback–Leibler divergence:
+
+\mathrm{KL}[q(s)\|p(s \mid o)]. \ln p(o) = F[q] + \mathrm{KL}[q(s)\|p(s \mid o)], F[q] = \mathbb{E}_q[\ln q(s)] - \mathbb{E}_q[\ln p(o,s)]. 
+
+\subsection*{4.3 Interpretation: Free Energy as a Discrepancy Functional}
+
+The free energy can be decomposed into two terms:
+
+F = \underbrace{\mathrm{KL}[q(s)\|p(s)]}_{\text{complexity}} - \underbrace{\mathbb{E}_q[\ln p(o\mid s)]}_{\text{accuracy}}. 
+
+\begin{itemize} \item \textbf{Accuracy:} How well the agent's beliefs predict sensory observations. \item \textbf{Complexity:} How much the posterior deviates from prior expectations. \end{itemize} Minimising free energy therefore implements a trade-off between fidelity to sensory evidence and preservation of parsimonious internal models—a principle that can be seen as a formal analogue of Glasser’s “quality world” and Powers’ reference values.
+
+\subsection*{4.4 Gradient Flows: Perceptual and Active Inference}
+
+Variational and active inference arise from gradient descent on free energy:
+
+\dot{q}(s) = - \frac{\partial F}{\partial q}, \qquad \dot{a} = -\frac{\partial F}{\partial a}. 
+
+\paragraph{Perceptual inference (belief updating).}
+
+For recognition density parameters :
+
+\dot{\mu} = -\frac{\partial F}{\partial \mu}. 
+
+\paragraph{Active inference (action updating).}
+
+Action influences observations via a sensory mapping , so:
+
+\frac{\partial F}{\partial a} = \frac{\partial F}{\partial o}\frac{\partial o}{\partial a}. \dot{a} = - \eta \frac{\partial F}{\partial a}, 
+
+This is precisely the duality identified in Section 2:
+
+\dot{a} \in -\nabla_a D(m,o), \qquad \dot{m} \in -\nabla_m D(m,o), 
+
+\subsection*{4.5 Expected Free Energy and Policy Selection}
+
+In temporally deep settings, agents must select policies based on predicted future free energy:
+
+G(\pi) = \mathbb{E}_{q(o_\tau, s_\tau \mid \pi)}[F]. G(\pi) = \underbrace{\mathbb{E}[\text{ambiguity}]}_{\text{epistemic value}} + \underbrace{\mathbb{E}[\text{preference deviation}]}_{\text{pragmatic value}}. 
+
+Key consequence:
+
+When epistemic value is negligible (as in simple control environments), PCT’s purely pragmatic control law is recovered.
+
+This becomes crucial for the equivalence theorem.
+
+\subsection*{4.6 Nonequilibrium Steady States and Thermodynamic Foundations}
+
+Biological systems exist far from equilibrium but maintain their macroscopic structure by exchanging energy with the environment. In the FEP, this is formalised through nonequilibrium steady states (NESS):
+
+p(o,s) = \text{NESS density generated by the agent–environment coupling}. 
+
+The preservation of these densities requires:
+
+\partial_t p(o,s) = 0, 
+
+\begin{itemize} \item autonomous dynamics (flows in state space), \item agent-induced dynamics (actions), \item entropy production due to fluctuations. \end{itemize}
+
+Minimising expected free energy ensures trajectories remain within the low-surprisal set defined by the NESS distribution. This is the thermodynamic analogue of maintaining perceptual reference conditions in PCT.
+
+\subsection*{4.7 Preferences as Priors}
+
+In FEP, “preferences” are encoded as high prior probability on desired sensory outcomes:
+
+p(o) \propto \exp\left(-\frac{(o - r)^2}{2\sigma_r^2}\right). 
+
+This identification will be formalised in Section 5, where emerges naturally as a parameter minimising the variational free energy.
+
+\subsection*{4.8 Generative Models as Perceptual Functions}
+
+Powers described perceptual functions as mappings from lower-level perceptual variables to higher-level concepts. In FEP, this is mirrored by hierarchical generative models:
+
+p(o, s^{(1)}, s^{(2)}, \dots, s^{(K)}). \text{Generative models} \equiv \text{hierarchical perceptual functions}. 
+
+\subsection*{4.9 Learning the Model: Structural and Parametric Updates}
+
+Beyond inference and action, FEP provides mechanisms for: \begin{itemize} \item \textbf{Parametric learning:} gradient descent on model parameters. \item \textbf{Structural learning:} Bayesian model selection via model evidence. \end{itemize}
+
+PCT reorganisation mechanisms correspond to:
+
+\dot{m} = -\eta \frac{\partial F}{\partial m}. 
+
+\subsection*{4.10 Summary}
+
+The FEP provides: \begin{itemize} \item a variational characterisation of perception,
+\item a principled method for action selection via active inference,
+\item a thermodynamic interpretation of adaptive behaviour,
+\item explicit treatment of preferences as priors,
+\item hierarchical generative models analogous to PCT’s perceptual hierarchy. \end{itemize}
+
+At this level, the parallels with PCT are unmistakable. The next section demonstrates that PCT is in fact a special case of active inference under linear-Gaussian assumptions, with reference signals and preference priors playing formally identical roles.
+
+\section{Formal Equivalence: PCT as a Special Case of Active Inference}
+
+This section establishes the central mathematical result of the paper: under linear-Gaussian assumptions and quadratic preference functions, Perceptual Control Theory (PCT) is exactly recoverable as a special case of active inference within the Free Energy Principle (FEP). We show that the PCT control law
+
+a_t \propto r - p_t 
+
+This equivalence reveals that PCT is not merely compatible with FEP but is a simplified instance of it—an instantiation where epistemic value is negligible, the generative model is low-dimensional, and perception is treated as near-veridical.
+
+\subsection*{5.1 Setup and Assumptions}
+
+We consider a minimal environment–agent coupling with: \begin{itemize} \item a single latent environmental state , \item an observation , \item an action , \item a generative model parameterised by a reference value , \end{itemize} and assume linear-Gaussian dynamics:
+
+s_{t+1} = A s_t + B a_t + \omega_t, \qquad \omega_t \sim \mathcal{N}(0, \Sigma_\omega), 
+
+o_t = C s_t + \nu_t, \qquad \nu_t \sim \mathcal{N}(0, \Sigma_\nu). 
+
+Preferences are encoded as:
+
+p(o_t) \propto \exp\left(-\frac{(o_t - r)^2}{2\sigma_r^2} \right). 
+
+The agent maintains a Gaussian recognition density:
+
+q(s_t) = \mathcal{N}(\mu_t, \Sigma_t), 
+
+These simplifications capture the essential structure without loss of generality for the equivalence proof.
+
+\subsection*{5.2 Variational Free Energy for the Minimal Model}
+
+The free energy at time is:
+
+F_t = \mathbb{E}_q[\ln q(s_t)] - \mathbb{E}_q[\ln p(o_t, s_t)], p(o_t, s_t) = p(o_t \mid s_t)p(s_t). 
+
+Expanding and dropping constant terms:
+
+F_t = \frac{1}{2\sigma_\nu^2} (o_t - C\mu_t)^2 + \frac{1}{2\sigma_r^2} (o_t - r)^2 + \frac{1}{2\sigma_p^2} (\mu_t - \mu_{t|t-1})^2, 
+
+Interpretation: \begin{itemize} \item First term: sensory prediction error. \item Second term: preference deviation (distance from reference value). \item Third term: dynamic prediction error (from the state evolution model). \end{itemize}
+
+These three terms correspond directly to PCT constructs.
+
+\subsection*{5.3 Perceptual Inference: Gradient Flow for }
+
+Taking the gradient:
+
+\frac{\partial F_t}{\partial \mu_t} = -\frac{C}{\sigma_\nu^2} (o_t - C\mu_t) + \frac{1}{\sigma_p^2}(\mu_t - \mu_{t|t-1}). 
+
+The perceptual inference update is:
+
+\dot{\mu}_t = \eta_\mu \left[ \frac{C}{\sigma_\nu^2}(o_t - C\mu_t) - \frac{1}{\sigma_p^2}(\mu_t - \mu_{t|t-1}) \right]. 
+
+Interpretation: \begin{itemize} \item First term pulls beliefs toward observations. \item Second term pulls beliefs toward predictions. \end{itemize}
+
+Under the simplifying assumption of fast perceptual inference (standard in PCT), we take:
+
+\mu_t \approx o_t. 
+
+This assumption is precisely the PCT assumption that perception is “near-veridical” at the controlled level.
+
+\subsection*{5.4 Active Inference: Gradient Flow for Actions}
+
+Action influences free energy through its effect on sensory outcomes:
+
+\frac{\partial F_t}{\partial a_t} = \frac{\partial F_t}{\partial o_t} \cdot \frac{\partial o_t}{\partial a_t}. 
+
+Compute:
+
+\frac{\partial F_t}{\partial o_t} = \frac{1}{\sigma_\nu^2}(o_t - C\mu_t) + \frac{1}{\sigma_r^2}(o_t - r). 
+
+Given and depending linearly on ,
+
+\frac{\partial o_t}{\partial a_t} = C B. 
+
+Thus:
+
+\frac{\partial F_t}{\partial a_t} = C B \left[ \frac{1}{\sigma_\nu^2}(o_t - C\mu_t) + \frac{1}{\sigma_r^2}(o_t - r) \right]. 
+
+Under fast perceptual inference (), the first term vanishes:
+
+o_t - C\mu_t \approx 0. 
+
+Thus:
+
+\frac{\partial F_t}{\partial a_t} \approx \frac{CB}{\sigma_r^2}(o_t - r). 
+
+The active inference update is:
+
+\dot{a}_t = -\eta_a \frac{\partial F_t}{\partial a_t} \approx -\eta_a \frac{CB}{\sigma_r^2}(o_t - r). 
+
+Rearranging:
+
+\dot{a}_t \propto (r - o_t). 
+
+\paragraph{This is exactly the PCT control law.}
+
+a_t \propto (r - p_t). 
+
+This completes the core derivation.
+
+\subsection*{5.5 Formal Equivalence Theorem}
+
+\begin{theorem}[PCT as a Special Case of Active Inference] Under linear-Gaussian generative models with quadratic preference potentials, and assuming fast perceptual inference, the active inference action update reduces to the PCT proportional control law:
+
+a_t = K (r - p_t), \dot{r} = -\eta_r \frac{\partial F}{\partial r}. 
+
+\begin{proof} Given the derivation above, we have:
+
+\dot{a}_t = -\eta_a \frac{CB}{\sigma_r^2}(o_t - r) = \eta_a \frac{CB}{\sigma_r^2}(r - o_t). \dot{a}_t = K(r - p_t). \frac{\partial F}{\partial r} = -\frac{1}{\sigma_r^2}(o_t - r), \dot{r} = \eta_r \frac{1}{\sigma_r^2}(o_t - r) = -\eta_r (r - p_t). 
+
+The equivalence holds modulo the assumptions stated above. \end{proof}
+
+\subsection*{5.6 Interpretation and Significance}
+
+\paragraph{(1) Control of perception is Bayesian inference.}
+
+PCT’s fundamental assertion—that behaviour controls perception—emerges naturally from the action-gradient of variational free energy. Action is always selected to fulfil prior preferences encoded in the generative model.
+
+\paragraph{(2) Reference signals are preference parameters.}
+
+The equivalence between the PCT reference value and the FEP prior mode is exact under quadratic preferences.
+
+\paragraph{(3) Reorganisation is meta-inference.}
+
+Updating the Quality World corresponds to updating prior parameters of the generative model.
+
+\paragraph{(4) Hierarchical PCT = Hierarchical generative models.}
+
+At higher levels, PCT reference signals correspond to priors in deep hierarchical models.
+
+\paragraph{(5) PCT is a reduced FEP regime.}
+
+The primary assumptions required are: \begin{itemize} \item negligible epistemic value, \item nearly veridical perception at controlled levels, \item low dimensionality, \item relatively stable dynamics. \end{itemize}
+
+This matches the typical control setting considered by Powers.
+
+\subsection*{5.7 Summary}
+
+We have shown: \begin{itemize} \item PCT control is equivalent to active inference with quadratic preference potentials. \item PCT reorganisation is equivalent to gradient descent on generative-model parameters. \item The PCT hierarchy corresponds to the hierarchical structure of variational generative models. \end{itemize}
+
+This equivalence unifies two historically independent traditions and sets the stage for a categorical, sheaf-theoretic, and field-theoretic integration in the subsequent sections.
+
+
+
+\section{Sheaf-Theoretic Reformulation}
+
+Having established the equivalence between PCT and active inference in the previous section, we now turn to a more abstract and general representation of adaptive agency using sheaf theory. Sheaves provide a natural mathematical infrastructure for dealing with local-to-global relationships, contextual representations, and gluing conditions. They allow us to express perception, reference conditions, and discrepancy as structured collections of local data that must cohere across overlapping contexts.
+
+This approach is especially powerful in unifying: \begin{itemize} \item local perceptual encodings, \item local normative constraints, \item action policies defined on contexts, \item PCT’s hierarchical loops, \item active inference’s variational conditioning, \item narrative- or template-based representations in simulated agency. \end{itemize}
+
+The sheaf-theoretic framework reveals that many forms of psychological conflict, behavioural inconsistency, and epistemic dissonance can be understood mathematically as obstructions to gluing local sections into a coherent global section. This provides an elegant formal counterpart to Glasserian conflict, Fristonian model mismatch, and categorical inconsistency in sparse-projection architectures.
+
+\subsection*{6.1 Context Space and Observational Covers}
+
+Let be a topological space representing the set of all contexts, situations, or environmental conditions an agent may encounter. Open sets represent admissible contextual domains (e.g., perceptual modalities, task environments, social conditions).
+
+A cover is a family of open sets whose union is :
+
+\bigcup_{i \in I} U_i = X. 
+
+\subsection*{6.2 Sheaf of Perceptions}
+
+Define a sheaf of perceptual representations:
+
+\mathcal{P} : \mathrm{Open}(X)^{op} \to \mathbf{Set}, 
+
+\begin{itemize} \item is the set of all perceptual descriptions valid on context , \item for every inclusion , we have a restriction map:
+
+\rho_{UV}^{\mathcal{P}} : \mathcal{P}(U) \to \mathcal{P}(V), \rho_{UU} = \mathrm{id}, \qquad \rho_{UW} = \rho_{VW} \circ \rho_{UV}. 
+
+Interpretation:
+
+: the “perception” available in context , i.e., the agent’s sensory or inferential representation of that context.
+
+: forgetting, marginalizing, or restricting perception to a smaller domain.
+
+Examples include:
+
+\mathcal{P}(U) = \text{posterior distributions over sensory features relevant in } U, \mathcal{P}(U) = \text{PCT perceptual signals aggregated up to level } U. 
+
+\subsection*{6.3 Sheaf of Normative/Reference Conditions}
+
+Define a sheaf of reference values or normative preferences:
+
+\mathcal{R} : \mathrm{Open}(X)^{op} \to \mathbf{Set}. \rho_{UV}^{\mathcal{R}} : \mathcal{R}(U) \to \mathcal{R}(V). 
+
+Interpretation:
+
+PCT’s reference signals correspond to sections of .
+
+Glasser’s Quality World corresponds to global or high-level sections.
+
+Preferences are local: what is desirable in one context may not be meaningful in another. The sheaf formalism makes this explicit.
+
+\subsection*{6.4 Error as a Natural Transformation}
+
+Define discrepancy as a natural transformation between sheaves:
+
+\varepsilon : \mathcal{P} \Rightarrow \mathcal{R}^*, 
+
+For each open set , the component:
+
+\varepsilon_U : \mathcal{P}(U) \to \mathcal{R}(U) \varepsilon_U(p) = r_U - p_U, 
+
+Naturality requires:
+
+\rho_{UV}^{\mathcal{R}}(\varepsilon_U(p)) = \varepsilon_V(\rho_{UV}^{\mathcal{P}}(p)), 
+
+Interpretation:
+
+Discrepancy is a context-preserving structural mapping.
+
+Error restricts consistently across contexts.
+
+\subsection*{6.5 Gluing Conditions and Consistency}
+
+Given:
+
+p_i \in \mathcal{P}(U_i), \qquad r_i \in \mathcal{R}(U_i), \rho_{U_i U_{ij}}(p_i) = \rho_{U_j U_{ij}}(p_j) \quad \text{on } U_{ij} = U_i \cap U_j. 
+
+Similarly:
+
+r_i|_{U_{ij}} = r_j|_{U_{ij}}. 
+
+The joint gluing condition for a global coherent section is:
+
+\varepsilon_i(p_i)|_{U_{ij}} = \varepsilon_j(p_j)|_{U_{ij}}. 
+
+Interpretation:
+
+The agent is globally consistent when local perceptual and reference states agree on overlaps.
+
+Failure indicates psychological conflict, epistemic dissonance, or ambiguous beliefs.
+
+\subsection*{6.6 Cohomological Obstructions and Psychological Conflict}
+
+If no global section of or can be constructed from locally consistent data, the obstruction class resides in Čech cohomology:
+
+[\xi] \in \check{H}^1(X, \mathcal{P}), \qquad [\eta] \in \check{H}^1(X, \mathcal{R}), 
+
+Interpretation: \begin{itemize} \item : perceptual conflict; the agent cannot form a unified representation across contexts. \item : normative conflict; incompatible reference values across contexts (core of Glasser’s conflict theory). \item Joint obstruction: local perceptions and ideals cannot be jointly satisfied (a rigorous definition of chronic distress). \end{itemize}
+
+This formalises the intuition that psychological difficulties often arise from incompatible constraints across different life contexts.
+
+\subsection*{6.7 Action as Section Selection in the Action Sheaf}
+
+Define a sheaf of actions:
+
+\mathcal{A} : \mathrm{Open}(X)^{op} \to \mathbf{Set}, 
+
+A global action policy is a global section .
+
+Active inference corresponds to:
+
+a^* = \arg\min_{a \in \Gamma(X,\mathcal{A})} \left\| \varepsilon(a) \right\|, 
+
+PCT’s behavioural outputs correspond to the local sections and their gluing conditions.
+
+\subsection*{6.8 Global Control as a Sheaf-Theoretic Fixed Point}
+
+The agent achieves global control when there exist:
+
+p \in \Gamma(X, \mathcal{P}), \qquad r \in \Gamma(X, \mathcal{R}), \varepsilon(p) = r. 
+
+This is the sheaf-theoretic version of:
+
+p(t) \approx r(t). 
+
+The fixed point is stable when:
+
+\varepsilon \circ p = r \quad \text{and} \quad \nabla_a D = \nabla_m D = 0. 
+
+\subsection*{6.9 Mapping PCT and FEP into Sheaf Formalism}
+
+\paragraph{PCT.}
+
+Perceptions across contexts correspond to sections of .
+
+Reference targets correspond to sections of .
+
+Discrepancy is a section of an error sheaf.
+
+Reorganisation corresponds to modifying and structure.
+
+\paragraph{Active Inference.}
+
+Generative models correspond to hierarchical sheaves.
+
+Posteriors correspond to perceptual sections.
+
+Priors correspond to normative sections.
+
+Free energy minimisation corresponds to finding compatible global sections.
+
+\paragraph{Simulated Agency.}
+
+Narrative templates correspond to global or partial sections with sparsity constraints.
+
+Story-switching corresponds to selecting new global sections under sheaf constraints.
+
+Narrative incoherence corresponds to non-zero cohomology.
+
+\subsection*{6.10 Summary}
+
+The sheaf-theoretic formalism provides: \begin{itemize} \item a unified representation of perception and preference across contexts, \item a structural definition of discrepancy, \item a gluing condition defining global psychological coherence, \item a formal account of conflict as a cohomological obstruction, \item a categorical bridge uniting PCT, FEP, and sparse semantic projection, \item a powerful vocabulary for multi-agent, multi-context control. \end{itemize}
+
+This prepares the ground for Section 7, where we reinterpret the same architecture in the physical language of RSVP scalar–vector–entropy fields.
+
+
+
+\section{RSVP Field Interpretation}
+
+While the sheaf-theoretic formulation in Section 6 provides an abstract categorical description of unified control, the Relativistic Scalar–Vector Plenum (RSVP) offers a complementary physical interpretation. In RSVP, cognition, agency, and perceptual control emerge from the dynamics of three continuous fields defined over a spatial or semantic manifold: (i) a scalar potential field , (ii) a vector flow field , and (iii) an entropy field . These fields encode, respectively, semantic potential, agency-directed flow, and local uncertainty or dispersion.
+
+The central insight of this section is that PCT, FEP, and narrative-based agency emerge as special cases of RSVP dynamics when discrepancy between “ideal” and “perceived” configurations drives the evolution of  (behavioural change) and deformations of  (model updating). The universal control duality corresponds to gradient flows in these field spaces, and the free-energy functional becomes a field-theoretic action integral.
+
+\subsection*{7.1 The RSVP Field Triplet}
+
+Let  be a manifold representing physical space, semantic space, or an abstract perceptual domain. RSVP posits three continuous fields defined on :
+
+\begin{itemize} \item , a scalar potential encoding preferred or ideal structures. \item , a vector flow field representing agency, control signals, or dynamical influence. \item , an entropy field representing local dispersion, uncertainty, or degeneracy. \end{itemize}
+
+These fields evolve according to lamphrodynamic equations or other RSVP field equations, but their precise form is not needed to establish the equivalence with PCT and FEP.
+
+\subsection*{7.2 Representing Perception and Ideals as Field Configurations}
+
+We distinguish:
+
+\Phi_{\text{perc}}(x,t), \quad \Phi_{\text{ideal}}(x,t),
+
+\begin{itemize} \item  encodes the currently perceived configuration of the world. \item  encodes the agent’s internal model or reference configuration. \end{itemize}
+
+These two potentials play exactly the roles of  and  in PCT, or of predicted vs preferred sensory profiles in FEP.
+
+Define the error field:
+
+E(x,t) = \Phi_{\text{ideal}}(x,t) - \Phi_{\text{perc}}(x,t).
+
+While PCT uses a single scalar discrepancy and FEP uses variational integrals, RSVP employs an entire spatial field of discrepancies.
+
+\subsection*{7.3 Behavioural Control as Flow in -Space}
+
+Behavioural action corresponds to adjusting the vector field  so that the environment’s dynamical evolution reduces . The simplest form is a gradient descent:
+
+\partial_t \Phi_{\text{perc}} = -\nabla \cdot (\mathbf{v}\Phi_{\text{perc}}) + \text{lamphrodynamic corrections} + \cdots.
+
+Behaviour aims to reduce the potential mismatch:
+
+\partial_t \Phi_{\text{perc}} \propto - \nabla E.
+
+Thus:
+
+\mathbf{v}(x,t) = -K_v \nabla E(x,t) + \text{higher-order correction terms}.
+
+This is the continuous-field analogue of the PCT control law:
+
+\dot{a} \propto (r - p).
+
+\paragraph{Interpretation.}
+
+Where the ideal world is higher (in ) than the perceived world,  pushes the field upward.
+
+Where perception exceeds ideals,  suppresses dynamics.
+
+This vector flow constitutes the RSVP embodiment of “acting on the world.”
+
+
+\subsection*{7.4 Model Updating as Deformation of -Space}
+
+When behavioural flows cannot reduce  sufficiently, the agent must modify its ideal potential:
+
+\partial_t \Phi_{\text{ideal}} = -K_\Phi \frac{\delta \mathcal{F}}{\delta \Phi_{\text{ideal}}} + \cdots,
+
+This corresponds to:
+
+\dot{m} \in -\nabla_m D(m,o)
+
+\paragraph{Interpretation.}
+
+The “shape” of desired configurations is slowly updated.
+
+High-level ideals, narratives, or system concepts deform under persistent mismatch.
+
+This matches Glasser’s reorganisation and FEP’s meta-inference.
+
+
+\subsection*{7.5 Entropy Field and Uncertainty Quantification}
+
+In RSVP, the entropy field  captures: \begin{itemize} \item sensory uncertainty, \item ambiguity in perceptual decoding, \item degeneracy of semantic representation, \item epistemic value (in active inference terms). \end{itemize}
+
+High entropy corresponds to poorly constrained perceptual zones, where epistemic behaviour (exploration) is likely. Low entropy corresponds to well-controlled perceptual domains.
+
+Under certain approximations:
+
+S(x,t) \approx \mathrm{Var}[\Phi_{\text{perc}}(x,t)],
+
+\subsection*{7.6 Free Energy as a Field Functional}
+
+The variational free energy becomes an RSVP field functional:
+
+\mathcal{F}[\Phi_{\text{perc}},\Phi_{\text{ideal}}, S]
+= \int_M \left[
+\alpha E(x,t)^2
++ \beta S(x,t)
++ \gamma \|\nabla \Phi_{\text{perc}}(x,t)\|^2
++ \cdots
+\right] dx.
+
+Interpretation:
+
+: misalignment cost between ideal and perceived worlds (PCT discrepancy).
+
+: epistemic uncertainty cost (FEP entropy).
+
+Gradient norms: smoothness/consistency constraints (RSVP lamphrodynamics).
+
+
+Behaviour updates correspond to:
+
+\partial_t \mathbf{v} = -\frac{\delta \mathcal{F}}{\delta \mathbf{v}}.
+
+Model updates correspond to:
+
+\partial_t \Phi_{\text{ideal}} = -\frac{\delta \mathcal{F}}{\delta \Phi_{\text{ideal}}}.
+
+This explicitly instantiates the universal control duality in a field-theoretic language.
+
+\subsection*{7.7 PCT, FEP, and RSVP Alignment}
+
+\paragraph{PCT.}
+
+Scalar error becomes an error field .
+
+Action becomes vector dynamics of .
+
+Reorganisation becomes deformation of .
+
+
+\paragraph{Active Inference.}
+
+Generative models correspond to .
+
+Posterior beliefs correspond to .
+
+Prediction-error units correspond to .
+
+Epistemic value corresponds to .
+
+
+\paragraph{Sparse Semantic Projection.}
+
+Projections correspond to low-rank approximations of .
+
+Narrative templates correspond to specific shapes of .
+
+Story-switching corresponds to discontinuous shifts in  across the manifold.
+
+
+\subsection*{7.8 Psychological Conflict as Field Inconsistency}
+
+Chronic psychological conflict corresponds to persistent non-zero  even after steady-state flow in :
+
+\lim_{t\to\infty} E(x,t) \not\to 0.
+
+Field-theoretically, this indicates: \begin{itemize} \item geometric mismatch between preferred and possible field shapes, \item topological obstructions (e.g., incompatible attractors), \item insufficient lamphrodynamic flow, \item structural constraints in the manifold . \end{itemize}
+
+This is the RSVP analogue of cohomological obstructions in Section 6.
+
+\subsection*{7.9 RSVP Provides a Physical Realisation of the Universal Control Duality}
+
+In RSVP:
+
+\text{Control of perception} \equiv \text{driving } E(x,t) \to 0.
+
+This can be achieved: \begin{enumerate} \item by adjusting  (behavioural control), or
+\item by adjusting  (model updating),
+\end{enumerate} exactly the two routes predicted by the universal control duality.
+
+The equivalence between PCT and FEP identified earlier emerges as the low-dimensional restriction of the RSVP field equations.
+
+\subsection*{7.10 Summary}
+
+The RSVP interpretation shows that: \begin{itemize} \item the discrepancy between the ideal and perceived world is a field quantity, \item behaviour corresponds to vector flows reducing the discrepancy, \item inference corresponds to slow deformations of the ideal potential, \item epistemic uncertainty is encoded as an entropy field, \item variational free energy is a field functional producing the dual gradient flows, \item PCT and FEP are low-dimensional special cases of RSVP field control. \end{itemize}
+
+This provides a geometric and physical grounding for the duality that unites all adaptive systems examined in this paper.
+
+
+
+\section{Simulated Agency via Sparse Projection}
+
+The final perspective in this unification concerns the emerging paradigm of Simulated Agency, in which an agent’s behaviour is generated by embedding high-dimensional sensory and conceptual information into a low-dimensional manifold of sparse “agency coordinates.” Agency is then expressed as the selection, enactment, and modification of narrative templates—structured trajectories within this manifold that encode canonical behavioural patterns, goals, identities, or situational scripts.
+
+This perspective is natural in cognitive science, where human agency often manifests through narrative self-modelling, role-taking, and event templates, but it also arises in machine learning, latent-variable modelling, reinforcement learning, and sparsity-driven inference systems. The key is that sparse-projection architectures inherit and instantiate the universal control duality in a reduced basis: instead of adjusting actions directly, the agent selects the narrative or template in which they are embedded.
+
+\subsection*{8.1 High-Dimensional World States and Sparse Embedding}
+
+Let the world state be represented by a high-dimensional vector:
+
+x \in \mathbb{R}^n, 
+
+\begin{itemize} \item sensory inputs, \item latent beliefs, \item motor affordances, \item semantic/linguistic structures, \item social context, \item internal affective or physiological states. \end{itemize}
+
+Assume the agent maintains a sparse embedding:
+
+\Pi: \mathbb{R}^n \to \mathbb{R}^k, \qquad k \ll n, 
+
+This projection defines the agent’s agency manifold:
+
+\mathcal{A} = \mathrm{Im}(\Pi) \subseteq \mathbb{R}^k. 
+
+Interpretation:
+
+discards irrelevant environmental details.
+
+Only low-dimensional features matter for agency.
+
+This mirrors the PCT hierarchy, where higher levels receive only abstracted perceptual signals.
+
+\subsection*{8.2 Narrative Templates as Trajectories in the Agency Manifold}
+
+The agent maintains a library of narrative templates:
+
+\mathcal{T} = \{T_i: [0,1] \to \mathcal{A}\}_{i=1}^N, 
+
+\begin{itemize} \item a goal-directed behaviour, \item a social script, \item a behavioural policy, \item a role or identity, \item a linguistically structured narrative arc, \item a canonical solution to a recurring environmental challenge. \end{itemize}
+
+Templates may be parameterised curves satisfying:
+
+T_i(t) = \exp_{\zeta_i}(t \cdot \xi_i), 
+
+\begin{itemize} \item is the base point (initial condition or narrative anchor), \item is a tangent vector encoding the narrative direction. \end{itemize}
+
+Thus represents a finite or countable set of behavioural archetypes.
+
+\subsection*{8.3 Discrepancy Functional in Template Space}
+
+Given a projected world state , the discrepancy between reality and a template is:
+
+D_i(z) = \min_{\tau \in [0,1]} \|z - T_i(\tau)\|^2 + \lambda \, \Omega(T_i), 
+
+\begin{itemize} \item the first term measures how well the template fits the agent’s current position, \item is a narrative coherence penalty (e.g., deviation from canonical curvature or story grammar), \item is a weighting factor. \end{itemize}
+
+The agent selects:
+
+i^* = \arg\min_{i} D_i(z). 
+
+This is the sparse-projection analogue of the universal control duality’s action update:
+
+\dot{a} \in -\nabla_a D(m,o). 
+
+“actions” correspond to advancing along a chosen narrative trajectory,
+
+“model updates” correspond to modifying the narrative library.
+
+\subsection*{8.4 Template Execution as Behavioural Control}
+
+Once a template is chosen, behaviour is generated by following its dynamical rule:
+
+\dot{z}(t) = \dot{T}_{i^*}( \tau(t) ), 
+
+In the real world, actions influence the environment so that:
+
+\Pi(x_{t+1}) \approx T_{i^*}(\tau(t+1)). 
+
+This is structurally identical to the PCT control law:
+
+a_t \propto (r - p_t), 
+
+\subsection*{8.5 Template Learning as Model Update}
+
+When available templates fail to reduce discrepancy across contexts or over long timescales, the agent performs template adaptation or creation. This corresponds to gradient descent on template parameters:
+
+\dot{T}_i = -\eta \frac{\partial D_i}{\partial T_i}, p(T_i \mid \text{data}) \propto p(\text{data}\mid T_i) \, p(T_i). 
+
+This matches:
+
+\dot{m} \in -\nabla_m D(m,o), \dot{r} = -\eta_r \frac{\partial F}{\partial r}, 
+
+\subsection*{8.6 Narrative Switching as Stochastic Policy Selection}
+
+FEP’s deep-active-inference formulation selects policies by minimising expected free energy:
+
+G(\pi) = \mathbb{E}[F]. 
+
+Sparse agency replaces policies with narrative templates:
+
+G(i) = \mathbb{E}[D_i]. 
+
+Agents switch narratives when:
+
+G(i') < G(i). 
+
+This reproduces: \begin{itemize} \item Bayesian policy switching, \item PCT’s “breaking out” of maladaptive control loops, \item reorganisation (template creation/removal), \item selective activation of behavioural archetypes. \end{itemize}
+
+Thus narrative selection is a low-dimensional instantiation of active inference.
+
+\subsection*{8.7 Sheaf-Theoretic Interpretation of Sparse Projection}
+
+We can define a sheaf of narrative templates:
+
+\mathcal{T}: \mathrm{Open}(X)^{op} \to \mathbf{Set}, 
+
+Sparse projection corresponds to the selection of local sections of . Narrative coherence corresponds to gluing conditions across overlapping contexts:
+
+T_i|_{U_{ij}} = T_j|_{U_{ij}}. 
+
+Non-zero cohomology represents: \begin{itemize} \item conflicting or incompatible narratives, \item incoherent self-models, \item trauma-induced discontinuities, \item contradictory roles or identities. \end{itemize}
+
+This aligns perfectly with Sections 6 and 7.
+
+\subsection*{8.8 RSVP Field Interpretation of Sparse Projection}
+
+In RSVP terms:
+
+corresponds to the narrative manifold’s potential structure.
+
+Templates correspond to low-rank approximations or semantic basins in .
+
+Narrative switching corresponds to transitioning between potential basins.
+
+Template adaptation corresponds to slow reshaping of .
+
+Template execution corresponds to vector flow along the gradient of .
+
+Thus:
+
+\mathbf{v}(x,t) \approx \dot{T}_{i^*}(\tau(t)). 
+
+This unifies narrative selection with physical lamphrodynamic flow.
+
+\subsection*{8.9 Psychological Interpretation}
+
+Sparse-projection agency captures: \begin{itemize} \item salient dimensions of personal identity, \item behavioural stereotypes and archetypes, \item self-narratives and personal myths, \item linguistic templates for describing one’s life, \item roles adopted in social contexts, \item conceptual frames and cognitive schemas. \end{itemize}
+
+Failures of agency emerge when:
+
+\min_{i} D_i(z) \text{ remains large}, 
+
+This corresponds to: \begin{itemize} \item high error field in RSVP, \item obstructed gluing in sheaf-theoretic terms, \item persistent PCT discrepancy, \item high variational free energy in FEP. \end{itemize}
+
+\subsection*{8.10 Summary}
+
+Simulated agency via sparse projection provides: \begin{itemize} \item a low-dimensional realisation of the universal control duality, \item narrative templates functioning as reference structures, \item behavioural control implemented as projection onto template trajectories, \item model updating implemented as template adaptation, \item full compatibility with PCT, FEP, sheaf theory, and RSVP fields, \item an account of identity, role-taking, and narrative coherence. \end{itemize}
+
+This framework prepares the ground for the final integrative section, where we unify all perspectives into a single categorical control architecture.
+
+
+
+\section{Unified Abstract Framework}
+
+The preceding sections established that four ostensibly disparate paradigms—Perceptual Control Theory, Glasserian Choice Theory, Active Inference under the Free Energy Principle, and sparse-projection narratives of simulated agency—are not merely analogous but are mathematically equivalent under appropriate correspondences. Each operationalises the same fundamental structure: an agent maintains internal norms or expectations about the world, perceives deviations from those norms, and reduces these deviations through two distinct but coupled gradient flows—one acting on the environment and one acting on the internal model.
+
+In this section we construct a fully unified formalism that subsumes all four perspectives. The unification is expressed through the language of categorical control systems, variational discrepancy functionals, sheaf-theoretic consistency, and RSVP field dynamics. The resulting framework is both maximally abstract and directly interpretable in each domain of application.
+
+\subsection*{9.1 The Fundamental Data of an Adaptive Agent}
+
+We begin by specifying the universal ingredients common to every framework studied. An adaptive agent is characterised by the tuple:
+
+\mathcal{A} = (\mathcal{M}, \mathcal{O}, D, \nabla_a, \nabla_m), 
+
+\begin{itemize} \item is the space of internal models, ideals, or narratives. \item is the space of observations, perceptions, or sensory states. \item is a discrepancy functional measuring divergence between internal models and observed reality. \item is the action-gradient: changes to the world that reduce discrepancy. \item is the model-gradient: changes to the internal model that reduce discrepancy. \end{itemize}
+
+This tuple is not merely a descriptive convenience but a complete categorical description of adaptive agency.
+
+\subsection*{9.2 Dual Gradient Flows: The Universal Control Duality}
+
+The agent operates by following two dynamical flows:
+
+\dot{a}(t) \in -\nabla_a D(m(t), o(t)), \qquad \dot{m}(t) \in -\nabla_m D(m(t), o(t)). 
+
+These flows embody two operational modes:
+
+\begin{itemize} \item Environmental action: modifying the world so that perception aligns with the model. \item Model update: modifying the internal model so that it aligns with the world. \end{itemize}
+
+This duality appears as: \begin{itemize} \item action vs. reorganisation in PCT, \item active vs. perceptual inference in FEP, \item vector flows vs. potential deformations in RSVP, \item narrative execution vs. narrative revision in sparse projection, \item local section selection vs. sheaf gluing in sheaf theory. \end{itemize}
+
+The structure is universal across all self-regulating systems.
+
+\subsection*{9.3 Category of Internal–External Couplings}
+
+Let be a category whose objects are environmental states and whose morphisms are physical transitions. Let be a category of internal representations with morphisms corresponding to allowable transformations of the agent’s normative or perceptual model.
+
+An agent is a functor:
+
+F : \mathbf{World} \to \mathbf{Model}, 
+
+Discrepancy corresponds to a natural transformation:
+
+\varepsilon : F \Rightarrow G, \varepsilon_x : F(x) \to G(x) 
+
+The naturality condition:
+
+G(f) \circ \varepsilon_x = \varepsilon_y \circ F(f) 
+
+\subsection*{9.4 Variational Dynamics as Minimisation of a Global Functional}
+
+Define the global discrepancy functional:
+
+\mathcal{S}[m(\cdot), o(\cdot)] = \int D(m(t), o(t)) \, dt. \frac{\delta \mathcal{S}}{\delta m} = 0 \quad \Leftrightarrow \quad \dot{m} = -\nabla_m D, 
+
+\frac{\delta \mathcal{S}}{\delta a} = 0 \quad \Leftrightarrow \quad \dot{a} = -\nabla_a D. 
+
+Thus the universal duality is encoded in a single action principle.
+
+In FEP, (variational free energy).
+In RSVP, becomes the field functional .
+In sparse agencies, is the template discrepancy.
+In PCT, .
+
+\subsection*{9.5 Sheaf-Theoretic Global Consistency as Adaptive Coherence}
+
+Given sheaves (perception) and (reference ideals) over context space , global coherence requires:
+
+\exists \; p \in \Gamma(X, \mathcal{P}), \quad r \in \Gamma(X, \mathcal{R}) \quad \text{s.t.} \quad \varepsilon(p) = r. 
+
+Failure to satisfy this equation defines a sheaf-theoretic obstruction corresponding to: \begin{itemize} \item PCT chronic conflict, \item FEP persistent variational surprise, \item RSVP non-zero discrepancy field, \item narrative incoherence in sparse agency. \end{itemize}
+
+Thus all forms of maladaptive behaviour correspond to non-trivial cohomology classes:
+
+[\varepsilon] \in \check{H}^1(X, \ker \varepsilon). 
+
+\subsection*{9.6 RSVP Fields as Geometric Realisation of the Abstract Framework}
+
+Within RSVP, the discrepancy is a field:
+
+E(x,t) = \Phi_{\text{ideal}}(x,t) - \Phi_{\text{perc}}(x,t), \partial_t \mathbf{v} = -\frac{\delta \mathcal{F}}{\delta \mathbf{v}}, \qquad \partial_t \Phi_{\text{ideal}} = -\frac{\delta \mathcal{F}}{\delta \Phi_{\text{ideal}}}. 
+
+This geometricises the abstract gradients and , showing that:
+
+action corresponds to vector flows reducing mismatch,
+
+model updating corresponds to deformations of potential structure.
+
+RSVP thereby provides a physically interpretable version of the universal architecture.
+
+\subsection*{9.7 Sparse Projection as Low-Dimensional Factorisation of the Abstract Framework}
+
+Sparse-projection agency emerges when:
+
+\mathcal{M} \approx \mathrm{span}\{T_i\}, \quad \mathcal{O} \approx \mathrm{Im}(\Pi), 
+
+Action updates correspond to advancing along the chosen template.
+Model updates correspond to template modification.
+
+Thus sparse agency is a dimensionally reduced instance of the abstract formalism.
+
+\subsection*{9.8 Unification Summary Table}
+
+\begin{center} \begin{tabular}{lcccc} \toprule Component & PCT & FEP & RSVP & Sparse Agency \ \midrule Model $\mathcal{M}$ & Reference signals & Generative model & $\Phi_{\text{ideal}}$ & Template library \ Observation $\mathcal{O}$ & Perceptual signals & Sensory data & $\Phi_{\text{perc}}$ & $\Pi(x)$ projection \ Discrepancy $D$ & $(r-p)^2$ & Variational free energy & $\int E^2 + S$ & Template deviation \ Action $\nabla_a$ & Effector output & Active inference & $\mathbf{v}$-flow & Narrative enactment \ Model update $\nabla_m$ & Reorganisation & Perceptual inference & $\Phi$-deformation & Template learning \ \bottomrule \end{tabular} \end{center}
+
+\subsection*{9.9 Philosophical Interpretation: Agency as Consistency Maintenance}
+
+Under the unified framework:
+
+Agency is the task of maintaining global coherence.
+
+Behaviour is the process of modifying the world to satisfy internal models.
+
+Cognition is the process of modifying internal models to remain true to the world.
+
+Maladaptation corresponds to failure of gluing conditions.
+
+Autonomy corresponds to reducing discrepancy in two coupled spaces: external and internal.
+
+This reduces agency to a universal principle:
+
+\textbf{Adaptive systems are self-consistency-maintaining structures.} 
+
+\subsection*{9.10 Summary}
+
+The unified abstract framework demonstrates: \begin{itemize} \item All adaptive systems share the same formal architecture. \item PCT, FEP, RSVP, and sparse agency are not merely analogous—they are instantiations of the same categorical structure. \item Discrepancy minimisation underlies all forms of cognition, behaviour, learning, and narrative self-modelling. \item Sheaf theory and RSVP fields provide the highest-level expression of this structure. \item Sparse projection provides a computationally feasible implementation. \end{itemize}
+
+This sets the stage for the concluding section, where we articulate the broader implications for psychology, neuroscience, AI, and philosophy.
+
+
+\section{Implications}
+
+The unification achieved in the preceding sections has significant conceptual, empirical, and technical implications. Although PCT, Choice Theory, the Free Energy Principle, sheaf-theoretic control, RSVP field dynamics, and sparse-projection narratives originate in diverse intellectual traditions, their convergence under a single categorical architecture implies something stronger than interdisciplinary compatibility: it implies that these frameworks are all partial descriptions of a universal property of adaptive systems.
+
+This section outlines the implications of such a unification across four major domains: (i) clinical psychology and psychotherapy, (ii) theoretical neuroscience, (iii) artificial intelligence and alignment, and (iv) collective behaviour and social systems.
+
+\subsection*{10.1 Implications for Clinical Psychology and Psychotherapy}
+
+Glasser’s clinical insights and Powers’ cybernetic theory acquire new conceptual clarity under the unified framework. Psychological suffering, in this model, is formally equivalent to persistent discrepancy between internal normative models and perceived reality.
+
+\paragraph{10.1.1 Chronic distress as non-vanishing discrepancy fields.}
+We can now express:
+
+\lim_{t\to\infty} |r(t) - p(t)| \not\to 0 \lim_{t\to\infty} E(x,t) \not\to 0 
+
+\begin{itemize} \item incompatible reference sheaf sections (Section 6), \item stubborn variational surprise (Section 5), \item misaligned semantic potentials (Section 7), \item narrative-template mismatch (Section 8). \end{itemize}
+
+This yields a mathematically grounded view of anxiety, depression, trauma, addiction, and personality disorders as failures in discrepancy reduction.
+
+\paragraph{10.1.2 Therapy as guided model updating.}
+Therapy corresponds to:
+
+\dot{m} = -\nabla_m D, 
+
+\begin{itemize} \item maladaptive reference conditions, \item dysfunctional perceptual functions, \item narrative templates, \item semantically rigid potential landscapes. \end{itemize}
+
+This unifies: \begin{itemize} \item cognitive restructuring, \item schema therapy, \item psychodynamic reinterpretation, \item narrative therapy, \item behavioural activation, \item emotion-focused approaches. \end{itemize}
+
+All are specialisations of reorganisation-driven discrepancy minimisation.
+
+\paragraph{10.1.3 Conflict as cohomological obstruction.}
+Sheaf cohomology formalises the phenomenon that clients often understand and control their lives locally, yet fail to achieve global coherence. This offers a rigorous mathematical theory of: \begin{itemize} \item ambivalence, \item internal conflict, \item double binds, \item contradictory roles and identities. \end{itemize}
+
+Psychotherapy becomes the task of achieving global gluing across previously incompatible local ideals.
+
+\subsection*{10.2 Implications for Theoretical Neuroscience}
+
+The unified framework provides a synthetic account of brain function grounded in active inference but enriched by PCT and RSVP.
+
+\paragraph{10.2.1 Behaviour as control of perception.}
+Although often interpreted through prediction-error minimisation, FEP’s active inference is revealed to be mathematically identical to PCT’s perceptual control when epistemic value is negligible. This reframes behaviour as:
+
+\textbf{action in the service of fulfilling internal models}. 
+
+\paragraph{10.2.2 Generative models as hierarchical perceptual functions.}
+Every level of the generative hierarchy implements a PCT-like control system:
+
+e^{(k)} = r^{(k)} - p^{(k)}. 
+
+This clarifies the role of cortical hierarchies: each level is a control loop receiving reference conditions from above and disturbances from below.
+
+\paragraph{10.2.3 Neural fields as RSVP fields.}
+RSVP reinterprets: \begin{itemize} \item synaptic weights as deformations of , \item spiking or low-dimensional neural dynamics as vector flows , \item local circuit entropy as , \end{itemize} making FEP’s variational mechanics geometrically explicit.
+
+\paragraph{10.2.4 Agency as global coherence.}
+Neural coherence corresponds to:
+
+\exists \text{ global section } p \in \Gamma(X, \mathcal{P}). 
+
+\subsection*{10.3 Implications for Artificial Intelligence and Alignment}
+
+This unified theory has profound consequences for AI design and safety.
+
+\paragraph{10.3.1 Inspectable internal norms.}
+Because (the internal model) is the locus of preference and control, alignment requires the norms, priors, or templates in to be: \begin{itemize} \item explicitly representable, \item externally modifiable, \item interpretable by humans, \item subject to correction via global discrepancy minimisation. \end{itemize}
+
+This stands in contrast to black-box reward maximisation.
+
+\paragraph{10.3.2 Sheaf-theoretic alignment.}
+Misalignment corresponds to a mismatch between:
+
+\mathcal{R}_{\text{human}} \quad \text{and} \quad \mathcal{R}_{\text{AI}} 
+
+Thus alignment becomes a problem of sheaf cohomology:
+
+[\eta_{\text{joint}}] = 0 \quad \Leftrightarrow \quad \text{human–AI consistency}. 
+
+\paragraph{10.3.3 Sparse narrative control for safety.}
+Agents governed by narrative templates avoid the pathological behaviour associated with unconstrained optimisation. The templates act as interpretable, low-dimensional behavioural attractors.
+
+\paragraph{10.3.4 RSVP-based grounding for AGI cognition.}
+RSVP provides a geometric and physical layer for: \begin{itemize} \item semantic grounding, \item agency modeling, \item consistent field-theoretic priors, \item intrinsic interpretability, \item controlled model updates. \end{itemize}
+
+AI systems built from field-theoretic or sheaf-theoretic layers would be more transparent and naturally aligned.
+
+\subsection*{10.4 Implications for Collective Behaviour, Governance, and Social Systems}
+
+Human groups, organisations, and societies can be modelled using the same framework.
+
+\paragraph{10.4.1 Collective agency as sheaf gluing.}
+A social system maintains coherence when:
+
+\Gamma(X, \mathcal{R}_{\text{collective}}) \neq \varnothing. 
+
+Policies, norms, and cultural narratives become the global sections of a collective reference sheaf.
+
+\paragraph{10.4.2 Social conflict as cohomological obstruction.}
+Ethnic conflict, polarisation, epistemic schisms, and ideological fragmentation correspond to:
+
+[\eta_{\text{societal}}] \neq 0. 
+
+This provides a formal diagnosis of societal incoherence.
+
+\paragraph{10.4.3 Governance as discrepancy minimisation.}
+Institutions can be seen as systems that:
+
+\dot{m}_{\text{public}} = -\nabla_m D_{\text{public}}. 
+
+Reforms correspond to altering the reference model.
+Policy action corresponds to altering environment-level variables.
+
+\paragraph{10.4.4 Narrative dynamics in politics.}
+Collective behaviour is heavily shaped by narratives (templates).
+Shared stories act as low-rank approximations for collective agency.
+
+The sparse-projection viewpoint explains: \begin{itemize} \item the appeal of simple political narratives, \item identity-based politics, \item why fragmented narratives lead to social incoherence, \item how stable governance requires gluable narrative templates. \end{itemize}
+
+\subsection*{10.5 Summary}
+
+The unified control framework yields four major insights:
+
+\begin{enumerate} \item Psychology: Distress is persistent mismatch between ideals and perception; therapy is model updating. \item Neuroscience: The brain implements hierarchical PCT/active-inference loops; coherence is global consistency. \item AI: Alignment requires inspectable norms; safety arises from template or sheaf-level control. \item Society: Collective coherence requires gluable ideals; conflict emerges as topological obstruction. \end{enumerate}
+
+All these domains become instances of the same general theory:
+adaptive systems are structures that minimise discrepancy through coupled internal–external gradients.
+
+
+\section{Conclusion}
+
+Across a diverse range of disciplines—clinical psychology, perceptual control theory, Bayesian neuroscience, field-theoretic models of cognition, categorical formulations of agency, and sparse narrative-based architectures—researchers have independently rediscovered the same structural principle: adaptive systems persist by continually reducing a functional discrepancy between internal normative models and the sensory evidence they encounter. This principle is not merely heuristic. It is mathematically forced by the conditions of stability, self-maintenance, and boundedness that define biological and cognitive agents.
+
+In this essay, we demonstrated that William Powers’ Perceptual Control Theory (PCT), William Glasser’s Choice Theory, Karl Friston’s Free Energy Principle (FEP) with active inference, sheaf-theoretic models of contextual coherence, RSVP scalar–vector–entropy fields, and sparse-projection models of simulated agency all instantiate a single abstract architecture. This architecture is expressed most compactly as coupled gradient flows on a discrepancy functional:
+
+\dot{a} \in -\nabla_a D(m,o), \qquad \dot{m} \in -\nabla_m D(m,o), 
+
+We established this claim through a series of detailed equivalence proofs and reconstructions:
+
+\begin{enumerate} \item PCT as active inference:
+Under linear-Gaussian assumptions, active inference reduces exactly to PCT’s proportional control law and reorganization dynamics. The PCT error signal corresponds to variational prediction errors; reference conditions correspond to preference priors.
+
+\item **Sheaf-theoretic unification:** Perceptions, ideals, and actions form sheaves over context space. Adaptive coherence requires the existence of globally gluable perceptual and reference sections. Psychological conflict and epistemic dissonance emerge as cohomological obstructions. \item **RSVP geometric realisation:** The discrepancy becomes a spatial field E(x,t). Behaviour is encoded as vector flow \mathbf{v} down gradients of this field, and model updating corresponds to slow deformation of a scalar potential \Phi_{\text{ideal}}. Free energy becomes a field action functional over \Phi, \mathbf{v}, and S. \item **Sparse-projection agency as reduced control:** Narrative templates function as low-dimensional internal models. Behaviour corresponds to advancing along template trajectories; model updating corresponds to template adaptation. This provides an interpretable and computationally tractable instantiation of the universal duality. 
+
+\end{enumerate}
+
+The convergence of these frameworks, despite their differing vocabularies and historical origins, strongly indicates that the control duality is not an arbitrary modelling decision but a structural invariant of any system that maintains itself in a dynamic world. Like curvature in general relativity or gauge invariance in quantum field theory, discrepancy minimisation arises naturally from first principles.
+
+This realisation has broad consequences.
+
+\paragraph{In psychology}, chronic distress, conflict, and maladaptation can be understood as failures of gluing local perceptual and normative sections into a global coherent whole. Therapeutic change corresponds to guided modification of high-level reference structures.
+
+\paragraph{In neuroscience}, cortical hierarchies become layered control systems implementing variational inference; neural dynamics represent geometric flows on discrepancy fields; coherence corresponds to the existence of stable global sections.
+
+\paragraph{In artificial intelligence}, safe and interpretable systems must expose their internal models () and reference structures to alignment procedures. Sparse narrative templates and sheaf-consistent priors offer powerful, transparent mechanisms for controlling machine behaviour.
+
+\paragraph{In philosophy and governance}, individual and collective agency become instances of consistency maintenance across a network of overlapping contexts. Social conflict is formally describable as a topological obstruction to shared ideals.
+
+Taken together, these implications suggest a unified science of agency capable of spanning cognitive architectures, neural systems, psychosocial dynamics, and future AI designs. The frameworks examined—PCT, Choice Theory, FEP, sheaf theory, RSVP fields, and sparse semantic projection—should not be seen as rivals but as complementary lenses onto the same invariant structure.
+
+The ultimate insight is that agency is self-consistency maintained over time.
+Agents exist by continuously reducing discrepancy between their internal models and their sensory encounters. They do this through exactly two mechanisms: acting upon the world and updating their model of it. This duality is universal, irreducible, and mathematically compelled.
+
+The hope is that by recognising this shared architecture, we can build theories, therapies, and technologies that are not only more effective but also more coherent—psychologically, neuroscientifically, mathematically, and ethically.
+
+

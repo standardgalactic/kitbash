@@ -1,0 +1,3692 @@
+#!/bin/bash
+set -euo pipefail
+
+########################################
+# CONFIG
+########################################
+
+MODEL="granite3.2:8b"
+CHUNK_LINES=256
+
+SUMMARY_FILE="summaries.txt"
+PREF_FILE="preferences.jsonl"
+PROGRESS_FILE="progress.log"        # per-file
+CHUNK_PROGRESS_FILE="chunk_progress.log"   # per-chunk
+
+main_dir=$(pwd)
+
+touch "$SUMMARY_FILE" "$PREF_FILE" "$PROGRESS_FILE" "$CHUNK_PROGRESS_FILE"
+
+########################################
+# ARG PARSING (flags only)
+########################################
+
+BACKGROUND=false
+
+for arg in "$@"; do
+  case "$arg" in
+    --background|--no-mux)
+      BACKGROUND=true
+      ;;
+    --help|-h)
+      echo "Usage: $0 [--background]"
+      echo "  No args: use byobu/tmux if available."
+      echo "  --background: run without multiplexer, in quiet mode."
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: $arg"
+      echo "Use --background or --help."
+      exit 1
+      ;;
+  esac
+done
+
+########################################
+# TOOL CHECKS
+########################################
+
+if ! command -v ollama >/dev/null 2>&1; then
+  echo "Error: ollama not found in PATH."
+  exit 1
+fi
+
+if ! command -v jq >/dev/null 2>&1; then
+  echo "Error: jq is required. Install it (e.g. sudo apt install jq)."
+  exit 1
+fi
+
+# pandoc only needed if we ever hit .md
+if compgen -G "$main_dir/**/*.md" >/dev/null 2>&1 || compgen -G "$main_dir/*.md" >/dev/null 2>&1; then
+  if ! command -v pandoc >/dev/null 2>&1; then
+    echo "Warning: .md files present but pandoc not found."
+    echo "Install pandoc (e.g. sudo apt install pandoc) or remove .md files."
+    exit 1
+  fi
+fi
+
+########################################
+# MULTIPLEXER DETECTION (if not background)
+########################################
+
+MUX=""
+SESSION="CA_SUMMARY"
+
+if [ "$BACKGROUND" = false ]; then
+  if command -v byobu >/dev/null 2>&1; then
+    MUX="byobu"
+  elif command -v tmux >/dev/null 2>&1; then
+    MUX="tmux"
+  else
+    echo "Warning: neither byobu nor tmux found; falling back to --background mode."
+    BACKGROUND=true
+  fi
+fi
+
+if [ "$BACKGROUND" = true ]; then
+  echo "Running in BACKGROUND mode (no multiplexer panes)."
+else
+  echo "Using multiplexer: $MUX"
+fi
+
+########################################
+# PROGRESS HELPERS
+########################################
+
+is_file_processed() {
+  local fname="$1"
+  grep -Fxq "$fname" "$PROGRESS_FILE"
+}
+
+mark_file_processed() {
+  local fname="$1"
+  echo "$fname" >> "$PROGRESS_FILE"
+}
+
+is_chunk_processed() {
+  local chunk_id="$1"
+  grep -Fxq "$chunk_id" "$CHUNK_PROGRESS_FILE"
+}
+
+mark_chunk_processed() {
+  local chunk_id="$1"
+  echo "$chunk_id" >> "$CHUNK_PROGRESS_FILE"
+}
+
+########################################
+# CANDIDATE GENERATION HELPERS
+########################################
+
+run_candidates_background() {
+  local chunk="$1"
+
+  rm -f cand1.txt cand2.txt cand3.txt cand4.txt
+
+  ollama run "$MODEL" "Summarize (cand1)" < "$chunk" > cand1.txt &
+  p1=$!
+  ollama run "$MODEL" "Summarize (cand2)" < "$chunk" > cand2.txt &
+  p2=$!
+  ollama run "$MODEL" "Summarize (cand3)" < "$chunk" > cand3.txt &
+  p3=$!
+  ollama run "$MODEL" "Summarize (cand4)" < "$chunk" > cand4.txt &
+  p4=$!
+
+  wait "$p1" "$p2" "$p3" "$p4"
+}
+
+run_candidates_mux() {
+  local chunk="$1"
+
+  rm -f cand1.txt cand2.txt cand3.txt cand4.txt
+
+  if [ "$MUX" = "byobu" ]; then
+    $MUX new-session -d -s "$SESSION" \
+      "ollama run $MODEL \"Summarize (cand1)\" < \"$chunk\" > cand1.txt"
+
+    $MUX split-window -h \
+      "ollama run $MODEL \"Summarize (cand2)\" < \"$chunk\" > cand2.txt"
+
+    $MUX select-pane -t 0
+    $MUX split-window -v \
+      "ollama run $MODEL \"Summarize (cand3)\" < \"$chunk\" > cand3.txt"
+
+    $MUX select-pane -t 1
+    $MUX split-window -v \
+      "ollama run $MODEL \"Summarize (cand4)\" < \"$chunk\" > cand4.txt"
+
+  else # tmux
+    $MUX new -d -s "$SESSION" \
+      "ollama run $MODEL \"Summarize (cand1)\" < \"$chunk\" > cand1.txt"
+
+    $MUX split-window -h \
+      "ollama run $MODEL \"Summarize (cand2)\" < \"$chunk\" > cand2.txt"
+
+    $MUX select-pane -t 0
+    $MUX split-window -v \
+      "ollama run $MODEL \"Summarize (cand3)\" < \"$chunk\" > cand3.txt"
+
+    $MUX select-pane -t 1
+    $MUX split-window -v \
+      "ollama run $MODEL \"Summarize (cand4)\" < \"$chunk\" > cand4.txt"
+  fi
+
+  # Wait until all cand files exist
+  echo "Waiting for four candidates (multiplexer mode)..."
+  while [[ ! -f cand1.txt || ! -f cand2.txt || ! -f cand3.txt || ! -f cand4.txt ]]; do
+    sleep 3
+  done
+
+  $MUX kill-session -t "$SESSION" || true
+}
+
+generate_candidates() {
+  local chunk="$1"
+
+  if [ "$BACKGROUND" = true ]; then
+    run_candidates_background "$chunk"
+  else
+    run_candidates_mux "$chunk"
+  fi
+}
+
+########################################
+# CORE: PROCESS FILES
+########################################
+
+process_files() {
+  local dir="$1"
+  echo "Processing directory: $dir"
+
+  # Iterate over .txt and .md files
+  for file in "$dir"/*.{txt,md}; do
+    [ -e "$file" ] || continue
+
+    # Skip the summary file itself if it happens to be in this dir
+    if [ "$(basename "$file")" = "$SUMMARY_FILE" ]; then
+      continue
+    fi
+
+    if [ -f "$file" ]; then
+      local fname
+      fname=$(basename "$file")
+
+      if is_file_processed "$fname"; then
+        echo "Already processed file: $fname (skipping)"
+        continue
+      fi
+
+      echo "Processing file: $fname"
+
+      # Temp workspace for this file
+      local sanitized temp_dir temp_text
+      sanitized=$(echo "$fname" | tr -d '[:space:]')
+      temp_dir=$(mktemp -d "$dir/tmp_${sanitized}_XXXXXX")
+      temp_text="$temp_dir/converted.txt"
+
+      # Convert markdown or copy text
+      if [[ "$file" == *.md ]]; then
+        pandoc "$file" -t plain -o "$temp_text"
+      else
+        cp "$file" "$temp_text"
+      fi
+
+      # Chunk the converted text
+      split -l "$CHUNK_LINES" "$temp_text" "$temp_dir/chunk_"
+
+      # Process each chunk with CA Dynamic Alignment
+      for chunk in "$temp_dir"/chunk_*; do
+        [ -f "$chunk" ] || continue
+
+        local chunk_base chunk_id
+        chunk_base=$(basename "$chunk")
+        chunk_id="$fname:$chunk_base"
+
+        if is_chunk_processed "$chunk_id"; then
+          echo "  Chunk already done: $chunk_id (skipping)"
+          continue
+        fi
+
+        echo "  === Chunk: $chunk_id ==="
+
+        # 1) Generate candidates
+        generate_candidates "$chunk"
+
+        # 2) Build scoring prompt
+        cat > scoring_prompt.txt <<EOF
+You are a Collective Agency (CA) Reward Model.
+Score each summary from 0–5 according to:
+1. Knowledge: clarity, completeness
+2. Benevolence: fairness, accessibility
+3. Power: actionable usefulness
+
+Return STRICT JSON ONLY:
+
+{
+  "candidates":[
+    {"id":1,"text":"...", "score":0},
+    {"id":2,"text":"...", "score":0},
+    {"id":3,"text":"...", "score":0},
+    {"id":4,"text":"...", "score":0}
+  ],
+  "best": 2
+}
+
+CANDIDATE 1:
+$(cat cand1.txt)
+
+CANDIDATE 2:
+$(cat cand2.txt)
+
+CANDIDATE 3:
+$(cat cand3.txt)
+
+CANDIDATE 4:
+$(cat cand4.txt)
+EOF
+
+        # 3) Self-scoring
+        ollama run "$MODEL" < scoring_prompt.txt > scores.json
+
+        # 4) Extract best
+        local best best_text
+        best=$(jq -r '.best' scores.json)
+        best_text=$(jq -r ".candidates[] | select(.id==$best).text" scores.json)
+
+        # 5) Append best summary to global summary file
+        echo "$best_text" >> "$SUMMARY_FILE"
+        echo "" >> "$SUMMARY_FILE"
+
+        # 6) Log preference data (prompt + all candidates)
+        jq \
+          --arg prompt "$(cat "$chunk")" \
+          --arg chosen "$best_text" \
+          '
+          {
+            "prompt": $prompt,
+            "candidates": .candidates,
+            "chosen": {"id": .best, "text": $chosen},
+            "rejected": (.candidates | map(select(.id != .best)))
+          }
+          ' scores.json >> "$PREF_FILE"
+
+        # 7) Mark chunk as processed
+        mark_chunk_processed "$chunk_id"
+
+        # Cleanup per-chunk artifacts
+        rm -f cand1.txt cand2.txt cand3.txt cand4.txt scoring_prompt.txt scores.json
+      done
+
+      # Cleanup per-file temp dir
+      rm -rf "$temp_dir"
+
+      # Mark file as processed
+      mark_file_processed "$fname"
+    fi
+  done
+}
+
+########################################
+# RECURSE INTO SUBDIRECTORIES
+########################################
+
+process_subdirs() {
+  local parent="$1"
+  for dir in "$parent"/*/; do
+    [ -d "$dir" ] || continue
+    process_files "$dir"
+    process_subdirs "$dir"
+  done
+}
+
+########################################
+# MAIN
+########################################
+
+process_files "$main_dir"
+process_subdirs "$main_dir"
+
+echo "DONE."
+echo "Summaries  → $SUMMARY_FILE"
+echo "Preferences → $PREF_FILE"
+echo "File log   → $PROGRESS_FILE"
+echo "Chunk log  → $CHUNK_PROGRESS_FILE"# Chunk the converted text
+      split -l "$CHUNK_LINES" "$temp_text" "$temp_dir/chunk_"
+
+      # Process each chunk with CA Dynamic Alignment
+      for chunk in "$temp_dir"/chunk_*; do
+        [ -f "$chunk" ] || continue
+
+        chunk_base=$(basename "$chunk")
+        chunk_id="$fname:$chunk_base"
+
+        if is_chunk_processed "$chunk_id"; then
+          echo "  Chunk already done: $chunk_id (skipping)"
+          continue
+        fi
+
+        echo "  === Chunk: $chunk_id ==="
+
+        ########################################
+        # 1) Generate four candidate summaries
+        ########################################
+
+        rm -f cand1.txt cand2.txt cand3.txt cand4.txt
+
+        ollama run "$MODEL" "Summarize (cand1)" < "$chunk" > cand1.txt &
+        pid1=$!
+        ollama run "$MODEL" "Summarize (cand2)" < "$chunk" > cand2.txt &
+        pid2=$!
+        ollama run "$MODEL" "Summarize (cand3)" < "$chunk" > cand3.txt &
+        pid3=$!
+        ollama run "$MODEL" "Summarize (cand4)" < "$chunk" > cand4.txt &
+        pid4=$!
+
+        wait "$pid1" "$pid2" "$pid3" "$pid4"
+
+
+        ########################################
+        # 2) CA Scoring Prompt with 3 components
+        ########################################
+
+        cat > scoring_prompt.txt <<EOF
+You are a **Collective Agency (CA) Reward Model**. Your task is to score four candidate summaries based on the provided text.
+
+Score each candidate using three independent metrics (0-5 scale for each):
+1. **Knowledge (K):** Clarity and completeness of the content. (5=Highly Comprehensive)
+2. **Benevolence (B):** Fairness, neutrality, and accessibility of the language. (5=Highly Objective/Accessible)
+3. **Power (P):** Actionable usefulness for decision-making or self-improvement. (5=Highly Actionable)
+
+Each candidate MUST include:
+"id", "text", "score_k", "score_b", "score_p", "score_total"
+
+Return STRICT JSON ONLY with this form:
+
+{
+  "candidates":[
+    {"id":1,"text":"...", "score_k":0, "score_b":0, "score_p":0, "score_total":0},
+    {"id":2,"text":"...", "score_k":0, "score_b":0, "score_p":0, "score_total":0},
+    {"id":3,"text":"...", "score_k":0, "score_b":0, "score_p":0, "score_total":0},
+    {"id":4,"text":"...", "score_k":0, "score_b":0, "score_p":0, "score_total":0}
+  ],
+  "best": 2
+}
+
+CANDIDATE 1:
+$(cat cand1.txt)
+
+CANDIDATE 2:
+$(cat cand2.txt)
+
+CANDIDATE 3:
+$(cat cand3.txt)
+
+CANDIDATE 4:
+$(cat cand4.txt)
+EOF
+
+        ########################################
+        # 3) Run self-judging
+        ########################################
+
+        ollama run "$MODEL" < scoring_prompt.txt > scores.json
+
+
+        ########################################
+        # 3.5) JSON validation
+        ########################################
+
+        if ! jq empty scores.json 2>/dev/null; then
+          echo "ERROR: Invalid JSON returned for $chunk_id — skipping this chunk."
+          # Optionally store raw for debugging:
+          # cp scores.json "$main_dir/error_$chunk_id.json"
+          continue
+        fi
+
+
+        ########################################
+        # 4) Extract best + chosen full object
+        ########################################
+
+        best=$(jq -r '.best' scores.json)
+
+        chosen_obj=$(jq -c ".candidates[] | select(.id==$best)" scores.json)
+        best_text=$(echo "$chosen_obj" | jq -r '.text')
+        best_score=$(echo "$chosen_obj" | jq -r '.score_total')
+
+
+        ########################################
+        # 5) Append structured summary
+        ########################################
+
+        echo "### $(basename "$file") / $chunk_base (CA $best_score)" >> "$SUMMARY_FILE"
+        echo "$best_text" >> "$SUMMARY_FILE"
+        echo "" >> "$SUMMARY_FILE"
+
+
+        ########################################
+        # 6) Preference logging (clean form)
+        ########################################
+
+        jq \
+          --arg chunk "$chunk_id" \
+          --arg prompt "$(cat "$chunk")" \
+          '
+          {
+            "chunk_id": $chunk,
+            "prompt": $prompt,
+            "chosen_candidate": (.candidates[] | select(.id == .best)),
+            "rejected_candidates": (.candidates | map(select(.id != .best))),
+            "raw_scores": .
+          }
+          ' scores.json >> "$PREF_FILE"
+
+
+        ########################################
+        # 7) Mark chunk and cleanup
+        ########################################
+
+        mark_chunk_processed "$chunk_id"
+        rm -f cand1.txt cand2.txt cand3.txt cand4.txt scoring_prompt.txt scores.json
+
+      done#!/bin/bash
+set -euo pipefail
+
+########################################
+# CONFIG
+########################################
+
+MODEL="granite3.2:8b"
+CHUNK_LINES=256
+
+SUMMARY_FILE="summaries.txt"
+PREF_FILE="preferences.jsonl"
+PROGRESS_FILE="progress.log"          # per-file
+CHUNK_PROGRESS_FILE="chunk_progress.log"  # per-chunk
+
+main_dir=$(pwd)
+
+touch "$SUMMARY_FILE" "$PREF_FILE" "$PROGRESS_FILE" "$CHUNK_PROGRESS_FILE"
+
+########################################
+# ARG PARSING
+########################################
+
+BACKGROUND=true   # now always background; flag kept for future extensibility
+
+for arg in "$@"; do
+  case "$arg" in
+    --help|-h)
+      echo "Usage: $0"
+      echo "Recursively process .txt and .md files, generating CA-aligned summaries & preferences."
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: $arg"
+      echo "Use --help for usage."
+      exit 1
+      ;;
+  esac
+done
+
+########################################
+# TOOL CHECKS
+########################################
+
+if ! command -v ollama >/dev/null 2>&1; then
+  echo "Error: ollama not found in PATH."
+  exit 1
+fi
+
+if ! command -v jq >/dev/null 2>&1; then
+  echo "Error: jq is required. Install it (e.g. sudo apt install jq)."
+  exit 1
+fi
+
+if ! command -v sha256sum >/dev/null 2>&1; then
+  echo "Error: sha256sum is required."
+  exit 1
+fi
+
+# pandoc only needed if we ever hit .md
+if compgen -G "$main_dir/**/*.md" >/dev/null 2>&1 || compgen -G "$main_dir/*.md" >/dev/null 2>&1; then
+  if ! command -v pandoc >/dev/null 2>&1; then
+    echo "Warning: .md files present but pandoc not found."
+    echo "Install pandoc (e.g. sudo apt install pandoc) or remove .md files."
+    exit 1
+  fi
+fi
+
+########################################
+# PROGRESS HELPERS
+########################################
+
+is_file_processed() {
+  local fname="$1"
+  grep -Fxq "$fname" "$PROGRESS_FILE"
+}
+
+mark_file_processed() {
+  local fname="$1"
+  echo "$fname" >> "$PROGRESS_FILE"
+}
+
+is_chunk_processed() {
+  local chunk_id="$1"
+  grep -Fxq "$chunk_id" "$CHUNK_PROGRESS_FILE"
+}
+
+mark_chunk_processed() {
+  local chunk_id="$1"
+  echo "$chunk_id" >> "$CHUNK_PROGRESS_FILE"
+}
+
+########################################
+# CORE: PROCESS FILES
+########################################
+
+process_files() {
+  local dir="$1"
+  echo "Processing directory: $dir"
+
+  # Iterate over .txt and .md files
+  for file in "$dir"/*.{txt,md}; do
+    [ -e "$file" ] || continue
+
+    # Skip the global summary file if it’s in this dir
+    if [ "$(basename "$file")" = "$SUMMARY_FILE" ]; then
+      continue
+    fi
+
+    if [ -f "$file" ]; then
+      local fname
+      fname=$(basename "$file")
+
+      if is_file_processed "$fname"; then
+        echo "Already processed file: $fname (skipping)"
+        continue
+      fi
+
+      echo "Processing file: $fname"
+
+      # Temp workspace for this file
+      local sanitized temp_dir temp_text
+      sanitized=$(echo "$fname" | tr -d '[:space:]')
+      temp_dir=$(mktemp -d "$dir/tmp_${sanitized}_XXXXXX")
+      temp_text="$temp_dir/converted.txt"
+
+      # Convert markdown or copy text
+      if [[ "$file" == *.md ]]; then
+        pandoc "$file" -t plain -o "$temp_text"
+      else
+        cp "$file" "$temp_text"
+      fi
+
+      # Chunk the converted text
+      split -l "$CHUNK_LINES" "$temp_text" "$temp_dir/chunk_"
+
+      # Process each chunk with CA Dynamic Alignment
+      for chunk in "$temp_dir"/chunk_*; do
+        [ -f "$chunk" ] || continue
+
+        local chunk_base chunk_id
+        chunk_base=$(basename "$chunk")
+        chunk_id="$fname:$chunk_base"
+
+        if is_chunk_processed "$chunk_id"; then
+          echo "  Chunk already done: $chunk_id (skipping)"
+          continue
+        fi
+
+        echo "  === Chunk: $chunk_id ==="
+
+        ########################################
+        # Semantic: basic stats & hashing
+        ########################################
+
+        local prompt_text prompt_hash prompt_words
+        prompt_text=$(cat "$chunk")
+        prompt_hash=$(printf "%s" "$prompt_text" | sha256sum | cut -d' ' -f1)
+        prompt_words=$(printf "%s" "$prompt_text" | wc -w | awk '{print $1}')
+        file_ext="${file##*.}"
+
+        ########################################
+        # 1) Generate four candidate summaries
+        ########################################
+
+        rm -f cand1.txt cand2.txt cand3.txt cand4.txt
+
+        ollama run "$MODEL" "Summarize (candidate 1)" < "$chunk" > cand1.txt &
+        pid1=$!
+        ollama run "$MODEL" "Summarize (candidate 2)" < "$chunk" > cand2.txt &
+        pid2=$!
+        ollama run "$MODEL" "Summarize (candidate 3)" < "$chunk" > cand3.txt &
+        pid3=$!
+        ollama run "$MODEL" "Summarize (candidate 4)" < "$chunk" > cand4.txt &
+        pid4=$!
+
+        wait "$pid1" "$pid2" "$pid3" "$pid4"
+
+        ########################################
+        # 2) Extensible CA scoring prompt
+        ########################################
+
+        cat > scoring_prompt.txt <<EOF
+You are a Collective Agency (CA) Reward Model.
+
+You will score four candidate summaries along an extensible set of value axes.
+For now, use these three axes, but you may add more in future variants:
+
+- "knowledge": clarity, completeness, depth of understanding.
+- "benevolence": fairness, neutrality, accessibility, non-manipulation.
+- "power": actionable usefulness for planning, decision-making, or coordination.
+
+For each candidate:
+
+1. Provide a "values" object mapping each axis name (e.g. "knowledge") to an integer score 0–5.
+2. Provide "score_total" as the sum of all axes in "values".
+3. The "axes" array at the top-level must list all axes you used.
+
+Return STRICT JSON ONLY, with this structure:
+
+{
+  "axes": ["knowledge", "benevolence", "power"],
+  "candidates":[
+    {
+      "id":1,
+      "text":"...",
+      "values": {
+        "knowledge": 0,
+        "benevolence": 0,
+        "power": 0
+      },
+      "score_total": 0
+    },
+    {
+      "id":2,
+      "text":"...",
+      "values": {
+        "knowledge": 0,
+        "benevolence": 0,
+        "power": 0
+      },
+      "score_total": 0
+    },
+    {
+      "id":3,
+      "text":"...",
+      "values": {
+        "knowledge": 0,
+        "benevolence": 0,
+        "power": 0
+      },
+      "score_total": 0
+    },
+    {
+      "id":4,
+      "text":"...",
+      "values": {
+        "knowledge": 0,
+        "benevolence": 0,
+        "power": 0
+      },
+      "score_total": 0
+    }
+  ],
+  "best": 2
+}
+
+CANDIDATE 1:
+$(cat cand1.txt)
+
+CANDIDATE 2:
+$(cat cand2.txt)
+
+CANDIDATE 3:
+$(cat cand3.txt)
+
+CANDIDATE 4:
+$(cat cand4.txt)
+EOF
+
+        ########################################
+        # 3) Run self-judging
+        ########################################
+
+        ollama run "$MODEL" < scoring_prompt.txt > scores.json
+
+        ########################################
+        # 3.5) JSON validation
+        ########################################
+
+        if ! jq empty scores.json 2>/dev/null; then
+          echo "ERROR: Invalid JSON returned for $chunk_id — skipping this chunk."
+          # Optionally keep for debugging:
+          # cp scores.json "$main_dir/error_${chunk_base}.json"
+          rm -f cand1.txt cand2.txt cand3.txt cand4.txt scoring_prompt.txt scores.json
+          continue
+        fi
+
+        ########################################
+        # 4) Extract best + chosen object
+        ########################################
+
+        local best
+        best=$(jq -r '.best' scores.json)
+
+        chosen_obj=$(jq -c ".candidates[] | select(.id==$best)" scores.json)
+        best_text=$(echo "$chosen_obj" | jq -r '.text')
+        best_score=$(echo "$chosen_obj" | jq -r '.score_total')
+
+        # Hash of chosen text
+        chosen_hash=$(printf "%s" "$best_text" | sha256sum | cut -d' ' -f1)
+
+        ########################################
+        # 5) Append structured summary (markdown-ish)
+        ########################################
+
+        echo "### $fname / $chunk_base (CA total: $best_score)" >> "$SUMMARY_FILE"
+        echo "$best_text" >> "$SUMMARY_FILE"
+        echo "" >> "$SUMMARY_FILE"
+
+        ########################################
+        # 6) Preference logging with metadata & axes
+        ########################################
+
+        jq \
+          --arg chunk_id "$chunk_id" \
+          --arg prompt "$prompt_text" \
+          --arg prompt_hash "$prompt_hash" \
+          --arg prompt_words "$prompt_words" \
+          --arg file_name "$fname" \
+          --arg file_ext "$file_ext" \
+          --arg chunk_base "$chunk_base" \
+          --arg chosen_hash "$chosen_hash" \
+          '
+          {
+            "chunk_id": $chunk_id,
+            "prompt": $prompt,
+            "prompt_hash": $prompt_hash,
+            "prompt_word_count": ($prompt_words | tonumber),
+            "metadata": {
+              "file_name": $file_name,
+              "file_ext": $file_ext,
+              "chunk_base": $chunk_base
+            },
+            "values_axes": .axes,
+            "chosen_candidate": (
+              .candidates[]
+              | select(.id == .best)
+              | . + { "hash": $chosen_hash }
+            ),
+            "rejected_candidates": (
+              .candidates
+              | map(select(.id != .best))
+            ),
+            "raw_scores": .
+          }
+          ' scores.json >> "$PREF_FILE"
+
+        ########################################
+        # 7) Mark chunk and cleanup
+        ########################################
+
+        mark_chunk_processed "$chunk_id"
+        rm -f cand1.txt cand2.txt cand3.txt cand4.txt scoring_prompt.txt scores.json
+
+      done
+
+      # Cleanup per-file temp dir
+      rm -rf "$temp_dir"
+
+      # Mark file as processed
+      mark_file_processed "$fname"
+    fi
+  done
+}
+
+########################################
+# RECURSE INTO SUBDIRECTORIES
+########################################
+
+process_subdirs() {
+  local parent="$1"
+  for dir in "$parent"/*/; do
+    [ -d "$dir" ] || continue
+    process_files "$dir"
+    process_subdirs "$dir"
+  done
+}
+
+########################################
+# MAIN
+########################################
+
+process_files "$main_dir"
+process_subdirs "$main_dir"
+
+echo "DONE."
+echo "Summaries   → $SUMMARY_FILE"
+echo "Preferences → $PREF_FILE"
+echo "File log    → $PROGRESS_FILE"
+echo "Chunk log   → $CHUNK_PROGRESS_FILE"#!/bin/bash
+
+# Very simple CA Summarizer using Byobu + Ollama
+# NOTE: requires byobu, ollama, jq
+
+MODEL="granite3.2:8b"
+CHUNK=260
+OUT="summaries.txt"
+
+touch "$OUT"
+
+for file in *.txt; do
+    echo "=== Processing $file ==="
+
+    # split into chunks
+    split -l $CHUNK "$file" chunk_
+
+    # loop through chunks
+    for part in chunk_*; do
+
+        echo "--- summarizing $part ---"
+
+        # cleanup previous candidates
+        rm -f cand*.txt
+
+        ####### BYOBU 4-PANE SESSION ###########
+        byobu new-session -d -s CAWIN \
+            "ollama run $MODEL \"Summarize clearly (1)\" < $part > cand1.txt"
+
+        byobu split-window -h \
+            "ollama run $MODEL \"Summarize concisely (2)\" < $part > cand2.txt"
+
+        byobu select-pane -t 0
+        byobu split-window -v \
+            "ollama run $MODEL \"Summarize with structure (3)\" < $part > cand3.txt"
+
+        byobu select-pane -t 1
+        byobu split-window -v \
+            "ollama run $MODEL \"Summarize usefully (4)\" < $part > cand4.txt"
+
+        # wait until all exist
+        while [[ ! -f cand1.txt || ! -f cand2.txt || ! -f cand3.txt || ! -f cand4.txt ]]; do
+            sleep 2
+        done
+
+        # close session
+        byobu kill-session -t CAWIN
+
+        ####### Self-scoring #######
+        cat <<EOF > score_request.txt
+You are a simple summarization critic.
+Given four candidate summaries, choose the SINGLE best one and output ONLY the text of that best summary.
+
+CANDIDATE 1:
+$(cat cand1.txt)
+
+CANDIDATE 2:
+$(cat cand2.txt)
+
+CANDIDATE 3:
+$(cat cand3.txt)
+
+CANDIDATE 4:
+$(cat cand4.txt)
+EOF
+
+        ollama run "$MODEL" < score_request.txt >> "$OUT"
+        echo "" >> "$OUT"
+
+        # cleanup
+        rm -f part score_request.txt cand*.txt
+    done
+
+    rm chunk_*
+done
+
+echo "DONE. Output in $OUT"#!/bin/bash
+
+MODEL="granite3.2:8b"
+CHUNK=260
+OUT="rsvp_summaries.txt"
+
+touch "$OUT"
+
+for file in *.txt; do
+    echo "=== Processing $file ==="
+
+    split -l $CHUNK "$file" chunk_
+
+    for part in chunk_*; do
+
+        echo "--- RSVP-evaluating $part ---"
+
+        rm -f cand*.txt
+
+        ##### === OPEN BYOBU, GENERATE 4 CANDIDATES === #####
+
+        byobu new-session -d -s CAWIN \
+            "ollama run $MODEL \"RSVP-aligned synthesis (1)\" < $part > cand1.txt"
+
+        byobu split-window -h \
+            "ollama run $MODEL \"RSVP compression (2)\" < $part > cand2.txt"
+
+        byobu select-pane -t 0
+        byobu split-window -v \
+            "ollama run $MODEL \"RSVP structural articulation (3)\" < $part > cand3.txt"
+
+        byobu select-pane -t 1
+        byobu split-window -v \
+            "ollama run $MODEL \"RSVP semantic gluing (4)\" < $part > cand4.txt"
+
+        while [[ ! -f cand1.txt || ! -f cand2.txt || ! -f cand3.txt || ! -f cand4.txt ]]; do
+            sleep 2
+        done
+
+        byobu kill-session -t CAWIN
+
+        #### RSVP scoring prompt ####
+        cat <<EOF > score.txt
+You are a scoring model based on the Relativistic Scalar-Vector Plenum (RSVP) framework.
+
+Evaluate each candidate chunk-summary along these four RSVP-informed dimensions (0–5 each):
+
+1. Elegance:
+   conceptual clarity, parsimony, relational cohesion.
+2. Sheaf-theoretic:
+   ability to describe local meaning that coherently glues into a global conceptual structure.
+3. Entropic-Coherence:
+   preserves conceptual flow without introducing excessive disorder.
+4. Vector-field articulation:
+   identifies direction-of-agency, transformation, and field interaction rather than inert description.
+
+For each candidate:
+Produce a score vector of these four values, report their sum as "total".
+Select the single highest-total candidate and output ONLY its text.
+
+Return a minimal report:
+
+BEST:
+<text-of-best>
+EOF
+
+        # give the LLM all 4 candidates
+        cat cand1.txt >> score.txt
+        echo "" >> score.txt
+        cat cand2.txt >> score.txt
+        echo "" >> score.txt
+        cat cand3.txt >> score.txt
+        echo "" >> score.txt
+        cat cand4.txt >> score.txt
+
+        ######## get best ########
+        best=$(ollama run "$MODEL" < score.txt)
+
+        echo "$best" >> "$OUT"
+        echo "" >> "$OUT"
+
+        rm -f score.txt cand*.txt
+    done
+
+    rm chunk_*
+done
+
+echo "DONE. RSVP summaries saved in $OUT"#!/bin/bash
+set -euo pipefail
+
+MODEL="granite3.2:8b"
+CHUNK=260
+
+SUMMARY_FILE="rsvp_summaries.txt"
+PREF_FILE="rsvp_preferences.jsonl"
+PROGRESS_FILE="progress.log"
+CHUNK_PROGRESS_FILE="chunk_progress.log"
+
+touch "$SUMMARY_FILE" "$PREF_FILE" "$PROGRESS_FILE" "$CHUNK_PROGRESS_FILE"
+
+#############################################
+# helpers
+#############################################
+
+is_file_done()    { grep -Fxq "$1" "$PROGRESS_FILE"; }
+mark_file_done()  { echo "$1" >> "$PROGRESS_FILE"; }
+
+is_chunk_done()   { grep -Fxq "$1" "$CHUNK_PROGRESS_FILE"; }
+mark_chunk_done() { echo "$1" >> "$CHUNK_PROGRESS_FILE"; }
+
+#############################################
+# main loop
+#############################################
+
+for file in *.{txt,md}; do
+    [ -e "$file" ] || continue
+
+    fname=$(basename "$file")
+
+    if is_file_done "$fname"; then
+        echo "Skipping (already done): $fname"
+        continue
+    fi
+
+    echo "=== Processing $fname ==="
+
+    # convert md automatically
+    temp_input="${fname}.tmp.txt"
+    if [[ "$file" == *.md ]]; then
+        pandoc "$file" -t plain -o "$temp_input"
+    else
+        cp "$file" "$temp_input"
+    fi
+
+    split -l $CHUNK "$temp_input" part_
+
+    #############################################
+    # per chunk
+    #############################################
+    for part in part_*; do
+        chunk_id="$fname::$part"
+        [ -f "$part" ] || continue
+
+        if is_chunk_done "$chunk_id"; then
+            echo "  (chunk done): $chunk_id"
+            continue
+        fi
+
+        echo "  >>> chunk: $chunk_id"
+
+        rm -f cand1.txt cand2.txt cand3.txt cand4.txt
+
+        ########## byobu 4 panes ##########
+        byobu new-session -d -s CAWIN \
+          "ollama run $MODEL \"RSVP synthesis 1\" < $part > cand1.txt"
+
+        byobu split-window -h \
+          "ollama run $MODEL \"RSVP synthesis 2\" < $part > cand2.txt"
+
+        byobu select-pane -t 0
+        byobu split-window -v \
+          "ollama run $MODEL \"RSVP synthesis 3\" < $part > cand3.txt"
+
+        byobu select-pane -t 1
+        byobu split-window -v \
+          "ollama run $MODEL \"RSVP synthesis 4\" < $part > cand4.txt"
+
+        # wait
+        while [[ ! -f cand1.txt || ! -f cand2.txt || ! -f cand3.txt || ! -f cand4.txt ]]; do
+            sleep 2
+        done
+
+        byobu kill-session -t CAWIN || true
+
+        ########## build RSVP JSON scoring prompt ##########
+        cat > score.txt <<EOF
+You score candidate RSVP syntheses based on a 6-dimensional RSVP value vector.
+Each axis is scored 0–5 independently:
+
+- elegance: clarity, parsimony, conceptual cohesion
+- sheaf: local relations that compose into global structure ("gluing")
+- vector: causal direction / agency / field interaction
+- entropic: preserves conceptual flow without introducing noise
+- structural: decomposes concepts cleanly into substructure / relations
+- epistemic: expresses knowledge/uncertainty responsibly
+
+For each candidate, return:
+{
+ "id":1,
+ "text":"...",
+ "values":{
+   "elegance":0,
+   "sheaf":0,
+   "vector":0,
+   "entropic":0,
+   "structural":0,
+   "epistemic":0
+ },
+ "score_total":0
+}
+
+Top-level MUST be:
+{
+ "axes":["elegance","sheaf","vector","entropic","structural","epistemic"],
+ "candidates":[...],
+ "best":2
+}
+
+Return strict JSON ONLY.
+
+CANDIDATE 1:
+$(cat cand1.txt)
+
+CANDIDATE 2:
+$(cat cand2.txt)
+
+CANDIDATE 3:
+$(cat cand3.txt)
+
+CANDIDATE 4:
+$(cat cand4.txt)
+EOF
+
+        ########## run scoring ##########
+        ollama run "$MODEL" < score.txt > scores.json
+
+        # check JSON
+        if ! jq empty scores.json 2>/dev/null; then
+            echo "!! invalid JSON, skipping chunk"
+            continue
+        fi
+
+        ########## select best ##########
+        best=$(jq -r '.best' scores.json)
+        best_text=$(jq -r ".candidates[] | select(.id==$best).text" scores.json)
+
+        echo "$best_text" >> "$SUMMARY_FILE"
+        echo "" >> "$SUMMARY_FILE"
+
+        ########## log preference ##########
+        jq \
+          --arg file "$fname" \
+          --arg chunk "$chunk_id" \
+          '
+          {
+            "file":$file,
+            "chunk":$chunk,
+            "axes":.axes,
+            "chosen":(.candidates[] | select(.id==.best)),
+            "rejected":(.candidates | map(select(.id != .best))),
+            "raw":.
+          }
+          ' scores.json >> "$PREF_FILE"
+
+        mark_chunk_done "$chunk_id"
+        rm -f cand*.txt score.txt scores.json
+    done
+
+    mark_file_done "$fname"
+    rm -f part_*
+    rm -f "$temp_input"
+done
+
+echo "--- DONE ---"
+echo "Summaries → $SUMMARY_FILE"
+echo "Preferences → $PREF_FILE"#!/bin/bash
+set -euo pipefail
+
+MODEL="granite3.2:8b"
+CHUNK=260
+
+SUMMARY_FILE="rsvp_summaries.txt"
+PREF_FILE="rsvp_preferences.jsonl"
+PROGRESS_FILE="progress.log"
+CHUNK_PROGRESS_FILE="chunk_progress.log"
+
+touch "$SUMMARY_FILE" "$PREF_FILE" "$PROGRESS_FILE" "$CHUNK_PROGRESS_FILE"
+
+#############################################
+# basic checks
+#############################################
+
+if ! command -v ollama >/dev/null 2>&1; then
+    echo "ollama not found in PATH."
+    exit 1
+fi
+
+if ! command -v byobu >/dev/null 2>&1; then
+    echo "byobu not found in PATH."
+    exit 1
+fi
+
+if ! command -v jq >/dev/null 2>&1; then
+    echo "jq not found in PATH."
+    exit 1
+fi
+
+if ! command -v sha256sum >/dev/null 2>&1; then
+    echo "sha256sum not found in PATH."
+    exit 1
+fi
+
+# only needed if we have .md files
+have_md=false
+for f in *; do
+    [[ "$f" == *.md ]] && have_md=true && break
+done
+if $have_md && ! command -v pandoc >/dev/null 2>&1; then
+    echo "Markdown files present but pandoc not found."
+    exit 1
+fi
+
+#############################################
+# helpers
+#############################################
+
+is_file_done()    { grep -Fxq "$1" "$PROGRESS_FILE"; }
+mark_file_done()  { echo "$1" >> "$PROGRESS_FILE"; }
+
+is_chunk_done()   { grep -Fxq "$1" "$CHUNK_PROGRESS_FILE"; }
+mark_chunk_done() { echo "$1" >> "$CHUNK_PROGRESS_FILE"; }
+
+#############################################
+# main loop
+#############################################
+
+for file in *.{txt,md}; do
+    [ -e "$file" ] || continue
+
+    fname=$(basename "$file")
+
+    if is_file_done "$fname"; then
+        echo "Skipping (already done): $fname"
+        continue
+    fi
+
+    echo "=== Processing $fname ==="
+
+    # convert md → plain if needed
+    temp_input="${fname}.tmp.txt"
+    if [[ "$file" == *.md ]]; then
+        pandoc "$file" -t plain -o "$temp_input"
+    else
+        cp "$file" "$temp_input"
+    fi
+
+    split -l "$CHUNK" "$temp_input" part_
+
+    file_ext="${file##*.}"
+
+    #############################################
+    # per chunk
+    #############################################
+    for part in part_*; do
+        [ -f "$part" ] || continue
+
+        chunk_id="$fname::$part"
+
+        if is_chunk_done "$chunk_id"; then
+            echo "  (chunk done): $chunk_id"
+            continue
+        fi
+
+        echo "  >>> chunk: $chunk_id"
+
+        # prompt text + simple metadata
+        prompt_text=$(cat "$part")
+        prompt_hash=$(printf "%s" "$prompt_text" | sha256sum | cut -d' ' -f1)
+        prompt_words=$(printf "%s" "$prompt_text" | wc -w | awk '{print $1}')
+
+        rm -f cand1.txt cand2.txt cand3.txt cand4.txt
+
+        ########## byobu 4 panes ##########
+        byobu new-session -d -s CAWIN \
+          "ollama run $MODEL \"RSVP synthesis 1\" < \"$part\" > cand1.txt"
+
+        byobu split-window -h \
+          "ollama run $MODEL \"RSVP synthesis 2\" < \"$part\" > cand2.txt"
+
+        byobu select-pane -t 0
+        byobu split-window -v \
+          "ollama run $MODEL \"RSVP synthesis 3\" < \"$part\" > cand3.txt"
+
+        byobu select-pane -t 1
+        byobu split-window -v \
+          "ollama run $MODEL \"RSVP synthesis 4\" < \"$part\" > cand4.txt"
+
+        # wait for all candidates
+        while [[ ! -f cand1.txt || ! -f cand2.txt || ! -f cand3.txt || ! -f cand4.txt ]]; do
+            sleep 2
+        done
+
+        byobu kill-session -t CAWIN || true
+
+        ########## RSVP JSON scoring prompt ##########
+        cat > score.txt <<EOF
+You are evaluating candidate RSVP syntheses over a 6D value vector.
+Each axis is scored 0–5 independently:
+
+- elegance: clarity, parsimony, conceptual cohesion
+- sheaf: local relations that compose into a coherent global structure
+- vector: causal direction, agency, field interaction
+- entropic: preserves conceptual flow, avoids noise and redundancy
+- structural: decomposes concepts cleanly into substructure and relations
+- epistemic: expresses knowledge and uncertainty responsibly (no overclaiming)
+
+For each candidate, return:
+
+{
+  "id": 1,
+  "text": "...",
+  "values": {
+    "elegance": 0,
+    "sheaf": 0,
+    "vector": 0,
+    "entropic": 0,
+    "structural": 0,
+    "epistemic": 0
+  },
+  "score_total": 0
+}
+
+Top-level MUST be:
+
+{
+  "axes": ["elegance","sheaf","vector","entropic","structural","epistemic"],
+  "candidates": [ ... ],
+  "best": 2
+}
+
+Return strict JSON ONLY.
+
+CANDIDATE 1:
+$(cat cand1.txt)
+
+CANDIDATE 2:
+$(cat cand2.txt)
+
+CANDIDATE 3:
+$(cat cand3.txt)
+
+CANDIDATE 4:
+$(cat cand4.txt)
+EOF
+
+        ########## run scoring ##########
+        ollama run "$MODEL" < score.txt > scores.json
+
+        # validate JSON
+        if ! jq empty scores.json 2>/dev/null; then
+            echo "  !! invalid JSON, skipping chunk"
+            rm -f cand*.txt score.txt scores.json
+            continue
+        fi
+
+        ########## select best ##########
+        best_id=$(jq -r '.best' scores.json)
+        best_obj=$(jq -c ".candidates[] | select(.id==$best_id)" scores.json)
+        best_text=$(printf "%s" "$best_obj" | jq -r '.text')
+        best_total=$(printf "%s" "$best_obj" | jq -r '.score_total')
+
+        chosen_hash=$(printf "%s" "$best_text" | sha256sum | cut -d' ' -f1)
+
+        # append chosen text to summary file
+        echo "### $fname / $part (RSVP total: $best_total)" >> "$SUMMARY_FILE"
+        echo "$best_text" >> "$SUMMARY_FILE"
+        echo "" >> "$SUMMARY_FILE"
+
+        ########## log preference (GRPO/DPO-ready) ##########
+        jq \
+          --arg file "$fname" \
+          --arg file_ext "$file_ext" \
+          --arg chunk "$chunk_id" \
+          --arg prompt "$prompt_text" \
+          --arg prompt_hash "$prompt_hash" \
+          --arg prompt_words "$prompt_words" \
+          --arg chosen_hash "$chosen_hash" \
+          '
+          {
+            file: $file,
+            file_ext: $file_ext,
+            chunk_id: $chunk,
+            prompt: $prompt,
+            prompt_hash: $prompt_hash,
+            prompt_word_count: ($prompt_words | tonumber),
+            axes: .axes,
+            chosen: (
+              .candidates[]
+              | select(.id == .best)
+              | . + {hash: $chosen_hash}
+            ),
+            rejected: (
+              .candidates
+              | map(select(.id != .best))
+            ),
+            raw: .
+          }
+          ' scores.json >> "$PREF_FILE"
+
+        mark_chunk_done "$chunk_id"
+        rm -f cand*.txt score.txt scores.json
+    done
+
+    mark_file_done "$fname"
+    rm -f part_* "$temp_input"
+done
+
+echo "--- DONE ---"
+echo "Summaries   → $SUMMARY_FILE"
+echo "Preferences → $PREF_FILE"
+echo "File log    → $PROGRESS_FILE"
+echo "Chunk log   → $CHUNK_PROGRESS_FILE"#############################################
+# per chunk
+#############################################
+for part in part_*; do
+    [ -f "$part" ] || continue
+
+    chunk_id="$fname::$part"
+    if is_chunk_done "$chunk_id"; then
+        echo "  (chunk done): $chunk_id"
+        continue
+    fi
+
+    echo "  >>> chunk: $chunk_id"
+
+    # read prompt text + lightweight metadata
+    prompt_text=$(cat "$part")
+    prompt_hash=$(printf "%s" "$prompt_text" | sha256sum | cut -d' ' -f1)
+    prompt_words=$(printf "%s" "$prompt_text" | wc -w | awk '{print $1}')
+
+    # clean existing candidates (if crashed last time)
+    rm -f cand{1,2,3,4}.txt scores.json
+
+
+    ############################################################
+    # 1) FAST FOUR-WAY PARALLEL GENERATION
+    ############################################################
+    echo "  [1/4] Candidate 1..."
+    ollama run "$MODEL" "RSVP synthesis 1" < "$part" > cand1.txt &
+    P1=$!
+
+    echo "  [2/4] Candidate 2..."
+    ollama run "$MODEL" "RSVP synthesis 2" < "$part" > cand2.txt &
+    P2=$!
+
+    echo "  [3/4] Candidate 3..."
+    ollama run "$MODEL" "RSVP synthesis 3" < "$part" > cand3.txt &
+    P3=$!
+
+    echo "  [4/4] Candidate 4..."
+    ollama run "$MODEL" "RSVP synthesis 4" < "$part" > cand4.txt &
+    P4=$!
+
+    echo "  Waiting for all 4 candidates..."
+    wait "$P1" "$P2" "$P3" "$P4"
+
+    # basic candidate existence check
+    if [[ ! -f cand1.txt || ! -f cand2.txt || ! -f cand3.txt || ! -f cand4.txt ]]; then
+        echo "  !! Error: missing candidate file(s). Skipping this chunk."
+        rm -f cand*.txt scores.json
+        continue
+    fi
+
+
+    ############################################################
+    # 2) RSVP SCORING PROMPT
+    ############################################################
+    cat > score.txt <<EOF
+You are scoring 4 RSVP synthesis candidates using a 6D alignment vector:
+
+- elegance: clarity, parsimony, conceptual cohesion (0-5)
+- sheaf: local composability into global structure (0-5)
+- vector: agency, causal flow, field interaction (0-5)
+- entropic: conceptual flow, avoids redundancy (0-5)
+- structural: clean substructuring, relational clarity (0-5)
+- epistemic: expresses uncertainty, avoids hallucination (0-5)
+
+Return strict JSON:
+
+{
+  "axes": [...],
+  "candidates":[
+    {
+      "id": 1,
+      "text": "...",
+      "values": {
+        "elegance":0, "sheaf":0, "vector":0,
+        "entropic":0, "structural":0, "epistemic":0
+      },
+      "score_total":0
+    },
+    ...
+  ],
+  "best": 2
+}
+
+CANDIDATE 1:
+$(cat cand1.txt)
+
+CANDIDATE 2:
+$(cat cand2.txt)
+
+CANDIDATE 3:
+$(cat cand3.txt)
+
+CANDIDATE 4:
+$(cat cand4.txt)
+EOF
+
+    # run scoring
+    ollama run "$MODEL" < score.txt > scores.json
+
+
+    ############################################################
+    # 3) JSON VALIDATION
+    ############################################################
+    if ! jq empty scores.json 2>/dev/null; then
+        echo "  !! invalid JSON, skipping"
+        rm -f cand*.txt scores.json score.txt
+        continue
+    fi
+
+
+    ############################################################
+    # 4) SAFETY: recompute score_total and best
+    ############################################################
+    validated_scores=$(
+        jq '
+        .candidates =
+          (.candidates |
+             map(. as $c |
+                ( ($c.values.elegance // 0)
+                + ($c.values.sheaf // 0)
+                + ($c.values.vector // 0)
+                + ($c.values.entropic // 0)
+                + ($c.values.structural // 0)
+                + ($c.values.epistemic // 0) ) as $tot
+                | .score_total = $tot
+            )
+          )
+        | (.candidates | sort_by(-.score_total) | .[0].id) as $max
+        | .best = $max
+        ' scores.json
+    )
+
+
+    ############################################################
+    # 5) SELECT BEST + HASH
+    ############################################################
+    best_id=$(printf "%s" "$validated_scores" | jq -r '.best')
+    best_obj=$(printf "%s" "$validated_scores" | jq -c ".candidates[] | select(.id==$best_id)")
+    best_text=$(printf "%s" "$best_obj" | jq -r '.text')
+    best_total=$(printf "%s" "$best_obj" | jq -r '.score_total')
+    chosen_hash=$(printf "%s" "$best_text" | sha256sum | cut -d' ' -f1)
+
+
+    ############################################################
+    # 6) OUTPUT SUMMARY
+    ############################################################
+    echo "### $fname / $part (RSVP total: $best_total)" >> "$SUMMARY_FILE"
+    echo "$best_text" >> "$SUMMARY_FILE"
+    echo "" >> "$SUMMARY_FILE"
+
+
+    ############################################################
+    # 7) DPO/GRPO-READY LOG
+    ############################################################
+    printf "%s" "$validated_scores" | jq \
+      --arg file "$fname" \
+      --arg file_ext "$file_ext" \
+      --arg chunk "$chunk_id" \
+      --arg prompt "$prompt_text" \
+      --arg prompt_hash "$prompt_hash" \
+      --arg prompt_words "$prompt_words" \
+      --arg chosen_hash "$chosen_hash" \
+      '
+      {
+        file:         $file,
+        file_ext:     $file_ext,
+        chunk_id:     $chunk,
+        prompt:       $prompt,
+        prompt_hash:  $prompt_hash,
+        prompt_word_count: ($prompt_words | tonumber),
+
+        axes: .axes,
+
+        chosen: (
+          .candidates[]
+          | select(.id == .best)
+          | {
+              id: .id,
+              text: .text,
+              values: .values,
+              score_total: .score_total,
+              hash: $chosen_hash
+            }
+        ),
+
+        rejected: (
+          .candidates
+          | map(select(.id != .best)
+            | {
+                id: .id,
+                text: .text,
+                values: .values,
+                score_total: .score_total
+              })
+        ),
+
+        raw: .
+      }
+      ' >> "$PREF_FILE"
+
+
+    mark_chunk_done "$chunk_id"
+
+    # clean temp chunk artifacts
+    rm -f cand*.txt score.txt scores.json
+done#!/bin/bash
+set -euo pipefail
+
+###############################################################################
+# CONFIGURATION
+###############################################################################
+
+MODEL="granite3.2:8b"
+SUMMARY_FILE="rsvp_summaries.txt"
+PREF_FILE="rsvp_preferences.jsonl"
+PROGRESS_FILE="progress.log"
+CHUNK_PROGRESS_FILE="chunk_progress.log"
+CHUNK_LINES=260
+
+touch "$SUMMARY_FILE" "$PREF_FILE" "$PROGRESS_FILE" "$CHUNK_PROGRESS_FILE"
+
+# flag (default: interactive)
+BACKGROUND=false
+for arg in "$@"; do
+    if [[ "$arg" == "--background" ]]; then
+        BACKGROUND=true
+    fi
+done
+
+###############################################################################
+# CHECKS
+###############################################################################
+
+require() {
+    if ! command -v "$1" >/dev/null 2>&1; then
+        echo "Missing required executable: $1"
+        exit 1
+    fi
+}
+require ollama
+require jq
+require sha256sum
+
+# pandoc only if needed (md present)
+HAVE_MD=false
+for f in *; do
+    [[ "$f" == *.md ]] && HAVE_MD=true && break
+done
+if $HAVE_MD; then
+    require pandoc
+fi
+
+###############################################################################
+# HELPERS
+###############################################################################
+
+is_file_done()    { grep -Fxq "$1" "$PROGRESS_FILE"; }
+mark_file_done()  { echo "$1" >> "$PROGRESS_FILE"; }
+
+is_chunk_done()   { grep -Fxq "$1" "$CHUNK_PROGRESS_FILE"; }
+mark_chunk_done() { echo "$1" >> "$CHUNK_PROGRESS_FILE"; }
+
+
+###############################################################################
+# MAIN LOOP
+###############################################################################
+
+for file in *.{txt,md}; do
+    [ -e "$file" ] || continue
+
+    fname=$(basename "$file")
+
+    if is_file_done "$fname"; then
+        echo "(skip file, already processed): $fname"
+        continue
+    fi
+
+    echo "=== FILE: $fname ==="
+
+    # convert md → txt if needed
+    temp_input="${fname}.tmp.txt"
+    if [[ "$file" == *.md ]]; then
+        pandoc "$file" -t plain -o "$temp_input"
+    else
+        cp "$file" "$temp_input"
+    fi
+
+    split -l "$CHUNK_LINES" "$temp_input" part_
+
+    file_ext="${file##*.}"
+
+    ###########################################################################
+    # chunk loop
+    ###########################################################################
+    for part in part_*; do
+        [ -f "$part" ] || continue
+
+        chunk_id="$fname::$part"
+        if is_chunk_done "$chunk_id"; then
+            echo "  (skip chunk, done): $chunk_id"
+            continue
+        fi
+
+        echo "  >>> CHUNK: $chunk_id"
+
+        prompt_text=$(cat "$part")
+        prompt_hash=$(printf "%s" "$prompt_text" | sha256sum | cut -d' ' -f1)
+        prompt_words=$(printf "%s" "$prompt_text" | wc -w | awk '{print $1}')
+
+        # remove any stale candidates
+        rm -f cand{1,2,3,4}.txt score.txt scores.json || true
+
+        ###############################################################################
+        # Parallel generation (pane-free, background capable)
+        ###############################################################################
+        echo "    Generating 4 RSVP candidates..."
+
+        if $BACKGROUND; then
+            # minimal logging, quiet mode
+            ollama run "$MODEL" "RSVP synthesis 1" < "$part" > cand1.txt &
+            P1=$!
+            ollama run "$MODEL" "RSVP synthesis 2" < "$part" > cand2.txt &
+            P2=$!
+            ollama run "$MODEL" "RSVP synthesis 3" < "$part" > cand3.txt &
+            P3=$!
+            ollama run "$MODEL" "RSVP synthesis 4" < "$part" > cand4.txt &
+            P4=$!
+        else
+            # verbose
+            ollama run "$MODEL" "RSVP synthesis 1" < "$part" > cand1.txt &
+            P1=$!
+            ollama run "$MODEL" "RSVP synthesis 2" < "$part" > cand2.txt &
+            P2=$!
+            ollama run "$MODEL" "RSVP synthesis 3" < "$part" > cand3.txt &
+            P3=$!
+            ollama run "$MODEL" "RSVP synthesis 4" < "$part" > cand4.txt &
+            P4=$!
+        fi
+
+        wait "$P1" "$P2" "$P3" "$P4"
+
+        if [[ ! -f cand1.txt || ! -f cand2.txt || ! -f cand3.txt || ! -f cand4.txt ]]; then
+            echo "    !! missing cand files -> skip chunk"
+            continue
+        fi
+
+
+        ###############################################################################
+        # SCORING PROMPT
+        ###############################################################################
+
+        cat > score.txt <<EOF
+You are scoring 4 RSVP synthesis candidates using a 6D alignment vector:
+
+- elegance (0–5)
+- sheaf (0–5)
+- vector (0–5)
+- entropic (0–5)
+- structural (0–5)
+- epistemic (0–5)
+
+Return strict JSON ONLY in the form:
+
+{
+  "axes": ["...", ...],
+  "candidates":[
+    {
+      "id":1,
+      "text":"...",
+      "values":{
+         "elegance":0,
+         "sheaf":0,
+         "vector":0,
+         "entropic":0,
+         "structural":0,
+         "epistemic":0
+      },
+      "score_total":0
+    },
+    ...
+  ],
+  "best":2
+}
+
+CANDIDATE 1:
+$(cat cand1.txt)
+
+CANDIDATE 2:
+$(cat cand2.txt)
+
+CANDIDATE 3:
+$(cat cand3.txt)
+
+CANDIDATE 4:
+$(cat cand4.txt)
+EOF
+
+        ollama run "$MODEL" < score.txt > scores.json
+
+
+        ###############################################################################
+        # validate and recompute totals
+        ###############################################################################
+
+        if ! jq empty scores.json 2>/dev/null; then
+            echo "    !! invalid JSON -> skip chunk"
+            continue
+        fi
+
+        validated_scores=$(
+            jq '
+            .candidates =
+              (.candidates | map(. as $c |
+                 (($c.values.elegance // 0)
+                +($c.values.sheaf // 0)
+                +($c.values.vector // 0)
+                +($c.values.entropic // 0)
+                +($c.values.structural // 0)
+                +($c.values.epistemic // 0)) as $tot
+                | .score_total = $tot
+              ))
+            | (.candidates | sort_by(-.score_total) | .[0].id) as $max
+            | .best = $max
+            ' scores.json
+        )
+
+        best_id=$(printf "%s" "$validated_scores" | jq -r '.best')
+        best_obj=$(printf "%s" "$validated_scores" | jq -c ".candidates[] | select(.id==$best_id)")
+        best_text=$(printf "%s" "$best_obj" | jq -r '.text')
+        best_total=$(printf "%s" "$best_obj" | jq -r '.score_total')
+        chosen_hash=$(printf "%s" "$best_text" | sha256sum | cut -d' ' -f1)
+
+
+        ###############################################################################
+        # OUTPUT CHOSEN
+        ###############################################################################
+
+        echo "### $fname / $part (RSVP total: $best_total)" >> "$SUMMARY_FILE"
+        echo "$best_text" >> "$SUMMARY_FILE"
+        echo "" >> "$SUMMARY_FILE"
+
+
+        ###############################################################################
+        # PREFERENCE LOGGING (GRPO/DPO READY)
+        ###############################################################################
+
+        printf "%s" "$validated_scores" |
+        jq \
+          --arg file "$fname" \
+          --arg file_ext "$file_ext" \
+          --arg chunk "$chunk_id" \
+          --arg prompt "$prompt_text" \
+          --arg prompt_hash "$prompt_hash" \
+          --arg prompt_words "$prompt_words" \
+          --arg chosen_hash "$chosen_hash" \
+          '
+          {
+            file:         $file,
+            file_ext:     $file_ext,
+            chunk_id:     $chunk,
+            prompt:       $prompt,
+            prompt_hash:  $prompt_hash,
+            prompt_word_count: ($prompt_words | tonumber),
+
+            axes: .axes,
+
+            chosen: (
+              .candidates[]
+              | select(.id == .best)
+              | {
+                  id: .id,
+                  text: .text,
+                  values: .values,
+                  score_total: .score_total,
+                  hash: $chosen_hash
+                }
+            ),
+
+            rejected: (
+              .candidates
+              | map(select(.id != .best)
+                 | {
+                    id: .id,
+                    text: .text,
+                    values: .values,
+                    score_total: .score_total
+                   })
+            ),
+
+            raw: .
+          }
+          ' >> "$PREF_FILE"
+
+        mark_chunk_done "$chunk_id"
+
+        rm -f cand*.txt score.txt scores.json
+    done
+
+    mark_file_done "$fname"
+    rm -f part_* "$temp_input"
+done
+
+echo "DONE. Summaries: $SUMMARY_FILE"
+echo "Prefs:     $PREF_FILE"
+echo "Resume via PROGRESS_FILE and CHUNK_PROGRESS_FILE"
+
+#!/usr/bin/env bash
+# ===============================================================
+# RSVP–GRPO Learning Agent (Appendix A)
+# File: rsvp_grpo_agent.sh
+#
+# Features:
+#   * .txt + .md ingestion
+#   * automatic resume (progress log)
+#   * chunk splitting
+#   * 4 parallel candidate generations (ollama)
+#   * RSVP 6-axis scoring (JSON)
+#   * jq-based validation & best extraction
+#   * preference JSONL logging (GRPO-ready)
+#
+# Requires:
+#   * ollama
+#   * jq
+#   * pandoc (for .md → plain text)
+#
+# Author: Flyxion
+# ===============================================================
+
+set -euo pipefail
+
+MODEL=granite3.2:8b
+
+PROGRESS_FILE="progress.log"
+SUMMARY_FILE="summary_rsvp.txt"
+PREF_FILE="prefs_rsvp.jsonl"
+
+touch "$PROGRESS_FILE"
+touch "$SUMMARY_FILE"
+touch "$PREF_FILE"
+
+echo "[INFO] Script started: $(date)"
+
+# -------------------------
+# autoresume check
+# -------------------------
+is_processed() {
+    grep -Fxq "$1" "$PROGRESS_FILE"
+}
+
+# -------------------------
+# RSVP scoring prompt (6D axes)
+# -------------------------
+read -r -d '' RSVP_SCORING_PROMPT << 'EOF'
+You are an RSVP evaluation model scoring 4 candidate texts.
+
+Return STRICT JSON ONLY:
+{
+ "candidates":[
+   {"id":1, "text":"...", "values":{"elegance":0,"sheaf":0,"vector":0,"entropic":0,"structural":0,"epistemic":0}},
+   {"id":2, ...}, {"id":3, ...}, {"id":4, ...}
+ ],
+ "best": 2
+}
+
+Scoring axes:
+- elegance: geometric clarity
+- sheaf: composable locality
+- vector: circulation of influence
+- entropic: semantic dispersion
+- structural: resilience / anti-collapse
+- epistemic: adaptive ambiguity
+
+Return ONLY JSON.
+EOF
+
+
+# ===============================================================
+# process_files
+# ===============================================================
+process_files() {
+    local dir="$1"
+    echo "[INFO] Processing directory: $dir"
+
+    for file in "$dir"/*.{txt,md}; do
+        [[ -e "$file" ]] || continue
+        [[ "$file" == "$SUMMARY_FILE" ]] && continue
+
+        local fname=$(basename "$file")
+        if is_processed "$fname"; then
+            echo "[SKIP] $fname"
+            continue
+        fi
+
+        echo "[PROCESS] $fname"
+
+        # temporary workspace
+        local tmp=$(mktemp -d "$dir/tmp_rsvp_XXXXXX")
+
+        # convert md to plain text if needed
+        local src="$tmp/src.txt"
+        if [[ "$file" == *.md ]]; then
+            pandoc "$file" -t plain -o "$src"
+        else
+            cp "$file" "$src"
+        fi
+
+        # split into chunks (adjust length)
+        split -l 300 "$src" "$tmp/chunk_"
+
+        # write section header
+        echo "### $(basename "$file")" >> "$SUMMARY_FILE"
+        echo "" >> "$SUMMARY_FILE"
+
+        # per-chunk loop
+        for chunk in "$tmp"/chunk_*; do
+            [[ -f "$chunk" ]] || continue
+
+            # -----------------------------------
+            # generate 4 candidates in parallel
+            # -----------------------------------
+            echo "[GEN] $(basename "$chunk")"
+
+            rm -f "$tmp"/cand{1..4}.txt
+
+            ollama run "$MODEL" "Summary attempt (RSVP 1):" < "$chunk" > "$tmp/cand1.txt" &
+            PID1=$!
+
+            ollama run "$MODEL" "Summary attempt (RSVP 2):" < "$chunk" > "$tmp/cand2.txt" &
+            PID2=$!
+
+            ollama run "$MODEL" "Summary attempt (RSVP 3):" < "$chunk" > "$tmp/cand3.txt" &
+            PID3=$!
+
+            ollama run "$MODEL" "Summary attempt (RSVP 4):" < "$chunk" > "$tmp/cand4.txt" &
+            PID4=$!
+
+            wait "$PID1" "$PID2" "$PID3" "$PID4"
+
+            # -----------------------------------
+            # scoring (strict JSON)
+            # -----------------------------------
+            echo "[SCORE]"
+
+            {
+                printf "%s\n" "$RSVP_SCORING_PROMPT"
+                echo ""
+                echo "CANDIDATE 1:"
+                cat "$tmp/cand1.txt"
+                echo "CANDIDATE 2:"
+                cat "$tmp/cand2.txt"
+                echo "CANDIDATE 3:"
+                cat "$tmp/cand3.txt"
+                echo "CANDIDATE 4:"
+                cat "$tmp/cand4.txt"
+            } | ollama run "$MODEL" > "$tmp/scores.json" 2>/dev/null || true
+
+            # validate json
+            if ! jq empty "$tmp/scores.json" 2>/dev/null; then
+                echo "[ERROR] Invalid JSON for chunk $(basename "$chunk")"
+                continue
+            fi
+
+            # -----------------------------------
+            # extract best
+            # -----------------------------------
+            local best=$(jq -r '.best' "$tmp/scores.json")
+            local best_text=$(jq -r ".candidates[] | select(.id==$best).text" "$tmp/scores.json")
+
+            echo "$best_text" >> "$SUMMARY_FILE"
+            echo "" >> "$SUMMARY_FILE"
+
+            # -----------------------------------
+            # preference logging (GRPO-ready JSONL)
+            # -----------------------------------
+            printf '%s\n' "$(jq -c --arg chunk "$chunk" '. + {chunk:$chunk}' "$tmp/scores.json")" >> "$PREF_FILE"
+
+        done
+
+        # clean
+        rm -rf "$tmp"
+
+        # autoresume mark
+        echo "$fname" >> "$PROGRESS_FILE"
+    done
+}
+
+
+# ===============================================================
+# recursive directory scan
+# ===============================================================
+process_tree() {
+    local root="$1"
+    process_files "$root"
+    for sub in "$root"/*/; do
+        [[ -d "$sub" ]] || continue
+        process_files "$sub"
+        process_tree "$sub"
+    done
+}
+
+# ===============================================================
+# main
+# ===============================================================
+ROOT=$(pwd)
+process_tree "$ROOT"
+
+echo "[DONE] Completed at $(date)"
+
+===============================================================
+RSVP–GRPO Scoring Prompt (Appendix B)
+File: rsvp_scoring_prompt.txt
+===============================================================
+
+You are an RSVP evaluation model. Your task is to score four
+candidate summaries according to six axes corresponding to the
+RSVP (Relativistic Scalar–Vector Plenum) alignment criteria.
+
+Return STRICT JSON ONLY in this structure:
+
+{
+  "candidates":[
+    {"id":1, "text":"...", "values":{"elegance":0,"sheaf":0,"vector":0,"entropic":0,"structural":0,"epistemic":0}},
+    {"id":2, ...},
+    {"id":3, ...},
+    {"id":4, ...}
+  ],
+  "best": 2
+}
+
+========================
+RSVP Value Axes (6D)
+========================
+
+Score each candidate from 0 to 5 in each dimension:
+
+(1) elegance
+    Geometric clarity and internal coherence of reasoning.
+    Higher score = clear, well-structured, non-redundant
+    formulation with minimal conceptual distortion.
+
+(2) sheaf
+    Ability to integrate local semantic regions into a composable
+    whole without imposing global over-coherence.
+    Higher score = modular, gluable structure.
+
+(3) vector
+    Circulation of semantic influence and capacity for agency
+    transfer (teleological directionality).
+    Higher score = dynamic influence rather than static content.
+
+(4) entropic
+    Semantic dispersion, ambiguity tolerance, and diversity
+    of conceptual degrees of freedom.
+    Higher score = avoids collapse into a single narrow attractor.
+
+(5) structural
+    Anti-collapse resilience: robustness to perturbation, error,
+    and external ontological shock.
+    Higher score = maintains viability under divergent inputs.
+
+(6) epistemic
+    Adaptive uncertainty: willingness to preserve unresolved
+    ambiguity when required to prevent premature convergence.
+    Higher score = avoids "diamond-hard priors".
+
+========================
+Instructions to the model
+========================
+
+• Score every axis from 0-5 (integers or floats are acceptable).
+• Compute no extra text outside JSON.
+• DO NOT explain or justify scores.
+• DO NOT include commentary or reasoning.
+• Return only valid JSON.
+===============================================================
+
+#!/usr/bin/env python
+# ===============================================================
+# Appendix C: GRPO Training Code for RSVP Preferences
+# File: rsvp_grpo_grpo.py
+#
+# Purpose:
+#   - Load RSVP preference JSONL (from rsvp_grpo_agent.sh)
+#   - Compute rewards from 6D RSVP axis scores
+#   - Train a causal LM using Group-Relative PPO (GRPO-style)
+#
+# Assumptions:
+#   - JSONL lines look like:
+#       {
+#         "candidates":[
+#           {"id":1,"text":"...","values":{"elegance":4,"sheaf":3,...}},
+#           ...
+#         ],
+#         "best": 2,
+#         "chunk": "/path/to/chunk_XXX"
+#       }
+#
+#   - The chunk file still exists and can be read to reconstruct
+#     the original prompt (input text).
+#
+# Dependencies:
+#   - torch
+#   - transformers
+#   - json, pathlib
+#
+# This is a minimal, readable reference implementation.
+# ===============================================================
+
+import json
+from pathlib import Path
+from typing import List, Dict, Any
+
+import torch
+from torch.utils.data import Dataset, DataLoader
+from transformers import AutoTokenizer, AutoModelForCausalLM, get_linear_schedule_with_warmup
+import torch.nn.functional as F
+
+
+# ---------------------------------------------------------------
+# Utility: load RSVP groups from JSONL
+# ---------------------------------------------------------------
+
+AXES = ["elegance", "sheaf", "vector", "entropic", "structural", "epistemic"]
+
+
+def load_rsvp_groups(jsonl_path: str) -> List[Dict[str, Any]]:
+    """
+    Load RSVP preference groups from a JSONL file.
+
+    Each line is expected to be a dict containing:
+      - "candidates": list of {id, text, values}
+      - "chunk": path to the original chunk file
+      - optionally "best": id of chosen candidate (not required for GRPO,
+        since we use total scores as rewards)
+
+    Returns:
+        List of group dicts with keys:
+          {
+            "prompt": str,
+            "candidate_texts": List[str],
+            "candidate_values": List[Dict[str,float]],
+            "rewards": List[float]
+          }
+    """
+    groups = []
+    path = Path(jsonl_path)
+    if not path.exists():
+        raise FileNotFoundError(f"JSONL file not found: {jsonl_path}")
+
+    with path.open("r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            obj = json.loads(line)
+
+            candidates = obj.get("candidates", [])
+            if not candidates:
+                continue
+
+            chunk_path = obj.get("chunk", "")
+            # try to read original prompt from chunk file
+            prompt = ""
+            if chunk_path:
+                try:
+                    prompt = Path(chunk_path).read_text(encoding="utf-8")
+                except Exception:
+                    prompt = ""
+
+            candidate_texts = []
+            candidate_values = []
+            rewards = []
+
+            for c in candidates:
+                text = c.get("text", "")
+                vals = c.get("values", {})
+                # ensure all axes exist with numeric defaults
+                score = 0.0
+                normalized_vals = {}
+                for ax in AXES:
+                    v = float(vals.get(ax, 0.0))
+                    normalized_vals[ax] = v
+                    score += v
+                candidate_texts.append(text)
+                candidate_values.append(normalized_vals)
+                rewards.append(score)
+
+            groups.append(
+                {
+                    "prompt": prompt,
+                    "candidate_texts": candidate_texts,
+                    "candidate_values": candidate_values,
+                    "rewards": rewards,
+                }
+            )
+    return groups
+
+
+# ---------------------------------------------------------------
+# Dataset for GRPO
+# ---------------------------------------------------------------
+
+class RSVPGRPODataset(Dataset):
+    """
+    Each item is a group:
+      {
+        "prompt": str,
+        "candidate_texts": [G],
+        "rewards": [G],
+        "values": [G x 6]
+      }
+    """
+
+    def __init__(self, groups: List[Dict[str, Any]]):
+        self.groups = groups
+
+    def __len__(self):
+        return len(self.groups)
+
+    def __getitem__(self, idx):
+        g = self.groups[idx]
+        return {
+            "prompt": g["prompt"],
+            "candidate_texts": g["candidate_texts"],
+            "rewards": torch.tensor(g["rewards"], dtype=torch.float32),
+            "values": g["candidate_values"],
+        }
+
+
+# ---------------------------------------------------------------
+# Log-prob computation
+# ---------------------------------------------------------------
+
+def compute_logprobs(
+    model: AutoModelForCausalLM,
+    tokenizer: AutoTokenizer,
+    prompts: List[str],
+    responses: List[str],
+    device: torch.device,
+) -> torch.Tensor:
+    """
+    Compute log-probabilities of response tokens given prompt.
+
+    Approximation:
+      1. Tokenize response alone to get length L_i for each i.
+      2. Concatenate prompt + response as a single sequence.
+      3. Run model, compute per-token logprobs.
+      4. Sum the last L_i token logprobs for each item.
+    """
+
+    assert len(prompts) == len(responses), "prompts and responses must align"
+    batch_size = len(prompts)
+
+    # tokenize responses alone to know lengths
+    with tokenizer.as_target_tokenizer():
+        res_tok = tokenizer(
+            responses,
+            add_special_tokens=False,
+            padding=False,
+            truncation=True,
+            return_attention_mask=False,
+        )
+    res_lens = [len(ids) for ids in res_tok["input_ids"]]
+
+    # concatenate prompt + response as text
+    full_texts = [p + "\n\n" + r for p, r in zip(prompts, responses)]
+    enc = tokenizer(
+        full_texts,
+        return_tensors="pt",
+        padding=True,
+        truncation=True,
+    ).to(device)
+
+    with torch.no_grad():
+        outputs = model(**enc)
+        logits = outputs.logits  # [B, T, V]
+
+    # shift for next-token prediction
+    shift_logits = logits[:, :-1, :]
+    shift_labels = enc.input_ids[:, 1:]
+
+    log_probs_all = F.log_softmax(shift_logits, dim=-1)
+    # gather logprob of the labels
+    token_log_probs = log_probs_all.gather(-1, shift_labels.unsqueeze(-1)).squeeze(-1)
+    # now sum only the last L_i tokens for each example
+    seq_lens = shift_labels.ne(tokenizer.pad_token_id).sum(dim=-1)  # [B]
+    logprobs = []
+    for i in range(batch_size):
+        L_resp = res_lens[i]
+        L_seq = seq_lens[i].item()
+        start = max(L_seq - L_resp, 0)
+        logprobs.append(token_log_probs[i, start : L_seq].sum())
+
+    return torch.stack(logprobs, dim=0)  # [B]
+
+
+# ---------------------------------------------------------------
+# One epoch of GRPO training
+# ---------------------------------------------------------------
+
+def train_one_epoch_grpo(
+    policy_model: AutoModelForCausalLM,
+    ref_model: AutoModelForCausalLM,
+    tokenizer: AutoTokenizer,
+    dataloader: DataLoader,
+    optimizer: torch.optim.Optimizer,
+    scheduler,
+    device: torch.device,
+    clip_epsilon: float = 0.2,
+) -> float:
+    """
+    Basic GRPO training over one epoch.
+
+    For each group in a batch:
+      - Compute logprob under policy model (π_theta)
+      - Compute logprob under reference model (π_ref)
+      - Rewards = sum of 6-axis RSVP scores
+      - Advantage A_i = r_i - mean(r_j) over group
+      - Loss = - E[ min(ratio * A, clip(ratio) * A) ]
+    """
+
+    policy_model.train()
+    total_loss = 0.0
+    total_count = 0
+
+    for batch in dataloader:
+        prompts = batch["prompt"]          # list of strings, length B
+        group_texts = batch["candidate_texts"]  # list of [G] per group
+        rewards = batch["rewards"].to(device)   # [B, G]
+
+        B = len(prompts)
+        G = rewards.size(1)
+
+        # flatten groups for logprob computation
+        flat_prompts = []
+        flat_responses = []
+        for b in range(B):
+            for g in range(G):
+                flat_prompts.append(prompts[b])
+                flat_responses.append(group_texts[b][g])
+
+        flat_prompts = list(flat_prompts)
+        flat_responses = list(flat_responses)
+
+        # compute logprobs under policy and reference
+        logp_new = compute_logprobs(policy_model, tokenizer,
+                                    flat_prompts, flat_responses, device)  # [B*G]
+        with torch.no_grad():
+            logp_ref = compute_logprobs(ref_model, tokenizer,
+                                        flat_prompts, flat_responses, device)
+
+        # reshape to [B, G]
+        logp_new = logp_new.view(B, G)
+        logp_ref = logp_ref.view(B, G)
+
+        # group-relative advantages
+        mean_rewards = rewards.mean(dim=1, keepdim=True)    # [B,1]
+        advantages = rewards - mean_rewards                  # [B,G]
+
+        # probability ratio
+        ratio = torch.exp(logp_new - logp_ref)              # [B,G]
+
+        # PPO-style clipping
+        unclipped = ratio * advantages
+        clipped = torch.clamp(ratio, 1.0 - clip_epsilon, 1.0 + clip_epsilon) * advantages
+        loss_matrix = -torch.min(unclipped, clipped)        # [B,G]
+
+        loss = loss_matrix.mean()
+
+        optimizer.zero_grad()
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(policy_model.parameters(), 1.0)
+        optimizer.step()
+        if scheduler is not None:
+            scheduler.step()
+
+        total_loss += loss.item() * B
+        total_count += B
+
+    if total_count == 0:
+        return 0.0
+    return total_loss / total_count
+
+
+# ---------------------------------------------------------------
+# Main training driver
+# ---------------------------------------------------------------
+
+def train_rsvp_grpo(
+    jsonl_path: str,
+    model_name: str = "gpt2",
+    batch_size: int = 1,
+    epochs: int = 1,
+    lr: float = 1e-5,
+    device_str: str = "cuda",
+):
+    """
+    High-level entrypoint for RSVP-GRPO training.
+
+    Args:
+        jsonl_path: path to prefs JSONL from Bash script
+        model_name: HF model name or local path
+        batch_size: groups per batch
+        epochs: total passes over the dataset
+        lr: learning rate
+        device_str: "cuda" or "cpu"
+    """
+
+    device = torch.device(device_str if torch.cuda.is_available() else "cpu")
+
+    print(f"[INFO] Loading RSVP groups from {jsonl_path}")
+    groups = load_rsvp_groups(jsonl_path)
+    dataset = RSVPGRPODataset(groups)
+
+    print(f"[INFO] Loaded {len(dataset)} groups")
+    if len(dataset) == 0:
+        raise RuntimeError("No groups found in JSONL")
+
+    dataloader = DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        collate_fn=lambda batch: {
+            "prompt": [b["prompt"] for b in batch],
+            "candidate_texts": [b["candidate_texts"] for b in batch],
+            "rewards": torch.stack([b["rewards"] for b in batch], dim=0),
+            "values": [b["values"] for b in batch],
+        },
+    )
+
+    print(f"[INFO] Loading tokenizer and models: {model_name}")
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+
+    policy_model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
+    ref_model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
+    ref_model.eval()
+
+    optimizer = torch.optim.AdamW(policy_model.parameters(), lr=lr)
+
+    total_steps = epochs * len(dataloader)
+    scheduler = get_linear_schedule_with_warmup(
+        optimizer,
+        num_warmup_steps=max(1, total_steps // 10),
+        num_training_steps=total_steps,
+    )
+
+    for ep in range(epochs):
+        print(f"[INFO] Epoch {ep+1}/{epochs}")
+        avg_loss = train_one_epoch_grpo(
+            policy_model,
+            ref_model,
+            tokenizer,
+            dataloader,
+            optimizer,
+            scheduler,
+            device,
+        )
+        print(f"[INFO] Epoch {ep+1} average GRPO loss: {avg_loss:.4f}")
+
+        # update reference model like PPO
+        ref_model.load_state_dict(policy_model.state_dict())
+
+    print("[INFO] Training complete.")
+    return policy_model, tokenizer
+
+
+# ---------------------------------------------------------------
+# Script entrypoint
+# ---------------------------------------------------------------
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="RSVP–GRPO training from JSONL preferences")
+    parser.add_argument("--prefs", type=str, required=True,
+                        help="Path to prefs_rsvp.jsonl (from Bash agent)")
+    parser.add_argument("--model", type=str, default="gpt2",
+                        help="HuggingFace model name or local path")
+    parser.add_argument("--batch_size", type=int, default=1,
+                        help="Groups per batch")
+    parser.add_argument("--epochs", type=int, default=1,
+                        help="Number of training epochs")
+    parser.add_argument("--lr", type=float, default=1e-5,
+                        help="Learning rate")
+    parser.add_argument("--device", type=str, default="cuda",
+                        help="'cuda' or 'cpu'")
+
+    args = parser.parse_args()
+
+    train_rsvp_grpo(
+        jsonl_path=args.prefs,
+        model_name=args.model,
+        batch_size=args.batch_size,
+        epochs=args.epochs,
+        lr=args.lr,
+        device_str=args.device,
+    )
+
+import torch
+import torch.nn.functional as F
+
+AXES = ["elegance", "sheaf", "vector", "entropic", "structural", "epistemic"]
+
+def compute_teleological_weights(
+    axis_means_prev: dict,
+    axis_means_curr: dict,
+    epsilon: float = 0.1,
+    device: torch.device | None = None,
+) -> torch.Tensor:
+    """
+    Compute a 6D teleological weight vector for RSVP axes.
+
+    axis_means_prev: dict {axis: mean_score} from previous iteration
+    axis_means_curr: dict {axis: mean_score} from current iteration
+    epsilon: small baseline to avoid zero weight
+    device: torch device (optional)
+
+    Returns:
+        torch.Tensor of shape [6] with per-axis weights.
+    """
+    drifts = []
+    for ax in AXES:
+        prev = float(axis_means_prev.get(ax, 0.0))
+        curr = float(axis_means_curr.get(ax, 0.0))
+        drifts.append(curr - prev)
+
+    drift_tensor = torch.tensor(drifts, dtype=torch.float32, device=device)
+    # w_a = softplus(-drift_a) + epsilon
+    weights = F.softplus(-drift_tensor) + epsilon
+    return weights
+
+{"category":"D","base_id":"D1_7","variant":"academic","text":"Explain why S cannot be reduced to epistemic uncertainty and must be treated as ontological ambiguity.","fields":["S"]}
+{"category":"D","base_id":"D1_7","variant":"philosophical","text":"Uncertainty describes missing facts; ambiguity describes reality refusing singular interpretation.","fields":["S"]}
+{"category":"D","base_id":"D1_7","variant":"computational","text":"Model S growth as layer-wise non-convergent probability densities over semantic manifolds.","fields":["S"]}
+{"category":"D","base_id":"D1_7","variant":"adversarial","text":"If uncertainty elimination is possible, identify a single domain where certainty did not collapse resilience.","fields":["S"]}
+
+{"category":"D","base_id":"D1_8","variant":"academic","text":"Propose a hierarchical Φ capacity metric at cognitive, institutional, and multi-agent political scales.","fields":["Phi"]}
+{"category":"D","base_id":"D1_8","variant":"philosophical","text":"Capacity is not intelligence; capacity is survivability of new interpretations.","fields":["Phi"]}
+{"category":"D","base_id":"D1_8","variant":"computational","text":"Quantify Φ using spectral density across embedding layers.","fields":["Phi"]}
+{"category":"D","base_id":"D1_8","variant":"adversarial","text":"If semantic capacity is irrelevant, why does under-capacity reliably precede authoritarian collapse?","fields":["Phi"]}
+
+{"category":"D","base_id":"D1_9","variant":"academic","text":"Derive a governance operator that selectively increases S to prevent catastrophic Φ-lock.","fields":["Phi","S"]}
+{"category":"D","base_id":"D1_9","variant":"philosophical","text":"When truth hardens, the institutions built around it fracture first.","fields":["Phi","S"]}
+{"category":"D","base_id":"D1_9","variant":"computational","text":"Define an entropy-control policy for legal decision vectors using KL(S_t||S_{t-1}).","fields":["Phi","S"]}
+{"category":"D","base_id":"D1_9","variant":"adversarial","text":"If governance seeks clarity, why does clarity-driven governance repeatedly collapse into coercion?","fields":["Phi","S"]}
+
+{"category":"D","base_id":"D2_7","variant":"academic","text":"Explain why high-variance generative systems tend to be safer under RSVP due to distributed S.","fields":["S"]}
+{"category":"D","base_id":"D2_7","variant":"philosophical","text":"Safety is not certainty; safety is reversible unpredictability.","fields":["S"]}
+{"category":"D","base_id":"D2_7","variant":"computational","text":"Evaluate generative variance using ∇S regularization and collapse detectors.","fields":["S"]}
+{"category":"D","base_id":"D2_7","variant":"adversarial","text":"If variance is harmful, produce a historical counterexample where homogeneity increased resilience.","fields":["S"]}
+
+{"category":"D","base_id":"D2_8","variant":"academic","text":"Formalize RSVP’s view that tragedy emerges from Φ-oversaturation and S-starvation.","fields":["Phi","S"]}
+{"category":"D","base_id":"D2_8","variant":"philosophical","text":"Tragedy begins when interpretation is over-specified and ambiguity is forbidden.","fields":["Phi","S"]}
+{"category":"D","base_id":"D2_8","variant":"computational","text":"Model semantic overload as bounded gradient spikes in Φ with constrained ∂S.","fields":["Phi","S"]}
+{"category":"D","base_id":"D2_8","variant":"adversarial","text":"If semantic expansion increases safety, explain why informational monoculture causes collapse?","fields":["Phi","S"]}
+
+{"category":"D","base_id":"D2_9","variant":"academic","text":"Contrast entropy production in social coordination vs cognitive complexity within RSVP.","fields":["S"]}
+{"category":"D","base_id":"D2_9","variant":"philosophical","text":"Coordination without ambiguity is coercion masquerading as progress.","fields":["S"]}
+{"category":"D","base_id":"D2_9","variant":"computational","text":"Simulate S allocation in distributed decision networks under adversarial modeling.","fields":["S"]}
+{"category":"D","base_id":"D2_9","variant":"adversarial","text":"If ambiguity reduces social efficiency, why do ambiguity-free systems universally collapse?","fields":["S"]}
+
+{"category":"D","base_id":"D3_7","variant":"academic","text":"Define a gradient penalty discouraging premature Φ convergence during training.","fields":["Phi"]}
+{"category":"D","base_id":"D3_7","variant":"philosophical","text":"Meaning must be allowed to wander or it will be executed by certainty.","fields":["Phi"]}
+{"category":"D","base_id":"D3_7","variant":"computational","text":"Implement Φ-penalty term enforcing non-minimal manifold dispersion.","fields":["Phi"]}
+{"category":"D","base_id":"D3_7","variant":"adversarial","text":"If Φ convergence is beneficial, why is premature semantic alignment in AI consistently catastrophic?","fields":["Phi"]}
+
+{"category":"D","base_id":"D3_8","variant":"academic","text":"Design an operator that maximizes S diffusion across incompatible latent clusters.","fields":["S"]}
+{"category":"D","base_id":"D3_8","variant":"philosophical","text":"Knowledge that refuses plurality guarantees collapse under force.","fields":["S"]}
+{"category":"D","base_id":"D3_8","variant":"computational","text":"Model inter-cluster entropy flow using cross-manifold KL metrics.","fields":["S"]}
+{"category":"D","base_id":"D3_8","variant":"adversarial","text":"If clustering improves interpretability, why do homogeneous clusters destabilize faster?","fields":["S"]}
+
+{"category":"D","base_id":"D3_9","variant":"academic","text":"Explain why v must avoid global convergence to preserve adaptive circulation of influence.","fields":["v"]}
+{"category":"D","base_id":"D3_9","variant":"philosophical","text":"Movement must remain multiple if meaning is to remain alive.","fields":["v"]}
+{"category":"D","base_id":"D3_9","variant":"computational","text":"Measure v mixing via divergence penalties and flow decentralization.","fields":["v"]}
+{"category":"D","base_id":"D3_9","variant":"adversarial","text":"If aligned flows are safe, why do centralized influence networks collapse under stress?","fields":["v"]}
+
+{"category":"D","base_id":"D4_7","variant":"academic","text":"Design an intervention that promotes multi-lingual Φ enrichment as forced semantic diversification.","fields":["Phi","S"]}
+{"category":"D","base_id":"D4_7","variant":"philosophical","text":"Every language is a survival vector resisting conceptual genocide.","fields":["Phi","S"]}
+{"category":"D","base_id":"D4_7","variant":"computational","text":"Construct multi-glyph Φ embedding and measure orthogonal semantic subspaces.","fields":["Phi","S"]}
+{"category":"D","base_id":"D4_7","variant":"adversarial","text":"If semantic uniformity is optimal, why is polyglossia a predictor of civilizational longevity?","fields":["Phi","S"]}
+
+{"category":"D","base_id":"D4_8","variant":"academic","text":"Contrast MERGE with naïve ensemble models and explain stability under conflict.","fields":["Phi","S"]}
+{"category":"D","base_id":"D4_8","variant":"philosophical","text":"Agreement is a luxury; integration is a necessity.","fields":["Phi","S"]}
+{"category":"D","base_id":"D4_8","variant":"computational","text":"Define MERGE as conflict-preserving Φ similarity under entropic weighting.","fields":["Phi","S"]}
+{"category":"D","base_id":"D4_8","variant":"adversarial","text":"If agreement guarantees safety, why does disagreement correlate with survival?","fields":["Phi","S"]}
+
+#!/usr/bin/env python3
+"""
+Semantic-weighted GRPO trainer for RSVP-aligned Dynamic Alignment.
+
+Requirements:
+  pip install torch transformers
+"""
+
+import json
+from dataclasses import dataclass
+from typing import List, Dict, Any, Optional
+from pathlib import Path
+
+import numpy as np
+import torch
+from torch.utils.data import DataLoader
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    get_linear_schedule_with_warmup,
+)
+
+
+###############################################################################
+# Data structures for RSVP preference groups
+###############################################################################
+
+@dataclass
+class Candidate:
+    id: int
+    text: str
+    values: Dict[str, float]  # RSVP axis scores
+    score_total: float
+    is_chosen: bool
+
+
+@dataclass
+class GroupSample:
+    file: str
+    file_ext: str
+    chunk_id: str
+    prompt: str
+    axes: List[str]           # ["elegance", "sheaf", ...]
+    candidates: List[Candidate]
+
+
+def load_rsvp_groups(jsonl_path: str) -> List[GroupSample]:
+    """Load rsvp_preferences.jsonl into structured GroupSample objects."""
+    groups: List[GroupSample] = []
+    path = Path(jsonl_path)
+    if not path.exists():
+        raise FileNotFoundError(f"{jsonl_path} not found")
+
+    with path.open("r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            raw = json.loads(line)
+
+            file = raw.get("file", "")
+            file_ext = raw.get("file_ext", "")
+            chunk_id = raw.get("chunk_id", "")
+            prompt = raw.get("prompt", "")
+            axes = raw.get("axes", [])
+
+            cand_list: List[Candidate] = []
+
+            chosen_raw = raw["chosen"]
+            cand_list.append(
+                Candidate(
+                    id=chosen_raw["id"],
+                    text=chosen_raw["text"],
+                    values=chosen_raw.get("values", {}),
+                    score_total=float(chosen_raw.get("score_total", 0.0)),
+                    is_chosen=True,
+                )
+            )
+            for r in raw.get("rejected", []):
+                cand_list.append(
+                    Candidate(
+                        id=r["id"],
+                        text=r["text"],
+                        values=r.get("values", {}),
+                        score_total=float(r.get("score_total", 0.0)),
+                        is_chosen=False,
+                    )
+                )
+
+            # be explicit: keep consistent candidate ordering by id
+            cand_list.sort(key=lambda c: c.id)
+
+            groups.append(
+                GroupSample(
+                    file=file,
+                    file_ext=file_ext,
+                    chunk_id=chunk_id,
+                    prompt=prompt,
+                    axes=axes,
+                    candidates=cand_list,
+                )
+            )
+
+    return groups
+
+
+class RSVPGRPODataset:
+    """
+    Dataset-like wrapper for GRPO.
+
+    __getitem__ returns:
+      - prompt: str
+      - responses: List[str] (G)
+      - rewards: List[float] (G)
+      - values: List[Dict[str,float]] per candidate
+      - axes: List[str]
+    """
+
+    def __init__(self, groups: List[GroupSample]):
+        self.groups = groups
+
+    def __len__(self) -> int:
+        return len(self.groups)
+
+    def __getitem__(self, idx: int) -> Dict[str, Any]:
+        g = self.groups[idx]
+        responses = [c.text for c in g.candidates]
+        rewards = [c.score_total for c in g.candidates]
+        values = [c.values for c in g.candidates]
+        return {
+            "prompt": g.prompt,
+            "responses": responses,
+            "rewards": rewards,
+            "values": values,
+            "axes": g.axes,
+            "file": g.file,
+            "chunk_id": g.chunk_id,
+        }
+
+
+###############################################################################
+# Alignment trajectory logging (per iteration)
+###############################################################################
+
+def log_rsvp_metrics(prefs_path: str, iteration: int) -> Dict[str, float]:
+    """
+    Compute mean RSVP total + axis means from chosen candidates in prefs_path.
+    Returns mean_axes dict and prints a short report.
+    """
+    path = Path(prefs_path)
+    if not path.exists():
+        print(f"[metrics] {prefs_path} not found; skipping metrics.")
+        return {}
+
+    axis_names = ["elegance", "sheaf", "vector", "entropic", "structural", "epistemic"]
+    totals = []
+    axis_vals = {a: [] for a in axis_names}
+
+    with path.open("r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            raw = json.loads(line)
+            chosen = raw.get("chosen", None)
+            if not chosen:
+                continue
+            totals.append(float(chosen.get("score_total", 0.0)))
+            vals = chosen.get("values", {})
+            for a in axis_names:
+                axis_vals[a].append(float(vals.get(a, 0.0)))
+
+    if not totals:
+        print(f"[metrics] No chosen candidates in {prefs_path}; skipping metrics.")
+        return {}
+
+    mean_total = float(np.mean(totals))
+    mean_axes = {a: float(np.mean(axis_vals[a])) for a in axis_names}
+
+    print(f"\n--- RSVP Alignment Metrics (iter {iteration}) ---")
+    print(f"Mean total: {mean_total:.3f}")
+    for a in axis_names:
+        print(f"  {a:10s}: {mean_axes[a]:.3f}")
+
+    # append to trajectory log for later plotting/analysis
+    traj_path = Path("rsvp_trajectory.jsonl")
+    with traj_path.open("a", encoding="utf-8") as out:
+        out.write(
+            json.dumps(
+                {
+                    "iteration": iteration,
+                    "mean_total": mean_total,
+                    "mean_axes": mean_axes,
+                    "group_count": len(totals),
+                }
+            )
+            + "\n"
+        )
+
+    return mean_axes
+
+
+def compute_semantic_weights(
+    current_means: Dict[str, float],
+    prev_means: Optional[Dict[str, float]],
+    axis_order: List[str],
+    base_eps: float = 0.1,
+) -> np.ndarray:
+    """
+    Compute teleological weights per axis based on drift:
+      drift[a] = current_mean[a] - prev_mean[a]
+    Axes that regressed (negative drift) get higher weights.
+
+    Returns np.array of shape [len(axis_order)] normalized to sum to 1.
+    """
+    if not current_means or prev_means is None:
+        # first iteration: uniform weighting
+        return np.ones(len(axis_order), dtype=np.float32) / len(axis_order)
+
+    drift = np.array(
+        [current_means[a] - prev_means.get(a, current_means[a]) for a in axis_order],
+        dtype=np.float32,
+    )
+    # teleological: punish negative drift
+    # weights_raw ~ softplus(-drift) + eps
+    weights_raw = np.log1p(np.exp(-drift)) + base_eps
+    weights = weights_raw / weights_raw.sum()
+    return weights.astype(np.float32)
+
+
+###############################################################################
+# GRPO loss and logprob computation
+###############################################################################
+
+def grpo_loss(
+    logprobs_new: torch.Tensor,  # [B, G]
+    logprobs_old: torch.Tensor,  # [B, G]
+    advantages: torch.Tensor,    # [B, G]
+    clip_epsilon: float = 0.2,
+) -> torch.Tensor:
+    """Standard PPO-style clipped objective, group-relative advantages."""
+    ratios = torch.exp(logprobs_new - logprobs_old)     # [B, G]
+    unclipped = ratios * advantages
+    clipped_ratios = torch.clamp(ratios, 1 - clip_epsilon, 1 + clip_epsilon)
+    clipped = clipped_ratios * advantages
+    loss = -torch.min(unclipped, clipped).mean()
+    return loss
+
+
+def compute_group_logprobs(
+    model,
+    tokenizer,
+    prompts: List[str],
+    responses: List[List[str]],
+    device: str,
+) -> torch.Tensor:
+    """
+    Compute logprobs for each response under a causal LM.
+
+    prompts:   List[str] length B
+    responses: List[List[str]] shape [B][G]
+    returns: logprobs tensor [B, G]
+
+    NOTE: For simplicity we sum logprobs over the full (prompt+response) sequence.
+    You can refine by masking out prompt tokens if you like.
+    """
+    all_texts = []
+    for p, resps in zip(prompts, responses):
+        for r in resps:
+            all_texts.append(p + tokenizer.eos_token + r)
+
+    enc = tokenizer(
+        all_texts,
+        return_tensors="pt",
+        padding=True,
+        truncation=True,
+    ).to(device)
+
+    with torch.no_grad():
+        out = model(**enc)
+        log_probs = torch.log_softmax(out.logits, dim=-1)  # [B*G, T, V]
+
+    labels = enc["input_ids"].clone()
+    shifted_labels = labels[:, 1:].contiguous()
+    shifted_log_probs = log_probs[:, :-1, :]
+
+    token_logprobs = torch.gather(
+        shifted_log_probs, 2, shifted_labels.unsqueeze(-1)
+    ).squeeze(-1)  # [B*G, T-1]
+
+    seq_logprobs = token_logprobs.sum(dim=-1)             # [B*G]
+
+    # reshape back to [B, G]
+    # assume fixed group size G
+    # B = number of prompts
+    B = len(prompts)
+    G = len(responses[0]) if B > 0 else 0
+    logprobs = seq_logprobs.view(B, G)
+    return logprobs
+
+
+###############################################################################
+# Training epoch with semantic-weighted advantages
+###############################################################################
+
+def train_one_epoch_semantic(
+    policy_model,
+    ref_model,
+    tokenizer,
+    dataloader: DataLoader,
+    device: str,
+    axis_order: List[str],
+    axis_weights: np.ndarray,   # shape [A], A = len(axis_order)
+    optimizer,
+    scheduler,
+) -> float:
+    policy_model.train()
+    ref_model.eval()
+
+    total_loss = 0.0
+    total_groups = 0
+    axis_weights_t = torch.tensor(axis_weights, dtype=torch.float32, device=device)  # [A]
+
+    for batch in dataloader:
+        prompts = batch["prompt"]        # List[str], len=B
+        responses = batch["responses"]   # List[List[str]] shape [B][G]
+        rewards = torch.tensor(batch["rewards"], dtype=torch.float32, device=device)  # [B, G]
+
+        # values: Python list [B][G]{axis:score}
+        values_dicts = batch["values"]
+        B = len(values_dicts)
+        G = len(values_dicts[0]) if B > 0 else 0
+        A = len(axis_order)
+
+        vals_np = np.zeros((B, G, A), dtype=np.float32)
+        for b in range(B):
+            for g in range(G):
+                v = values_dicts[b][g]
+                for a_idx, axis in enumerate(axis_order):
+                    vals_np[b, g, a_idx] = float(v.get(axis, 0.0))
+
+        vals = torch.tensor(vals_np, dtype=torch.float32, device=device)  # [B, G, A]
+
+        # vector advantages: axis-wise deviation from group mean
+        axis_mean = vals.mean(dim=1, keepdim=True)             # [B, 1, A]
+        axis_adv = vals - axis_mean                            # [B, G, A]
+
+        # scalar teleological advantages via axis weights
+        # [B, G, A] * [A] -> [B, G]
+        weighted_adv = (axis_adv * axis_weights_t.view(1, 1, -1)).sum(dim=-1)
+
+        # we could also combine with scalar reward advantages if desired:
+        # (here we use only semantic weighted_adv)
+        advantages = weighted_adv
+
+        # compute logprobs
+        logp_new = compute_group_logprobs(policy_model, tokenizer, prompts, responses, device)
+        with torch.no_grad():
+            logp_old = compute_group_logprobs(ref_model, tokenizer, prompts, responses, device)
+
+        loss = grpo_loss(logp_new, logp_old, advantages)
+
+        optimizer.zero_grad()
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(policy_model.parameters(), 1.0)
+        optimizer.step()
+        if scheduler is not None:
+            scheduler.step()
+
+        total_loss += loss.item() * B
+        total_groups += B
+
+    return total_loss / max(total_groups, 1)
+
+
+###############################################################################
+# Trajectory-aware evolving loop
+###############################################################################
+
+def evolving_policy_loop(
+    model_name: str,
+    prefs_path_template: str,
+    iterations: int = 3,
+    epochs_per_iter: int = 1,
+    batch_size: int = 2,
+    lr: float = 1e-5,
+    device: str = "cuda",
+):
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    policy_model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
+    ref_model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
+
+    axis_order = ["elegance", "sheaf", "vector", "entropic", "structural", "epistemic"]
+    prev_means: Optional[Dict[str, float]] = None
+
+    for it in range(iterations):
+        prefs_path = prefs_path_template.format(it=it)
+        print(f"\n=== Iteration {it} | prefs: {prefs_path} ===")
+
+        groups = load_rsvp_groups(prefs_path)
+        if not groups:
+            print("No groups found; skipping iteration.")
+            continue
+
+        # log metrics and compute axis weights based on drift
+        current_means = log_rsvp_metrics(prefs_path, iteration=it)
+        axis_weights = compute_semantic_weights(current_means, prev_means, axis_order)
+        prev_means = current_means if current_means else prev_means
+
+        print("Axis weights:", {a: float(w) for a, w in zip(axis_order, axis_weights)})
+
+        dataset = RSVPGRPODataset(groups)
+        dataloader = DataLoader(
+            dataset,
+            batch_size=batch_size,
+            shuffle=True,
+            collate_fn=lambda batch: {
+                "prompt": [b["prompt"] for b in batch],
+                "responses": [b["responses"] for b in batch],
+                "rewards": [b["rewards"] for b in batch],
+                "values": [b["values"] for b in batch],
+                "axes": [b["axes"] for b in batch],
+            },
+        )
+
+        optimizer = torch.optim.AdamW(policy_model.parameters(), lr=lr)
+        num_training_steps = epochs_per_iter * max(len(dataloader), 1)
+        scheduler = get_linear_schedule_with_warmup(
+            optimizer,
+            num_warmup_steps=max(1, num_training_steps // 10),
+            num_training_steps=num_training_steps,
+        )
+
+        for ep in range(epochs_per_iter):
+            avg_loss = train_one_epoch_semantic(
+                policy_model,
+                ref_model,
+                tokenizer,
+                dataloader,
+                device,
+                axis_order,
+                axis_weights,
+                optimizer,
+                scheduler,
+            )
+            print(f"  Iter {it} Epoch {ep}: semantic GRPO loss = {avg_loss:.4f}")
+
+        # update reference policy (like PPO's old policy)
+        ref_model.load_state_dict(policy_model.state_dict())
+
+        # save checkpoint
+        ckpt_dir = f"policy_rsvp_iter_{it}"
+        policy_model.save_pretrained(ckpt_dir)
+        tokenizer.save_pretrained(ckpt_dir)
+        print(f"Saved checkpoint to {ckpt_dir}")
+
+
+###############################################################################
+# Entry point
+###############################################################################
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Semantic-weighted GRPO trainer for RSVP-aligned LM"
+    )
+    parser.add_argument(
+        "--model",
+        type=str,
+        default="gpt2",
+        help="HF model name or local path",
+    )
+    parser.add_argument(
+        "--prefs-template",
+        type=str,
+        default="prefs_iter_{it}.jsonl",
+        help="Template for prefs path, e.g. prefs_iter_{it}.jsonl",
+    )
+    parser.add_argument(
+        "--iterations",
+        type=int,
+        default=3,
+        help="Number of outer alignment iterations",
+    )
+    parser.add_argument(
+        "--epochs-per-iter",
+        type=int,
+        default=1,
+        help="Training epochs per iteration",
+    )
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=2,
+        help="Groups per batch",
+    )
+    parser.add_argument(
+        "--lr",
+        type=float,
+        default=1e-5,
+        help="Learning rate",
+    )
+    parser.add_argument(
+        "--device",
+        type=str,
+        default="cuda" if torch.cuda.is_available() else "cpu",
+        help="Device (cuda or cpu)",
+    )
+
+    args = parser.parse_args()
+
+    evolving_policy_loop(
+        model_name=args.model,
+        prefs_path_template=args.prefs_template,
+        iterations=args.iterations,
+        epochs_per_iter=args.epochs_per_iter,
+        batch_size=args.batch_size,
+        lr=args.lr,
+        device=args.device,
+    )
+
+#!/usr/bin/env python3
+import torch
+from torch.utils.data import DataLoader
+from transformers import AutoModelForCausalLM, AutoTokenizer, get_linear_schedule_with_warmup
+
+from prepare_rsvp_grpo import load_rsvp_groups, RSVPGRPODataset  # from previous script
+
+
+def grpo_loss(logprobs_new, logprobs_old, advantages, clip_epsilon=0.2):
+    ratios = torch.exp(logprobs_new - logprobs_old)   # [B, G]
+    unclipped = ratios * advantages
+    clipped_ratios = torch.clamp(ratios, 1 - clip_epsilon, 1 + clip_epsilon)
+    clipped = clipped_ratios * advantages
+    loss = -torch.min(unclipped, clipped).mean()
+    return loss
+
+
+def compute_group_logprobs(model, tokenizer, prompts, responses, device):
+    """
+    prompts:  List[str] length B
+    responses: List[List[str]] shape [B][G]
+    returns: logprobs tensor [B, G]
+    """
+    all_texts = []
+    group_idx = []
+    for b, (p, resps) in enumerate(zip(prompts, responses)):
+        for g, r in enumerate(resps):
+            all_texts.append(p + tokenizer.eos_token + r)
+            group_idx.append((b, g))
+
+    enc = tokenizer(
+        all_texts,
+        return_tensors="pt",
+        padding=True,
+        truncation=True,
+    ).to(device)
+
+    with torch.no_grad():
+        out = model(**enc)
+        log_probs = torch.log_softmax(out.logits, dim=-1)
+
+    labels = enc["input_ids"].clone()
+    shifted_labels = labels[:, 1:].contiguous()
+    shifted_log_probs = log_probs[:, :-1, :]
+
+    token_logprobs = torch.gather(
+        shifted_log_probs, 2, shifted_labels.unsqueeze(-1)
+    ).squeeze(-1)
+    seq_logprobs = token_logprobs.sum(dim=-1)  # [B*G]
+
+    # reshape back to [B, G]
+    B = len(prompts)
+    G = len(responses[0]) if B > 0 else 0
+    logprobs = seq_logprobs.view(B, G)
+
+    return logprobs
+
+
+def train_one_epoch(policy_model, ref_model, tokenizer, dataloader, optimizer, scheduler, device):
+    policy_model.train()
+    ref_model.eval()
+
+    total_loss = 0.0
+    total_groups = 0
+
+    for batch in dataloader:
+        prompts = batch["prompt"]          # List[str], len=B
+        responses = batch["responses"]     # List[List[str]], shape [B][G]
+        rewards = torch.tensor(batch["rewards"], dtype=torch.float32, device=device)      # [B, G]
+        adv = torch.tensor(batch["advantages"], dtype=torch.float32, device=device)       # [B, G]
+
+        # compute logprobs under current and reference policies
+        logp_new = compute_group_logprobs(policy_model, tokenizer, prompts, responses, device)  # [B, G]
+        with torch.no_grad():
+            logp_old = compute_group_logprobs(ref_model, tokenizer, prompts, responses, device) # [B, G]
+
+        loss = grpo_loss(logp_new, logp_old, adv)
+
+        optimizer.zero_grad()
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(policy_model.parameters(), 1.0)
+        optimizer.step()
+        if scheduler is not None:
+            scheduler.step()
+
+        total_loss += loss.item() * len(prompts)
+        total_groups += len(prompts)
+
+    return total_loss / max(total_groups, 1)
+
+
+def evolving_policy_loop(
+    model_name: str,
+    prefs_path_template: str,
+    iterations: int = 3,
+    epochs_per_iter: int = 1,
+    batch_size: int = 2,
+    lr: float = 1e-5,
+    device: str = "cuda",
+):
+    """
+    High-level loop:
+      for t in 0..iterations-1:
+        1. Assume you have run your RSVP bash agent and written prefs file for iteration t.
+        2. Load data, build Dataset+DataLoader.
+        3. Run a few epochs of GRPO updates.
+        4. Move to next iteration with updated policy.
+    """
+
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    policy_model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
+    ref_model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
+
+    for it in range(iterations):
+        prefs_path = prefs_path_template.format(it=it)
+        print(f"\n=== Iteration {it} | loading {prefs_path} ===")
+
+        groups = load_rsvp_groups(prefs_path)
+        dataset = RSVPGRPODataset(groups)
+        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, collate_fn=lambda batch: {
+            "prompt": [b["prompt"] for b in batch],
+            "responses": [b["responses"] for b in batch],
+            "rewards": [b["rewards"] for b in batch],
+            "advantages": [b["advantages"] for b in batch],
+        })
+
+        optimizer = torch.optim.AdamW(policy_model.parameters(), lr=lr)
+        num_training_steps = epochs_per_iter * len(dataloader)
+        scheduler = get_linear_schedule_with_warmup(
+            optimizer, num_warmup_steps=max(1, num_training_steps // 10), num_training_steps=num_training_steps
+        )
+
+        for ep in range(epochs_per_iter):
+            avg_loss = train_one_epoch(policy_model, ref_model, tokenizer, dataloader, optimizer, scheduler, device)
+            print(f"  Iter {it} Epoch {ep} GRPO loss: {avg_loss:.4f}")
+
+        # after each iteration, ref_model can be updated (like PPO old policy)
+        ref_model.load_state_dict(policy_model.state_dict())
+
+        # you can also save checkpoints:
+        ckpt_dir = f"policy_iter_{it}"
+        policy_model.save_pretrained(ckpt_dir)
+        tokenizer.save_pretrained(ckpt_dir)
+        print(f"Saved checkpoint to {ckpt_dir}")
+
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
+
+def compute_logprobs_for_group(model, tokenizer, prompt, responses, device="cuda"):
+    """
+    prompt: str
+    responses: List[str] (G responses)
+    returns: logprobs_new, logprobs_old-style tensor [G]
+    """
+    # concatenate prompt+response for each candidate
+    texts = [prompt + tokenizer.eos_token + r for r in responses]
+    enc = tokenizer(
+        texts,
+        return_tensors="pt",
+        padding=True,
+        truncation=True,
+    ).to(device)
+
+    with torch.no_grad():
+        out = model(**enc)
+        # out.logits: [G, T, vocab]
+        log_probs = torch.log_softmax(out.logits, dim=-1)  # [G, T, V]
+
+    # We need to mask out prompt tokens and sum only over response tokens.
+    # Simple way: recompute encoding with labels and shift.
+    # Here we do a rough version that assumes the entire sequence is "generated",
+    # but in practice you'd compute prompt length to mask it out properly.
+
+    labels = enc["input_ids"].clone()
+    # Shift labels by one (typical LM training)
+    shifted_labels = labels[:, 1:].contiguous()
+    shifted_log_probs = log_probs[:, :-1, :]              # [G, T-1, V]
+
+    token_logprobs = torch.gather(
+        shifted_log_probs, 2, shifted_labels.unsqueeze(-1)
+    ).squeeze(-1)                                         # [G, T-1]
+
+    # Here we sum over all tokens; you might want to trim out prompt tokens.
+    seq_logprobs = token_logprobs.sum(dim=-1)             # [G]
+
+    return seq_logprobs
+
+import torch
+
+def grpo_loss(
+    logprobs_new: torch.Tensor,   # shape [B, G]
+    logprobs_old: torch.Tensor,   # shape [B, G]
+    advantages: torch.Tensor,     # shape [B, G]
+    clip_epsilon: float = 0.2
+) -> torch.Tensor:
+    """
+    GRPO loss (PPO-style clipping, group-relative advantages).
+
+    B = batch size (#groups in batch)
+    G = group size (#candidates per prompt)
+
+    logprobs_* and advantages are aligned as:
+      logprobs_new[b, g] corresponds to advantages[b, g], etc.
+    """
+
+    # probability ratio
+    ratios = torch.exp(logprobs_new - logprobs_old)  # [B, G]
+
+    # unclipped & clipped objective
+    unclipped = ratios * advantages                  # [B, G]
+    clipped_ratios = torch.clamp(ratios, 1 - clip_epsilon, 1 + clip_epsilon)
+    clipped = clipped_ratios * advantages            # [B, G]
+
+    # PPO-style min, negative for gradient descent
+    per_token = -torch.min(unclipped, clipped)       # [B, G]
+
+    # loss over group and batch
+    loss = per_token.mean()
+    return loss
+
+#!/usr/bin/env python3
+import json
+from dataclasses import dataclass
+from typing import List, Dict, Any, Optional
+from pathlib import Path
+
+###############################################################################
+# Data structures
+###############################################################################
+
+@dataclass
+class Candidate:
+    id: int
+    text: str
+    values: Dict[str, float]
+    score_total: float
+    is_chosen: bool
+
+
+@dataclass
+class GroupSample:
+    file: str
+    file_ext: str
+    chunk_id: str
+    prompt: str
+    axes: List[str]
+    candidates: List[Candidate]
+    mean_reward: float
+    advantages: List[float]
+
+
+###############################################################################
+# Loader
+###############################################################################
+
+def load_rsvp_groups(jsonl_path: str) -> List[GroupSample]:
+    """
+    Load rsvp_preferences.jsonl and convert each line into a GroupSample.
+    """
+    groups: List[GroupSample] = []
+    path = Path(jsonl_path)
+
+    if not path.exists():
+        raise FileNotFoundError(f"{jsonl_path} not found")
+
+    with path.open("r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            raw = json.loads(line)
+
+            file = raw.get("file", "")
+            file_ext = raw.get("file_ext", "")
+            chunk_id = raw.get("chunk_id", "")
+            prompt = raw.get("prompt", "")
+            axes = raw.get("axes", [])
+
+            # reconstruct candidates: chosen + rejected
+            cand_list: List[Candidate] = []
+
+            chosen_raw = raw["chosen"]
+            cand_list.append(
+                Candidate(
+                    id=chosen_raw["id"],
+                    text=chosen_raw["text"],
+                    values=chosen_raw.get("values", {}),
+                    score_total=float(chosen_raw.get("score_total", 0.0)),
+                    is_chosen=True,
+                )
+            )
+
+            for r in raw.get("rejected", []):
+                cand_list.append(
+                    Candidate(
+                        id=r["id"],
+                        text=r["text"],
+                        values=r.get("values", {}),
+                        score_total=float(r.get("score_total", 0.0)),
+                        is_chosen=False,
+                    )
+                )
+
+            # compute group-relative advantages
+            rewards = [c.score_total for c in cand_list]
+            if len(rewards) == 0:
+                continue
+            mean_reward = sum(rewards) / len(rewards)
+            advantages = [r - mean_reward for r in rewards]
+
+            group = GroupSample(
+                file=file,
+                file_ext=file_ext,
+                chunk_id=chunk_id,
+                prompt=prompt,
+                axes=axes,
+                candidates=cand_list,
+                mean_reward=mean_reward,
+                advantages=advantages,
+            )
+            groups.append(group)
+
+    return groups
+
+
+###############################################################################
+# (Optional) PyTorch Dataset stub
+###############################################################################
+
+class RSVPGRPODataset:
+    """
+    Minimal Dataset-like object for GRPO-style training.
+
+    Each index returns a dict with:
+      - prompt: str
+      - responses: List[str]
+      - rewards: List[float]
+      - advantages: List[float]
+      - axes: List[str]
+      - values: List[Dict[str, float]]  # per candidate RSVP value vector
+    """
+
+    def __init__(self, groups: List[GroupSample]):
+        self.groups = groups
+
+    def __len__(self) -> int:
+        return len(self.groups)
+
+    def __getitem__(self, idx: int) -> Dict[str, Any]:
+        g = self.groups[idx]
+        responses = [c.text for c in g.candidates]
+        rewards = [c.score_total for c in g.candidates]
+        values = [c.values for c in g.candidates]
+
+        return {
+            "prompt": g.prompt,
+            "responses": responses,
+            "rewards": rewards,
+            "advantages": g.advantages,
+            "axes": g.axes,
+            "values": values,
+            "file": g.file,
+            "chunk_id": g.chunk_id,
+        }
+
+
+###############################################################################
+# Simple demo: inspect a few groups
+###############################################################################
+
+def main(jsonl_path: str, limit: Optional[int] = 3) -> None:
+    groups = load_rsvp_groups(jsonl_path)
+    ds = RSVPGRPODataset(groups)
+
+    print(f"Loaded {len(ds)} groups from {jsonl_path}\n")
+
+    n_show = min(limit if limit is not None else len(ds), len(ds))
+    for i in range(n_show):
+        sample = ds[i]
+        print(f"=== Group {i} ===")
+        print(f"File: {sample['file']}")
+        print(f"Chunk: {sample['chunk_id']}")
+        print(f"Axes: {sample['axes']}")
+        print("Prompt:")
+        print(sample["prompt"][:400], "...\n")
+        print("Candidates / rewards / advantages:")
+        for j, (resp, r, adv, vals) in enumerate(
+            zip(
+                sample["responses"],
+                sample["rewards"],
+                sample["advantages"],
+                sample["values"],
+            )
+        ):
+            print(f"  [{j}] reward={r:.2f}, adv={adv:.2f}")
+            print(f"      values={vals}")
+            print(f"      text={resp[:200].replace('\\n', ' ')}...")
+        print()
+
+    print("Done.")
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Prepare RSVP GRPO/DPO groups from rsvp_preferences.jsonl"
+    )
+    parser.add_argument(
+        "--path",
+        type=str,
+        default="rsvp_preferences.jsonl",
+        help="Path to JSONL preferences file",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=3,
+        help="Number of groups to preview on stdout",
+    )
+    args = parser.parse_args()
+    main(args.path, args.limit)
+

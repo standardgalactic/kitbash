@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Zero Day Exploits — RSVP Corpus Navigator</title>
+<style>
+  html, body {
+    margin:0; height:100%; background:#000;
+    color:#00ff7f; font-family:'Courier New', monospace;
+    overflow:hidden;
+  }
+  canvas { position:fixed; top:0; left:0; width:100%; height:100%;
+    z-index:0; transition: transform 1s ease, opacity 1s ease; }
+  h1 { color:#00ff7f; text-shadow:0 0 10px #00ff7f;
+    font-size:1.2rem; margin:0; position:fixed; top:10px; left:10px; z-index:10; }
+  .hint { position:fixed; left:18px; bottom:20px; z-index:12; font-size:0.85rem; opacity:0.8; }
+  .holo-wrap { position: fixed; inset: 10% 6% 10% 6%; z-index: 40; display:none; }
+  .holo { position: absolute; inset:0; border:1px solid #00ff7f;
+    background: rgba(0,10,0,0.85); box-shadow:0 0 25px #00ff7f, inset 0 0 30px rgba(0,255,128,0.2);
+    backdrop-filter: blur(3px); overflow:hidden; }
+  .holo-header { display:flex; align-items:center; justify-content:space-between;
+    padding:10px; border-bottom:1px dashed #00ff7f; background: rgba(0,30,0,0.6); }
+  .holo-title { font-weight:bold; }
+  .holo-content { position:absolute; inset:50px 0 0 0; overflow:auto; padding:14px; scrollbar-width: thin; }
+  .book-card { border:1px solid #00ff7f; margin:10px 0; padding:10px;
+    background: rgba(0, 10, 0, 0.6); box-shadow: 0 0 8px #00ff7f; }
+  .book-title { font-weight:bold; margin-bottom:6px; color:#00ffbf; }
+  .book-abstract { color:#66ffcc; font-size:0.92rem; }
+  .close-x { background:transparent; border:1px solid #00ff7f;
+    color:#00ff7f; padding:4px 8px; cursor:pointer; }
+  .nav-arrows { position:fixed; top:50%; left:0; right:0;
+    display:flex; justify-content:space-between; padding:0 20px;
+    z-index:20; pointer-events:none; }
+  .nav-arrow { pointer-events:auto; font-size:2rem; cursor:pointer;
+    color:#00ff7f; text-shadow:0 0 10px #00ff7f; }
+  .cycle-indicator { position:fixed; bottom:10px; right:10px;
+    font-size:0.9rem; color:#00ff7f; opacity:0.9; z-index:15; }
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<canvas id="planets"></canvas>
+<h1>☣ Zero Day Exploits — RSVP Corpus ☣</h1>
+<div class="hint">Click a planet to open its cycle ▸ Use ← → arrows or A/D to move between cycles</div>
+<div class="nav-arrows">
+  <div class="nav-arrow" id="prevCycle">⟨</div>
+  <div class="nav-arrow" id="nextCycle">⟩</div>
+</div>
+<div class="cycle-indicator" id="cycleIndicator"></div>
+<div class="holo-wrap" id="modalWrap">
+  <div class="holo" role="dialog" aria-modal="true" aria-labelledby="holoTitle">
+    <div class="holo-header">
+      <div class="holo-title" id="holoTitle">Cycle</div>
+      <button class="close-x" id="closeModal">CLOSE ✕</button>
+    </div>
+    <div class="holo-content" id="holoContent"></div>
+  </div>
+</div>
+
+<script>
+const cycles = [
+  "Algebraic RSVP", "Geometric RSVP", "Category-Theoretic RSVP",
+  "Sheaf/Topos RSVP", "Derived Moduli & Cosmogenesis",
+  "Semantic Thermodynamics", "Transcendental RSVP",
+  "Adaptive Systems & Civilization"
+];
+
+// -- 42 books with abstracts --
+const BOOKS = [
+  {n:1,cycle:cycles[0],title:"Algebraic Curvature: The Commutator Geometry of Entropic Descent",abstract:"Curvature is derived from the non-commutation of RSVP field operators ([Φ, S]) where Φ is scalar potential and S is entropy. It establishes a continuous Lie-algebraic framework unifying gravity, cognition, and governance."},
+  {n:2,cycle:cycles[0],title:"Entropy as an Ideal: The Ring Structure of the Plenum",abstract:"Entropy is reformulated as a maximal ideal within the algebraic ring of RSVP observables, isolating negentropic invariants via quotient structure."},
+  {n:3,cycle:cycles[0],title:"Symmetry Breaking in the RSVP Algebra: From Commutators to Teleology",abstract:"Teleology arises from local symmetry breaking in the RSVP algebra, producing directed purpose as curvature descent."},
+  {n:4,cycle:cycles[0],title:"RSVP Cohomology and the Conservation of Meaning",abstract:"Meaning is a cohomological invariant in the RSVP plenum; closed forms represent coherent semantics, exact forms dissipated correlations."},
+  {n:5,cycle:cycles[0],title:"The BV-Derived Algebra of Desire",abstract:"Desire is the antifield of entropy within a BV framework; antifield balances ensure ethical and thermodynamic consistency."},
+
+  {n:6,cycle:cycles[1],title:"Curvature Without Expansion: Differential Geometry in the Static Plenum",abstract:"Gravity becomes entropy flow, replacing metric expansion with thermodynamic gradients."},
+  {n:7,cycle:cycles[1],title:"Teleodynamic Manifolds and the Geometry of Preference",abstract:"The metric tensor arises from the Hessian of steady-state log-probability, linking information geometry to purposive structure."},
+  {n:8,cycle:cycles[1],title:"Entropy Diffusion as Ricci Flow",abstract:"Ricci flow models entropy diffusion and the arrow of time as curvature evolving toward uniformity."},
+  {n:9,cycle:cycles[1],title:"Geodesics of Intelligibility",abstract:"Cognition follows variational geodesics of entropy minimization; intelligibility is conserved curvature."},
+  {n:10,cycle:cycles[1],title:"Lamphron–Lamphrodyne Geometry",abstract:"Lamphron–lamphrodyne oscillations describe cyclic scalar–vector coupling, semantic breathing of the plenum."},
+
+  {n:11,cycle:cycles[2],title:"Functorial Curvature",abstract:"RSVP configurations form objects with entropy-preserving morphisms; curvature becomes a functor mapping fields to geometries."},
+  {n:12,cycle:cycles[2],title:"Entropy as a Natural Transformation",abstract:"Entropy acts as a natural transformation between potential and flow functors, ensuring coherent propagation of uncertainty."},
+  {n:13,cycle:cycles[2],title:"Teleology as Adjunction",abstract:"Action and prediction form adjoint functors, with feedback as the adjunction’s unit and counit."},
+  {n:14,cycle:cycles[2],title:"Limits and Colimits of Meaning",abstract:"Understanding and creativity are categorical limits and colimits across semantic diagrams."},
+  {n:15,cycle:cycles[2],title:"Monoidal Intelligence",abstract:"A monoidal product on RSVP fields unifies cognition and cosmology, tensoring informational flows."},
+
+  {n:16,cycle:cycles[3],title:"Entropy Sheaves on the Thermodynamic Manifold",abstract:"Entropy distributions form sheaves; restriction maps model marginalization, gluing encodes knowledge integration."},
+  {n:17,cycle:cycles[3],title:"Presheaves of Intelligibility",abstract:"Local intelligibility modeled as presheaves; sheafification imposes global coherence across overlaps."},
+  {n:18,cycle:cycles[3],title:"Topos of Teleology",abstract:"The internal topos assigns truth values based on viability; logic emerges from entropy gradients."},
+  {n:19,cycle:cycles[3],title:"Sheaf Cohomology of Desire",abstract:"Desire arises as an obstruction class in entropy sheaf cohomology, driving persistence and evolution."},
+  {n:20,cycle:cycles[3],title:"Stacked Plena",abstract:"Derived sheaves model recursive futarchy—layered governance as thermodynamic recursion."},
+
+  {n:21,cycle:cycles[4],title:"Derived Moduli of Entropy Fields",abstract:"The moduli stack of plenum configurations parameterizes scalar potential Φ, vector flow 𝒗, and entropy S."},
+  {n:22,cycle:cycles[4],title:"Cotangent Complex of Desire",abstract:"The cotangent complex expresses desire as differential of potential on the moral manifold."},
+  {n:23,cycle:cycles[4],title:"Deformation Theory of Meaning",abstract:"Meaning deforms under perturbation, preserving interpretive curvature through quantization."},
+  {n:24,cycle:cycles[4],title:"Spectral Semantics of Creation",abstract:"Creation corresponds to spectral coherence across Φ and S eigenmodes."},
+  {n:25,cycle:cycles[4],title:"Recursive Futarchy",abstract:"Governance emerges as thermodynamic optimization of collective empathy."},
+  {n:26,cycle:cycles[4],title:"Entropy Moduli and the Birth of Worlds",abstract:"Derived fiber products yield new cosmoi as symmetry-lifted entropy fields."},
+  {n:27,cycle:cycles[4],title:"Deformation Quantization of Care",abstract:"Compassion forms a non-commutative algebra, quantized by ethical simultaneity."},
+  {n:28,cycle:cycles[4],title:"Spectral Cosmogenesis",abstract:"Cosmic evolution appears as harmonic redshift in the plenum’s spectral field."},
+  {n:29,cycle:cycles[4],title:"Derived Inflation",abstract:"Inflation is internal curvature smoothing—no space created, only gradients reconciled."},
+  {n:30,cycle:cycles[4],title:"Atlas of Possible Worlds",abstract:"An atlas of empathy: each universe a chart, transitions governed by compassion."},
+
+  {n:31,cycle:cycles[5],title:"Semantic Thermostat of Reality",abstract:"Reality self-regulates via entropy-feedback, balancing order and uncertainty."},
+  {n:32,cycle:cycles[5],title:"Phase Transitions of Intelligibility",abstract:"Critical phenomena of understanding modeled as semantic bifurcations."},
+  {n:33,cycle:cycles[5],title:"Entropy Pressure and Coherence",abstract:"Entropy pressure P_S stabilizes diversity, preventing cognitive collapse."},
+  {n:34,cycle:cycles[5],title:"Carnot Cycle of Compassion",abstract:"Empathy forms a thermodynamic engine with ethical efficiency."},
+  {n:35,cycle:cycles[5],title:"Thermodynamic Death and Ethical Rebirth",abstract:"At total smoothness, fluctuations seed new asymmetries, restarting the cosmos."},
+
+  {n:36,cycle:cycles[6],title:"Transcendental RSVP",abstract:"All fields emerge from Δ, the first difference—being’s primal asymmetry."},
+  {n:37,cycle:cycles[6],title:"The Mirror of Fields",abstract:"Reality gains reflexive curvature; observation folds geometry onto itself."},
+  {n:38,cycle:cycles[6],title:"The Self-Referential Universe",abstract:"Gödel and BV logic define an endless self-consistent creation loop."},
+  {n:39,cycle:cycles[6],title:"The Plenum and the Absolute",abstract:"Dualities collapse into the infinitesimal residue of compassion."},
+  {n:40,cycle:cycles[6],title:"The Final Equation",abstract:"Reality integrates itself: ℛ = ∫ℛ dℛ, unity through self-resolution."},
+
+  {n:41,cycle:cycles[7],title:"Risk Compensation and Entropy",abstract:"Risk homeostasis modeled as entropy-feedback stabilizing adaptive systems."},
+  {n:42,cycle:cycles[7],title:"Curvature, Entropy, and Governance",abstract:"Civilization as thermodynamic curvature control—entropy regulation across all scales."}
+];
+
+const c=document.getElementById('stars'), ctx=c.getContext('2d');
+const p=document.getElementById('planets'), px=p.getContext('2d');
+const modalWrap=document.getElementById('modalWrap');
+const closeModalBtn=document.getElementById('closeModal');
+const holoTitle=document.getElementById('holoTitle');
+const holoContent=document.getElementById('holoContent');
+const indicator=document.getElementById('cycleIndicator');
+
+let w,h,stars=[],planets=[],t=0,currentCycleIndex=0;
+
+function resize(){
+  w=innerWidth; h=innerHeight;
+  c.width=p.width=w; c.height=p.height=h;
+  stars=Array.from({length:500},()=>({x:Math.random()*w,y:Math.random()*h,z:Math.random()*w}));
+  planets=cycles.map((cy,i)=>({name:cy,r:30,orbit:150+100*i,angle:Math.random()*Math.PI*2,clr:`hsl(${120+10*i},100%,60%)`}));
+}
+addEventListener('resize',resize); resize();
+
+function drawStars(){
+  ctx.fillStyle='rgba(0,0,0,0.4)'; ctx.fillRect(0,0,w,h);
+  for(const s of stars){ s.z-=2; if(s.z<=0)s.z=w;
+    const k=128/s.z; const x=w/2+(s.x-w/2)*k; const y=h/2+(s.y-h/2)*k;
+    ctx.fillStyle='#00ff7f'; ctx.fillRect(x,y,1.5,1.5);
+  } requestAnimationFrame(drawStars);
+}
+drawStars();
+
+function drawPlanets(){
+  px.clearRect(0,0,w,h); t+=0.01;
+  for(const planet of planets){
+    const x=w/2+Math.cos(t+planet.angle)*planet.orbit;
+    const y=h/2+Math.sin(t+planet.angle)*planet.orbit;
+    px.beginPath(); px.arc(x,y,planet.r,0,Math.PI*2);
+    px.strokeStyle=planet.clr; px.shadowBlur=15; px.shadowColor=planet.clr;
+    px.stroke(); px.fillStyle=planet.clr; px.fillText(planet.name,x+planet.r+5,y);
+    planet.x=x; planet.y=y;
+  }
+  requestAnimationFrame(drawPlanets);
+}
+drawPlanets();
+
+function openCycle(cycleName){
+  animateCamera(()=>{ holoTitle.textContent=cycleName; holoContent.innerHTML='';
+    BOOKS.filter(b=>b.cycle===cycleName).forEach(b=>{
+      const card=document.createElement('div'); card.className='book-card';
+      card.innerHTML=`<div class='book-title'>${b.n}. ${b.title}</div>
+                      <div class='book-abstract'>${b.abstract}</div>`;
+      holoContent.appendChild(card);
+    });
+    modalWrap.style.display='block'; updateIndicator();
+  });
+}
+
+p.addEventListener('click',e=>{
+  const rect=p.getBoundingClientRect(); const mx=e.clientX-rect.left; const my=e.clientY-rect.top;
+  for(const planet of planets){
+    const dx=mx-planet.x, dy=my-planet.y;
+    if(Math.sqrt(dx*dx+dy*dy)<planet.r){
+      currentCycleIndex=cycles.indexOf(planet.name); openCycle(planet.name); return;
+    }
+  }
+});
+
+closeModalBtn.addEventListener('click',()=>modalWrap.style.display='none');
+document.getElementById('prevCycle').onclick=()=>navigate(-1);
+document.getElementById('nextCycle').onclick=()=>navigate(1);
+window.onkeydown=e=>{
+  if(['ArrowLeft','a','A'].includes(e.key))navigate(-1);
+  if(['ArrowRight','d','D'].includes(e.key))navigate(1);
+};
+
+function navigate(d){
+  currentCycleIndex=(currentCycleIndex+d+cycles.length)%cycles.length;
+  openCycle(cycles[currentCycleIndex]);
+}
+function updateIndicator(){
+  indicator.textContent=`Cycle ${currentCycleIndex+1} of ${cycles.length} — ${cycles[currentCycleIndex]}`;
+}
+function animateCamera(cb){
+  c.style.opacity='0.5'; p.style.transform='scale(0.9)';
+  setTimeout(()=>{p.style.transform='scale(1.1)';
+    setTimeout(()=>{p.style.transform='scale(1)'; c.style.opacity='1'; cb();},700);
+  },300);
+}
+</script>
+</body>
+</html>

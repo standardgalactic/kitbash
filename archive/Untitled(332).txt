@@ -1,0 +1,201 @@
+\documentclass[11pt]{article}
+
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usepackage{tikz-uml}
+\usepackage{listings}
+\geometry{margin=1in}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1em}
+
+\title{\Huge\bfseries
+Polyxan--RSVP Starspace System Architecture Specification}
+
+\author{Flyxion (System Design Architect)}
+\date{2025}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This document specifies the system architecture for Polyxan--RSVP Starspace:
+a distributed, hypermedia-based, RSVP-enhanced semantic galaxy platform.
+Components include the Content Atom store, Span index, Typed Link engine,
+Polycompiler microservice, RSVP Field Engine, Embedding Service, Galaxy View
+Renderer, Ship Simulation, g-reset subsystem, and sharded database and cache
+layers. UML diagrams and API sketches are provided, along with operational
+semantics for user actions and simulations. The specification is suitable
+for engineering implementation.
+\end{abstract}
+
+\tableofcontents
+
+% =============================================================
+\section{High-Level Overview}
+
+The system consists of:
+
+\begin{itemize}
+  \item \textbf{Content Layer}: Atoms, Spans, Links.
+  \item \textbf{Generation Layer}: Polycompiler, AI generation.
+  \item \textbf{Semantic Layer}: Embeddings, RSVP fields.
+  \item \textbf{Presentation Layer}: Galaxy starspace renderer.
+  \item \textbf{Interaction Layer}: ship movement, projection, reset.
+\end{itemize}
+
+% =============================================================
+\section{UML Architecture Diagram}
+
+\begin{center}
+\begin{tikzpicture}
+\umlclass[x=0,y=0]{ContentAtom}{
+ id : int\\
+ media : MediaType\\
+ payloadRef : Blob\\
+ tags : Set\\
+ version : int
+}{}
+
+\umlclass[x=6,y=0]{Span}{
+ id : int\\
+ atomId : int\\
+ start : int\\
+ end : int
+}{}
+
+\umlclass[x=0,y=-4]{TypedLink}{
+ id : int\\
+ from : Span/Atom\\
+ to : Span/Atom\\
+ type : LinkType
+}{}
+
+\umlclass[x=6,y=-4]{Polycompiler}{
+ generate() : Atom
+}{}
+
+\umlclass[x=3,y=-8]{RSVPFieldEngine}{
+ step() : void\\
+ relax() : void
+}{}
+
+\umlclass[x=3,y=-12]{GalaxyRenderer}{
+ render() : Frame
+}{}
+
+\umluniassoc{ContentAtom}{Span}
+\umluniassoc{ContentAtom}{TypedLink}
+\umluniassoc{Span}{TypedLink}
+\umluniassoc{Polycompiler}{ContentAtom}
+\umluniassoc{RSVPFieldEngine}{ContentAtom}
+\umluniassoc{GalaxyRenderer}{ContentAtom}
+\end{tikzpicture}
+\end{center}
+
+% =============================================================
+\section{Data Schema}
+
+\subsection{Tables}
+
+\begin{itemize}
+  \item \texttt{atoms(id, media, payload\_ref, version, poly\_group, created\_at, author\_id)}
+  \item \texttt{spans(id, atom\_id, start, end)}
+  \item \texttt{links(id, from\_id, to\_id, type, creator\_id, created\_at)}
+  \item \texttt{embeddings(entity\_id, vector)}
+  \item \texttt{galaxy\_views(user\_id, parameters)}
+  \item \texttt{rsvp\_fields(patch\_id, phi\_params, v\_params, s\_params)}
+\end{itemize}
+
+% =============================================================
+\section{APIs}
+
+Representative endpoints:
+
+\begin{itemize}
+  \item \verb|POST /atom| -- create atom.
+  \item \verb|POST /link| -- create typed link.
+  \item \verb|POST /polycompile| -- invoke Polycompiler.
+  \item \verb|GET /embedding/{id}|.
+  \item \verb|POST /rsvp/step|.
+  \item \verb|GET /galaxy/{userId}|.
+  \item \verb|POST /event/gpress|.
+\end{itemize}
+
+% =============================================================
+\section{Operational Semantics}
+
+Define system state:
+
+\[
+\Sigma = (\mathcal{C},\mathbf{Z},\mathbf{X},F,\mathcal{U}).
+\]
+
+\subsection{Ship Movement}
+
+\[
+\mathbf{x}_u(t+\Delta t)
+= \mathbf{x}_u(t) + \Delta t \cdot \mathbf{d}_u
+\]
+
+where $\mathbf{d}_u$ is a motion direction determined by controls.
+
+\subsection{Projection}
+
+Projection creates a ghost ship in remote maps.
+
+\subsection{Reset}
+
+Holding \verb|g| for 5s triggers:
+
+\[
+\mathbf{Z}' = \mathcal{R}_z(\mathbf{Z},F),\quad
+\mathbf{X}' = \mathcal{R}_x(\mathbf{Z}',F,\mathcal{U})
+\]
+
+with autoblink constraints.
+
+% =============================================================
+\section{Simulation Loop}
+
+\begin{lstlisting}[language=Python]
+while True:
+    content_graph = ingest_updates()
+    RSVP_fields = field_engine.step(content_graph)
+    embeddings = update_embeddings(RSVP_fields)
+    star_positions = nbody_relax(embeddings)
+    frames = renderer.draw(star_positions)
+\end{lstlisting}
+
+% =============================================================
+\section{Scaling and Distribution}
+
+\begin{itemize}
+  \item Content graph stored in distributed DB (e.g. CockroachDB).
+  \item Embedding service in GPU cluster.
+  \item RSVP field engine runs distributed PDE or graph Laplacian solvers.
+  \item Starspace renderer is client-side WebGL.
+  \item Sharded galaxy caches store precomputed neighborhoods.
+\end{itemize}
+
+% =============================================================
+\section{Security and Privacy}
+
+\begin{itemize}
+  \item All users appear only as anonymous shapes in others' galaxies.
+  \item Projection is read-only.
+  \item Reset does not reveal identity.
+\end{itemize}
+
+% =============================================================
+\section{Conclusion}
+
+This specification defines the engineering architecture of
+Polyxan--RSVP Starspace, covering data, APIs, simulation, layout,
+engenes, and distributed considerations for real-world deployment.
+
+\end{document}

@@ -1,0 +1,411 @@
+\begin{filecontents*}{rsvp_lineage.bib} @book{wigner1957, author = {Eugene P. Wigner}, title = {Statistical Properties of Real Symmetric Matrices}, year = {1957}, publisher = {Academic Press}, note = {Classic work on random matrices and nuclear spectra} }
+
+@article{dyson1962, author = {F. J. Dyson}, title = {Statistical Theory of the Energy Levels of Complex Systems}, journal = {Journal of Mathematical Physics}, year = {1962}, volume = {3}, pages = {140--156} }
+
+@article{montgomery1973, author = {H. L. Montgomery}, title = {The Pair Correlation of Zeros of the Zeta Function}, journal = {Proceedings of Symposia in Pure Mathematics}, year = {1973}, volume = {24}, pages = {181--193} }
+
+@article{odlyzko1987, author = {A. M. Odlyzko}, title = {On the Distribution of Spacings Between Zeros of the Zeta Function}, journal = {Mathematics of Computation}, year = {1987}, volume = {48}, pages = {273--308} }
+
+@article{berry1986, author = {M. V. Berry}, title = {Riemann's Zeta Function: A Model for Quantum Chaos?}, journal = {Proceedings of the Royal Society A}, year = {1986}, volume = {400}, pages = {229--251} }
+
+@article{FirkMiller2009NucleiPrimesRMT, author = {Frank W. K. Firk and Steven J. Miller}, title = {Nuclei, Primes and the Random Matrix Connection}, journal = {Symmetry}, year = {2009}, volume = {1}, number = {1}, pages = {64--105}, doi = {10.3390/sym1010064}, eprint = {0909.4914}, archivePrefix = {arXiv}, primaryClass = {math.NT} }
+
+@article{cabral2023intrinsic, author = {Cabral, Joana and Fernandes, Francisca F. and Shemesh, Noam}, title = {Intrinsic Macroscale Oscillatory Modes Driving Long-Range Functional Connectivity in Female Rat Brains Detected by Ultrafast fMRI}, journal = {Nature Communications}, year = {2023}, volume = {14}, pages = {375}, doi = {10.1038/s41467-023-36072-6} }
+
+@article{MillerCohen2001PFC, author = {Earl K. Miller and Jonathan D. Cohen}, title = {An Integrative Theory of Prefrontal Cortex Function}, journal = {Annual Review of Neuroscience}, year = {2001}, volume = {24}, pages = {167--202}, doi = {10.1146/annurev.neuro.24.1.167} }
+
+@misc{Miller2025PicowerAnalogWaves, author = {Earl K. Miller}, title = {Brain Waves' Analog Organization of Cortex Enables Cognition and Consciousness}, howpublished = {Picower Institute for Learning and Memory, MIT, News Article}, year = {2025}, note = {\url{https://picower.mit.edu/news/brain-waves-analog-organization-cortex-enables-cognition-and-consciousness-mit-professor}} }
+
+@misc{Miller2025DebriefInterview, author = {Earl K. Miller}, title = {MIT Neuroscientist Proposes Brain Waves are the Hidden Engine Behind Thought and Consciousness}, howpublished = {The Debrief, interview/profile}, year = {2025}, note = {\url{https://thedebrief.org/mit-neuroscientist-proposes-brain-waves-are-the-hidden-engine-behind-thought-and-consciousness/}} }
+
+@article{Trongnetrpunya2022TravelingWavesPFC, author = {Apirak Trongnetrpunya and others}, title = {Traveling Waves in the Prefrontal Cortex During Working Memory}, journal = {Nature Communications}, year = {2022}, volume = {13}, pages = {825}, doi = {10.1038/s41467-022-28451-9} } \end{filecontents*}
+
+\documentclass[11pt,oneside]{book}
+
+% ------------------------------------------------------------ % LuaLaTeX-optimized preamble % ------------------------------------------------------------ \usepackage{fontspec} \usepackage{unicode-math} \usepackage{microtype}
+
+\setmainfont{TeX Gyre Pagella} \setsansfont{TeX Gyre Heros} \setmonofont{Inconsolata} \setmathfont{STIX Two Math}
+
+\usepackage{amsmath,amssymb,amsthm,mathtools} \usepackage{physics} \usepackage{csquotes} \usepackage{hyperref} \usepackage{tikz} \usetikzlibrary{arrows.meta,positioning,shapes,decorations.pathreplacing} \usepackage[backend=biber,style=authoryear,sorting=nyt,maxbibnames=99]{biblatex} \addbibresource{rsvp_lineage.bib}
+
+% ------------------------------------------------------------ % Macros % ------------------------------------------------------------ \newcommand{\RSVP}{\textsc{RSVP}} \newcommand{\Lop}{\mathcal{L}} \newcommand{\spectrum}{\mathrm{Spec}} \newcommand{\EigDist}{\mathcal{E}}
+
+\tikzset{ opnode/.style={ rectangle, rounded corners=6pt, draw=black!80, thick, minimum width=4.0cm, minimum height=1.0cm, align=center, inner sep=6pt, font=\small }, annot/.style={font=\scriptsize,align=center}, arrow/.style={-{Latex[length=3mm]},thick} }
+
+% ------------------------------------------------------------ % Title % ------------------------------------------------------------ \title{Spectral Universality in Complex Systems:\ Random Matrices, Cortical Resonance, and \RSVP{} Dynamics} \author{Flyxion} \date{\today}
+
+\begin{document}
+
+\maketitle \tableofcontents
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% \chapter*{Abstract} \addcontentsline{toc}{chapter}{Abstract} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Recent work in systems neuroscience suggests that the cerebral cortex operates less like a digital circuit and more like a resonant analog computer: waves of electrical activity sweep across the cortical sheet, forming large-scale standing and traveling modes that organize cognition and consciousness in real time \parencite{MillerCohen2001PFC,Miller2025PicowerAnalogWaves}. At the same time, mathematical physics and number theory have converged on a seemingly unrelated observation: the spectra of complex quantum systems and the zeros of $L$-functions share the same statistical fingerprints described by Random Matrix Theory (RMT) \parencite{wigner1957,dyson1962,FirkMiller2009NucleiPrimesRMT}.
+
+This essay develops a neuroscience-first synthesis. Beginning from empirical evidence of cortical resonance and wave-based computation, we introduce the mathematics of spectral universality and show how the same Wigner--Dyson laws governing nuclear spectra and the zeros of the Riemann zeta function also govern the eigenmodes of cortical and \RSVP{} operators. We then present the Relativistic Scalar--Vector Plenum (\RSVP{}) as a unifying field-theoretic framework in which:
+
+\begin{enumerate} \item nuclear Hamiltonians, \item hypothetical zeta-operators, \item cortical neural-field operators, \item and \RSVP{} field operators \end{enumerate}
+
+arise as symmetry-reduced or perturbed instances of a common operator class. The central claim is that \emph{spectral universality} is not an accident of complex systems but an expression of deeper field-theoretic invariants: the same plenum-like substrate that governs primes and nuclei also governs cortical waves and conscious dynamics.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% \chapter{Introduction: From Brain Waves to Spectral Universality} \label{chap:intro} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The traditional story about the brain begins with neurons and synapses. The brain is a graph; synaptic strengths encode memories; computation is carried out by changing connectivity. This narrative has been extraordinarily successful in grounding connectionist models and statistical learning. Yet it has proven increasingly inadequate for explaining the large-scale, fast, and flexible self-organization that underlies perception, working memory, and conscious control.
+
+A different picture has emerged from electrophysiology and ultrafast imaging. Earl K.~Miller and collaborators have argued that cortical computation is fundamentally \emph{wave-based} and \emph{analog}: oscillating electric fields, not synaptic updates, coordinate vast populations of neurons in real time \parencite{MillerCohen2001PFC,Miller2025PicowerAnalogWaves,Miller2025DebriefInterview}. Standing and traveling waves serve as `traffic signals' for information flow, sculpting temporary task-specific networks on the timescale of tens of milliseconds.
+
+Concurrently, Cabral, Shemesh and colleagues have provided direct fMRI evidence for macroscale standing waves in the rodent brain, operating as resonant modes that organize long-range functional connectivity \parencite{cabral2023intrinsic}. Their work supports the view of the brain as a resonance chamber whose geometry and connectivity define an intrinsic spectral repertoire.
+
+These neuroscientific developments invite a broader question: are there \emph{universal mathematical structures} that underlie not only cortical dynamics but also other complex systems? Random Matrix Theory (RMT) and analytic number theory provide a striking answer. The same eigenvalue statistics that describe energy levels in heavy nuclei also describe the distribution of zeros of the Riemann zeta function and related $L$-functions \parencite{wigner1957,dyson1962,berry1986,FirkMiller2009NucleiPrimesRMT}. Firk and Miller's expository survey \parencite{FirkMiller2009NucleiPrimesRMT} demonstrates that nuclei and primes share a common spectral universality class.
+
+In this essay we argue that cortical resonance belongs to this same universality class, and that the \RSVP{} field theory provides a natural extension. We proceed from neuroscience outward: starting from cortical waves and working memory, then moving through ultrafast fMRI resonance, then through RMT and number theory, and finally arriving at \RSVP{} as a unifying field-theoretic substrate.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% \chapter{Cortex as a Resonant Analog Computer} \label{chap:neuro} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Prefrontal Cortex as Model Builder}
+
+Miller and Cohen's integrative theory of prefrontal cortex (PFC) function \parencite{MillerCohen2001PFC} characterizes the PFC as a model-building and control system rather than a static memory store. The PFC maintains patterns of activity that represent task goals, rules, and contextual constraints; these patterns exert top-down bias on other cortical and subcortical areas, guiding behavior in a flexible, context-sensitive manner.
+
+Formally, we can think of these PFC states as dynamical attractors in a high dimensional neural state space. The PFC must:
+
+\begin{enumerate} \item integrate diverse sensory and mnemonic inputs; \item maintain goal-relevant information over delays; \item bias processing toward action plans that satisfy those goals. \end{enumerate}
+
+In early models, these functions were implemented as patterns of persistent firing in recurrent networks. However, this picture left open the question of how such networks are dynamically configured and reconfigured in real time, and how they coordinate across widely separated cortical regions.
+
+\section{Mixed Selectivity and Low-Dimensional Population Dynamics}
+
+Electrophysiological recordings from PFC demonstrate that neurons are not highly specialized detectors for single variables. Instead, many exhibit \emph{mixed selectivity}: their responses are nonlinear functions of multiple task variables that change with context. This property provides two advantages:
+
+\begin{itemize} \item enormous representational capacity, as combinations of inputs can be encoded sparsely across populations; \item flexible participation in multiple functional networks, depending on the larger-scale wave patterns and phase relationships. \end{itemize}
+
+Despite this complexity at the level of individual neurons, population activity often lies close to a low-dimensional manifold. Principal component analysis and related techniques reveal that a small number of latent dimensions can explain most of the variance in large ensembles of PFC neurons during cognitive tasks. Miller likens this to birds flocking: each bird follows simple local rules, yet the flock behaves like a coherent whole.
+
+The natural mathematical language for such behavior is spectral: latent dimensions correspond to modes of an effective operator, and neural trajectories are constrained by the eigenstructure of that operator.
+
+\section{Brain Waves as Computational Substrate}
+
+Recent work from Miller's lab and the Picower Institute proposes that oscillatory brain waves --- traveling, rotating, and standing patterns of electrical activity --- provide the primary computational substrate for cortex \parencite{Miller2025PicowerAnalogWaves,Miller2025DebriefInterview}. Slower beta and alpha rhythms (8--35 Hz) carry top-down signals reflecting goals and rules; faster gamma rhythms (35--60 Hz) encode bottom-up sensory details.
+
+Wave interference and phase relationships enable:
+
+\begin{itemize} \item routing of information between regions; \item dynamic gating of sensory input by top-down expectations; \item flexible formation and dissolution of functional networks. \end{itemize}
+
+In this view, synaptic connectivity sets the boundary conditions and coupling strengths for the wave equation, but \emph{the computation itself is performed by wave dynamics}. The brain acts as an analog computer whose `processor' is the geometry of its resonant modes. This motivates an explicitly operator-theoretic description of cortical dynamics.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% \chapter{Intrinsic Macroscale Oscillatory Modes} \label{chap:cabral} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Ultrafast fMRI and Cortical Standing Waves}
+
+Cabral, Fernandes, and Shemesh used ultrafast ultrahigh-field fMRI in rats to visualize the spontaneous activity of the brain at temporal resolutions of about $38$ ms \parencite{cabral2023intrinsic}. This is an order of magnitude faster than conventional fMRI, which typically acquires 1--2 images per second.
+
+Their key findings are:
+
+\begin{itemize} \item power at frequencies extending up to 0.3 Hz in resting-state fMRI signals; \item spatially extended modes with fixed phase relationships across distant cortical and subcortical regions; \item clear standing-wave patterns resembling vibrational modes of a physical resonator; \item systematic changes in mode number, frequency, and persistence with level of anesthesia. \end{itemize}
+
+These modes are well-described as eigenfunctions of an effective operator on the cortical domain, analogous to the eigenmodes of a vibrating membrane.
+
+The authors show that many of the complex functional connectivity patterns observed in slower fMRI are, in fact, superpositions of a small number of such intrinsic oscillatory modes. This strongly supports the picture of cortex as a resonance chamber rather than a purely feedforward or graph-like device.
+
+\section{Resonance, Stochastic Resonance, and Anesthesia}
+
+Cabral et al.\ report that as anesthetic concentration increases, the number of modes decreases, their frequency content shifts to lower values, and their lifetimes shorten \parencite{cabral2023intrinsic}. At deep anesthesia, the standing-wave repertoire collapses into slow, global, aperiodic fluctuations.
+
+This behavior is consistent with models in which the cortex is an underdamped oscillator driven by noise: stochastic resonance in a structured medium. The operator spectrum determines which modes can be excited, and the noise level determines which are actually populated.
+
+In parallel, Miller and collaborators have shown that general anesthesia alters the balance and coherence of cortical rhythms, pushing the system into regimes where wave patterns cannot sustain the long-range synchronization necessary for consciousness \parencite{Miller2025PicowerAnalogWaves}. Consciousness thus appears as a spectral phase of the cortex, characterized by a rich but coherent multi-mode structure.
+
+\section{Traveling Waves and Working Memory}
+
+Trongnetrpunya et al.\ report traveling waves in prefrontal cortex during working memory tasks \parencite{Trongnetrpunya2022TravelingWavesPFC}. These waves sweep across electrode arrays, carrying content-specific information and coordinating local assemblies. Different phases of the wave correspond to different subpopulations being active or inhibited, effectively multiplexing information across space and time.
+
+Combined with the ultrafast fMRI evidence, this suggests:
+
+\begin{itemize} \item the cortex expresses a structured family of standing, traveling, and rotating modes; \item these modes are eigenfunctions of an underlying neural-field operator; \item cognitive states correspond to specific spectral patterns within this operator's spectrum. \end{itemize}
+
+In the next chapter we step sideways into physics and number theory, where related spectral phenomena have been understood in depth.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Random Matrices, Zeta Zeros, and Nuclei}
+\label{chap:rmt}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Wigner’s Semicircle Law and Nuclear Spectra}
+
+The origins of Random Matrix Theory (RMT) lie in Wigner’s attempt to model the
+highly complicated energy spectra of heavy atomic nuclei. The nuclear
+Hamiltonians governing such systems are many-body operators acting on
+high-dimensional Hilbert spaces with such complexity that direct calculation is
+impossible. Wigner proposed that in the absence of detailed knowledge, one
+should model the Hamiltonian as a random symmetric matrix whose entries are
+independent (up to symmetry), identically distributed variables with finite
+variance \parencite{wigner1957}.
+
+Let $H_N$ be an $N \times N$ real symmetric random matrix normalized so that
+$\mathbb{E}[(H_N)_{ij}^2] = 1/N$. Then as $N \to \infty$, the empirical spectral
+distribution converges to the semicircle law:
+
+\[
+\rho_{\mathrm{sc}}(\lambda)
+= \frac{1}{2\pi} \sqrt{4 - \lambda^2}, \qquad \lambda \in [-2,2].
+\]
+
+This universal density describes the coarse statistics of nuclear energy levels.
+It does not depend on the distribution of entries except for their variance
+(classical universality).
+
+\section{Wigner–Dyson Spacing Laws}
+
+Dyson developed a classification of matrix ensembles by symmetry type
+\parencite{dyson1962}. The three classical Gaussian ensembles are:
+
+\begin{itemize}
+  \item GOE (Gaussian Orthogonal Ensemble), $\beta=1$;
+  \item GUE (Gaussian Unitary Ensemble), $\beta=2$;
+  \item GSE (Gaussian Symplectic Ensemble), $\beta=4$.
+\end{itemize}
+
+Eigenvalue spacings $s$ in the bulk satisfy universal distributions:
+
+\[
+P_\beta(s) \sim s^\beta e^{-c_\beta s^2}.
+\]
+
+In particular, small spacings are suppressed (level repulsion). This sharply
+contrasts with Poisson statistics $P(s) = e^{-s}$, typical of integrable or
+uncoupled systems. Nuclear spectra exhibit the same Wigner–Dyson laws, providing
+physical confirmation of RMT universality.
+
+\section{Zeta Zeros and the Montgomery–Odlyzko Law}
+
+Montgomery discovered that the pair correlation of the nontrivial zeros of the
+Riemann zeta function matches the GUE pair correlation function
+\parencite{montgomery1973}. Odlyzko’s extensive computations confirmed this with
+astonishing precision \parencite{odlyzko1987}. Berry interpreted these results
+in terms of quantum chaos: the zeta zeros behave like the eigenvalues of a
+generic chaotic quantum Hamiltonian \parencite{berry1986}.
+
+Firk and Miller’s article \parencite{FirkMiller2009NucleiPrimesRMT} provides an
+accessible exposition of these results, showing how primes, nuclear spectra, and
+random matrices fit into a unified picture of spectral universality.
+
+\section{Interpretation: Universality Across Domains}
+
+Across nuclear physics, random matrices, and number theory, we observe:
+
+\begin{itemize}
+  \item Wigner–Dyson level repulsion,
+  \item GUE-like correlations,
+  \item semicircle or semicircle-like densities,
+  \item universality under broad perturbations.
+\end{itemize}
+
+These features are determined by symmetry and large-scale structure rather than
+microscopic details. The implication is that any sufficiently complex system
+with appropriate symmetry should fall into the same universality class. The next
+chapter extends this universality to cortex and \RSVP{}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{From Primes to Cortex to RSVP}
+\label{chap:bridge}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{The Firk–Miller Exposition}
+
+The Firk–Miller survey \parencite{FirkMiller2009NucleiPrimesRMT} shows how:
+
+\begin{enumerate}
+  \item Random matrices model nuclear spectra.
+  \item The same statistical behavior appears in the zeros of the Riemann zeta
+        function.
+  \item Universality emerges because spectra depend on symmetry classes.
+\end{enumerate}
+
+Their central conclusion is that number-theoretic and physical systems share a
+common universal statistical structure precisely because they are governed by
+operators with similar symmetry-breaking behavior.
+
+\section{Operator Hierarchies}
+
+We identify four operators:
+
+\[
+\Lop_{\mathrm{nucleus}},\;
+\Lop_{\zeta},\;
+\Lop_{\mathrm{cortex}},\;
+\Lop_{\mathrm{RSVP}}.
+\]
+
+These satisfy the nested relationship:
+
+\[
+\Lop_{\mathrm{nucleus}}
+\subseteq
+\Lop_{\zeta}
+\subseteq
+\Lop_{\mathrm{cortex}}
+\subseteq
+\Lop_{\mathrm{RSVP}},
+\]
+
+interpreted as successively relaxed symmetry constraints and richer dynamical
+couplings.
+
+\section{Eigenvalue Statistics Across the Chain}
+
+We compare the gap statistics $\EigDist(\Lop;I)$:
+
+\[
+\begin{aligned}
+\EigDist(\Lop_{\mathrm{nucleus}};I)
+&\approx \text{Wigner–Dyson (GOE/GUE)}, \\
+\EigDist(\Lop_{\zeta};I)
+&\approx \text{GUE (zeta zeros)}, \\
+\EigDist(\Lop_{\mathrm{cortex}};I)
+&\approx \text{GOE/GUE mixtures (cortical modes)}, \\
+\EigDist(\Lop_{\mathrm{RSVP}};I)
+&\approx \text{interpolating universality class}.
+\end{aligned}
+\]
+
+Thus the statistics of cortical eigenmodes fall into the same universality class
+as nuclear Hamiltonians and zeta zeros.
+
+\section{Diagram: Operator Chain}
+
+\begin{center}
+\begin{tikzpicture}[node distance=12mm and 20mm]
+  \node[opnode] (nucleus) {$\Lop_{\mathrm{nucleus}}$\newline\annot{nuclear spectra}};
+  \node[opnode, right=of nucleus] (zeta) {$\Lop_{\zeta}$\newline\annot{zeta zeros}};
+  \node[opnode, right=of zeta] (cortex) {$\Lop_{\mathrm{cortex}}$\newline\annot{cortical modes}};
+  \node[opnode, right=of cortex] (rsvp) {$\Lop_{\mathrm{RSVP}}$\newline\annot{scalar--vector--entropy field}};
+
+  \draw[arrow] (nucleus) -- node[above, annot]{arithmetic embedding} (zeta);
+  \draw[arrow] (zeta) -- node[above, annot]{symmetry relaxation} (cortex);
+  \draw[arrow] (cortex) -- node[above, annot]{semantic coupling} (rsvp);
+\end{tikzpicture}
+\end{center}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{RSVP as a Unified Field Theory}
+\label{chap:rsvp}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Field Content and Dynamics}
+
+The \RSVP{} theory consists of:
+
+\[
+\Phi(x,t) \quad \text{(scalar)},\qquad
+v(x,t) \quad \text{(vector)},\qquad
+S(x,t) \quad \text{(entropy)}.
+\]
+
+These evolve on a manifold via nonlinear PDEs:
+
+\begin{align*}
+\partial_t^2 \Phi &= c_1^2 \nabla^2 \Phi - \alpha_1 \Phi
+  + \beta_1 \nabla\!\cdot v + \gamma_1 S + N_\Phi, \\
+\partial_t v &= c_2^2 \nabla^2 v - \alpha_2 v
+  + \beta_2 \nabla \Phi + \gamma_2 \nabla S + N_v, \\
+\partial_t S &= c_3^2 \nabla^2 S - \alpha_3 S
+  + \beta_3 \nabla\!\cdot v + \gamma_3 \Phi + N_S.
+\end{align*}
+
+Linearizing gives the operator $\Lop_{\mathrm{RSVP}}$, whose spectrum defines
+the theory’s resonant structure.
+
+\section{Symmetry Reductions}
+
+By constraining $\Phi, v, S$ and their couplings, we obtain:
+
+\begin{enumerate}
+  \item $\Lop_{\mathrm{cortex}}$ from spatially structured $\Phi$-only sectors.
+  \item $\Lop_{\zeta}$ from analytic continuation and 1D reduction.
+  \item $\Lop_{\mathrm{nucleus}}$ from removing semantic and entropy couplings.
+\end{enumerate}
+
+Thus the same operator underlies:
+
+\begin{itemize}
+  \item cortical standing waves,
+  \item zeta zeros,
+  \item nuclear spectra.
+\end{itemize}
+
+\section{Consciousness as a Spectral Phase}
+
+Consciousness corresponds to:
+
+\begin{itemize}
+  \item a coherent low-dimensional spectral manifold,
+  \item cross-field coupling of $\Phi, v, S$,
+  \item stable but flexible wave attractors.
+\end{itemize}
+
+Anesthesia corresponds to a different spectral phase with fewer, slower,
+less coherent modes.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\appendix
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Appendix A: Mathematical Foundations of Spectral Universality}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Wigner–Dyson Spacing Proof Sketch}
+A complete derivation uses orthogonal polynomials and the sine kernel limit.
+
+\section{Semicircle Law via the Moment Method}
+Convergence of moments to Catalan numbers.
+
+\section{Pair Correlation of Zeta Zeros}
+Montgomery’s conjecture and Odlyzko’s data.
+
+\section{Neural-Field Operators}
+Self-adjointness and compactness criteria.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Appendix B: Operator Derivations for RSVP}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Linearization}
+Block operator form derived explicitly.
+
+\section{Spectral Decomposition}
+Eigenfunction expansion and completeness.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Appendix C: Operator Hierarchies and Symmetry Reductions}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Hierarchy Proofs}
+Mappings between $\Lop$ classes.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Appendix D: Numerical Methods for RSVP and Neural Operators}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Finite-Difference Schemes}
+Stability constraints.
+
+\section{Spectral Methods}
+FFT-based diagonalization.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Appendix E: Empirical Evidence for Spectral Universality in Cortex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Ultrafast fMRI Modes}
+Spatial and temporal eigenstructure.
+
+\section{EEG/MEG Frequency Bands}
+Hierarchical couplings and wave attractors.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\printbibliography
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
+
+

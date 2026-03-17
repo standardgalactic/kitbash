@@ -1,0 +1,119 @@
+/* sp_replay.c */
+#include "sp_replay.h"
+
+/* ------------------------------------------------------------
+ * Init
+ * ------------------------------------------------------------ */
+void sp_replay_init(sp_replay_ctx_t* ctx,
+                    void* io_ctx,
+                    sp_replay_read_fn read_fn,
+                    void* payload_buf,
+                    uint32_t payload_cap,
+                    void* user) {
+  ctx->io_ctx = io_ctx;
+  ctx->read = read_fn;
+  ctx->payload = payload_buf;
+  ctx->payload_cap = payload_cap;
+  ctx->user = user;
+}
+
+/* ------------------------------------------------------------
+ * Blob validation
+ * ------------------------------------------------------------ */
+sp_status_t sp_evt_validate_blobs(const void* payload,
+                                  uint32_t payload_len,
+                                  const sp_evt_blob_ref_t* refs,
+                                  uint32_t ref_count) {
+  (void)payload;
+  for (uint32_t i = 0; i < ref_count; i++) {
+    const sp_evt_blob_ref_t* r = &refs[i];
+    if (r->len == 0) continue;
+    if (r->off > payload_len) return SP_EINVAL;
+    if (r->off + r->len > payload_len) return SP_EOVERFLOW;
+  }
+  return SP_OK;
+}
+
+/* ------------------------------------------------------------
+ * Read helpers
+ * ------------------------------------------------------------ */
+static sp_status_t read_exact(sp_replay_ctx_t* ctx, void* buf, uint32_t len) {
+  return ctx->read(ctx->io_ctx, buf, len);
+}
+
+/* ------------------------------------------------------------
+ * Main replay step
+ * ------------------------------------------------------------ */
+sp_status_t sp_replay_next(sp_replay_ctx_t* ctx,
+                           const sp_replay_handlers_t* handlers) {
+  /* Attempt to read event header */
+  sp_status_t s = read_exact(ctx, &ctx->hdr, sizeof(sp_event_hdr_t));
+  if (s != SP_OK) return SP_ENOENT; /* treat as EOF */
+
+  if (ctx->hdr.payload_len > ctx->payload_cap)
+    return SP_EOVERFLOW;
+
+  if (ctx->hdr.payload_len > 0) {
+    s = read_exact(ctx, ctx->payload, ctx->hdr.payload_len);
+    if (s != SP_OK) return s;
+  }
+
+  const void* payload = ctx->payload;
+
+  /* Dispatch */
+  switch (ctx->hdr.op) {
+    case SP_OP_POP:
+      return handlers->on_pop
+        ? handlers->on_pop(ctx, &ctx->hdr, payload)
+        : SP_OK;
+
+    case SP_OP_LINK:
+      return handlers->on_link
+        ? handlers->on_link(ctx, &ctx->hdr, payload)
+        : SP_OK;
+
+    case SP_OP_UNLINK:
+      return handlers->on_unlink
+        ? handlers->on_unlink(ctx, &ctx->hdr, payload)
+        : SP_OK;
+
+    case SP_OP_MERGE:
+      return handlers->on_merge
+        ? handlers->on_merge(ctx, &ctx->hdr, payload)
+        : SP_OK;
+
+    case SP_OP_SPLIT:
+      return handlers->on_split
+        ? handlers->on_split(ctx, &ctx->hdr, payload)
+        : SP_OK;
+
+    case SP_OP_COLLAPSE:
+      return handlers->on_collapse
+        ? handlers->on_collapse(ctx, &ctx->hdr, payload)
+        : SP_OK;
+
+    case SP_OP_SET_META:
+      return handlers->on_set_meta
+        ? handlers->on_set_meta(ctx, &ctx->hdr, payload)
+        : SP_OK;
+
+    case SP_OP_ORDER_CREATE:
+      return handlers->on_order_create
+        ? handlers->on_order_create(ctx, &ctx->hdr, payload)
+        : SP_OK;
+
+    case SP_OP_ORDER_CONSTRAIN:
+      return handlers->on_order_constrain
+        ? handlers->on_order_constrain(ctx, &ctx->hdr, payload)
+        : SP_OK;
+
+    case SP_OP_TICK:
+      return handlers->on_tick
+        ? handlers->on_tick(ctx, &ctx->hdr, payload)
+        : SP_OK;
+
+    default:
+      /* Unknown op: skip safely */
+      return SP_OK;
+  }
+}

@@ -1,0 +1,196 @@
+# Python code to generate a MIDI file using Spherepop/RSVP-inspired mappings.
+# This code uses only Python standard library and writes a simple Format 0 MIDI file.
+# It maps RSVP fields to musical parameters:
+# - Phi (Φ) scalar [0..1] -> tempo (microseconds per quarter note) and base velocity
+# - S (entropy) [0..1] -> note choice randomness, rest probability, interval variance
+# - v (vector) [-1..1] -> melodic direction bias (negative = descending, positive = ascending)
+# - resistance (r) [0..1] -> inserts "anti-admissible" motifs (irregular durations / syncopation)
+#
+# Usage: call generate_midi(...). The resulting file is written to /mnt/data/spherepop_rsvp_generator.mid
+# After running, a download link will be provided.
+import struct, random, math, os
+
+OUTPATH = "spherepop_rsvp_generator.mid"
+
+# --- MIDI byte helpers -----------------------------------------------------
+def vlq(n):
+    """Write variable length quantity for MIDI delta times."""
+    bytes_ = []
+    bytes_.append(n & 0x7F)
+    n >>= 7
+    while n > 0:
+        bytes_.insert(0, 0x80 | (n & 0x7F))
+        n >>= 7
+    return bytes(bytearray(bytes_))
+
+def meta_event(delta, type_byte, data_bytes):
+    return vlq(delta) + bytes([0xFF, type_byte, len(data_bytes)]) + data_bytes
+
+def midi_event(delta, status_byte, data_bytes):
+    return vlq(delta) + bytes([status_byte]) + data_bytes
+
+# --- Musical helpers ------------------------------------------------------
+SCALES = {
+    "major": [0,2,4,5,7,9,11],
+    "minor": [0,2,3,5,7,8,10],
+    "pentatonic": [0,3,5,7,10],
+}
+BASE_PITCH = 60  # middle C
+
+def choose_next_pitch(prev_pitch, v_bias, entropy, scale):
+    """Choose next pitch biased by vector v and entropy S.
+    v_bias in [-1,1], entropy in [0,1]."""
+    # Determine step size distribution
+    # low entropy -> small step (0-2 scale degrees). high entropy -> wider leaps.
+    max_step = 1 + int(entropy * 6)  # up to 7 scale degrees
+    step = random.randint(0, max_step)
+    # direction bias from v_bias
+    prob_up = 0.5 + 0.45 * max(-1.0, min(1.0, v_bias))
+    direction = 1 if random.random() < prob_up else -1
+    # Occasionally jump octave at high entropy
+    octave_shift = 0
+    if entropy > 0.75 and random.random() < (entropy - 0.5):
+        octave_shift = random.choice([-12, 12])
+    # Map step to pitch using scale degrees
+    # find nearest scale degree index for prev_pitch relative to BASE_PITCH
+    rel = prev_pitch - BASE_PITCH
+    octave = rel // 12
+    # find index in scale for current degree
+    current_degree = 0
+    # compute scale absolute degree index
+    # approximate by scanning possible degrees
+    best = None
+    for deg in range(0, 100):
+        candidate_pitch = BASE_PITCH + (deg // len(scale)) * 12 + scale[deg % len(scale)]
+        if best is None or abs(candidate_pitch - prev_pitch) < abs(best - prev_pitch):
+            best = candidate_pitch
+            current_degree = deg
+    new_degree = current_degree + direction * step
+    new_pitch = BASE_PITCH + (new_degree // len(scale)) * 12 + scale[new_degree % len(scale)] + octave_shift
+    # clip to reasonable MIDI range
+    return max(24, min(108, new_pitch))
+
+# --- Core generator -------------------------------------------------------
+def generate_midi(
+    length_bars=32,
+    beats_per_bar=4,
+    ppq=480,
+    phi=0.5,  # Φ scalar [0..1] -> tempo and velocity
+    entropy=0.3,  # S [0..1] -> randomness, rest probability
+    vector=0.0,  # v [-1..1] -> melodic direction bias
+    resistance=0.0,  # r [0..1] -> anti-admissible motif frequency
+    scale_name="minor",
+    seed=None,
+    outpath=OUTPATH,
+):
+    random.seed(seed or int((phi+entropy+vector+resistance)*1000000) ^ (seed or 0))
+    scale = SCALES.get(scale_name, SCALES["minor"])
+    ticks_per_quarter = ppq
+    total_quarters = length_bars * beats_per_bar
+    # Map Phi to tempo: microseconds per quarter note (lower -> faster)
+    # Phi near 1 -> faster tempo (200000 μs ~ 300 bpm), Phi near 0 -> slower (700000 μs ~ 85 bpm)
+    tempo_us = int(500000 - int(250000 * (phi - 0.5) * 1.6))  # tuned mapping
+    tempo_us = max(120000, min(900000, tempo_us))
+    # Base velocity depends on phi: higher phi -> stronger attack
+    base_velocity = int(60 + phi * 55)
+    # Rest probability increases with entropy
+    rest_prob = 0.05 + 0.4 * entropy
+    # resistance inserts irregular motif every so often
+    resistance_every = int(max(4, 1 + (1.0 - resistance) * 16))
+    # rhythmic granularity influenced by ritual-like duration: use phi to bias shorter/longer notes
+    small_note_prob = 0.25 + 0.5 * (1 - phi)
+    # Build track bytes
+    track_bytes = bytearray()
+    # tempo meta event at start
+    track_bytes += meta_event(0, 0x51, struct.pack(">I", tempo_us)[1:4])
+    # time signature (optional)
+    track_bytes += meta_event(0, 0x58, bytes([beats_per_bar, 8, 24, 8]))
+    # program change to choose an instrument (0 = acoustic grand piano)
+    track_bytes += midi_event(0, 0xC0, bytes([0]))
+    # initial pitch
+    cur_pitch = BASE_PITCH + scale[0]
+    tick_cursor = 0
+    bar_counter = 0
+    notes_on = []  # list of (pitch, off_time, velocity)
+    event_count = 0
+    # iterate over quarter subdivisions
+    # we'll step in ticks of a 16th note
+    step_ticks = ticks_per_quarter // 4
+    total_steps = total_quarters * 4
+    for step_index in range(total_steps):
+        bar_idx = step_index // 4
+        # occasionally insert resistance motif
+        if step_index % (resistance_every * 4) == 0 and random.random() < resistance:
+            # create an irregular syncopated motif lasting a bar
+            motif_steps = min(4, total_steps - step_index)
+            for i in range(motif_steps):
+                if random.random() < 0.75:  # mostly notes during motif
+                    pitch = choose_next_pitch(cur_pitch, vector, entropy, scale)
+                    velocity = max(30, min(127, int(base_velocity + (random.random()-0.5)*30)))
+                    # duration: uneven pattern
+                    dur = step_ticks * (1 + random.choice([0,1,2]) )
+                    # Note on
+                    track_bytes += midi_event(0, 0x90, bytes([pitch, velocity]))
+                    # Note off after dur
+                    track_bytes += midi_event(dur, 0x80, bytes([pitch, 0]))
+                    event_count += 2
+                    cur_pitch = pitch
+                else:
+                    # rest: advance time
+                    track_bytes += vlq(step_ticks)
+            tick_cursor += motif_steps * step_ticks
+            continue
+        # normal behavior
+        if random.random() < rest_prob:
+            # rest for one step
+            track_bytes += vlq(step_ticks)
+            tick_cursor += step_ticks
+            continue
+        # decide note length: 16th, 8th, quarter based on phi and small_note_prob
+        r = random.random()
+        if r < small_note_prob:
+            dur_steps = 1
+        elif r < 0.7:
+            dur_steps = 2
+        else:
+            dur_steps = 4
+        dur_ticks = dur_steps * step_ticks
+        # pick pitch
+        pitch = choose_next_pitch(cur_pitch, vector, entropy, scale)
+        # velocity perturbed by entropy
+        vel = int(max(20, min(127, base_velocity + (random.random()-0.5)*40 * (1-entropy))))
+        # Note on
+        track_bytes += midi_event(0, 0x90, bytes([pitch, vel]))
+        # Note off after dur_ticks
+        track_bytes += midi_event(dur_ticks, 0x80, bytes([pitch, 0]))
+        event_count += 2
+        cur_pitch = pitch
+        tick_cursor += dur_ticks
+    # end of track
+    track_bytes += meta_event(0, 0x2F, b"")
+    # construct MIDI file
+    header = bytearray()
+    header += b'MThd' + struct.pack(">IHHH", 6, 0, 1, ticks_per_quarter)
+    # track chunk
+    track_chunk = b'MTrk' + struct.pack(">I", len(track_bytes)) + bytes(track_bytes)
+    midi_data = bytes(header) + track_chunk
+    # write file
+    with open(outpath, "wb") as f:
+        f.write(midi_data)
+    return outpath
+
+# Generate an example MIDI using RSVP/Spherepop-inspired parameters
+out = generate_midi(
+    length_bars=32,
+    beats_per_bar=4,
+    ppq=480,
+    phi=0.7,       # scalar intensity
+    entropy=0.35,  # semantic/entropy
+    vector=0.2,    # melodic drift upward
+    resistance=0.25,  # occasional resistant motif
+    scale_name="minor",
+    seed=20251110,
+    outpath=OUTPATH,
+)
+print("Wrote MIDI to:", out)
+print("\nDownload: [Download the MIDI](" + "sandbox:" + out + ")")

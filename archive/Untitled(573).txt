@@ -1,0 +1,67 @@
+## Causal Depth Heatmap
+
+This heatmap represents causal depth as a scalar field over an abstract embedding
+of events. Regions of higher intensity correspond to events with greater causal
+depth, interpretable as accumulated irreversible computation.
+
+The embedding is representational rather than physical; the heatmap is intended
+to visualize gradients in event depth rather than metric distance.
+
+
+import numpy as np
+import random
+
+# assign stable pseudo-random positions to events
+rng = np.random.default_rng(0)
+event_ids = list(H.events.keys())
+points = rng.normal(size=(len(event_ids), 2))
+
+depth_vals = np.array([depth(H, eid) for eid in event_ids])
+
+# grid
+res = 300
+x = np.linspace(points[:,0].min()-1, points[:,0].max()+1, res)
+y = np.linspace(points[:,1].min()-1, points[:,1].max()+1, res)
+xx, yy = np.meshgrid(x, y)
+grid = np.stack([xx, yy], axis=-1)
+
+# smooth field via radial basis influence
+field = np.zeros((res, res))
+for (px, py), d in zip(points, depth_vals):
+    field += d * np.exp(-((xx-px)**2 + (yy-py)**2))
+
+plt.figure(figsize=(6,6))
+plt.imshow(field, origin="lower", cmap="inferno")
+plt.scatter(points[:,0], points[:,1], c="white", s=10)
+plt.title("Causal Depth Field")
+plt.axis("off")
+plt.show()
+
+## Event Reuse Heatmap
+
+This heatmap visualizes the reuse of events by encoding fan-out (number of
+descendants) as a continuous field. Events that support many downstream
+computations generate larger or more intense regions.
+
+This representation highlights structurally load-bearing events within the
+history.
+
+# compute fan-out
+fan_out = {eid: 0 for eid in H.events}
+for e in H.events.values():
+    for p in e.parents:
+        fan_out[p] += 1
+
+fan_vals = np.array([fan_out[eid] for eid in event_ids])
+
+field = np.zeros((res, res))
+for (px, py), f in zip(points, fan_vals):
+    field += f * np.exp(-((xx-px)**2 + (yy-py)**2))
+
+plt.figure(figsize=(6,6))
+plt.imshow(field, origin="lower", cmap="viridis")
+plt.scatter(points[:,0], points[:,1], c="white", s=10)
+plt.title("Event Reuse (Fan-Out) Field")
+plt.axis("off")
+plt.show()
+

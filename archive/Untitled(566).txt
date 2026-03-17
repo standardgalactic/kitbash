@@ -1,0 +1,704 @@
+% ============================================================
+% 6. The Category \TNich
+% ============================================================
+
+\section{The Category \texorpdfstring{$\TNich$}{TNich}}
+\label{sec:tnich-category}
+
+We now prove that team niches and structure-preserving morphisms assemble
+into a category, compute its canonical colimits, and analyze its categorical
+properties. This section constitutes the algebraic backbone of the theory.
+
+\subsection{6.1. Objects, Morphisms, and Composition}
+
+Recall the definition:
+
+\begin{definition}[Object of $\TNich$]
+An object of $\TNich$ is a team niche
+\[
+  \N = (U,\{X_i\}_{i\in A}, B),
+\]
+where $U$ is a smooth manifold, $\{X_i\}$ is a family of $C^1$ trajectories,
+and $B$ is a constraint system.
+\end{definition}
+
+\begin{definition}[Morphisms of $\TNich$]
+A \emph{structure-preserving morphism}
+\[
+  f : \N = (U,A,B) \longrightarrow \N' = (U',A',B')
+\]
+consists of
+\[
+  f_U : U\to U',\qquad
+  f_A : A\to A',\qquad
+  f_B : B \to B'
+\]
+satisfying geometric coherence (G), trajectory preservation (T), and constraint
+stability (C), as defined in Section~4.
+\end{definition}
+
+\begin{definition}[Composition]
+If $f:\N\to\N'$ and $g:\N'\to\N''$ are morphisms, their composite
+\[
+  g\circ f := 
+  (g_U\circ f_U,\; g_A\circ f_A,\; g_B\circ f_B)
+\]
+is the obvious componentwise composition.
+\end{definition}
+
+\subsection{6.2. Identity Morphisms}
+
+\begin{definition}[Identity Morphism]
+For any niche $\N=(U,A,B)$, the morphism
+\[
+  \mathrm{id}_\N := (\mathrm{id}_U, \mathrm{id}_A, \mathrm{id}_B)
+\]
+is the \emph{identity morphism}.
+\end{definition}
+
+This morphism satisfies zero distortion:
+
+\[
+  \eps(\mathrm{id}_\N) = 0.
+\]
+
+\begin{lemma}
+$\mathrm{id}_\N$ satisfies (G), (T), and (C).
+\end{lemma}
+
+\begin{proof}
+Immediate: $\mathrm{id}_U$ is an isometry, trajectories satisfy
+$X_i = \mathrm{id}_U \circ X_i$, and $B$ maps to itself.
+\end{proof}
+
+\subsection{6.3. Associativity of Composition}
+
+\begin{theorem}[Associativity]
+If $f:\N_0\to\N_1$, $g:\N_1\to\N_2$, and $h:\N_2\to\N_3$, then
+\[
+  h\circ (g\circ f) = (h\circ g)\circ f.
+\]
+\end{theorem}
+
+\begin{proof}
+All three components $(U,A,B)$ compose in $\mathbf{Set}$ or
+$\mathbf{Man}$ and ordinary function composition is associative.
+\end{proof}
+
+\subsection{6.4. Compatibility of Distortion With Composition}
+
+\begin{proposition}
+For composable morphisms $f$ and $g$, the distortion modulus satisfies
+\[
+  \eps(g\circ f) \le \eps(g) + \eps(f).
+\]
+\end{proposition}
+
+\begin{proof}
+Each component is subadditive:
+
+\begin{itemize}
+  \item \emph{Geometric:}
+  \[
+    \|D(g_U\circ f_U) - I\| 
+      \le \|Dg_U - I\| + \|Df_U - I\|.
+  \]
+
+  \item \emph{Trajectory:}
+  \[
+    \|X''_{g_A(f_A(i))} - (g_U\circ f_U)\circ X_i\|
+      \le \|X''_{g_A(f_A(i))} - g_U(X'_{f_A(i)})\|
+         + \|g_U(X'_{f_A(i)}) - g_U(f_U(X_i))\|.
+  \]
+
+  The first term is $\le \eps(g)$; the second $\le \eps(f)$ by Lipschitzness.
+
+  \item \emph{Constraint:}
+  \[
+    \Delta_{B}(g\circ f)
+      \le \Delta_{B}(g) + \Delta_{B}(f).
+  \]
+\end{itemize}
+
+Combining the components proves the claim.
+\end{proof}
+
+\subsection{6.5. Category Axiom Theorem}
+
+\begin{theorem}[Category Axiom]
+The structure $(\mathrm{Ob}(\TNich),\mathrm{Hom}(\TNich),\circ,\mathrm{id})$
+forms a category.
+\end{theorem}
+
+\begin{proof}
+Identity and composition exist (Sections 6.2–6.4), composition is associative
+and respects identity morphisms, and morphisms are closed under composition.
+\end{proof}
+
+\bigskip
+
+We now turn to colimits, beginning with the central construction: pushouts,
+which model institutional mergers.
+
+% ============================================
+% 6.2  Pushouts and Institutional Mergers
+% ============================================
+
+\subsection{Pushouts in \TNich: Institutional Mergers}
+\label{sec:pushouts}
+
+We now turn to the central colimit construction in the category \TNich:
+the \emph{pushout}, which formalizes the merger or integration of two institutions
+along a shared sub-institution. This captures a wide range of phenomena:
+joint ventures, cross-departmental reorganizations, interdisciplinary research
+centers, hospital team integrations, and any situation where a common core
+is extended in two different directions that must subsequently be unified.
+
+Let
+\[
+\N_0 \xto{f} \N_1,
+\qquad
+\N_0 \xto{g} \N_2,
+\]
+be morphisms in \TNich, with
+\[
+\N_k = (U_k,\{X^{(k)}_i\}_{i\in A_k}, B_k),
+\qquad k = 0,1,2.
+\]
+
+We will explicitly construct the pushout object
+\[
+\N := \N_1 \sqcup_{\N_0} \N_2
+\]
+and verify that it satisfies the universal property. The construction proceeds componentwise:
+domains, agent sets, trajectories, and constraint systems.
+
+\subsubsection{Gluing the Geometric Domains}
+
+The domain of the pushout niche is formed by the standard categorical pushout in the category 
+of smooth manifolds with smooth immersion morphisms. That is,
+\[
+U := U_1 \sqcup_{U_0} U_2 := (U_1 \sqcup U_2) / \!\sim
+\]
+where the equivalence relation $\sim$ is the smallest relation such that
+\[
+u_1 \sim u_2
+\quad \text{whenever} \quad
+u_1 = f_U(u_0),\; u_2 = g_U(u_0),
+\]
+for some $u_0 \in U_0$.
+We assume standard compatibility conditions (submanifold embeddings, local model compatibility)
+ensuring that the gluing inherits a smooth structure.\footnote{
+This is standard in manifold theory: 
+if $f_U$ and $g_U$ are embeddings and satisfy corner/smooth overlap conditions,
+the quotient manifold inherits a unique smooth structure.}
+
+\begin{lemma}[Smooth Structure]
+If $f_U$ and $g_U$ are $C^k$ embeddings with compatible overlap images, then
+$U$ carries a canonical $C^k$ manifold structure making the quotient maps
+\[
+U_1 \to U,\qquad U_2 \to U
+\]
+smooth immersions.
+\end{lemma}
+
+\begin{proof}
+Standard argument: charts on the glued image arise from compatible charts on $U_1$ and $U_2$.
+Compatibility follows from the equality on $U_0$. Local smoothness is inherited from the embeddings.
+\end{proof}
+
+\subsubsection{Agent Set Pushout: Identifying Shared Agents}
+
+The agent set of the pushout niche is defined by the coproduct modulo the identifications
+imposed by $f_A$ and $g_A$:
+\[
+A := (A_1 \sqcup A_2)/{\approx}
+\]
+where the equivalence relation $\approx$ is generated by
+\[
+a_1 \approx a_2
+\quad \text{iff} \quad
+a_1 = f_A(a_0),\; a_2 = g_A(a_0), \text{ for some } a_0\in A_0.
+\]
+
+\begin{remark}
+Shared personnel, overlapping responsibilities, or role continuity map precisely to the 
+identifications enforced by $\approx$. The pushout formalism ensures that the merged institution 
+maintains required identifications without introducing spurious equivalences.
+\end{remark}
+
+\subsubsection{Trajectory Gluing}
+
+Each agent in $A$ inherits a trajectory based on its origin. 
+The difficulty lies in agents identified from $A_1$ and $A_2$. 
+For such an equivalence class $[a]$, with representatives 
+$a_1=f_A(a_0)\in A_1$ and $a_2=g_A(a_0)\in A_2$, one must glue their trajectories
+$X^{(1)}_{a_1}$ and $X^{(2)}_{a_2}$.
+
+We define the glued trajectory $X_{[a]}$ via a smooth partition-of-unity interpolation:
+choose smooth bump functions $\lambda_1,\lambda_2:[0,T]\to[0,1]$ with 
+$\lambda_1+\lambda_2=1$ and support determined by domain membership regions. Then set
+\[
+X_{[a]}(t)
+  := \lambda_1(t)\, X^{(1)}_{a_1}(t)
+   + \lambda_2(t)\, X^{(2)}_{a_2}(t),
+\]
+provided both are pushed forward into $U$ using the quotient maps.
+
+\begin{lemma}[Regularity]
+If $X^{(1)}_{a_1}$ and $X^{(2)}_{a_2}$ are $C^1$ and agree up to $\eps(f)$ and $\eps(g)$ on their overlap,
+then $X_{[a]}$ is $C^1$ and satisfies
+\[
+\| X_{[a]} - X^{(1)}_{a_1} \|_{C^1} \le C \cdot (\eps(f)+\eps(g)),
+\quad
+\| X_{[a]} - X^{(2)}_{a_2} \|_{C^1} \le C \cdot (\eps(f)+\eps(g)).
+\]
+\end{lemma}
+
+\begin{proof}
+Partition-of-unity interpolation preserves $C^1$ regularity. 
+The distortion bound follows from convexity and bounded derivatives of $\lambda_i$.
+\end{proof}
+
+\subsubsection{Constraint System Gluing}
+
+Constraints glue via logical closure:
+\[
+B := \overline{B_1 \cup B_2},
+\]
+where the bar denotes closure under normative entailment, RSVP entropic monotonicity, 
+and institutional rule consistency.
+
+\begin{remark}
+The merger cannot weaken constraints: if $B_1$ and $B_2$ impose incompatible restrictions,
+the colimit niche is empty. This corresponds to institutional mergers that are
+logically or ethically impermissible.
+\end{remark}
+
+\begin{lemma}[Constraint Stability Under Pushout]
+If $f$ and $g$ satisfy constraint stability (C), then the pushout constraint set $B$ is the 
+least-upper-bound constraint system satisfying (C) for all induced morphisms into $\N$.
+\end{lemma}
+
+\begin{proof}
+Immediate from closure and compatibility: any constraint satisfied by both $B_1$ and $B_2$
+must be preserved in the merged niche by definition.
+\end{proof}
+
+\subsection{Universal Property of the Pushout}
+
+\begin{theorem}[Universal Property]
+Let $\N$ be as above. For any niche $\N'$ and morphisms
+\[
+h_1:\N_1 \to \N',
+\qquad
+h_2:\N_2 \to \N',
+\]
+such that
+\[
+h_1 \circ f = h_2 \circ g,
+\]
+there exists a unique morphism
+\[
+h: \N \to \N'
+\]
+making the diagram commute.
+\end{theorem}
+
+\begin{proof}
+Uniqueness follows from the quotient structure of $U$, $A$, and the glued trajectories.
+Existence follows by defining $h_U$ on the glued domain by compatibility of $h_{1,U}$ and $h_{2,U}$ 
+along the identified image of $U_0$. Similarly for agents and trajectories. 
+Constraint compatibility holds since both $h_1$ and $h_2$ respect constraint monotonicity.
+\end{proof}
+% ============================================
+% 6.3 Limits, Completeness, and Partial Completeness
+% ============================================
+
+\subsection{Limits, Completeness, and Partial Completeness of \TNich}
+\label{sec:limits}
+
+To understand the structural robustness of the category \TNich,
+we examine its capacity to support limits. Unlike colimits—particularly pushouts,
+which capture institutional mergers—limits correspond to
+\emph{institutional intersections}, \emph{shared substructures}, and 
+\emph{common constraint regimes}. These arise naturally in situations such as:
+
+\begin{itemize}
+\item multi-institution oversight (e.g.\ joint regulatory constraints),
+\item consensus formation across overlapping teams,
+\item alignment of roles or norms across different branches of an organization,
+\item shared infrastructure or resource constraints.
+\end{itemize}
+
+We show that \TNich\ supports a wide range of limits, but not all small limits.
+This partial but meaningful completeness mirrors the empirical fact that
+institutions can intersect or share structure only under compatibility conditions.
+
+\subsubsection{Equalizers: Intersections of Institutional Morphisms}
+
+Given parallel morphisms
+\[
+f,g : \N_1 \rightrightarrows \N_2,
+\]
+the equalizer niche
+\[
+\mathrm{Eq}(f,g) \to \N_1
+\]
+is defined whenever we can extract the largest sub-niche of $\N_1$ on which $f$ and $g$ agree.
+
+\begin{definition}[Equalizer Niche]
+Let $\N_1=(U_1,A_1,B_1)$.
+Define the equalizer
+\[
+\mathrm{Eq}(f,g) := (U_E, A_E, B_E)
+\]
+where:
+\begin{itemize}
+\item $U_E := \{ u \in U_1 : f_U(u) = g_U(u) \}$,
+\item $A_E := \{ i \in A_1 : f_A(i) = g_A(i)\}$,
+\item $B_E := \{ b \in B_1 : f_B(b) = g_B(b)\}$.
+\end{itemize}
+Trajectories are restricted accordingly:
+\[
+X^{(E)}_i := X^{(1)}_i \big|_{\{t : f_U(X^{(1)}_i(t)) = g_U(X^{(1)}_i(t))\}}.
+\]
+\end{definition}
+
+\begin{lemma}[Well-definedness]
+If $f$ and $g$ are structure-preserving with $\eps(f),\eps(g)<\infty$, then $U_E$, $A_E$, and $B_E$ are 
+each (possibly empty) substructures closed under restriction, and $\mathrm{Eq}(f,g)$ is a well-defined niche.
+\end{lemma}
+
+\begin{proof}
+Setwise definitions ensure closure. Trajectory restrictions preserve $C^1$ smoothness on domains
+where the equality holds by compatibility of $f$ and $g$.
+Constraint stability follows directly.
+\end{proof}
+
+\begin{theorem}
+Equalizers exist in \TNich.
+\end{theorem}
+
+\begin{proof}
+Given $f$ and $g$, the above construction yields a niche with the universal property by definition.
+\end{proof}
+
+\subsubsection{Pullbacks: Institutional Cross-Alignment}
+
+Pullbacks capture the way two institutions $\N_1$ and $\N_2$ can be aligned
+over a common target $\N_0$:
+\[
+\N_1 \xto{f} \N_0 \xleftarrow{g} \N_2.
+\]
+
+\begin{definition}[Pullback Niche]
+The pullback $\N := \N_1 \times_{\N_0} \N_2$ consists of:
+\[
+U := \{(u_1,u_2)\in U_1\times U_2 : f_U(u_1)=g_U(u_2)\},
+\]
+\[
+A := \{(i_1,i_2)\in A_1\times A_2 : f_A(i_1)=g_A(i_2)\},
+\]
+\[
+B := \{(b_1,b_2)\in B_1\times B_2 : f_B(b_1)=g_B(b_2)\},
+\]
+with trajectories
+\[
+X_{(i_1,i_2)}(t) = \bigl( X^{(1)}_{i_1}(t),\; X^{(2)}_{i_2}(t) \bigr).
+\]
+\end{definition}
+
+Pullbacks correspond to institutions that share precisely the structure required 
+to remain compatible with $\N_0$.
+
+\begin{theorem}
+Pullbacks exist in \TNich, provided $f$ and $g$ satisfy semantic compatibility:
+\[
+\| f_U(X^{(1)}_{i_1}) - g_U(X^{(2)}_{i_2})\|_{C^1} \le C\eps(f) + C\eps(g).
+\]
+\end{theorem}
+
+\begin{proof}
+Compatibility ensures that the trajectory product restricts to a $C^1$ submanifold
+of $U_1\times U_2$. Constraint preservation is automatic by the definition of $B$.
+Universal property holds from product construction.
+\end{proof}
+
+\subsubsection{Products: Joint Operation of Independent Institutions}
+
+Products in \TNich\ correspond to institutions running in parallel without direct coupling:
+\[
+\N_1 \times \N_2 := (U_1\times U_2,\; A_1\times A_2,\; B_1 \times B_2).
+\]
+
+This formalizes side-by-side teams or cross-functional groups that do not 
+yet share agents, constraints, or semantic fields.
+
+\begin{theorem}
+Finite products exist in \TNich.
+\end{theorem}
+
+\begin{proof}
+All components are constructed via categorical products in their respective categories:
+manifolds, sets, trajectory bundles, constraint systems.
+\end{proof}
+
+\subsubsection{Terminal Objects: The Null Niche}
+
+There is a “null” institutional configuration with:
+
+\[
+U = \{\ast\}, \qquad A = \varnothing, \qquad B = \{\text{void constraint}\},
+\]
+
+which serves as a terminal object.
+
+\begin{theorem}
+A terminal object exists in \TNich.
+\end{theorem}
+
+\begin{proof}
+Any niche admits a unique morphism to the null niche by collapsing structure.
+\end{proof}
+
+\subsubsection{Non-Existence of Arbitrary Limits}
+
+Despite the existence of equalizers, pullbacks, and finite products,
+\TNich\ is \emph{not} complete.
+
+The obstruction arises from:
+\begin{itemize}
+\item higher-order constraint incompatibility,
+\item domain incompatibility (incompatible manifold gluings),
+\item trajectory incompatibility (causing loss of $C^1$ smoothness),
+\item entropy monotonicity failure.
+\end{itemize}
+
+\begin{theorem}[Failure of Completeness]
+$\TNich$ does not admit all small limits.
+\end{theorem}
+
+\begin{proof}
+Construct a diagram of niches with inconsistent constraint systems
+(e.g. $B_\alpha$ converging to incompatible entropy bounds).
+Any limiting object must satisfy all constraints simultaneously, 
+forcing the limit to be empty, which is not allowed unless the diagram collapses.
+Thus general limits fail to exist.
+\end{proof}
+
+\subsubsection{Partial Completeness}
+
+\begin{theorem}[Partial Completeness]
+\TNich admits all finite limits that satisfy the \emph{compatibility condition}
+\[
+\bigcap_{\alpha} B_\alpha \neq \varnothing
+\quad\text{and}\quad
+\text{all trajectory overlaps remain } C^1.
+\]
+\end{theorem}
+
+\begin{proof}
+Constraint non-emptiness ensures consistency; trajectory smoothness ensures admissibility.
+All constructions then follow from equalizer and pullback existence.
+\end{proof}
+
+\begin{remark}
+This partial completeness reflects a deep fact: 
+institutions cannot intersect in arbitrary ways. 
+Semantic fields, norms, and roles cannot be combined unless 
+they are jointly coherent in a dynamically stable sense.
+\end{remark}
+
+% ============================================
+% 6.4 Institutional Evolution and Higher-Order Stability
+% ============================================
+
+\subsection{Institutional Evolution and Higher-Order Stability}
+\label{sec:evolution-stability}
+
+Institutions evolve. Their domains shift, their norms tighten or loosen,
+agents enter or exit, and trajectories change shape as tasks or environments 
+reconfigure. In \TNich, this evolution corresponds not to a single morphism,
+but to a \emph{path} or \emph{flow} of morphisms:
+\[
+f_t : \N_0 \to \N_t, \qquad t \in [0,1],
+\]
+with time-varying distortion modulus $\eps(f_t)$ and structural components.
+
+The central idea is that institutional evolution must preserve enough
+coherence to maintain cognitive and organizational continuity.
+This is captured by several notions of higher-order stability.
+
+\subsubsection{Continuous Families of Morphisms}
+
+A continuous institutional evolution is modeled by a smooth path
+\[
+t \mapsto f_t \in \Hom(\N_0,\N_t),
+\]
+with
+\[
+\eps(f_t - f_s) \to 0 \qquad \text{as } t \to s.
+\]
+
+\begin{definition}[Institutional Deformation]
+A \emph{deformation} of a niche $\N_0$ is a family
+$\{f_t : \N_0 \to \N_t\}$ such that:
+\begin{enumerate}[label=(\roman*)]
+\item $f_0 = \mathrm{id}_{\N_0}$,
+\item $t \mapsto f_t$ is continuous in the distortion topology,
+\item $\eps(f_t)$ remains bounded for all $t\in[0,1]$.
+\end{enumerate}
+\end{definition}
+
+This ensures that the institution evolves without catastrophic semantic drift.
+
+\begin{lemma}[Composition Stability]
+If $\{f_t\} : \N_0 \to \N_t$ and $\{g_t\} : \N_t \to \N_t'$ are deformations,
+then $\{g_t \circ f_t\}$ is a deformation.
+\end{lemma}
+
+\begin{proof}
+Subadditivity of $\eps$ and continuity of each family imply continuity of 
+the composition and boundedness of distortion.
+\end{proof}
+
+\subsubsection{Higher-Order (Derivative-Level) Stability}
+
+Institutions often require not only continuous but also 
+\emph{derivative-stable} evolution of trajectories:
+\[
+\left\| \frac{d}{dt}\bigl( f_{t,U}(X_i)\bigr) \right\|_{C^0}
+\le C,
+\]
+uniformly over agents.
+
+\begin{definition}[Second-Order Institutional Stability]
+A deformation $\{f_t\}$ is \emph{second-order stable} if:
+\[
+\left\|\frac{d}{dt} f_{t,U} \right\|_{C^{k-1}} \le C,
+\qquad
+\left\|\frac{d}{dt} (X'_{f_{t,A}(i)}) \right\|_{C^0} \le C,
+\]
+for all $i$.
+\end{definition}
+
+This ensures that institutional change does not introduce abrupt
+semantic or operational discontinuities.
+
+\subsubsection{Semantic Stability}
+
+Semantic stability addresses how meaning potentials $\Phi$ and
+norm constraints evolve.
+
+Let $\Phi$ and $\Phi'$ denote RSVP scalar fields on $\N_0$ and $\N_t$.
+
+\begin{definition}[Semantic Stability]
+A deformation $\{f_t\}$ is \emph{semantically stable} if:
+\[
+\| \Phi' \circ f_{t,U} - \Phi \|_{C^1(U)} \le C\,\eps(f_t).
+\]
+\end{definition}
+
+\begin{lemma}
+Semantic stability is preserved under composition of deformations.
+\end{lemma}
+
+\begin{proof}
+Triangle inequality and subadditivity of distortion.
+\end{proof}
+
+\subsubsection{Normative (Constraint-Level) Stability}
+
+Constraints $B_t$ may evolve under $f_t$:
+\[
+f_{t,B}(B_0) \subseteq B_t.
+\]
+
+\begin{definition}[Normative Stability]
+A deformation $\{f_t\}$ is \emph{normatively stable} if 
+\[
+B_0 \subseteq f_{t,B}^{-1}(B_t)
+\qquad\text{and}\qquad
+\Delta_B(f_t) \le C\eps(f_t).
+\]
+\end{definition}
+
+This ensures that the normative structure evolves without unintended weakening.
+
+\subsubsection{Entropic Stability}
+
+The RSVP social entropy functional $\Ssocial$ plays a central role in
+team-based cognition and correction dynamics. Entropic stability ensures
+error-correction and coherence mechanisms remain intact.
+
+\begin{definition}[Entropic Stability]
+A deformation $\{f_t\}$ is \emph{entropically stable} if:
+\[
+\Ssocial(f_{t,A}(i),\N_t)
+\le
+\Ssocial(i,\N_0)
++ C\,\eps(f_t)
+\qquad\forall i.
+\]
+\end{definition}
+
+\subsubsection{Evolution as a Morphism in \texorpdfstring{$\TNichi$}{TNich-infinity}}
+
+In the $\infty$-categorical lift in Section~\ref{sec:infty},
+a deformation $\{f_t\}$ corresponds to a $1$-simplex (an edge) 
+in the simplicial nerve:
+\[
+f_t \in N_1(\TNich),
+\]
+and higher-order stability conditions ensure the horn-filling
+conditions needed for Kan extension:
+\[
+\Lambda_k^n \hookrightarrow \Delta^n
+\qquad\text{have fillers}.
+\]
+
+Thus evolution corresponds to \emph{homotopies} of institutional structure.
+
+\subsubsection{Summary of Stability Conditions}
+
+\begin{definition}[Higher-Order Stability]
+A deformation $\{f_t\}$ is \emph{higher-order stable} if it satisfies:
+\[
+\text{(i) geometric continuity},\quad
+\text{(ii) trajectory continuity},\quad
+\text{(iii) second-order derivative control}, 
+\]
+\[
+\text{(iv) semantic stability},\quad
+\text{(v) normative stability},\quad
+\text{(vi) entropic stability}.
+\]
+\end{definition}
+
+These conditions ensure institutional evolution preserves meaningful
+structure in the categorical and RSVP sense.
+
+\begin{theorem}[Stability Preservation Under Composition]
+If $\{f_t\}$ and $\{g_t\}$ are higher-order stable, then $\{g_t\circ f_t\}$ is higher-order stable.
+\end{theorem}
+
+\begin{proof}
+All relevant norms and distortion bounds satisfy subadditivity and 
+triangle inequality. Each stability condition is preserved under composition.
+\end{proof}
+
+\subsubsection{Interpretation}
+
+Higher-order stability has a clear conceptual significance:
+
+\begin{itemize}
+\item \emph{Semantic stability} ensures shared meaning is preserved.
+\item \emph{Trajectory stability} ensures skill and competence continuity.
+\item \emph{Constraint stability} ensures norms and entropic bounds are not corrupted.
+\item \emph{Geometric stability} ensures the institutional workspace remains intelligible.
+\end{itemize}
+
+Taken together, these constitute the RSVP-field-theoretic analogue of 
+\emph{robust institutional identity} across time and transformation.
+

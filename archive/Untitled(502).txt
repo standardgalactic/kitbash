@@ -1,0 +1,163 @@
+ “comprehension = thermodynamic phase-locking on overlapping semantic manifolds” testable.
+
+1) Objects and observables (no metaphors)
+
+Signals and states.
+
+Environment process .
+
+Agent state (e.g., the last-token representation or RSVP field snapshot).
+
+Control/action .
+
+Energy draw (measured at the controller/accelerator or from a simulator’s work functional).
+
+Semantic manifolds.
+
+Environment semantic manifold (embeddings of environmental concepts).
+
+Agent semantic manifold (agent’s internal concept embeddings).
+
+Local tangent spaces at paired concepts: , .
+
+Overlap (geometry you can compute).
+
+Principal angles between and .
+
+Subspace overlap .
+
+Optional: CKA or Procrustes alignment error as a cross-check.
+
+Phase locking (time-domain you can compute).
+
+Hilbert phase on matched bands; phase-locking value
+
+\operatorname{PLV}:=\Big|\frac{1}{T}\sum_{t} e^{\,i(\phi_x(t)-\phi_z(t))}\Big|\in[0,1]. 
+
+Thermodynamic work.
+
+Excess power above idle: .
+
+Band-limited work rate for locking: .
+
+Drift / stability.
+
+Contextual drift of representation under perturbations:
+for matched inputs with small perturbation.
+
+2) Definition
+
+Definition (Comprehension as Phase-Coherent Work on Overlap).
+Given a pairing map , the comprehension index
+
+\mathcal{C}:=\underbrace{O}_{\text{geometric overlap}} \;\times\; \underbrace{\overline{\gamma^2}}_{\text{spectral phase locking}} \;\times\; \underbrace{\Big(1-e^{-W_\Omega/\kappa}\Big)}_{\text{nonzero work}} \;\times\; \underbrace{e^{-\Delta_{\tau}/\sigma}}_{\text{stability}} \;\in[0,1]. 
+
+sets the work scale; the acceptable drift scale.
+
+Multiplicative form ensures if any pillar is ~0 (no geometry, no phase, no work, or unstable).
+
+3) Theoretical claims you can actually prove/check
+
+Proposition 1 (Locking cost scales with misalignment).
+Linearizing an RSVP-like controller around a concept pair, let orthogonally align the tangents and be the principal angles. For a target coherence on band , any stabilizing satisfies
+
+\inf_{K}\, W_\Omega \;\;\propto\;\; \sum_{j=1}^{r}\tan^2\theta_j \cdot \mathcal{S}_x^{(j)}(\Omega)\cdot \rho, 
+
+Interpretation: the minimum work to phase-lock grows with manifold misalignment and demanded coherence .
+
+Proposition 2 (Injectivity ≠ Comprehension).
+If the representational map is injective (as in the LLM result), injectivity does not imply . It guarantees recoverability of inputs from , but without phase coherence () or work (), .
+Interpretation: comprehension is closed-loop, energetic, and geometric, not just one-to-one encoding.
+
+Lemma (Robustness under perturbations).
+If and , then for perturbations the drift with decreasing in and .
+Interpretation: better overlap and locking reduce drift for the same noise level.
+
+(You can keep proofs in an appendix: spectral factorization of the closed-loop transfer, Parseval, and standard LTI energy bounds.)
+
+4) Minimal falsifiable predictions
+
+Energy–geometry law. For fixed coherence target , measured increases monotonically with misalignment (larger ⇒ more work).
+
+Locking–stability link. Increasing (via controller gain or latency reduction) strictly reduces .
+
+Open vs closed loop. With the encoder frozen (same representational injectivity), closed loop yields .
+
+Bandwidth tradeoff. Holding fixed, broadening the locked band reduces peak (area law).
+
+Each is pass/fail with concrete statistics.
+
+5) Experiments you can actually run
+
+A. Synthetic “overlap dial.”
+
+Generate two -dimensional subspaces in with controllable principal angles .
+
+Drive with narrowband and broadband components.
+
+Implement RSVP-style controller with latency and energy metering.
+
+Measure as vary.
+
+Expect: with ; with .
+
+B. LLM + environment loop.
+
+Freeze backbone; attach a small recurrent controller that reads observations and writes tool actions (text IO or sim control).
+
+Compute internal (layer pick fixed); phase-align to band(s).
+
+Compare open-loop prompting vs closed-loop with feedback; log GPU power as .
+
+Expect: injectivity constant; jumps only in closed loop.
+
+C. RSVP lattice sim.
+
+Export , , and energy flux; choose environmental forcing (periodic/chaotic).
+
+Define manifold charts via embeddings of field patches; compute .
+
+Sweep forcing frequency, coupling gain, and noise.
+
+Statistics. For each hypothesis, report regression of on ; partial correlations controlling for signal power; pre-registered thresholds for significance.
+
+6) Paper structure 
+
+Setup & Definitions. Precisely define .
+
+Comprehension Index . Give the formula and the rationale for multiplicative form (zeroing when any pillar is absent).
+
+Theory. Propositions 1–2 + Lemma with clear assumptions (LTI linearization, bands, noise model).
+
+Methods. Exact recipes for PLV/coherence, principal angles, energy logging, drift measurement.
+
+Experiments A–C. Pre-specify metrics, plots, and ablations (latency, bandwidth, gain).
+
+Failure modes. Cases where high is entrainment without semantics (low ); or high but zero work (memorization).
+
+Limitations. Linearization, phase extraction choices, hardware metering noise.
+
+7) Pitfalls to explicitly avoid 
+
+Don’t introduce symbols without an operational estimator right next to them.
+
+Don’t use “energy/phase” language without units/bands/sensors.
+
+Don’t report unitless “scores” without decomposition into the four pillars and confidence intervals.
+
+Don’t claim causality from injectivity; show closing the loop is the difference.
+
+8) Drop-in equations (ready to paste)
+
+Principal angles by SVD: if are orthonormal bases of the tangents,
+
+\cos\theta_j=\sigma_j\big(U^\top V\big). 
+
+Excess work: .
+
+Drift: .
+
+Index: .
+
+If you want, I can turn this into a short LaTeX “Methods + Theory” section with the propositions and a minimal linear proof sketch—so you can slot it straight into your RSVP manuscript.
+

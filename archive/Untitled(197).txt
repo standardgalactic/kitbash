@@ -1,0 +1,213 @@
+\documentclass[12pt]{article}
+
+\usepackage[left=1.25in,right=1.25in,top=1in,bottom=1in]{geometry}
+\usepackage{setspace}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{mathtools}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{natbib}
+
+\setstretch{1.15}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.75em}
+
+\title{The Politics of Oracle-Free Evaluation:\\
+Constraint, Generativity, and the Problem of Validation}
+
+\author{Flyxion}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+
+Recent proposals for ``oracle-free'' evaluation, most notably Consequence-Based Utility (CBU), attempt to validate mathematical solutions without recourse to ground-truth answers. Instead of verification by correspondence, these systems assess candidate solutions by measuring their capacity to generate correct reasoning across curated neighborhoods of related problems. While technically ingenious, this shift from truth to generativity is not epistemically neutral. It encodes a specific philosophy of knowledge in which internal transportability substitutes for external constraint, and where evaluative authority migrates from shared scientific practice to platform-mediated infrastructures.
+
+This essay argues that such frameworks risk mistaking formal fertility for empirical adequacy, and that the design choices surrounding their implementation are not merely technical but institutional and political. By relocating validation into proprietary or semi-proprietary ecosystems and redefining correctness as consequence within a model-generated manifold, these approaches may inadvertently privilege scalability, monetization, and platform control over reproducibility, falsifiability, and integration with the cumulative norms of scientific inquiry.
+
+Drawing on alternative constraint-centered perspectives, the essay proposes that correctness in open systems must be indexed not only to logical coherence but also to physical law, scale transition, temporal embedding, and historically situated agents. A viable evaluation theory must therefore reintroduce friction with reality rather than optimizing away the need for it. The goal is not to reject consequence-based reasoning outright, but to situate it within a broader framework in which generativity is treated as a necessary but radically insufficient condition for truth.
+
+\end{abstract}
+
+\section{Introduction}
+
+The desire to eliminate dependence on an external oracle has long appealed to both mathematicians and computer scientists. If one could evaluate solutions without consulting an answer key, then systems might scale indefinitely, exploring conjectural terrain where verification is expensive or unavailable. Consequence-Based Utility represents a contemporary instantiation of this aspiration. Rather than asking whether a solution is correct, it asks whether the solution is useful when treated as correct. The shift appears subtle, yet it fundamentally alters the epistemic contract.
+
+Traditional mathematical validation relies upon a chain of shared practices. Proofs are inspected, reconstructed, generalized, attacked, repaired, and embedded into a broader lattice of results. Correctness is not merely a local property but a social and historical achievement grounded in reproducibility. Even when formalized, proof remains anchored to a community capable of re-deriving it from first principles. Oracle-free evaluation proposes to bypass this communal re-derivation by operationalizing usefulness as a statistical signal.
+
+In CBU, a candidate argument is judged by its ability to help a model solve neighboring problems. If reasoning conditioned on the candidate propagates successfully, the candidate is ranked as more likely to be correct. This converts validation into a question of downstream performance. The evaluator no longer asks whether the argument corresponds to a mathematical reality but whether it behaves like a productive heuristic.
+
+Such a maneuver is powerful within a closed symbolic regime, yet it raises a deeper question. What legitimizes the neighborhood itself? The construction of nearby problems, the architecture of the solver, and the platform on which evaluation is executed all become part of the epistemic apparatus. These components are not neutral. They embed assumptions about what counts as similarity, relevance, and success. The framework therefore relocates authority from shared deductive reconstruction to curated computational environments.
+
+This relocation marks a transition from verification as constraint to verification as throughput. Constraint-based validation resists expansion, demanding that each claim survive contact with established structure. Throughput-based validation rewards what scales, what generalizes under controlled perturbations, and what can be measured automatically. The distinction mirrors an older tension between science as a cumulative public discipline and knowledge production as an engineered pipeline.
+
+Understanding this difference is essential before assessing the technical merits of oracle-free evaluation. The question is not whether such systems function, but what kind of correctness they are capable of detecting, and what kinds they are structurally incapable of seeing.
+
+\section{From Correspondence to Consequence}
+
+To appreciate the conceptual shift introduced by CBU, one must distinguish two historically intertwined notions of validity. The first treats a statement as correct when it corresponds to an invariant structure independent of the evaluator. The second treats a statement as correct when it integrates coherently into a network of consequences. Classical mathematics manages to satisfy both simultaneously because its objects are defined by their inferential roles. Difficulty arises when the second notion is operationalized in isolation.
+
+Consequence-based validation evaluates the fertility of an assumption rather than its necessity. A candidate solution is granted provisional legitimacy if it enables the successful derivation of related results. This is reminiscent of pragmatic philosophies of truth, yet the computational implementation lacks the long temporal horizon through which pragmatic validation traditionally unfolds. Instead of decades of mathematical uptake, the system substitutes a short loop of synthetic perturbation and automated scoring.
+
+The resulting signal measures internal transportability, not ontological anchoring. A reasoning pattern that survives these perturbations may still fail to correspond to any stable structure outside the evaluation manifold. Within mathematics this danger is muted, since the domain is already formal. Beyond mathematics, however, consequence divorced from constraint risks rewarding models that generate self-consistent but physically vacuous descriptions.
+
+The difference can be expressed succinctly. Correspondence asks whether a claim is forced by the world. Consequence asks whether the claim produces a coherent world of its own. Oracle-free evaluation implicitly assumes that these questions converge. The remainder of this essay examines why that convergence cannot be taken for granted.
+
+\section{The Operational Claim of Consequence-Based Utility}
+
+The central hypothesis of Consequence-Based Utility is stated with admirable clarity. A meaningful solution, the authors argue, should contain ``enough method-level information that, when applied to a neighborhood of related questions, it should yield better downstream performance than incorrect solutions'' \citep{son2026}. This principle is implemented by conditioning a solver on a candidate argument and measuring its success on nearby, easier-to-verify problems, using that performance as a proxy for correctness.
+
+Formally, the framework replaces an unavailable correctness oracle
+\[
+O(Q,C)\in\{0,1\}
+\]
+with a validator that ranks candidates according to their induced utility across a constructed neighborhood of variants \citep{son2026}. The candidate is not validated directly. Instead, it is treated as a provisional hypothesis whose worth is inferred from transfer performance.
+
+This move is presented as an analogue of mathematical practice, drawing inspiration from the way conjectures such as the Riemann Hypothesis are evaluated through their consequences \citep{son2026}. Yet the analogy is incomplete. In mathematics, consequence-based confidence unfolds over decades of adversarial scrutiny, reinterpretation, and independent reconstruction. In CBU, consequence is reduced to a short computational loop bounded by the architecture, prompting scheme, and dataset construction.
+
+The difference is not merely one of scale but of epistemic structure. Mathematical consequence is historically open-ended, whereas CBU consequence is operationally closed.
+
+\section{Curated Neighborhoods as Hidden Oracles}
+
+Although introduced as an ``oracle-free'' method, CBU replaces a single oracle with a distributed set of embedded ones. The neighborhood questions are not discovered by the system but authored, filtered, and verified by human experts. The EXPERTMATH dataset, for example, consists of faculty-authored problems paired with deliberately constructed variants and reference solutions \citep{son2026}. Authors are explicitly instructed to design variants that become straightforward once the original idea is understood.
+
+This design choice is understandable from an engineering standpoint, yet it reveals that the framework's validation power derives from prior human curation rather than autonomous epistemic discovery. The system does not escape dependence on expert knowledge. It redistributes that dependence into dataset construction.
+
+The requirement that neighborhood problems lie in a ``sweet spot'' of difficulty, neither too easy nor too hard \citep{son2026}, further demonstrates that the evaluation signal is contingent on careful tuning of problem geometry. Validation succeeds only when the environment has been sculpted to make transfer measurable.
+
+Thus the supposed removal of the oracle is better understood as its diffusion into infrastructure.
+
+\section{Performance as a Substitute for Understanding}
+
+The empirical results emphasize ranking improvements over reward models and LLM judges, measured by metrics such as Acc@1 and AUC \citep{son2026}. These are throughput metrics. They quantify separability between labeled correct and incorrect candidates. What they do not measure is explanatory adequacy or reconstructability outside the curated manifold.
+
+Indeed, the authors explicitly acknowledge that CBU is ``most informative when neighborhood difficulty lies in a sweet spot'' and that applicability beyond mathematics remains an open question \citep{son2026}. The framework therefore optimizes for discriminative performance within a constructed evaluation regime rather than for general epistemic reliability.
+
+This orientation reflects a broader shift in contemporary machine learning from justification to calibration. A system is considered successful if it produces a useful ordering signal, regardless of whether that signal corresponds to an independently grounded notion of truth.
+
+Such a shift is not politically neutral. It privileges evaluative forms that scale computationally over those that demand interpretability, reconstruction, or disciplinary integration.
+
+\section{Infrastructure as Epistemology}
+
+One of the most revealing aspects of the work is not found in its equations but in its mode of dissemination. The datasets referenced in the experimental pipeline are distributed through gated repositories and model-centric platforms rather than through the archival, versioned workflows that have historically structured open scientific collaboration.
+
+This choice may appear mundane, yet infrastructures encode norms. Scientific knowledge has traditionally relied on systems that emphasize persistence, citability, and reproducibility across institutional boundaries. Platform-centered release models, by contrast, emphasize access control, telemetry, and rapid iteration. They are optimized for product ecosystems as much as for scholarship.
+
+When evaluation itself depends on such infrastructures, epistemology becomes entangled with platform governance. The validation mechanism cannot be cleanly separated from the environment that executes it.
+
+The result is a subtle inversion. Instead of tools serving shared inquiry, inquiry becomes shaped by the affordances of the tools.
+
+\section{A Counterfactual: Evaluation Under Constraint Rather Than Throughput}
+
+To see what is lost, consider a counterfactual design principle. Suppose that validation were indexed not to downstream performance but to resistance under constraint transformation. A candidate explanation would be tested by altering scale, embedding it in new boundary conditions, or forcing reconstruction from independent derivations. Success would be measured by invariance under these constraint shifts rather than by statistical utility.
+
+Such a framework would likely scale poorly. It would demand heterogeneous evidence, cross-domain reconstruction, and sustained interpretive labor. Yet it would align more closely with the way theories achieve durability in physics, biology, and other open systems.
+
+CBU deliberately avoids this friction. Its strength lies precisely in converting validation into something that can be sampled, averaged, and optimized.
+
+The question is therefore not whether CBU works, but what kind of knowledge it is structurally capable of recognizing.
+
+\section{Constraint-Indexed Correctness}
+
+If consequence-based validation measures the fertility of an idea within a symbolic neighborhood, a complementary framework must measure its survivability under constraint. The central claim advanced here is that correctness in open systems is always indexed to a manifold of constraints that includes physical law, scale transition, temporal evolution, and agent-relative embedding.
+
+Let a candidate explanation be denoted by \(C\), and let \(\mathcal{K}\) represent the set of constraints under which the explanation must remain valid. These constraints are not merely logical but include conservation relations, boundary conditions, measurement interfaces, and historical trajectories. Correctness is therefore not a scalar score but a stability relation
+\[
+C \models_{\mathcal{K}} Q,
+\]
+indicating that \(C\) continues to entail the target claim \(Q\) across admissible transformations within \(\mathcal{K}\).
+
+Where Consequence-Based Utility samples nearby questions, constraint-indexed validation samples nearby realities. It asks not whether reasoning transfers to analogous statements, but whether it remains invariant when the world to which it refers is perturbed in ways that preserve physical admissibility.
+
+This distinction becomes decisive outside purely formal mathematics. In physics, renormalization alters the effective degrees of freedom. In biology, scaling reorganizes causal structure. In social systems, path dependence reshapes available states. An explanation that propagates syntactically may still fail catastrophically when subjected to these transformations.
+
+Thus generativity must be subordinated to constraint compatibility. Fertility without constraint is indistinguishable from overfitting to an abstract manifold.
+
+\section{Temporal Embedding and the Failure of Static Evaluation}
+
+CBU evaluates candidate solutions in what is effectively a timeless regime. Each solution is judged by a bounded set of rollouts, averaged to obtain a utility estimate. Yet real-world reasoning is temporally indexed. Claims acquire meaning only through their persistence under unfolding conditions.
+
+A temporally embedded evaluation would require that validation signals update as new information arrives. Rather than estimating
+\[
+U(C) = \mathbb{E}_{Q^\ast \sim \mathcal{N}(Q)}[\text{performance}],
+\]
+one must consider a trajectory-dependent functional
+\[
+U_t(C) = \mathbb{E}[\text{performance under evolving constraints up to time } t].
+\]
+
+Such a formulation cannot be reduced to neighborhood sampling because the relevant perturbations are historical rather than structural. The correctness of an epidemiological model, an economic forecast, or a physical theory cannot be inferred from nearby formal variants. It must be tested against the irreversible accumulation of events.
+
+The omission of temporality is not an oversight but a design necessity. Systems optimized for oracle-free scalability cannot afford continuous empirical anchoring. Yet that anchoring is precisely what distinguishes scientific validation from internal consistency checks.
+
+\section{Embodiment and the Cost of Instantiation}
+
+Mathematical structures exist at negligible marginal cost. Physical realizations do not. Any framework that evaluates explanations without accounting for embodiment risks privileging descriptions that are elegant but unrealizable.
+
+Instantiation imposes thermodynamic and material constraints. Computation requires energy. Measurement requires apparatus. Signal propagation is finite. These conditions act as filters that eliminate vast regions of formally admissible structure.
+
+To incorporate embodiment into evaluation, one must introduce what may be called an instantiation operator \(\mathcal{I}\), mapping abstract candidates into realizable processes. A candidate explanation is viable only if
+\[
+\mathcal{I}(C)
+\]
+exists within resource bounds and preserves predictive coherence.
+
+CBU deliberately avoids this question. Its domain is informational transfer, not physical realization. That limitation is appropriate for certain mathematical tasks but becomes problematic when such evaluative schemes are generalized rhetorically to broader scientific reasoning.
+
+\section{The Political Economy of Evaluation Frameworks}
+
+The migration from correspondence-based validation to throughput-based scoring coincides with a shift in the institutional location of knowledge production. Evaluation mechanisms now operate inside computational platforms whose incentives differ from those of traditional scholarly institutions.
+
+Infrastructural decisions, including how datasets are hosted, versioned, and accessed, are often treated as neutral engineering details. They are not. They determine who can reproduce results, who can audit methods, and how long an artifact remains accessible. A platform-centric dissemination model aligns naturally with product development cycles, controlled access, and rapid iteration. A repository-centric model aligns with archival stability, citation, and independent verification.
+
+These differences shape epistemic behavior. When validation depends on proprietary or semi-proprietary execution environments, the authority to evaluate claims becomes concentrated. The framework may remain technically open while functionally dependent on ecosystems optimized for commercial deployment.
+
+The counterfactual is not nostalgic adherence to older norms but recognition that scientific knowledge has historically required infrastructures designed for durability rather than acceleration. Reproducibility is a temporal commitment, not merely a licensing choice.
+
+\section{Toward a Hybrid Model: Generativity Under Constraint}
+
+The critique offered here does not imply that consequence-based reasoning should be discarded. Transferability across related problems is a valuable diagnostic. The difficulty arises only when it is treated as sufficient.
+
+A more balanced framework would embed consequence-based signals within a hierarchy of constraint tests. Generativity would serve as an initial filter, identifying candidates that encode reusable structure. Subsequent validation layers would then examine whether that structure survives physical scaling, empirical confrontation, and temporal updating.
+
+One may therefore envision an evaluation pipeline in which CBU-like mechanisms operate at an inner loop of symbolic exploration, while outer loops impose constraint-indexed validation. The resulting system would resemble scientific practice more closely than purely oracle-free architectures, preserving scalability without severing contact with reality.
+
+
+\section{Geometry, Constraint, and the Difference Between Exploration and Alignment}
+
+An alternative perspective emerges when learning is modeled not as free traversal of an abstract hypothesis space but as motion constrained to a geometrically structured domain. In such a view, the central problem is not how to evaluate arbitrary candidate solutions, but how to ensure that the search process itself remains confined to directions that are semantically or physically admissible.
+
+Conventional optimization procedures implicitly assume that parameter space is an undifferentiated Euclidean domain in which every direction is equally meaningful. This assumption permits efficient computation, yet it also allows trajectories to drift into regions that possess no coherent interpretation. The result is a familiar pathology of modern machine learning: models can move rapidly and productively according to internal metrics while simultaneously departing from any structure that would make their behavior intelligible.
+
+A geometry-aware formulation reverses this priority. Instead of allowing unconstrained motion followed by post hoc evaluation, it restricts updates to tangent directions of an underlying manifold that encodes valid representational states. Learning then becomes a process of alignment with structure rather than exploration of possibility. Directions orthogonal to this manifold are not merely penalized; they are excluded from admissible dynamics.
+
+This distinction is subtle but decisive. Consequence-Based Utility assumes that validity can be inferred from successful propagation within a synthetically constructed neighborhood. A geometric framework assumes that validity is already encoded in the admissible directions of motion. The question is no longer whether a candidate generalizes to nearby prompts, but whether it could ever have arisen from dynamics that respect the structure of the domain.
+
+When learning is constrained in this manner, evaluation shifts from measuring downstream performance to analyzing stability under projection. One studies whether updates remain tangent, whether curvature introduces controlled deviation, and whether transitions between modes occur through well-defined geometric events rather than arbitrary jumps. The emphasis falls on coherence of trajectory rather than fertility of consequence.
+
+This approach has an important epistemological implication. If admissible motion is restricted from the outset, then many formally generative but structurally meaningless constructions never appear at all. The system does not need to test them, rank them, or discard them, because they lie outside the manifold of possible states. Constraint replaces selection.
+
+From this standpoint, oracle-free evaluation appears as a compensatory strategy necessitated by an overly permissive search space. If the ambient space admits every syntactically expressible candidate, then one must devise elaborate mechanisms to distinguish useful from useless artifacts. A geometry-constrained formulation reduces the burden of evaluation by narrowing the domain of what can be proposed in the first place.
+
+The contrast mirrors an older divide in scientific methodology. One tradition constructs ever more powerful filters to select signal from noise. Another tradition attempts to model the generative structure that prevents noise from arising. Consequence-Based Utility belongs to the former. A constraint-indexed geometry of learning belongs to the latter.
+
+Recognizing this difference clarifies that the debate is not about accuracy metrics or benchmarking strategies. It concerns whether intelligence is best understood as unconstrained generation followed by statistical validation, or as structured motion within a space already shaped by law, meaning, and embodiment.
+
+Only the second picture naturally accommodates the asymmetries observed in real systems, where admissible transformations are rare, path-dependent, and often irreversible. In such environments, evaluation cannot be separated from the geometry of the process that produced the candidate in the first place.
+
+
+\section{Conclusion}
+
+Consequence-Based Utility represents an inventive response to a genuine problem: the scarcity of expert validation for increasingly capable generative systems. Its technical contribution lies in demonstrating that downstream performance can serve as a proxy for internal methodological coherence.
+
+Yet coherence is not the same as correctness. By redefining validation as transfer within curated neighborhoods, the framework risks conflating structural fertility with epistemic adequacy. The removal of the oracle is achieved not by eliminating dependence on external judgment but by relocating it into datasets, platforms, and infrastructural choices that remain deeply normative.
+
+Scientific knowledge emerges where explanation encounters resistance from the world. Any evaluation regime that minimizes this resistance may scale efficiently, but it also risks selecting for models that thrive in abstraction while remaining unanchored in reality.
+
+The challenge, then, is not to reject oracle-free methods, but to reinsert them into a broader ecology of constraint, embodiment, and time. Only within such an ecology can generativity function as evidence rather than illusion.
+
+\end{document}

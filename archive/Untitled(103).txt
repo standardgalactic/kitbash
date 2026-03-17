@@ -1,0 +1,1650 @@
+\section{Introduction}
+
+Cognition, collaboration, and concept formation can be understood as constrained processes operating over structured internal representations.
+The \emph{free-energy principle} frames biological agents as systems that minimize a variational bound on surprise \cite{friston2006free,friston2010free}, an approach generalized in active inference to include planning and epistemic action \cite{friston2019active,parr2022markov}.
+Separately, sparse coding and compressed sensing demonstrate that high-dimensional signals can be reconstructed from a small number of active components if the basis and sparsity structure are appropriate \cite{tibshirani1996lasso,donoho2006compressed,donoho2009observed}.
+
+However, cognitive theories emphasizing inference rarely formalize the \emph{structure of meaning itself}, while semantic knowledge systems lack a principled theory of action selection or uncertainty minimization.
+This paper presents the \emph{Entropy-Bounded Sparse Semantic Calculus (EBSSC)}, a computational and mathematical framework that unifies:
+
+\begin{enumerate}
+    \item \textbf{Structured semantic representations}, modeled as \emph{semantic spheres}, drawing inspiration from information geometry \cite{amari2016information,baez2011information}, semantic energy formulations \cite{feygin2020meaning}, and category-theoretic process models \cite{coecke2017picturing,baez2017entropy};
+    \item \textbf{Goal-directed cognition as policy selection}, expressed as sparse variational inference over latent action spaces \cite{friston2010free,friston2019active,rezende2014stochastic};
+    \item \textbf{Entropy-constrained semantic evolution}, in which concept dynamics obey bounded information growth, analogous to entropy production constraints in thermodynamic and open systems \cite{jaynes1957information,finn1982entropy,van2010three}.
+\end{enumerate}
+
+EBSSC models a cognitive or communicative act as a \emph{policy-induced transformation of a semantic field}, constrained by:
+
+(i) bounded semantic entropy, preventing representational drift,
+
+(ii) sparse policy activation, enforcing computational and cognitive parsimony, and
+
+(iii) type-governed compositionality, ensuring semantic well-formedness.
+
+This results in a calculus which is simultaneously:
+
+\begin{itemize}
+    \item \emph{variational}, minimizing a free-energy objective \cite{friston2006free,caticha2015entropic};
+    \item \emph{sparse}, selecting minimal policy support \cite{tibshirani1996lasso,donoho2006compressed};
+    \item \emph{semantic}, maintaining structured concept geometry \cite{amari2016information,feygin2020meaning};
+    \item \emph{categorical}, forming a bounded monoidal category of semantic morphisms \cite{maclane1971categories,lurie2009higher,baez2011physics};
+    \item \emph{information-theoretic}, admitting unistochastic transition semantics \cite{barandes2022unistochastic}.
+\end{itemize}
+
+\subsection{Motivating Gap}
+
+Three limitations motivate the construction of EBSSC:
+
+\textbf{1. Free-energy models lack semantic state structure.}  
+Active inference models treat hidden states as latent variables but do not specify the geometry or compositional structure of \emph{meaning itself} \cite{friston2010free,parr2022markov}.
+
+\textbf{2. Semantic representations lack cognitive selection principles.}  
+Semantic network models and embedding spaces do not inherently explain \emph{why} particular conceptual updates occur rather than others.
+
+\textbf{3. Neither framework bounds semantic drift.}  
+Without explicit entropy budgets, iterative updates can accumulate unbounded noise or inconsistency, violating long-term conceptual coherence \cite{baez2017entropy,jaynes1957information}.
+
+---
+
+\subsection{Contributions}
+
+This paper contributes:
+
+\begin{enumerate}
+    \item A typed operational calculus for semantic state transitions (\S3) grounded in small-step semantics.
+    \item A variational objective combining free-energy, sparsity, and policy cost (\S4), whose solutions obey LASSO-style phase transitions \cite{tibshirani1996lasso,donoho2009observed}.
+    \item Formal guarantees of \textbf{progress}, \textbf{preservation}, and \textbf{entropy budget safety} (\S5), ensuring well-typed updates remain semantically bounded.
+    \item A categorical formulation of semantic compositionality as a symmetric monoidal closed structure (\S6) \cite{maclane1971categories,coecke2017picturing}.
+    \item A constructive mapping to unistochastic quantum-like transition dynamics (\S7) \cite{barandes2022unistochastic,mackey1963mathematical}.
+\end{enumerate}
+
+---
+
+\subsection{Notational conventions}
+
+\begin{center}
+\begin{tabular}{ll}
+$\sigma$ & Semantic sphere (a structured concept representation) \\
+$\pi$ & Policy acting on semantic fields \\
+$E(\sigma)$ & Semantic entropy \\
+$G(\sigma,\pi)$ & Expected free energy of executing $\pi$ on $\sigma$ \\
+$\Lambda$ & Sparsity pressure coefficient ($\ell_1$ penalty) \\
+$C(\pi)$ & Policy execution cost \\
+$\Gamma$ & Global semantic context (plenum) \\
+$\oplus,\;\ominus,\;\circledast$ & Pop, collapse, and merge operators
+\end{tabular}
+\end{center}
+
+% ============================================================
+% SECTION 2 — Manifolding the Latent Plenum: Boundaries, Fields, and Inference Geometry
+% ============================================================
+
+\section{Manifolding the Latent Plenum: Boundaries, Fields, and Inference Geometry}
+
+\subsection{Latent Structure as Differentiable Manifold}
+Cognitive and decision-theoretic state spaces can be formalized as differentiable manifolds 
+endowed with information metrics \cite{amari2016, amari2000}. Learned representations implicitly construct 
+coordinate charts over latent state-space \cite{bengio2013}, while generative world models learn transition-smooth 
+manifolds of environmental dynamics \cite{hafner2020}. Control systems operating over such spaces must respect 
+the induced geometry of constraint manifolds \cite{todorov2009}, and neural population codes exhibit manifold 
+alignment properties that govern generalization and transfer \cite{cohen2016}.
+
+\subsection{Field-Theoretic Perspective on Inference and Policy}
+Dynamics on latent state spaces can be expressed as fields: scalar potentials, vector flows, 
+and entropy-producing channels. Neural computation has been modeled as vector fields governing 
+continuous-time dynamics \cite{sussillo2009}. Inference in the variational sense follows gradient descent 
+on energy functionals equivalent to free energy \cite{friston2010}, and stochastic inference is driven 
+by entropic gradients understood as thermodynamic currents \cite{seifert2012}. Continuous policy 
+parameterizations may be formulated as neural ODEs \cite{dupont2019}, whose qualitative behavior 
+is constrained by topological invariants \cite{milnor1958}.
+
+\subsection{Compact Latent Domains and Spherical Boundaries}
+Bounded latent spaces permit compactification into manifolds with spherical boundary topologies 
+\cite{guillemin1974}. Stereographic compactification provides a constructive mapping from 
+$\mathbb{R}^n$ to $S^n$ \cite{lee2013}, and sphere-constrained embeddings optimize geodesic efficiency 
+under convexity constraints \cite{berger2003}. Spherical harmonics form an orthogonal basis for function 
+approximation on compact boundary domains \cite{courant1953}. When inference is cast as entropy minimization 
+under compact support, attractor minima localize to the domain boundary \cite{tishby2017}. Boundary conditions 
+control global solution structure for field equations posed on such manifolds \cite{evans2022}.
+
+\subsection{Inference Trajectories as Geodesics in Information Space}
+Optimal inference and policy traces correspond to geodesics in statistical manifolds equipped 
+with the Fisher metric \cite{kakade2002, amari1998}. Path-integral control reveals that energetically 
+optimal policies coincide with entropy-weighted geodesics \cite{kappen2012}. In bounded domains, 
+stochastic optimal control converges to minimal-action paths terminating at boundary attractors 
+\cite{todorov2009}.
+
+\subsection{Spherical Structure in High-Dimensional Decision Boundaries}
+Empirical studies show that decision surfaces in deep networks exhibit locally spherical curvature 
+properties \cite{fawzi2018}. Hyperspherical embeddings act as stable fixed points for categorical 
+partitioning \cite{liu2017}, and normalization onto hyperspherical codes improves separability 
+under sparsity pressures \cite{wang2018}.
+
+\subsection{Spherical Packing and the Emergence of Sparse Structure}
+Sparsity emerges naturally under spherical packing constraints \cite{donoho2005}. Optimal codes on 
+spherical domains minimize expected divergence under information constraints \cite{olshausen1996}. 
+Biological systems operating under metabolic limits converge to sparse spherical activation geometries 
+due to energy-optimal packing pressures \cite{attwell2001}.
+
+\subsection{Convergence Guarantees Under Compactness}
+Compact state domains endow inference maps with fixed-point guarantees \cite{brouwer1911}. If the 
+policy update operator is a contraction in a bounded metric space, the optimal policy is unique 
+and reachable \cite{bertsekas2017, banach1922}.
+
+% ============================================================
+% SECTION 3 — Plenum Fields, Entropy Dynamics, and Latent Policy Flows
+% ============================================================
+
+\section{Plenum Fields, Entropy Dynamics, and Latent Policy Flows}
+
+\subsection{Scalar, Vector, and Entropic Components of the Plenum}
+We model latent cognition and decision space as a triplet of interacting fields:
+\[
+\mathcal{P} = (\Phi, \mathbf{v}, S)
+\]
+where:
+\begin{itemize}
+    \item $\Phi : \mathcal{M} \to \mathbb{R}$ is a scalar potential encoding pragmatic affordance or expected utility density,
+    \item $\mathbf{v} : \mathcal{M} \to T\mathcal{M}$ is a vector field expressing directed policy flux or agentic flow,
+    \item $S : \mathcal{M} \to \mathbb{R}_{\geq 0}$ is the entropy field governing informational dispersion.
+\end{itemize}
+Field-theoretic descriptions of cognition and control have been previously formalized in neural dynamics 
+\cite{sussillo2009}, thermodynamic inference \cite{friston2010}, and computational field models of semantics 
+\cite{feygin2020}.
+
+\subsection{Entropy as Both Constraint and Curvature}
+Following the maximum entropy principle \cite{jaynes1957information}, the entropy field $S$ plays a dual role:
+as a regularizer enforcing parsimonious inference and as an information-geometric curvature term shaping the manifold itself \cite{amari2016information}.
+On compact domains, high-entropy gradients induce geodesic focusing and boundary attractors \cite{tishby2017}.
+The balance between dispersion and compression resembles relative entropy minimization in categorical probability
+\cite{baez2017entropy}.
+
+\subsection{Free Energy as the Plenum Action Functional}
+Inference trajectories minimize the free energy functional
+\[
+\mathcal{F}[\pi] = \mathbb{E}_{q_\pi} \left[ -\ln p(o,s) + \ln q_\pi(s) \right],
+\]
+as in the variational free energy principle \cite{friston2006free, friston2010free}.
+Policy selection can be seen as minimizing expected free energy:
+\[
+\pi^* = \arg\min_\pi \mathbb{E} [G(\pi)],
+\]
+where $G(\pi)$ combines epistemic and pragmatic value \cite{friston2019active, parr2022markov}.
+This action functional can be interpreted as a plenum-wide variational constraint shaping $\Phi$, $\mathbf{v}$, and $S$ simultaneously.
+
+\subsection{Vector Flow as Policy Flux}
+The vector field $\mathbf{v}$ is governed by a continuity equation expressing conservation of policy mass:
+\[
+\frac{\partial \rho}{\partial t} + \nabla \cdot (\rho \mathbf{v}) = \Sigma,
+\]
+where $\rho$ is policy density and $\Sigma$ is entropy production.\ 
+Stochastic thermodynamic interpretations of such flows have been formalized in \cite{seifert2012}.
+The field tends toward minimum dissipation paths under constraint, equivalent to path-integral control optima 
+\cite{kappen2012}.
+
+\subsection{Entropy Production as a Selection Pressure}
+We define entropy production as:
+\[
+\dot{\Sigma} = \int_{\mathcal{M}} \left( \mathbf{v} \cdot \nabla S + \|\nabla \Phi\|^2 \right) \, d\mu.
+\]
+Policy flows that increase $\dot{\Sigma}$ are suppressed by sparsity pressure (next section), creating a natural selection landscape over latent actions.
+This mirrors dissipative system constraints in physics \cite{finn1982entropy} and bounded rational optimization 
+\cite{todorov2009}.
+
+\subsection{Policy Equilibria as Fixed Points of the Plenum Flow}
+A stable policy configuration satisfies:
+\[
+\nabla \cdot (\rho \mathbf{v}) = 0, \quad \nabla \Phi = -\lambda \nabla S,
+\]
+which corresponds to a generalized thermodynamic equilibrium balancing attractor pull ($\Phi$) against entropic pressure ($S$).
+Fixed point existence is guaranteed under compactness by the Brouwer fixed point theorem \cite{brouwer1911},
+and uniqueness within a contractive patch by Banach’s fixed point theorem \cite{banach1922}.
+
+\subsection{Emergence of Decision Attractors}
+Attractors form where:
+\[
+\nabla \Phi = 0 \quad \text{and} \quad \nabla S \approx 0,
+\]
+meaning neither utility gradients nor entropic diffusion dominate.
+These correspond to the “crystallized policies” of sparse semantic inference, analogous to representation collapse in neural manifolds \cite{cohen2016} or codebook stabilization in vector quantization \cite{van2017vqvae}.
+
+% ============================================================
+% SECTION 4 — Sparse Policy Selection and Compressed Latent Action Spaces
+% ============================================================
+
+\section{Sparse Policy Selection and Compressed Latent Action Spaces}
+
+\subsection{Sparsity as Structural, Not Auxiliary}
+In classical optimization, sparsity is imposed via an explicit penalty.
+In latent policy spaces, sparsity emerges structurally from three independent pressures:
+
+\begin{itemize}
+    \item Energetic cost of policy activation (biophysical or computational)
+    \item Entropy suppression under inference pressure
+    \item Geometric compression of decision manifolds
+\end{itemize}
+
+This echoes natural sparsity in neural codes \cite{tibshirani1996lasso}, 
+compressed sensing phase transitions \cite{donoho2006compressed}, 
+and sparse attractor dynamics in neural manifolds \cite{cohen2016}.
+
+Thus, the plenum does not apply sparsity --- it is sparse by default.
+
+
+\subsection{Sparse Policy Optimization}
+A policy $\pi$ is represented as a latent action vector $a \in \mathbb{R}^n$ with objective:
+\[
+\min_{a} \Big( \mathcal{L}(a) + \lambda \|a\|_1 + \gamma C(a) \Big)
+\]
+where:
+
+- $\mathcal{L}(a)$ is task-relevant loss or expected free energy,
+- $\lambda \|a\|_1$ enforces sparsity in activated policies,
+- $C(a)$ is an entropy-budget constraint inherited from the plenum:
+  \[
+  C(a) = \int |\nabla S \cdot a(x)| \, dx.
+  \]
+
+This connects directly to the LASSO formulation \cite{tibshirani1996lasso} and convex optimization under energy budgets \cite{boyd2004convex}.
+
+\subsection{Phase Transition in Policy Complexity}
+Sparse policy spaces exhibit a sharp critical threshold in $\lambda$ where the number of active policies collapses discontinuously:
+
+\[
+\lambda_c \approx \sqrt{2 \log n} \ \frac{\sigma}{\|X^\top X\|},
+\]
+
+analogous to the Donoho–Tanner phase boundary for high-dimensional recovery \cite{donoho2009observed}.
+
+For $\lambda > \lambda_c$:
+- Policy activations collapse to minimal stable attractors.
+- Decision variance sharply decreases.
+- Exploration capacity vanishes.
+
+For $\lambda < \lambda_c$:
+- Policy populations expand explosively.
+- Entropy exceeds budget feasibility.
+- Decision flows destabilize.
+
+This defines a *navigability corridor* in latent space where sparse agency exists without collapse.
+
+\subsection{Policy Pruning as Proximal Flow}
+Evolution of policy weights proceeds via proximal descent:
+\[
+a_{k+1} = \operatorname{prox}_{\lambda \|\cdot\|_1}(a_k - \eta \nabla \mathcal{L}(a_k)),
+\]
+using the proximal operator \cite{moreau1965proximite}:
+
+\[
+\operatorname{prox}_{\lambda\|\cdot\|_1}(x) = \mathrm{sign}(x)\max(|x| - \lambda, 0),
+\]
+
+which acts as a continuous \emph{policy elimination threshold}.
+
+This shows that policy sparsification is not discrete deletion, but a continuous geometric contraction of the policy simplex.
+
+\subsection{Sparsity Preserves Causal Coherence}
+Sparse policies minimize interference between latent causes by reducing overlap in policy support.  
+This directly improves identifiability:
+
+\[
+\mathrm{supp}(a_i) \cap \mathrm{supp}(a_j) \approx \emptyset \quad \Rightarrow \quad I(a_i; a_j) \approx 0
+\]
+
+which aligns with minimum-description causal factoring \cite{chaitin1975randomness} and sparse source separation in independent component models \cite{hyvarinen2001}.
+
+\subsection{Compressed Agency Theorem (Informal Statement)}
+\begin{theorem}[Compressed Agency]
+Under a finite entropy budget and convex policy cost, the optimal policy basis is both:
+\begin{enumerate}
+    \item \textbf{Maximally sparse} (minimal support),
+    \item \textbf{Maximally expressive} (spanning relevant affordance gradients in $\Phi$).
+\end{enumerate}
+This basis arises at the intersection of the $\ell_1$ simplex and the entropy-isocontour manifold.
+\end{theorem}
+
+The proof follows from convex duality and entropy-constrained basis pursuit \cite{boyd2004convex, donoho2006compressed}.
+
+\subsection{Interpretation in the Plenum}
+In the plenum model:
+- $\Phi$ supplies affordance gradients,
+- $S$ restricts entropy bandwidth,
+- $\mathbf{v}$ carries policy flux,
+- sparsity determines which trajectories survive.
+
+Thus, cognition is not search over all policies, but compressed survival of a sparse basis of viable flows.
+
+% ============================================================
+% SECTION 5 — SpherePOP Operators as Plenum Dynamics
+% ============================================================
+
+\section{SpherePOP Operators as Plenum Dynamics}
+
+SpherePOP defines a calculus on semantic hyperspheres—bounded regions of coherence embedded in the plenum field $\Phi$, constrained by entropy $S$, and evolved under policy flux $\mathbf{v}$.  
+We now reinterpret each primitive SpherePOP operator as a lawful plenum transition, ruled by entropy budgets, boundary compatibility, and sparse policy selection.
+
+\subsection{Sphere as a Bounded Semantic Region}
+A sphere is a 5-tuple:
+\[
+\sigma := (\Phi_\sigma, \partial \Phi_\sigma, S_\sigma, T_\sigma, \mathcal{H}_\sigma)
+\]
+where:
+
+- $\Phi_\sigma$ is the internal semantic field restriction,
+- $\partial \Phi_\sigma$ its boundary manifold,
+- $S_\sigma = \int_{\sigma} \rho_S(x)\,dx$ its entropy mass,
+- $T_\sigma$ an admissibility type signature,
+- $\mathcal{H}_\sigma$ the causal provenance sheaf.
+
+Two spheres may interact only if their boundaries satisfy *contact coherence*:
+\[
+\partial\Phi_{\sigma_1} \cap \partial\Phi_{\sigma_2} \neq \varnothing 
+\quad \wedge \quad
+\|\nabla \Phi_{\sigma_1} - \nabla \Phi_{\sigma_2}\| < \epsilon
+\]
+
+This ensures that SpherePOP composition is physically valid, not merely symbolic.
+
+\subsection{The Primitive Operators as Plenum Flows}
+
+Each operator is now defined as a policy-mediated field transition:
+
+
+\paragraph{(1) Pop — Semantic Expansion}
+
+\[
+\mathrm{pop}(\sigma) :\; \sigma \rightarrow \sigma'
+\]
+
+\[
+\Phi_{\sigma'} = \Phi_\sigma + \Delta_{\text{explore}}, \qquad
+S_{\sigma'} \le S_\sigma + \beta_{\text{pop}}
+\]
+
+Pop grows the sphere by following positive curvature directions in $\Phi$, constrained by an entropy budget $\beta_{\text{pop}}$.  
+It is equivalent to \emph{policy-driven affordance discovery}:
+
+\[
+\Delta_{\text{explore}} \propto \Pi_{\text{active}}(\mathbf{v} \cdot \nabla \Phi), 
+\]
+where $\Pi_{\text{active}}$ selects a sparse set of admissible policy directions.
+
+
+
+\paragraph{(2) Merge — Semantic Fusion}
+
+\[
+\mathrm{merge}(\sigma_1, \sigma_2) :\; (\sigma_1, \sigma_2) \rightarrow \sigma_3
+\]
+
+\[
+\Phi_{\sigma_3} = \Phi_{\sigma_1} \cup \Phi_{\sigma_2}, \qquad
+S_{\sigma_3} \le S_{\sigma_1} + S_{\sigma_2} - \delta_{\text{sync}}
+\]
+
+Merge succeeds only when **joint compression** is possible, meaning the fused sphere is entropically cheaper than storing both separately:
+
+\[
+\delta_{\text{sync}} = I(\sigma_1; \sigma_2) - I_{\min} > 0
+\]
+
+Thus merge is an **information-binding event**, not a concatenation.
+
+\paragraph{(3) Collapse — Entropic Pruning}
+
+\[
+\mathrm{collapse}(\sigma) :\; \sigma \rightarrow \sigma'
+\]
+
+\[
+\Phi_{\sigma'} = \Pi_{\text{retain}}(\Phi_\sigma), \qquad
+S_{\sigma'} < S_\sigma
+\]
+
+Collapse is policy-directed compression preserving only the most causally fertile submanifold, found via:
+
+\[
+\Pi_{\text{retain}} = \arg\max_{\pi} \left[ I(\pi; \sigma) - \Lambda \|\pi\|_1 \right]
+\]
+
+This makes collapse the **adjoint of sparse inference**.
+
+
+\paragraph{(4) Rewrite — Directed Reparameterization}
+
+\[
+\mathrm{rewrite}(\sigma, r): \sigma \rightarrow \sigma'
+\]
+
+\[
+\Phi_{\sigma'} = r(\Phi_\sigma), \qquad
+S_{\sigma'} \approx S_\sigma \pm \epsilon
+\]
+
+Rewrite is entropy-neutral transport on the manifold, akin to a diffeomorphism constrained by adjacency preservation:
+
+\[
+r \in \mathrm{Diff}_\epsilon(\Phi) \quad \text{s.t.} \quad d_{\text{geo}}(\partial\Phi_\sigma, \partial\Phi_{\sigma'}) < \epsilon
+\]
+
+
+\paragraph{(5) Mask — Selective Attention Projection}
+
+\[
+\mathrm{mask}(\sigma, m): \sigma \rightarrow \sigma'
+\]
+
+\[
+\Phi_{\sigma'} = m \odot \Phi_\sigma, \qquad m(x)\in [0,1]
+\]
+
+Entropy reduces proportionally to masked volume:
+
+\[
+S_{\sigma'} = \int m(x)\,\rho_S(x)\,dx
+\]
+
+Masking is the **attention operator** of semantic fields.
+
+---
+
+\paragraph{(6) Bind — Causal Interface Construction}
+
+\[
+\mathrm{bind}(\sigma_1 \rightarrow \sigma_2)
+\]
+
+Constructs a policy channel:
+
+\[
+\mathcal{B}: \partial \Phi_{\sigma_1} \rightarrow \partial \Phi_{\sigma_2}
+\]
+
+such that induced flux preserves bounded entropy distortion:
+
+\[
+\left| S_{\sigma_1} - S_{\sigma_2} \right| < \gamma_{\text{bind}}
+\]
+
+Bind is the primitive of *compositional cognition*, building causal conduits rather than merging containers.
+
+---
+
+\subsection{Plenum Conservation Laws for SpherePOP}
+
+Sphere operations obey three invariants:
+
+\begin{theorem}[Entropy Budget Law]
+For any valid operator sequence $\{\pi_i\}$:
+\[
+\sum_i \Delta S_{\pi_i} \le B_{\text{total}}
+\]
+otherwise the program is ill-typed.
+\end{theorem}
+
+\begin{theorem}[Boundary Causality Law]
+No SpherePOP operation may create new semantic boundary curvature outside the convex hull of prior boundaries unless licensed by \texttt{pop}.
+\end{theorem}
+
+\begin{theorem}[Sparsity of Influence]
+Let $a_i$ be the latent policy activating operator $\pi_i$. Then:
+\[
+|\mathrm{supp}(a_{i}) \cap \mathrm{supp}(a_{j})| \le 1 \quad \forall i \neq j
+\]
+meaning operator influence graphs remain sparse.
+\end{theorem}
+
+---
+
+\subsection{Summary}
+
+SpherePOP is therefore not a symbolic DSL—it is a **discrete integration scheme** for bounded semantic fields evolving under sparse policy control.  
+Under this interpretation:
+
+| Operator | Equivalent in the Plenum |
+|---|---|
+| pop | gradient-following semantic expansion |
+| merge | information-binding compression |
+| collapse | sparse causal pruning |
+| rewrite | manifold-preserving transport |
+| mask | attentional projection |
+| bind | construction of causal conduits |
+
+Each preserves entropy budgets, respects field geometry, and expresses minimal policy intervention.
+
+
+
+% ============================================================
+% SECTION 5 — SpherePOP Operators as Plenum Dynamics
+% ============================================================
+
+\section{SpherePOP Operators as Plenum Dynamics}
+
+SpherePOP defines a calculus on semantic hyperspheres—bounded regions of coherence embedded in the plenum field $\Phi$, constrained by entropy $S$, and evolved under policy flux $\mathbf{v}$.  
+We now reinterpret each primitive SpherePOP operator as a lawful plenum transition, ruled by entropy budgets, boundary compatibility, and sparse policy selection.
+
+\subsection{Sphere as a Bounded Semantic Region}
+A sphere is a 5-tuple:
+\[
+\sigma := (\Phi_\sigma, \partial \Phi_\sigma, S_\sigma, T_\sigma, \mathcal{H}_\sigma)
+\]
+where:
+
+- $\Phi_\sigma$ is the internal semantic field restriction,
+- $\partial \Phi_\sigma$ its boundary manifold,
+- $S_\sigma = \int_{\sigma} \rho_S(x)\,dx$ its entropy mass,
+- $T_\sigma$ an admissibility type signature,
+- $\mathcal{H}_\sigma$ the causal provenance sheaf.
+
+Two spheres may interact only if their boundaries satisfy *contact coherence*:
+\[
+\partial\Phi_{\sigma_1} \cap \partial\Phi_{\sigma_2} \neq \varnothing 
+\quad \wedge \quad
+\|\nabla \Phi_{\sigma_1} - \nabla \Phi_{\sigma_2}\| < \epsilon
+\]
+
+This ensures that SpherePOP composition is physically valid, not merely symbolic.
+
+\subsection{The Primitive Operators as Plenum Flows}
+
+Each operator is now defined as a policy-mediated field transition:
+
+---
+
+\paragraph{(1) Pop — Semantic Expansion}
+
+\[
+\mathrm{pop}(\sigma) :\; \sigma \rightarrow \sigma'
+\]
+
+\[
+\Phi_{\sigma'} = \Phi_\sigma + \Delta_{\text{explore}}, \qquad
+S_{\sigma'} \le S_\sigma + \beta_{\text{pop}}
+\]
+
+Pop grows the sphere by following positive curvature directions in $\Phi$, constrained by an entropy budget $\beta_{\text{pop}}$.  
+It is equivalent to **policy-driven affordance discovery**:
+
+\[
+\Delta_{\text{explore}} \propto \Pi_{\text{active}}(\mathbf{v} \cdot \nabla \Phi), 
+\]
+where $\Pi_{\text{active}}$ selects a sparse set of admissible policy directions.
+
+---
+
+\paragraph{(2) Merge — Semantic Fusion}
+
+\[
+\mathrm{merge}(\sigma_1, \sigma_2) :\; (\sigma_1, \sigma_2) \rightarrow \sigma_3
+\]
+
+\[
+\Phi_{\sigma_3} = \Phi_{\sigma_1} \cup \Phi_{\sigma_2}, \qquad
+S_{\sigma_3} \le S_{\sigma_1} + S_{\sigma_2} - \delta_{\text{sync}}
+\]
+
+Merge succeeds only when **joint compression** is possible, meaning the fused sphere is entropically cheaper than storing both separately:
+
+\[
+\delta_{\text{sync}} = I(\sigma_1; \sigma_2) - I_{\min} > 0
+\]
+
+Thus merge is an **information-binding event**, not a concatenation.
+
+---
+
+\paragraph{(3) Collapse — Entropic Pruning}
+
+\[
+\mathrm{collapse}(\sigma) :\; \sigma \rightarrow \sigma'
+\]
+
+\[
+\Phi_{\sigma'} = \Pi_{\text{retain}}(\Phi_\sigma), \qquad
+S_{\sigma'} < S_\sigma
+\]
+
+Collapse is policy-directed compression preserving only the most causally fertile submanifold, found via:
+
+\[
+\Pi_{\text{retain}} = \arg\max_{\pi} \left[ I(\pi; \sigma) - \Lambda \|\pi\|_1 \right]
+\]
+
+This makes collapse the **adjoint of sparse inference**.
+
+---
+
+\paragraph{(4) Rewrite — Directed Reparameterization}
+
+\[
+\mathrm{rewrite}(\sigma, r): \sigma \rightarrow \sigma'
+\]
+
+\[
+\Phi_{\sigma'} = r(\Phi_\sigma), \qquad
+S_{\sigma'} \approx S_\sigma \pm \epsilon
+\]
+
+Rewrite is entropy-neutral transport on the manifold, akin to a diffeomorphism constrained by adjacency preservation:
+
+\[
+r \in \mathrm{Diff}_\epsilon(\Phi) \quad \text{s.t.} \quad d_{\text{geo}}(\partial\Phi_\sigma, \partial\Phi_{\sigma'}) < \epsilon
+\]
+
+---
+
+\paragraph{(5) Mask — Selective Attention Projection}
+
+\[
+\mathrm{mask}(\sigma, m): \sigma \rightarrow \sigma'
+\]
+
+\[
+\Phi_{\sigma'} = m \odot \Phi_\sigma, \qquad m(x)\in [0,1]
+\]
+
+Entropy reduces proportionally to masked volume:
+
+\[
+S_{\sigma'} = \int m(x)\,\rho_S(x)\,dx
+\]
+
+Masking is the **attention operator** of semantic fields.
+
+---
+
+\paragraph{(6) Bind — Causal Interface Construction}
+
+\[
+\mathrm{bind}(\sigma_1 \rightarrow \sigma_2)
+\]
+
+Constructs a policy channel:
+
+\[
+\mathcal{B}: \partial \Phi_{\sigma_1} \rightarrow \partial \Phi_{\sigma_2}
+\]
+
+such that induced flux preserves bounded entropy distortion:
+
+\[
+\left| S_{\sigma_1} - S_{\sigma_2} \right| < \gamma_{\text{bind}}
+\]
+
+Bind is the primitive of *compositional cognition*, building causal conduits rather than merging containers.
+
+---
+
+\subsection{Plenum Conservation Laws for SpherePOP}
+
+Sphere operations obey three invariants:
+
+\begin{theorem}[Entropy Budget Law]
+For any valid operator sequence $\{\pi_i\}$:
+\[
+\sum_i \Delta S_{\pi_i} \le B_{\text{total}}
+\]
+otherwise the program is ill-typed.
+\end{theorem}
+
+\begin{theorem}[Boundary Causality Law]
+No SpherePOP operation may create new semantic boundary curvature outside the convex hull of prior boundaries unless licensed by \texttt{pop}.
+\end{theorem}
+
+\begin{theorem}[Sparsity of Influence]
+Let $a_i$ be the latent policy activating operator $\pi_i$. Then:
+\[
+|\mathrm{supp}(a_{i}) \cap \mathrm{supp}(a_{j})| \le 1 \quad \forall i \neq j
+\]
+meaning operator influence graphs remain sparse.
+\end{theorem}
+
+---
+
+\subsection{Summary}
+
+SpherePOP is therefore not a symbolic DSL—it is a **discrete integration scheme** for bounded semantic fields evolving under sparse policy control.  
+Under this interpretation:
+
+| Operator | Equivalent in the Plenum |
+|---|---|
+| pop | gradient-following semantic expansion |
+| merge | information-binding compression |
+| collapse | sparse causal pruning |
+| rewrite | manifold-preserving transport |
+| mask | attentional projection |
+| bind | construction of causal conduits |
+
+Each preserves entropy budgets, respects field geometry, and expresses minimal policy intervention.
+
+
+
+% ============================================================
+% SECTION 6 — Unified Semantics and Type System of EBSSC
+% ============================================================
+
+\section{Unified Semantics and Type System of EBSSC}
+
+EBSSC unifies geometric spheres, entropy-bounded inference, and sparse policy control into a single typed operational calculus.  
+Here we define the type system governing spheres and policies, the entropy-budget logic that constrains valid computation, the evaluation semantics, the unistochastic embedding of field transitions, and the executable algorithms that enact sphere evolution.
+
+% ------------------------------------------------------------
+\subsection{Sphere and Policy Types}
+
+\begin{definition}[Semantic Sphere Type]
+A sphere is well-typed when it carries the signature
+\[
+\sigma : (T_{\mathrm{in}} \rightarrow T_{\mathrm{out}})\; [S \le B_s,\; \deg \le k,\; \mathcal{C} \le C_{\max}]
+\]
+where:
+\begin{itemize}
+  \item $T_{\mathrm{in}},T_{\mathrm{out}}$ are boundary-compatible semantic sorts,
+  \item $S$ is internal entropy, bounded by $B_s$ (a lexical prior),
+  \item $\deg$ bounds causal fan-out under reactive policy binding,
+  \item $\mathcal{C}$ is cumulative policy action cost.
+\end{itemize}
+\end{definition}
+
+\begin{definition}[Policy Type]
+A policy $\pi$ has type
+\[
+\pi : \sigma \Rightarrow \sigma' \; [\Delta S \le b_\pi,\; \| \pi \|_0 \le \Lambda_\pi]
+\]
+meaning it transforms sphere $\sigma$ into $\sigma'$ while:
+\begin{itemize}
+  \item increasing entropy by at most $b_\pi$,
+  \item activating at most $\Lambda_\pi$ latent actions.
+\end{itemize}
+\end{definition}
+
+% ------------------------------------------------------------
+\subsection{Entropy Budgets as Semantic Priors}
+
+Budgets act as \emph{type-level priors} restricting admissible transformations.
+
+\begin{proposition}[Budget Accumulation Law]
+For a program trace $\{\pi_1,\ldots,\pi_n\}$:
+\[
+S(\sigma_n) \le S(\sigma_0) + \sum_{i=1}^n b_{\pi_i}
+\]
+If $\sum b_{\pi_i} > B_{\text{global}}$, the trace is untypeable.
+\end{proposition}
+
+Thus semantic computation is well-typed if and only if it is \emph{entropically affordable}.
+
+% ------------------------------------------------------------
+\subsection{Operational Semantics}
+
+Evaluation is a step relation over contextual spheres:
+
+\[
+(\sigma, \Gamma) \xrightarrow{\pi} (\sigma', \Gamma')
+\]
+
+Core reduction rules become type-indexed:
+
+\[
+\textsc{Pop} \quad
+\frac{ \|\nabla \Phi_\sigma\| > 0 \quad \Delta S \le b_{\pi} }
+{(\sigma,\Gamma) \xrightarrow{\pi=\mathrm{pop}} (\sigma', \Gamma)}
+\]
+
+\[
+\textsc{Merge} \quad
+\frac{ \partial \Phi_{\sigma_1} \sim \partial \Phi_{\sigma_2} \quad \Delta S \le b_{\pi} }
+{(\sigma_1 \circledast \sigma_2, \Gamma) \xrightarrow{\pi=\mathrm{merge}} (\sigma_3, \Gamma)}
+\]
+
+\[
+\textsc{Policy Apply} \quad
+\frac{ \Gamma \vdash \pi:\sigma\Rightarrow\sigma' \quad \mathrm{budget}(\pi)<B }
+{(\sigma,\Gamma) \xrightarrow{\pi} (\sigma', \Gamma)}
+\]
+
+\begin{theorem}[Progress]
+If $\sigma$ is well-typed and $S(\sigma)<B_{\text{global}}$, then either $\sigma$ is a final sphere or $\exists \pi$ such that $(\sigma,\Gamma)\xrightarrow{\pi}(\sigma',\Gamma')$.
+\end{theorem}
+
+\begin{theorem}[Preservation]
+If $\sigma$ is well-typed and $(\sigma,\Gamma)\xrightarrow{\pi}(\sigma',\Gamma')$, then $\sigma'$ is well-typed.
+\end{theorem}
+
+% ------------------------------------------------------------
+\subsection{Sparse Policy Selection as Variational Inference}
+
+At each step, EBSSC selects a sparse minimal-free-energy action:
+
+\[
+\pi^* = \arg\min_{\pi} \left[ G(\sigma,\pi) + \Lambda \|\pi\|_1 + \gamma C(\pi) \right] \quad
+\text{s.t. } \Delta S(\pi) \le b_\pi
+\]
+
+When latent actions parameterize policy ($a$), inference reduces to constrained sparse regression:
+
+\[
+a^* = \arg\min_a \frac{1}{2}\|y-Xa\|_2^2 + \Lambda \|a\|_1 \quad \text{s.t. } \kappa \|a\|_1 \le B
+\]
+
+Thus EBSSC inherits LASSO phase transitions, sparsity stability, and soft-thresholded solutions.
+
+% ------------------------------------------------------------
+\subsection{Plenum–Unistochastic Correspondence}
+
+Latent semantic fields evolve unitarily before measurement.  
+Let $\Phi \in \mathbb{C}^n$ encode a sphere’s amplitude field. A policy acts as a unitary $U$:
+
+\[
+\Phi' = U \Phi
+\]
+
+Observed semantic mass is the induced probability vector:
+
+\[
+p_i = |\Phi_i|^2
+\]
+
+\[
+p'_i = |\Phi'_i|^2 = \sum_j |U_{ij}|^2 p_j = (Bp)_i
+\]
+
+Since $B_{ij}=|U_{ij}|^2$ is bistochastic, every EBSSC policy induces a **unistochastic flow over meaning space**.
+
+\begin{theorem}[Unistochastic Policy Realizability]
+A sphere transition is physically realizable under EBSSC if and only if its probability transport is unistochastic.
+\end{theorem}
+
+% ------------------------------------------------------------
+\subsection{Algorithmic Semantics}
+
+\begin{algorithmic}[1]
+\State \textbf{init} sphere $\sigma_0$ with entropy $S_0$, budget $B$
+\While{$S(\sigma) < B$}
+  \State Sample admissible policies $\{\pi_i\}$
+  \State Solve sparse inference:
+        $a^* = \arg\min_a \|y-Xa\|^2 + \Lambda \|a\|_1$
+  \State Filter: discard $\pi_i$ if $\Delta S(\pi_i) > b_{\pi_i}$
+  \State $\pi^* \gets$ policy activated by $a^*$ with minimum free energy
+  \State $(\sigma, \Gamma) \gets (\sigma, \Gamma) \xrightarrow{\pi^*} (\sigma', \Gamma')$
+\EndWhile
+\Return final sphere $\sigma$
+\end{algorithmic}
+
+This algorithm guarantees:
+
+\begin{itemize}
+  \item entropy never exceeds budget,
+  \item active policies remain sparse,
+  \item dynamics correspond to unistochastic transport when field amplitudes are tracked,
+  \item and policies minimize expected free energy under sparsity.
+\end{itemize}
+
+% ------------------------------------------------------------
+\subsection{Consequences}
+
+EBSSC thus yields a single unified triad:
+
+| Domain | Realized as |
+|---|---|
+| Semantics | Typed spheres with bounded entropy |
+| Cognition | Sparse policy optimization |
+| Dynamics | Unistochastic transport on latent fields |
+
+Semantic evolution becomes identical to **valid computation**, **physical plausibility**, and **variational optimality** under shared constraints.
+
+
+
+% ============================================================
+% SECTION 7 — Categorical Semantics
+% ============================================================
+
+\section{Categorical Semantics}
+
+EBSSC admits a precise category-theoretic semantics in which spheres are objects, and admissible (typed, budget-feasible) policies are morphisms. The calculus forms a \emph{symmetric monoidal, entropy-enriched, partially compact, traced category} in which policy composition corresponds to inference chaining, merge corresponds to tensoring, and entropy bounds induce enrichment over the Lawvere quantale $(\mathbb{R}_{\ge 0}, +, \le)$.
+
+% ------------------------------------------------------------
+\subsection{The Category of Entropy-Bounded Sphere Transformations}
+
+\begin{definition}[EBSSC Category]
+Define the category $\mathcal{E}$ by:
+\begin{itemize}
+    \item Objects: well-typed spheres $\sigma : (T_{\mathrm{in}} \to T_{\mathrm{out}})[S \le B_s,\deg\le k]$.
+    \item Morphisms: typed policies $\pi:\sigma \to \sigma'$ satisfying $\Delta S(\pi)\le b_\pi$.
+    \item Composition: sequential policy application $\pi_2\circ \pi_1$.
+    \item Identity: the null policy $\mathrm{id}_\sigma$ with zero entropy cost.
+\end{itemize}
+\end{definition}
+
+\begin{proposition}[Well-Defined Composition]
+If $\pi_1:\sigma_0\to\sigma_1$ and $\pi_2:\sigma_1\to\sigma_2$ then
+\[
+\Delta S(\pi_2\circ\pi_1)\le \Delta S(\pi_1)+\Delta S(\pi_2),
+\]
+hence composition is closed under entropy budgets.
+\end{proposition}
+
+\begin{proof}
+Composition executes transitions in sequence. Entropy budgets are additive under worst-case accumulation, and since each policy is budget-bounded at definition-time, their sum bounds the composite. Preservation of typing guarantees well-formedness of the composed sphere.
+\end{proof}
+
+This makes $(\mathcal{E}, \circ, \mathrm{id})$ a valid category enriched over entropy costs.
+
+% ------------------------------------------------------------
+\subsection{Monoidal Structure via Sphere Merge}
+
+Sphere fusion plays the role of the monoidal tensor.
+
+\begin{definition}[Tensor]
+For spheres $\sigma_1,\sigma_2$, define
+\[
+\sigma_1 \otimes \sigma_2 := \sigma_1 \circledast \sigma_2,
+\]
+with induced boundary compatibility typing.
+\end{definition}
+
+\begin{theorem}[Symmetric Monoidal Structure]
+\[
+(\mathcal{E}, \otimes, I, \alpha, \lambda, \rho, \sigma)
+\]
+forms a symmetric monoidal category, where:
+\begin{itemize}
+    \item $I$ is the empty sphere,
+    \item $\alpha$ is associativity of merge up to isomorphism,
+    \item $\sigma$ is symmetry (merge commutativity up to boundary alignment),
+    \item $\lambda,\rho$ are trivial unitors.
+\end{itemize}
+\end{theorem}
+
+\begin{proof}[Sketch]
+Merge does not destroy provenance, boundaries are tracked explicitly, and entropy is subadditive under merge (\S3). Re-parenthesizing or permuting order yields isomorphic spheres with identical semantic mass distributions and identical entropy histories.
+\end{proof}
+
+% ------------------------------------------------------------
+\subsection{Entropy-Enriched Structure}
+
+Entropy induces enrichment over the Lawvere cost quantale.
+
+\begin{definition}[Enrichment]
+For morphisms $\pi:\sigma\to\sigma'$, define
+\[
+\mathcal{E}(\sigma,\sigma') = \inf_{\pi:\sigma\to\sigma'} \Delta S(\pi) \in \mathbb{R}_{\ge 0}\cup\{+\infty\}.
+\]
+\end{definition}
+
+\begin{proposition}[Triangle Inequality for Composition]
+\[
+\mathcal{E}(\sigma_0,\sigma_2) \le \mathcal{E}(\sigma_0,\sigma_1) + \mathcal{E}(\sigma_1,\sigma_2)
+\]
+\end{proposition}
+
+This shows that entropy acts exactly as a categorical metric on morphisms, making $\mathcal{E}$ a \emph{$(\mathbb{R}_{\ge0},+)$-enriched category}.
+
+% ------------------------------------------------------------
+\subsection{Traced Structure from Policy Feedback}
+
+Cognitive policies support self-reference, iteration, and feedback loops.
+
+\begin{definition}[Trace]
+For a morphism $\pi: \sigma \otimes \tau \to \sigma \otimes \tau$, define the trace operation:
+\[
+\mathrm{Tr}_\tau(\pi): \sigma \to \sigma
+\]
+which feeds the $\tau$ boundary back into itself.
+\end{definition}
+
+\begin{theorem}[Trace Validity]
+$\mathrm{Tr}_\tau$ satisfies the Joyal–Street–Verity trace axioms whenever feedback entropy is bounded:
+\[
+\Delta S(\mathrm{Tr}_\tau(\pi)) \le \Delta S(\pi).
+\]
+\end{theorem}
+
+Thus, $\mathcal{E}$ is a \emph{traced monoidal category}, enabling formal recursion, semantic equilibration, and iterative inference.
+
+% ------------------------------------------------------------
+\subsection{Compact Structure Under Approximate Semantic Inversion}
+
+Perfect adjoints do not exist in general, but semantic inversion exists when entropy is conserved.
+
+\begin{definition}[Approximate Dual]
+Given $\pi:\sigma\to\sigma'$, an adjoint $\pi^\dagger:\sigma'\to\sigma$ is valid when
+\[
+\Delta S(\pi) + \Delta S(\pi^\dagger) \le \epsilon
+\]
+for small $\epsilon$.
+\end{definition}
+
+This yields a \emph{partial compact structure} sufficient for reversible reasoning, controlled forgetting, and conceptual unbinding.
+
+% ------------------------------------------------------------
+\subsection{Semantic Functor to Probabilistic Meaning Flow}
+
+Define the functor $\mathcal{P}$ from EBSSC to stochastic semantics:
+
+\[
+\mathcal{P} : \mathcal{E} \to \mathbf{Stoch}
+\]
+
+\[
+\mathcal{P}(\sigma) = p, \quad \mathcal{P}(\pi) = B_\pi
+\]
+where $p$ is the semantic mass distribution and $B_\pi$ is the unistochastic matrix induced by policy $\pi$.
+
+\begin{theorem}[Meaning Preservation]
+For composable policies,
+\[
+\mathcal{P}(\pi_2 \circ \pi_1) = \mathcal{P}(\pi_2)\mathcal{P}(\pi_1)
+\]
+and $\mathcal{P}$ preserves monoidality:
+\[
+\mathcal{P}(\sigma_1 \otimes \sigma_2) = \mathcal{P}(\sigma_1) \otimes \mathcal{P}(\sigma_2)
+\]
+\end{theorem}
+
+This shows that EBSSC policies translate exactly to probabilistic semantic transport—making it a sound \emph{semantic dynamics engine}.
+
+% ------------------------------------------------------------
+\subsection{Consequences and Positioning}
+
+\begin{center}
+\begin{tabular}{lll}
+Structure & Meaning in EBSSC & Role \\
+\toprule
+Objects & Semantic spheres & Units of meaning \\
+Morphisms & Entropy-bounded policies & Thought and transformation \\
+Tensor & Sphere merge & Concept fusion \\
+Trace & Latent recursion & Reasoning loops \\
+Enrichment & Entropy metric & Cognitive cost \\
+Functor to Stoch & Unistochastic flow & Meaning dynamics \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Together, these results establish EBSSC as:
+\begin{itemize}
+  \item a categorical model of thought,
+  \item a geometric theory of meaning,
+  \item a variational control system,
+  \item and a physically realizable flow of semantic mass.
+\end{itemize}
+
+% ============================================================
+% SECTION 8 — Higher Topos and Sheaf Semantics
+% ============================================================
+
+\section{Higher Topos and Sheaf Semantics}
+
+EBSSC spheres are not merely sets of attributes or nodes in a graph: they are internally coordinated \emph{semantic manifolds with compatible boundary data}, whose mergers and rewrites must preserve Čech-consistency, entropy bounds, and policy locality.  
+This situates EBSSC naturally in the setting of \emph{sheaves of semantic states over a site of conceptual neighbourhoods}, with dynamics taken in an $\infty$-topos whose morphisms are entropy-bounded policy flows.
+
+% ------------------------------------------------------------
+\subsection{Semantic Site and Coverage}
+
+\begin{definition}[Semantic Site $\mathcal{S}$]
+Let $\mathcal{S}$ be a category whose objects are local semantic observables $U,V,W$ (conceptual patches of a sphere) and whose morphisms are inclusion maps of semantic visibility $U \hookrightarrow V$.  
+A \emph{covering family} $\{U_i \to U\}$ is defined by the property:
+\[
+\bigcup_i U_i \models U \quad \text{and} \quad \Delta S\!\left(\coprod_i U_i \to U\right) \le B_{\mathrm{cover}}
+\]
+i.e., the cover jointly reconstructs $U$ without violating entropy budget.
+\end{definition}
+
+This defines a Grothendieck topology $J$ on $\mathcal{S}$, yielding a semantic site $(\mathcal{S}, J)$.
+
+% ------------------------------------------------------------
+\subsection{Sheaves of Semantic Spheres}
+
+\begin{definition}[Semantic Sheaf]
+A semantic sheaf is a functor
+\[
+\mathcal{F} : \mathcal{S}^{\mathrm{op}} \to \mathbf{EBSSC},
+\]
+mapping each conceptual patch $U$ to a sphere $\sigma_U$, satisfying:
+
+1. **Locality:** compatible local realizations glue uniquely,
+2. **Gluing:** if $\{\sigma_{U_i}\}$ agree on all overlaps $U_i \cap U_j$, then there exists a unique $\sigma_U$ such that $\sigma_U|_{U_i} = \sigma_{U_i}$,
+3. **Entropy preservation:**
+\[
+E(\sigma_U) \le \sum_i E(\sigma_{U_i}) + \beta_{\mathrm{glue}}
+\]
+for a fixed gluing overhead $\beta_{\mathrm{glue}}$.
+\end{definition}
+
+Thus, global concepts are not predefined objects but \emph{sheaf colimits of local conceptual patches}, subject to entropy constraints.
+
+% ------------------------------------------------------------
+\subsection{Higher Stacks of Policy Evolutions}
+
+Sphere rewrites form not a category, but an $\infty$-groupoid, because:
+
+* policies compose associatively only up to coherent rewrite equivalences,
+* rewrites of rewrites are meaningful (proof-relevant),
+* semantic provenance forms higher homotopies.
+
+\begin{definition}[Policy $\infty$-Groupoid]
+Let $\Pi(\sigma)$ be the space whose:
+\begin{itemize}
+  \item 0-cells are sphere states,
+  \item 1-cells are policies $\pi:\sigma\to\sigma'$,
+  \item 2-cells are rewrite homotopies $\eta:\pi\Rightarrow\pi'$ preserving entropy budgets,
+  \item higher cells witness coherence of rewrites of rewrites.
+\end{itemize}
+\end{definition}
+
+\begin{proposition}
+$\Pi(\sigma)$ forms an $\infty$-groupoid; semantic identity is path-based, not judgmental.
+\end{proposition}
+
+The global semantics of EBSSC therefore live in the $\infty$-topos
+\[
+\mathbf{Sh}_\infty(\mathcal{S}, J)
+\]
+of $\infty$-sheaves on the semantic site.
+
+% ------------------------------------------------------------
+\subsection{Descent and Semantic Consistency}
+
+\begin{theorem}[Semantic Descent]
+Let $\{\sigma_{U_i}\}$ be a cover of $U$. A global sphere $\sigma_U$ exists iff:
+
+1. **Pairwise policy compatibility:**  
+   For all $i,j$, the restrictions agree up to a rewrite 2-cell:
+   \[
+   \sigma_{U_i}|_{U_i\cap U_j} \simeq \sigma_{U_j}|_{U_i\cap U_j}
+   \]
+2. **Cocycle coherence:** on triple overlaps $U_i \cap U_j \cap U_k$, the homotopies form a commuting triangle up to a 3-cell.
+3. **Entropy admissibility:**  
+   The total gluing entropy stays bounded:
+   \[
+   \sum_i \Delta S_{U_i} + \sum_{i<j} \Delta S_{ij} < B_{\mathrm{global}}
+   \]
+\end{theorem}
+
+\begin{proof}[Sketch]
+This is standard hyperdescent in an $\infty$-topos, augmented with an entropy budget constraint that is stable under finite homotopy colimits. The entropy bound ensures descent data lies in the bounded subtopos.
+\end{proof}
+
+% ------------------------------------------------------------
+\subsection{The Bounded ∞-Topos of Semantic States}
+
+Define the entropy-bounded subtopos:
+\[
+\mathbf{Sh}_\infty^{\le B}(\mathcal{S}, J) \subset \mathbf{Sh}_\infty(\mathcal{S}, J)
+\]
+containing only sheaves whose global sections satisfy
+\[
+E(\sigma) \le B.
+\]
+
+\begin{theorem}[Existence of Bounded Semantic Colimits]
+All finite homotopy colimits exist in $\mathbf{Sh}_\infty^{\le B}$ and satisfy:
+\[
+E(\mathrm{hocolim}_i\, \sigma_i) \le \sum_i E(\sigma_i) + O(\beta_{\mathrm{glue}})
+\]
+\end{theorem}
+
+Thus, semantic concept formation via merge, abstraction, and rewrite is modeled as entropy-controlled homotopy colimits.
+
+% ------------------------------------------------------------
+\subsection{Sheaf Semantics of SpherePOP Operators}
+
+SpherePOP primitives embed as sheaf morphisms:
+
+\begin{center}
+\begin{tabular}{lll}
+Operator & Sheaf Operation & Semantic Meaning \\
+\toprule
+pop$(\sigma)$ & local section refinement & increase resolution \\
+merge$(\sigma_1,\sigma_2)$ & homotopy colimit & fuse concepts \\
+collapse$(\sigma)$ & sheaf truncation & entropy-reducing projection \\
+rewrite$(\sigma,r)$ & 1- and 2-cells in $\Pi(\sigma)$ & coherent transformation \\
+bind$(\sigma_1\!\to\!\sigma_2)$ & internal Hom object & causal semantic map \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ------------------------------------------------------------
+\subsection{Semantic Univalence}
+
+Finally, EBSSC satisfies a weak univalence principle:
+
+\begin{theorem}[Semantic Univalence, weak form]
+If two spheres are equivalent by a zig-zag of entropy-bounded policy homotopies, then they are identically interpretable by any semantic context functor
+\[
+F : \mathbf{Sh}_\infty^{\le B} \to \mathcal{C}
+\]
+that respects entropy enrichment.
+\end{theorem}
+
+Hence meaning depends only on \emph{the connectivity of the policy space}, not on representatives.
+
+% ------------------------------------------------------------
+\subsection{Section 8 Summary}
+
+\begin{itemize}
+  \item Concepts form a semantic site with entropy-limited covers.
+  \item Meaning is a sheaf into EBSSC spheres, not a fixed object.
+  \item Reasoning paths form an $\infty$-groupoid of policies.
+  \item Concept formation is entropy-bounded homotopy colimit.
+  \item The full semantics live in a bounded $\infty$-topos.
+  \item SpherePOP operators embed as sheaf-theoretic constructions.
+\end{itemize}
+
+% ============================================================
+% SECTION 9 — Compiler Pipeline for Rewriting EBSSC Policies
+%              as Sheaf Operations
+% ============================================================
+
+\section{Compiler Pipeline for Rewriting EBSSC Policies as Sheaf Operations}
+
+To operationalize EBSSC, we compile high-level policy traces expressed in SpherePOP syntax into executable sheaf-theoretic transformations in the bounded $\infty$-topos $\mathbf{Sh}_{\infty}^{\le B}(\mathcal{S},J)$. This section defines the compilation pipeline, intermediate representations, invariants, and correctness guarantees.
+
+% ------------------------------------------------------------
+
+\subsection{Pipeline Stages}
+
+\begin{center}
+\begin{tikzpicture}[
+  node distance=1.3cm,
+  box/.style={draw,rounded corners,align=center,inner sep=5pt},
+  arr/.style={-stealth,thick}
+]
+\node[box] (A) {SpherePOP Source\\(policy trace)};
+\node[box, below of=A] (B) {Typed EBSSC AST};
+\node[box, below of=B] (C) {Entropy-Annotated IR};
+\node[box, below of=C] (D) {Sheaf DAG IR};
+\node[box, below of=D] (E) {∞-Groupoid Lifting};
+\node[box, below of=E] (F) {Executable\\Sheaf Functor};
+
+\draw[arr] (A) -- (B) node[midway,right]{parse};
+\draw[arr] (B) -- (C) node[midway,right]{type + budget};
+\draw[arr] (C) -- (D) node[midway,right]{sheaf lowering};
+\draw[arr] (D) -- (E) node[midway,right]{coherence lift};
+\draw[arr] (E) -- (F) node[midway,right]{realize};
+\end{tikzpicture}
+\end{center}
+
+The compiler preserves three global invariants:
+
+\begin{enumerate}
+  \item \textbf{Entropy safety:} each policy step satisfies $\Delta E \le B_\pi$.
+  \item \textbf{Sparsity contractivity:} $\|\pi_{\mathrm{out}}\|_0 \le \|\pi_{\mathrm{in}}\|_0$.
+  \item \textbf{Higher descent correctness:} resulting sheaf morphisms satisfy $\infty$-cocycle coherence.
+\end{enumerate}
+
+% ------------------------------------------------------------
+
+\subsection{AST Construction and Typing}
+
+SpherePOP syntax is lowered into a typed abstract syntax tree:
+
+\[
+\text{AST} ::= 
+  \mathrm{Pop}(\sigma) \mid
+  \mathrm{Merge}(\sigma_1,\sigma_2) \mid
+  \mathrm{Collapse}(\sigma) \mid
+  \mathrm{Rewrite}(\sigma,r) \mid
+  \mathrm{Bind}(\sigma_1\!\to\!\sigma_2)
+\]
+
+Typing judgments are of the form:
+
+\[
+\Gamma \vdash \pi : \sigma \Rightarrow \sigma' \quad [\,\Delta E \le B,\, \ell_0(\pi)\le \Lambda\,]
+\]
+
+Typing enforces:
+
+\begin{itemize}
+  \item entropy budgets are affine and cumulative,
+  \item sparsity bounds are preserved under sequencing and branching,
+  \item merge is admissible only when boundary types are compatible,
+  \item rewrite rules operate within declared entropy envelopes.
+\end{itemize}
+
+% ------------------------------------------------------------
+
+\subsection{Sheaf Lowering}
+
+The typed AST is lowered to a presheaf‐level intermediate representation in which each policy becomes a natural transformation between local sections:
+
+\[
+\pi : \mathcal{F}(U) \Rightarrow \mathcal{F}(V)
+\]
+
+The compiler inserts:
+
+\begin{itemize}
+  \item restriction maps $\rho_{UV}:\mathcal{F}(V)\to\mathcal{F}(U)$,
+  \item gluing witnesses on nonempty overlaps $U\cap V$,
+  \item local entropy flow annotations on morphisms,
+  \item confluence markers for rewrite diamonds.
+\end{itemize}
+
+The resulting ``Sheaf DAG IR'' is a labeled diagram whose nodes are local sphere states and edges are entropy-tagged semantic transitions.
+
+% ------------------------------------------------------------
+
+\subsection{Lifting to $\infty$-Groupoid Coherence}
+
+Rewrite chains are promoted to 2-cells:
+
+\[
+\pi_1 \Rightarrow \pi_2 : \sigma \to \sigma'
+\]
+
+For each critical pair, the compiler generates coherence fillers:
+
+\[
+\eta_{12} \cdot \eta_{23} \simeq \eta_{13}
+\]
+
+ensuring 3-cocycle consistency on triple overlaps. The IR is thus lifted into the $\infty$-groupoid of semantic morphisms with proven confluence.
+
+% ------------------------------------------------------------
+
+\subsection{Executable Sheaf Functor}
+
+The final output is a sheaf-semantic functor:
+
+\[
+\Phi_\pi : (\mathcal{S},J)^{\mathrm{op}} \longrightarrow \mathbf{EBSSC}
+\]
+
+where each open $U \in \mathcal{S}$ contains:
+
+\begin{itemize}
+  \item a local sphere state $\sigma_U$,
+  \item runtime policy maps $\pi_U$,
+  \item entropy accounting proofs,
+  \item and gluing isomorphisms on overlaps.
+\end{itemize}
+
+Execution applies policy maps stalkwise while validating descent and entropy constraints at each sheaf restriction.
+
+% ------------------------------------------------------------
+
+\subsection{Compiler Optimizations}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lll}
+\textbf{Pass} & \textbf{Effect} & \textbf{Invariant Preserved} \\
+\hline
+Zero-policy elimination & drop $\ell_0 = 0$ actions & semantic equivalence \\
+Merge fusion & combine adjacent merges & entropy non-increase \\
+Collapse hoisting & move pruning earlier & lowers entropy peak \\
+Boundary pruning & remove unused $\partial\sigma$ & gluing equivalence \\
+Rewrite normalization & canonicalize policy paths & $\infty$-coherence \\
+\end{tabular}
+\end{table}
+
+% ------------------------------------------------------------
+
+\subsection{Compiler Correctness}
+
+\begin{theorem}[Compiler Soundness and Stability]
+Let $\pi$ be a well-typed SpherePOP program and $\Phi_\pi$ its compiled sheaf functor. Then:
+
+\begin{enumerate}
+  \item \textbf{Semantic preservation:} execution of $\Phi_\pi$ matches the source trace up to homotopy of policy maps.
+  \item \textbf{Entropy safety:} all local reductions satisfy declared budget constraints.
+  \item \textbf{Sparsity contractivity:} $\|\Phi_\pi\|_0 \le \|\pi\|_0$.
+  \item \textbf{$\infty$-descent correctness:} gluing maps satisfy higher cocycle conditions.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}[Sketch]
+Proceed by induction on the AST. Compiler passes are semantics preserving or entropy contractive. Sheaf lowering introduces only functorial structure, and coherence lifting inserts higher cells without changing underlying morphism cost. Gluing correctness follows from 2- and 3-cell filler synthesis guaranteeing descent data.
+\end{proof}
+
+% ------------------------------------------------------------
+
+\subsection{Abstract Execution Model}
+
+The target machine maintains:
+
+\begin{itemize}
+  \item a \emph{sheaf store} $\{\sigma_U\}_{U\in\mathcal{S}}$,
+  \item a \emph{policy scheduler} respecting $\ell_0$,
+  \item an \emph{entropy ledger} enforcing budgets,
+  \item a \emph{gluing engine} ensuring descent,
+  \item and a \emph{homotopy stack} tracking rewrite coherences.
+\end{itemize}
+
+% ------------------------------------------------------------
+
+\subsection{Summary}
+
+The compiler establishes a constructive equivalence:
+
+\[
+\text{SpherePOP policy traces}
+\quad\longleftrightarrow\quad
+\text{bounded sheaf morphisms in } \mathbf{Sh}_{\infty}^{\le B}(\mathcal{S},J)
+\]
+
+preserving entropy discipline, sparsity, and higher-topos semantics at runtime.
+\section{Compiler Pipeline for Rewriting EBSSC Policies as Sheaf Operations}
+
+To operationalize EBSSC, the compiler lowers SpherePOP policy traces into a SheafIR and produces executable sheaf functors. The pipeline stages, invariants, and the IR diagram for the compiled program are shown below.
+
+\subsection{Compiled Sheaf IR (visual)}
+\begin{center}
+\begin{tikzpicture}[
+  node distance=1.3cm,
+  box/.style={draw,rounded corners,align=center,inner sep=5pt},
+  arr/.style={-stealth,thick}
+]
+
+\node[box] (n0) at (0,-0.0) {sigma0\\(U0)};
+\node[box] (n1) at (0,-1.2) {sigma1\\(U0)};
+\node[box] (n2) at (0,-2.4) {prior\\(U0)};
+\node[box] (n3) at (0,-3.5999999999999996) {sigma0\\(U0)};
+\node[box] (n4) at (0,-4.8) {sigma0\\(U0)};
+\node[box] (n5) at (0,-6.0) {sigma1\\(U0)};
+\node[box] (n6) at (0,-7.199999999999999) {sigma1\\(U0)};
+\node[box] (n7) at (0,-8.4) {sigma1\\(U0)};
+\draw[arr] (n0) -- (n0) node[midway,right]{$\Delta E=0.02,\;\ell_0=1$};
+\draw[arr] (n3) -- (n3) node[midway,right]{$\Delta E=0.0,\;\ell_0=0$};
+\draw[arr] (n4) -- (n4) node[midway,right]{$\Delta E=0.02,\;\ell_0=1$};
+\draw[arr] (n5) -- (n7) node[midway,right]{$\Delta E=-0.01,\;\ell_0=2$};
+\draw[arr] (n2) -- (n7) node[midway,right]{$\Delta E=-0.01,\;\ell_0=2$};
+\draw[arr] (n6) -- (n6) node[midway,right]{$\Delta E=-0.05,\;\ell_0=1$};
+
+\end{tikzpicture}
+\end{center}
+
+\subsection{Sheaf IR (textual)}
+\begin{itemize}
+\item sigma0 \(\to\) sigma0: $\Delta E=0.02$, $\ell_0=1$
+\item sigma0 \(\to\) sigma0: $\Delta E=0.0$, $\ell_0=0$
+\item sigma0 \(\to\) sigma0: $\Delta E=0.02$, $\ell_0=1$
+\item sigma1 \(\to\) sigma1: $\Delta E=-0.01$, $\ell_0=2$
+\item prior \(\to\) sigma1: $\Delta E=-0.01$, $\ell_0=2$
+\item sigma1 \(\to\) sigma1: $\Delta E=-0.05$, $\ell_0=1$
+\end{itemize}
+
+\subsection{Compiler invariants checked}
+\begin{itemize}
+  \item Entropy safety: global $\sum \Delta E$ reported below.
+  \item Sparsity contractivity: sum of $\ell_0$ usages reported below.
+\end{itemize}
+
+\subsection{Diagnostics}
+\begin{verbatim}
+Total ΔE = -0.030000000000000006
+Total ℓ0 = 7
+\end{verbatim}
+\section{Sparse EBSSC Execution Model and Runtime Guarantees}
+
+The compiler from Section 9 emits a normalized SheafIR that can be interpreted as an executable trace in a
+monoidal category of entropy-bounded policy morphisms.  In this section we characterize the runtime semantics,
+establish worst-case bounds, and formalize execution invariants.
+
+\subsection{Runtime State Representation}
+
+At runtime, the interpreter maintains a configuration
+\[
+  \mathcal{C}_t = (\sigma_t,\, \Gamma_t,\, E_t,\, S_t)
+\]
+where:
+\begin{itemize}
+  \item $\sigma_t$ is the active semantic sphere,
+  \item $\Gamma_t$ is the global context (a sheaf of adjoining spheres),
+  \item $E_t = E(\sigma_t)$ is the accumulated semantic entropy,
+  \item $S_t = \|a_t\|_0$ is the sparsity level (count of active policy coefficients).
+\end{itemize}
+
+A compiled instruction has the form
+\[
+  \sigma_i \xrightarrow{\pi_k} \sigma_j, \quad
+  \Delta E_k,\; \ell_0(\pi_k),
+\]
+and induces the transition
+\[
+  \mathcal{C}_{t+1} =
+  \left(
+    \sigma_j,\;
+    \Gamma_t \cup \{\sigma_j\},\;
+    E_t + \Delta E_k,\;
+    S_t + \ell_0(\pi_k)
+  \right).
+\]
+
+\subsection{Global Execution Invariants}
+
+The following quantities are checked at each step by the runtime monitor:
+
+\paragraph{Entropy Budget.}
+\[
+  E_t \le E_{\max}, \qquad
+  E_{\max} = E_0 + B
+\]
+
+\paragraph{Sparsity Budget.}
+\[
+  S_t \le S_{\max}, \qquad
+  S_{\max} = \Lambda^{-1} \cdot \rho
+\]
+for sparsity pressure $\Lambda$ and resource constant $\rho$.
+
+\paragraph{Monotonic Coherence.}
+Let $I(\sigma)$ be semantic mutual information with its parent sphere.  
+Then:
+\[
+  I(\sigma_{t+1}) \ge I(\sigma_t) - \epsilon_I
+\]
+for a tolerated degradation bound $\epsilon_I$.
+
+\subsection{Runtime Soundness}
+
+\begin{theorem}[Execution Soundness]
+If a trace type-checks in EBSSC and is compiled to SheafIR, then its execution satisfies for all $t$:
+\[
+  E_t \le E_0 + B,
+  \qquad
+  S_t \le S_{\max},
+  \qquad
+  \Delta I_t \ge -\epsilon_I.
+\]
+\end{theorem}
+
+\begin{proof}
+Entropy increments are syntactically annotated in IR and validated by the compiler to satisfy
+$\sum_k \Delta E_k \le B$.  The runtime accumulates entropy monotonically without hidden side channels,
+ensuring the first bound.
+
+Sparsity increments are determined by the signed support of the policy vector, emitted at compile time
+as $\ell_0(\pi_k)$.  The interpreter maintains a counter and rejects any transition that would violate
+$S_{\max}$.
+
+Mutual information is computed on sphere boundaries under the gluing functor and can only decrease under
+collapse or masking.  Both operators are compiled with certified bounds $\epsilon_I$ on information loss.
+Composition of bounded-loss operators preserves the bound by additivity.
+\end{proof}
+
+\subsection{Complexity of Execution}
+
+Let:
+\begin{itemize}
+  \item $n$ be sphere dimension,
+  \item $d$ be maximum boundary degree,
+  \item $T$ be trace length,
+  \item $k$ be max nonzeros per policy (sparsity).
+\end{itemize}
+
+\paragraph{Interpreter cost per step:}
+\[
+  O(nd + k \log n)
+\]
+($nd$ for boundary consistency checks, $k \log n$ for sparse update propagation)
+
+\paragraph{Full execution cost:}
+\[
+  O\big(T(nd + k \log n)\big)
+\]
+
+In compressed regimes where $k \ll n$ and $d \ll n$, execution is subquadratic in sphere size.
+
+\subsection{Semantic Confluence and Local Determinism}
+
+Although merging is not globally confluent, it is locally deterministic in the sense that for any sphere
+$\sigma$ and policy $\pi$, the restricted transition
+\[
+  \sigma \xrightarrow{\pi} \sigma'
+\]
+has at most one valid target sphere $\sigma'$ satisfying entropy, sparsity, and type constraints.
+This ensures replay determinism for compiled traces.
+
+\begin{proposition}[Replay Determinism]
+Two executions of the same compiled SheafIR trace from identical initial state produce identical final spheres
+and identical entropy and sparsity counters.
+\end{proposition}
+
+\begin{proof}
+The IR fixes the evaluation order, policy parameters, sparsity masks, and merge partners.
+All operations are pure transformations on immutable sphere values; thus the transition function is deterministic.
+\end{proof}
+
+\subsection{Semantic Compression Bound}
+
+Each collapse or masking operator reduces entropy while preserving minimal semantic support.  
+Let $\gamma_c > 0$ be the minimum entropy decrease enforced by a collapse instruction.
+
+\begin{theorem}[Compression Progress]
+If a trace contains $m$ collapse steps, then
+\[
+  E_{\text{final}} \le E_0 - m\,\gamma_c + B_{\text{non-collapse}}.
+\]
+\end{theorem}
+
+This induces guaranteed compression in any sufficiently collapse-dense policy.
+
+\subsection{Executable Interpretation of the Compiler Output}
+
+Given the IR generated in Section 9, the runtime monitor computes:
+
+\[
+  E_{\text{final}} = E_0 + \sum_k \Delta E_k = E_0 - 0.03
+\]
+\[
+  S_{\text{final}} = \sum_k \ell_0(\pi_k) = 7
+\]
+
+Thus the program:
+\begin{itemize}
+  \item decreases global semantic entropy,
+  \item remains within all budget constraints,
+  \item executes in $O(T(nd + k \log n))$,
+  \item and is guaranteed replay-deterministic.
+\end{itemize}
+
+\subsection{Summary}
+
+\begin{itemize}
+  \item EBSSC execution is a resource-bounded traversal of a sheaf of spheres.
+  \item Compiler-emitted entropy and sparsity certificates bind runtime behavior.
+  \item Traces that type-check cannot overflow entropy or sparsity budgets.
+  \item Execution is deterministic, compressive, and subquadratic in realistic sparse regimes.
+  \item The execution model is therefore suitable as a foundation for both cognitive semantics and energy-limited physical computation.
+\end{itemize}

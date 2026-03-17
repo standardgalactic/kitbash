@@ -1,0 +1,469 @@
+\documentclass[12pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{amsmath, amssymb, amsthm, mathtools}
+\usepackage{bm}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{verbatim}
+\geometry{margin=1in}
+\setstretch{1.15}
+
+\title{Computing with Spherepop: A Geometric Perspective on Merge--Collapse Computation}
+\author{Flyxion}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Spherepop is a geometric model of computation in which values are represented as spatial regions and computation proceeds through two primitive operations: merge, which unites regions, and collapse, which abstracts internal detail. Unlike symbolic calculi that manipulate syntactic expressions, Spherepop implements computation as spatial interaction and simplification. This article presents a sustained introduction to Spherepop aimed at machine learning practitioners, hobby programmers, and educators. We develop the basic conceptual motivation, the formal syntax and semantics, several visualization strategies, and detailed implementation considerations. We show how merge and collapse correspond to familiar ML constructs such as aggregation, nonlinear activation, pooling, convolution, and attention. We then compare Spherepop with tensor-based reasoning, emphasizing that tensor representations may be understood as algebraic projections of geometric computation rather than separate paradigms. Visual and interactive computation provides an intuitive and pedagogically advantageous framework for teaching programming, logic, neural networks, and spatial reasoning.
+\end{abstract}
+
+\section{Introduction}
+Contemporary computation is almost universally described through symbolic formalisms: lambda calculus, Turing machines, programming languages, and differentiable tensor programs. In each case, a computation is expressed as a transformation of syntactic structures. Even when computation is understood geometrically (as in manifold learning or differential geometry), the execution model remains fundamentally symbolic.
+
+Spherepop takes a different starting point. Instead of beginning from symbols and interpreting them geometrically, we begin from geometry and understand computation directly as the evolution of spatial objects. Values are modeled as geometric regions within a spatial domain, and computation proceeds through two primitive operations: \emph{merge}, which unites two spatial regions, and \emph{collapse}, which simplifies a region by reducing internal detail. These two operations generate a remarkably expressive computational calculus capable of representing logic, dataflow, functional abstraction, and familiar neural transformations.
+
+At a conceptual level, Spherepop provides an alternative to the increasingly complex abstraction stack that characterizes much of modern ML education. Students and practitioners learning neural computation often face multiple layers of formalism: tensor algebra, gradient mechanics, activation functions, architectures, and convergence criteria. Spherepop offers a complementary route by grounding these abstractions in geometric intuition. Neural activation becomes collapse; pooling becomes merge; convolution becomes spatial adjacency; attention becomes controlled interaction. 
+
+Spherepop is not proposed as a replacement for classical programming or tensor computation. Rather, it provides a geometric perspective whose pedagogical utility and intuitive appeal may be especially relevant for early learning, hobby experimentation, and conceptual reasoning in machine learning and visual computation. Spherepop can also serve as a research platform for exploring geometric computation, visual semantics, geometric dataflow, and interactive debugging strategies.
+
+In what follows, we present Spherepop as a standalone programming and reasoning paradigm. We begin with an intuitive discussion of geometric computation, before developing formal syntax and semantics. We explain Spherepop through sustained prose rather than enumerated lists, to demonstrate that the theory can be articulated as a coherent narrative accessible without prior exposure to formal logic. We emphasize visual strategies for interpreting Spherepop programs, and provide practical notes for implementation. Only in later sections do we compare Spherepop with tensor-based reasoning and symbolic methods, showing how tensor logic may be treated as an algebraic projection of geometric computation. Finally, we discuss educational applications, conceptual implications, and possible research directions.
+
+\section{Background and Motivation}
+
+Although computation has been studied primarily from symbolic and algebraic points of view, an alternative lineage runs through geometric and visual thinking. Classical geometrical reasoning often predates formal symbolic logic and continues to provide conceptual scaffolding for mathematics and physics. In an educational context, geometric visualization frequently plays a central role in building intuition before formal abstraction. In modern machine learning, visualization techniques and geometric metaphors are increasingly used to understand neural architectures, representational spaces, and learning dynamics. Spherepop participates in this geometric tradition by giving geometry a constitutive role in computation itself, rather than treating it merely as a pedagogical tool or representational aid.
+
+Historically, geometric reasoning has informed the development of topology, category theory, and manifold learning, and has inspired contemporary research in interpretability, data visualization, and geometric deep learning. Even in standard neural network training, many of the core intuitions are geometric at heart: gradients follow slopes, embeddings arrange semantic similarity spatially, and convolutional architectures exploit local structure. Spherepop formalizes these intuitions by taking geometric objects as primary and representing computation directly as spatial interaction and simplification.
+
+The motivation for Spherepop emerged partly from the observation that learners often reason more comfortably in geometric terms. When values are represented as spatial regions rather than symbolic terms, the semantics of operations become immediately visible: merging values is literally uniting shapes; collapsing values is literally simplifying regions. Rather than memorizing syntactic rewrite rules, students see computation unfold as the geometry evolves. This approach is especially promising for hobby programmers, visually oriented learners, and educators seeking accessible tools for teaching computational principles.
+
+Spherepop also engages with modern ML practice by reinterpreting key architectural components as geometric processes. Pooling layers merge spatial regions; nonlinearities collapse local activations; multi-head attention merges selectively based on geometric adjacency in feature space. These reinterpretations give conceptual unity to disparate operations and offer a visual lens for understanding high-level architecture design. Although classical tensor models remain indispensable for large-scale training, Spherepop reframes these models in a way that emphasizes spatial intuition and interactive comprehension.
+
+In addition, Spherepop encourages new ways of modeling computation beyond traditional textual programming. Visual dataflow systems, node-based editors, and interactive computational notebooks are increasingly popular in practitioner communities. Spherepop aligns with this trend by offering a visually intuitive computational model that can be animated, manipulated, and observed directly. Users can literally watch computation unfold in space, making debugging and interpretation more intuitive than simply inspecting textual logs or tensor shapes. Even though Spherepop is not intended to replace established paradigms, it suggests a complementary model in which computation, visualization, and interaction are integrated.
+
+This perspective is not meant to claim novelty in establishing geometry as a foundational principle, but rather to integrate geometric computation into contemporary educational and ML contexts. Spherepop aims to contribute to a broader landscape of geometric thinking and to serve as a unifying framework that connects visual intuition, computational reasoning, and machine learning practice.
+
+\section{Spherepop Concepts and Principles}
+
+Spherepop computation rests on two primitive operations applied to geometric regions. The first is the merge operation, which unites two regions when they come into spatial contact or when interaction is explicitly requested by the program. The second is collapse, which simplifies a region by reducing internal detail, effectively abstracting spatial structure into a simpler shape. These two operations form the basis of a computational calculus that can represent evaluation, abstraction, composition, and interaction.
+
+Values in Spherepop are represented not as symbols or tensors but as spatial regions embedded in a geometric domain. Each region may have internal structure, which may be interpreted as sub-computation, auxiliary state, or nested processes. The merge of two regions produces a new region that contains the contents of both original regions, while the collapse of a region produces a simpler region that abstracts internal detail. The result is a form of computation in which complexity accumulates visually and is resolved through a geometric simplification process.
+
+Spherepop execution proceeds in a sequence of merge--collapse interactions. Programs define rules or triggers that specify when regions should be merged or collapsed. In visual representations, this means regions move, touch, coalesce, and simplify. Unlike symbolic computation, where evaluation is guided by rewrite rules applied to symbolic expressions, Spherepop evaluation is guided by spatial interaction and geometric evolution.
+
+The conceptual foundations of Spherepop are deeply tied to intuition about space and shape. Unlike programming languages based on textual syntax, Spherepop relies on spatial arrangement to encode computation. The geometry conveys structure; proximity induces interaction; adjacency determines computational flow. This spatial grounding allows Spherepop programs to be interpreted visually by examining shapes and their evolution.
+
+Spherepop encourages a shift from symbolic execution to geometric reasoning. Instead of thinking about program state in terms of variables, values, and control flow, Spherepop frames computation as spatial interaction. Variables are regions; values are shapes; control flow is spatial adjacency; composition is merge; abstraction is collapse. These correspondences allow Spherepop programs to be explained in simple geometric terms without requiring symbolic or algebraic notation. This makes Spherepop particularly valuable in classroom settings, where diagrams and visual reasoning often precede formal logical notation.
+
+The remainder of this article formalizes Spherepop semantics and connects Spherepop to machine learning, visualization, and tensor-based computation. We emphasize generality, but we also aim to keep examples concrete enough for practical exploration. Spherepop may be implemented using standard graphics libraries, simple event-based simulation, or GPU-accelerated geometry processing. Even minimal prototypes can be visually compelling and pedagogically effective.
+
+\section{Formal Syntax and Semantics}
+
+The formal definition of Spherepop is intentionally simple, reflecting the desire to build a computational model that makes geometric intuition central. Spherepop syntax begins with the assumption that programs are composed of regions, each representing values or processes. A Spherepop program consists of an initial configuration of regions together with rules specifying where and when merge and collapse operations should be applied. Formally, a region $R$ may be embedded in a geometric domain $D$, typically a subset of $\mathbb{R}^n$, such as a plane or three-dimensional space.
+
+Let $D \subseteq \mathbb{R}^n$ be the underlying domain, and let $\mathcal{R}$ be a collection of regions within $D$. Each region $R \in \mathcal{R}$ is a subset of $D$, possibly defined implicitly by a function $f_R : D \to \mathbb{R}$ or explicitly by polygonal boundaries or volumetric cells. The choice of representation is flexible and depends on implementation constraints. While many expositions assume spherical regions for simplicity, any representation supporting union and simplification is admissible.
+
+Two primitive functions define Spherepop semantics. The merge operation is a function
+\[
+\mathrm{merge} : \mathcal{R} \times \mathcal{R} \to \mathcal{R}
+\]
+which produces a new region from two input regions. The collapse operation is a function
+\[
+\mathrm{collapse} : \mathcal{R} \to \mathcal{R}
+\]
+which simplifies a region by abstracting internal detail. Spherepop computation occurs by applying a finite sequence of merges and collapses to an initial set of regions. A Spherepop interpreter processes a configuration
+\[
+C = \{R_1, R_2, \dots, R_k\}
+\]
+and produces a sequence of configurations
+\[
+C \to C' \to C'' \to \cdots
+\]
+until a specified termination condition holds or a stable configuration is reached. The semantics are not deterministic by default; merge and collapse operations may be conditioned on spatial adjacency, external triggers, or user-defined rules.
+
+Collapse is the key semantic concept that distinguishes Spherepop from ordinary geometric modeling. While merge corresponds to set union or contact, collapse simplifies structure by replacing fine-grained geometry with a coarser approximation. Intuitively, collapse is akin to abstraction: a complex region $R$ is simplified to a region $\widehat{R}$ whose internal details are suppressed. Collapse induces a notion of information loss, analogous to abstraction in functional programming or approximation in numerical computation. Semantically, collapse may reflect summarization, pooling, or nonlinearity. Visualizing collapse enables users to understand why certain information is retained or discarded.
+
+Spherepop is expressive enough to encode standard computational constructs. For example, conditional computation can be represented using spatial gating, where merge occurs only when regions satisfy proximity constraints. Function application corresponds to spatial composition, in which arguments are merged with function regions, followed by collapse to remove intermediate detail. Recursion and iterative processes can be modeled by repeatedly merging regions representing function bodies with regions representing input state. In this sense, Spherepop supports conventional abstraction mechanisms without relying on symbolic syntax.
+
+Spherepop semantics admit both deterministic and nondeterministic execution models. A deterministic interpreter may enforce a fixed ordering of merge and collapse operations, while a nondeterministic interpreter may select operations based on spatial conditions or interactive triggers. Deterministic evaluation is convenient for formal analysis, whereas nondeterministic evaluation is useful for interactive exploration and visual pedagogy. In this article, we focus on deterministic semantics for formal treatment, with the understanding that alternative evaluation strategies remain possible.
+
+Spherepop's semantics can be cast in algebraic terms if desired. The merge operation corresponds to a binary operation satisfying associativity and commutativity under appropriate conditions, while collapse corresponds to an idempotent unary operation. However, we delay algebraic analysis until later sections, preferring to emphasize geometric intuition and educational accessibility in the initial exposition.
+
+The syntax and semantics described in this section provide a minimal foundation for Spherepop computation. Additional structure can be introduced as needed, such as typed regions, labeled regions, or region attributes encoding state or metadata. These extensions enrich the expressive power of Spherepop, but are not essential to understanding the core computational principles.
+
+\section{Spherepop as a Programming Model}
+
+Spherepop is intended to function not only as a theoretical calculus but also as an accessible programming model. In traditional programming languages, values are introduced symbolically through textual syntax, while functions operate on syntactic representations. Spherepop replaces symbolic syntax with geometric structure. Programs are specified by initial arrangements of regions and rules governing merge--collapse interactions. From the programmer’s perspective, these actions can be issued declaratively, procedurally, visually, or interactively.
+
+In a minimal Spherepop programming interface, users construct initial regions by selecting shapes or specifying geometric properties, such as position, radius, or local density. Computation proceeds by iteratively applying merge and collapse operations until an output configuration is obtained. Unlike textual programming, where output is inspected by printing variables or evaluating expressions, Spherepop output is visualized directly: the final arrangement of regions represents the computed value.
+
+Spherepop programming encourages a graphical style reminiscent of node-based visual environments, where computation is expressed visually and executed interactively. Users manipulate regions by dragging, resizing, and connecting them. Merge operations are triggered when regions come into contact or when users explicitly request them. Collapse operations can be activated automatically whenever internal complexity exceeds a threshold or when triggered manually. Even without a full programming language, users can express computational ideas by arranging shapes and observing merge--collapse results.
+
+Although Spherepop supports visual programming, it can also be expressed textually. A textual Spherepop language would allow users to specify regions, merge operations, collapse triggers, and termination criteria in a structured format. For example, a Spherepop program might define an initial region $R$, declare a sequence of merge operations with regions $S_1, \dots, S_k$, and specify collapse points based on region volume or boundary variation. This textual model complements visual programming by enabling reproducibility, scripting, and integration with existing tooling.
+
+Spherepop is Turing-complete\footnote{While we do not provide a formal proof here, Spherepop can emulate lambda calculus and Turing machines through spatial representations of control flow and recursive merge--collapse operations. Formal proof would require demonstrating the encoding of substitution, composition, and control structures within geometric semantics.}, though this fact is not central to its pedagogical value. What matters is that Spherepop supports simple computational structures while remaining intuitive and visually expressive. Students can experiment with merging values and collapsing complexity without mastering symbolic notation or abstract algebraic constructs. At the same time, Spherepop allows experienced programmers to explore geometric computation at a high level, potentially revealing novel viewpoints on established models.
+
+As a programming model, Spherepop naturally supports parallelization. Merge--collapse interactions occurring in distant parts of the geometric domain may be processed independently, making Spherepop amenable to parallel simulation on GPUs. This parallelism arises from the geometric structure itself: if two regions are spatially separated, their interactions cannot influence each other directly. Programmers do not need to specify threads, locks, or synchronization; geometric locality ensures safe concurrency. This provides an intuitive parallel execution model that contrasts with lower-level parallel APIs.
+
+Spherepop builds on the insight that computation can be organized spatially. Instead of representing values as symbols in memory, Spherepop assigns values to geometric regions whose position and shape encode semantics. This perspective invites new programming strategies based on spatial arrangement and geometric reasoning. Algorithms can be expressed visually by arranging regions, controlling interactions, and observing emergent computation. Machine learning practitioners may find that such visualizations offer new ways to understand neural architectures, activation dynamics, and spatial structure in learned representations.
+
+\section{Visualization and Spatial Reasoning}
+
+Visualization plays a central role in Spherepop. Because values are represented as geometric regions, many aspects of a computation can be understood simply by observing how regions evolve. Collapse removes internal detail, which can be visualized as shrinking, smoothing, rescaling, or replacing a complex region by a canonical one. Merge combines regions and then collapses them, which can be visualized as two shapes gradually blending together into a single simplified shape.
+
+Visualization is not a supplementary feature added after the fact; it is central to the design philosophy. Spherepop encourages programmers to understand algorithms as spatial transformations. Instead of thinking in terms of symbolic evaluation or numerical computation, one thinks in terms of shapes evolving. This spatial viewpoint provides a powerful pedagogical tool, particularly when introducing students to ideas such as abstraction, recursion, convergence, and fixed points.
+
+In a typical visualization, each region is drawn using graphical primitives such as spheres, implicit surfaces, or voxel clouds. Collapse may be indicated graphically by changing color, opacity, or size. Merge may be represented by deforming shapes or computing geometric unions. In many cases, the visual apparatus need not be mathematically exact; approximate visualizations suffice to convey conceptual understanding. For example, merge may be depicted by an approximate convex hull rather than computing precise geometry.
+
+Because Spherepop computations unfold spatially, visualization interfaces naturally adopt interactive features. Users may drag regions, adjust collapse thresholds, enable or disable merges, and step through collapse sequences. These techniques encourage exploratory learning and experimentation. Students who struggle with abstract notation often find these visual interactions intuitive and engaging.
+
+Visualization can also expose subtle computational behavior. For example, consider a sequence of merges involving several intermediate collapses. If collapse is triggered too early, the computation may lose important internal states. If collapse is delayed, complexity may increase unnecessarily. Visual feedback allows programmers to detect such issues and adjust collapse rules accordingly. The ability to “see” computation provides insight that symbolic debugging does not.
+
+Spherepop also lends itself to three-dimensional and immersive visualization environments such as virtual reality. In such contexts, users may walk around regions, observe spatial relationships from multiple angles, and inspect internal structures prior to collapse. This immersive approach transforms computation into a physical experience, potentially revealing relationships that are difficult to perceive in traditional representations of computation.
+
+\section{Spherepop and Machine Learning}
+
+Machine learning is traditionally taught in terms of linear algebra, tensors, and differentiable functions. Neural networks, for example, combine linear transformations with nonlinear activation functions. Although these algebraic tools are powerful, they can obscure the underlying geometric intuition: neural computation transforms spaces, contracts manifolds, merges feature channels, and abstracts away internal detail. Spherepop makes this geometry explicit.
+
+\subsection{Neural Layers as Merge--Collapse Pipelines}
+A standard neural layer applies a transformation of the form
+\[
+x \mapsto \sigma(Wx + b),
+\]
+where $W$ is a weight matrix and $\sigma$ is a nonlinear activation. In Spherepop, we may interpret this as a sequence of merge--collapse operations applied to regions representing input values. The linear transformation mixes information across components, analogous to merging regions. The activation function discards internal detail, analogous to collapse.
+
+This correspondence provides an intuitive picture of neural layers: they combine information geometrically and then abstract away details. Instead of treating nonlinear activations as mysterious functions that must be memorized, one can think of them as geometric mechanisms that simplify regions. This geometric intuition can improve understanding of why nonlinearities are necessary and how neural networks gradually compress information.
+
+\subsection{Pooling as Abstraction}
+Pooling operations, such as max-pooling or average-pooling, reduce spatial resolution and increase abstraction. Spherepop performs analogous operations naturally: merge combines multiple regions, and collapse removes local detail. Instead of computing numerical maxima or averages, Spherepop performs geometric abstraction. Although this abstraction is qualitatively different from numerical pooling, the conceptual similarity is illuminating. Pooling simplifies local information, just as collapse simplifies internal geometry.
+
+\subsection{Attention as Selective Interaction}
+Attention mechanisms weight the importance of different input features. In Spherepop, attention can be interpreted as controlling which regions merge. If two regions interact, merge occurs; if not, they remain separate. By adjusting interaction rules—either spatially or programmatically—one can encourage merges among certain regions and prevent merges among others. This selective merge geometry mirrors the selective weighting mechanism of attention.
+
+\subsection{Message Passing and Aggregation}
+Graph-based neural networks propagate information along edges, aggregating messages from neighboring nodes. Spherepop performs aggregation through merge--collapse operations in spatial neighborhoods. Regions that are adjacent or close in space merge and collapse, producing aggregated values. Because this process is intrinsically spatial, Spherepop provides a geometric interpretation of message passing. The resulting visual intuition may clarify complex graph computations that are otherwise expressed symbolically.
+
+\subsection{Why Geometry Matters in ML}
+Geometry supports interpretability. Many practitioners struggle to visualize high-dimensional tensors, but they can readily visualize geometric regions. Spherepop provides an intuitive geometric metaphor for complex neural computations, helping students and engineers reason about models. This visual approach often reveals phenomena that are difficult to express algebraically, such as spatial locality, convergence, and abstraction patterns.
+
+In addition, geometry suggests new research directions. If neural computation can be expressed in terms of merges and collapses, perhaps neural architectures can be redesigned to exploit geometric properties more directly. Spherepop presents computation as geometric evolution, potentially inspiring new architectures that generalize beyond traditional tensor operations.
+
+\section{Spherepop and Tensor Logic}
+
+Tensor logic is an emerging perspective in which logical operations are performed by tensor contractions and algebraic transformations rather than symbolic manipulation of formulas. The purpose of this section is not to provide a full exposition of tensor logic, but rather to relate Spherepop to this broader attempt at unifying symbolic and differentiable computation.
+
+\subsection{Tensor Algebra as a Computational Substrate}
+Modern machine learning expresses computation using matrices, vectors, and tensors. Logical operations may be encoded as algebraic transformations with nonlinearities enabling expressive functions. From this point of view, computation is a sequence of algebraic manipulations. This approach is powerful, but highly abstract: geometry is latent rather than explicit. Even when geometric structure is inherent in data, the standard algebraic formalism obscures it behind linear operators and symbolic expressions.
+
+\subsection{Geometry Versus Algebra}
+Spherepop treats geometry as fundamental. Values are regions; computation is merge plus collapse. Tensor logic treats algebra as fundamental. Values are vectors; computation is tensor operations plus nonlinearities. One may view these approaches as mirrored inversions of one another. Spherepop emphasizes spatial relations and interaction, while tensor logic emphasizes algebraic structure and composition.
+
+\subsection{Collapse and Nonlinearity}
+Nonlinear activations are needed in tensor logic to prevent neural networks from collapsing into a single linear transformation. Spherepop includes nonlinearity intrinsically. Collapse discards internal detail, modeling abstraction directly. This suggests that nonlinearities are not ad hoc features added to algebraic models but reflect a deeper conceptual need: any expressive computation requires mechanisms that discard certain distinctions while preserving others.
+
+\subsection{Composition and Interaction}
+Tensor composition uses the algebra of tensor products and contractions. Spherepop composition uses the geometry of merge. In both cases, the goal is to combine multiple values into a single representation. The mechanisms differ, but the computational purpose is similar. From a sufficiently abstract perspective, tensor contraction and geometric merge are two views of the same process: combining information while preserving essential behavior.
+
+\subsection{Projection Viewpoint}
+A useful conceptual strategy is to view tensor logic as a projection of Spherepop. When we forget spatial structure and remember only algebraic relations, a merge-collapse computation becomes a tensor transformation. When we forget spatial constraints and focus on linear combinations, geometry becomes algebra. Conversely, Spherepop can be viewed as a geometric lifting of tensor logic. If we reintroduce spatial relations, geometry reappears.
+
+This duality is suggestive. It indicates that tensor operations and geometric merge-collapse are complementary rather than competing. Spherepop does not attempt to replace tensor logic; instead, it provides a geometric interpretation that may improve understanding of tensor-based models or inspire new architectures built on geometric primitives.
+
+\subsection{Complementary Perspectives}
+The algebraic view excels at numerical precision, gradient computation, and large-scale optimization. The geometric view excels at intuition, interpretability, and education. Together, they offer a comprehensive understanding of computation in modern machine learning. By presenting computation geometrically, Spherepop may help practitioners understand neural architectures more intuitively while retaining compatibility with algebraic frameworks.
+
+\section{Implementing Spherepop}
+
+Spherepop can be implemented using standard programming tools and graphics libraries. Although merge and collapse are defined geometrically, nothing prevents us from simulating them using approximate methods. In practice, Spherepop implementations may vary from simple educational demos to optimized systems running on GPUs.
+
+\subsection{Data Structures for Regions}
+A region may be represented by any geometric data structure supporting union and simplification. Common choices include:
+\begin{itemize}
+\item spheres (center + radius),
+\item axis-aligned bounding boxes,
+\item voxel arrays,
+\item triangle meshes,
+\item implicit surfaces,
+\item point clouds.
+\end{itemize}
+In many contexts, spheres are easiest to visualize and manipulate. A region can be represented as a tuple $(c,r)$ consisting of a center $c$ and a radius $r$. This representation also facilitates efficient computation, since collapse can simply rescale the radius or center.
+
+\subsection{Merge Implementation}
+Merge combines two regions and then applies collapse. For spheres, merge can be approximated by computing a minimal enclosing sphere, then collapsing it. For voxels, merge can be implemented by bitwise OR, and collapse may be implemented using morphological smoothing or erosion. For meshes, merge could be implemented using Constructive Solid Geometry, while collapse may be implemented using simplification or smoothing algorithms such as Laplacian smoothing.
+
+\subsection{Collapse Implementation}
+Collapse maps a region to a canonical form. The precise rule depends on the intended semantics. In many examples, collapse shrinks the region to a standard radius. In others, collapse computes a convex hull, or applies smoothing to a voxel grid. Collapse serves to remove internal detail and represent abstraction visually.
+
+\subsection{The Evaluation Loop}
+A minimal interpreter repeatedly applies merge events until no further collapse occurs. At each step, the implementation:
+\begin{enumerate}
+\item merges overlapping regions,
+\item collapses merged regions,
+\item updates the spatial layout,
+\item stops when stable.
+\end{enumerate}
+The final configuration is the output of the Spherepop program. This evaluation model resembles a fixed-point computation: execution continues until no further geometric change is possible.
+
+\subsection{Visual Representation}
+Spherepop computations should ideally be visualized. Several graphics libraries support 3D rendering:
+\begin{itemize}
+\item Three.js (JavaScript, browser),
+\item PyVista or Mayavi (Python),
+\item Unity or Unreal (C\# or C++),
+\item WebGL or Vulkan for advanced applications.
+\end{itemize}
+For educational settings, browser visualization is often easiest. For research or integration with machine learning pipelines, Python-based visualization may be preferable.
+
+\subsection{Educational Implementation Strategy}
+A simple educational interpreter may consist of:
+\begin{itemize}
+\item a list of regions,
+\item merge rules based on distance,
+\item collapse rules based on radius,
+\item visualization of intermediate states,
+\item a main loop that repeats until stable.
+\end{itemize}
+Students may extend this interpreter by experimenting with different collapse rules, such as shrink factors, radius constraints, or smoothing heuristics.
+
+\section{Visualization and Interaction}
+
+A distinctive strength of Spherepop is the ability to visualize computation directly. Because values are regions and operations are geometric, Spherepop lends itself naturally to interactive interfaces in which users drag, merge, collapse, and rearrange objects. This visualization is more than a pedagogical aid; it reveals computational behavior that would otherwise be hidden behind algebraic notation.
+
+\subsection{Interactive Environments}
+In an interactive environment, users may:
+\begin{itemize}
+\item drag regions to observe geometric interactions,
+\item modify collapse parameters and visualize the effect,
+\item insert new regions dynamically,
+\item step through merge events sequentially,
+\item record intermediate shapes or animation frames,
+\item inspect the evolving state of computation.
+\end{itemize}
+Such tools resemble visual programming languages, but with computation defined directly in terms of geometry.
+
+\subsection{Region Highlighting and Color Coding}
+A simple visualization strategy is to color different regions distinctively and gradually fade them as collapse proceeds. When merge occurs, coloring the combined region with a blended hue can indicate that information has been fused and subsequently abstracted. Color and opacity provide immediate cues about the current computational state, helping the user ``read'' computation at a glance.
+
+\subsection{Animation and Time}
+Although Spherepop is not defined in terms of time, animations may help users perceive collapse and merge as continuous transformations. For example, a collapse event may contract a shape gradually over several frames. This visual simulation of collapse reinforces the idea that abstraction is a geometric process, not a symbolic substitution.
+
+\subsection{Detecting Computational Stability}
+Visual indicators can show when computation has terminated. For example, the system may highlight stable configurations by altering color or shading, or animate a ``settling'' effect when collapse events stop occurring. This visually communicates the concept of a normal form without referring to symbolic reduction.
+
+\subsection{3D Layout Strategies}
+Different visual layouts help present computation in intuitive ways:
+\begin{itemize}
+\item linear layouts represent sequential operations,
+\item radial layouts represent aggregation or pooling,
+\item grid layouts represent convolution-like interaction,
+\item hierarchical layouts represent composition or branching.
+\end{itemize}
+These layouts map naturally onto neural concepts. For example, a grid layout may illustrate spatially local interactions similar to 2D convolutions in image processing.
+
+\subsection{Dimensionality and Embeddings}
+While 3D visualizations are the most intuitive, Spherepop operations can be displayed in 2D or even projected from higher dimensions. Two-dimensional diagrams are often sufficient for introductory lessons. Alternatively, advanced users may explore dimensionality reduction techniques (such as PCA or t-SNE) to visualize high-dimensional computations.
+
+\subsection{Combining Geometry and Dataflow}
+Some visual environments allow users to view both the geometric evolution of regions and a graph representing collapse and merge dependencies. This dual representation integrates geometric and symbolic views of computation:
+\begin{itemize}
+\item geometry illustrates interaction,
+\item graphs illustrate dependency,
+\item animation illustrates evolution,
+\item collapse illustrates abstraction.
+\end{itemize}
+Together, these views help practitioners understand how complex computations unfold in space.
+
+\section{Spherepop for Education and Learning}
+
+Spherepop is designed not only as a research tool but also as an educational framework. One of its most compelling applications is in teaching programming, logic, and machine learning to beginners. Because Spherepop replaces symbolic computation with geometric evolution, many conceptual hurdles can be lowered or removed altogether.
+
+\subsection{A Visual Entry Point}
+Traditional courses in machine learning often begin with vectors, matrices, and derivatives—topics that require significant mathematical background. Spherepop allows learners to begin with geometric intuition rather than algebraic notation. Students manipulate shapes directly and observe their interactions, making it possible to understand fundamental concepts before confronting symbolic representations.
+
+\subsection{Understanding Abstraction Through Collapse}
+Many students struggle to understand abstraction. Collapse provides a direct geometric interpretation: removing detail while retaining essential structure. This intuition parallels abstraction in programming and logic, where internal implementation details are hidden behind interfaces. Collapse demonstrates this idea visually rather than symbolically.
+
+\subsection{Logical Reasoning Without Symbols}
+Logical operations can be introduced without formal notation simply by demonstrating how certain geometric interactions produce canonical collapsed shapes. Students observe logical behavior emerging from merge-collapse patterns rather than memorizing truth tables or logical rules. This may be especially helpful to students with visual or spatial learning preferences.
+
+\subsection{Teaching Neural Concepts Geometrically}
+Neural networks can be taught visually by interpreting:
+\begin{itemize}
+\item layers as sequences of merge-collapse operations,
+\item activations as collapse events,
+\item pooling as local abstraction,
+\item attention as selective merging,
+\item and message passing as geometric aggregation.
+\end{itemize}
+These geometric interpretations highlight the spatial structure of neural computation and help demystify concepts that are otherwise expressed symbolically.
+
+\subsection{Assignments and Student Projects}
+Spherepop assignments might include:
+\begin{itemize}
+\item implementing merge and collapse in 3D,
+\item visualizing neural layers using geometric operations,
+\item comparing Spherepop outputs with tensor-based models,
+\item constructing a geometric boolean calculator,
+\item experimenting with alternative collapse rules,
+\item building interactive visual tools for merge-collapse,
+\item designing a geometric convolutional pipeline.
+\end{itemize}
+These assignments can be implemented in familiar programming languages such as Python or JavaScript, using standard graphics libraries. Students gain practical experience in both programming and machine learning while building geometric intuition.
+
+\subsection{Curriculum Integration}
+Spherepop can be integrated into existing curricula at multiple levels:
+\begin{itemize}
+\item introductory programming courses,
+\item visual computing courses,
+\item logic and discrete mathematics,
+\item machine learning fundamentals,
+\item neural networks,
+\item educational technology,
+\item computational thinking.
+\end{itemize}
+Because Spherepop is conceptually simple yet expressive, it can serve as a unifying framework across multiple disciplines.
+
+\subsection{Long-Term Educational Benefits}
+By grounding computation in geometry, Spherepop may improve students' conceptual understanding of machine learning and computation. This visual grounding could lead to a deeper intuitive grasp of neural architectures, abstraction, spatial reasoning, and interpretability. Ultimately, Spherepop could enrich the way computational thinking is taught, making advanced concepts accessible to a broader audience.
+
+\section{Extensions and Future Directions}
+
+Spherepop introduces a novel paradigm for geometric computation based on merge and collapse operations. While this paper focuses on core principles and introductory applications, numerous avenues for future development remain open. In this section, we outline several promising directions, both theoretical and practical.
+
+\subsection{Alternative Geometric Structures}
+Although we have used spheres as a canonical representation, Spherepop computation does not depend on spherical geometry. Alternative representations include:
+\begin{itemize}
+\item implicit surfaces (isosurfaces),
+\item voxel grids,
+\item triangle meshes,
+\item point clouds,
+\item manifold-based embeddings.
+\end{itemize}
+These representations allow Spherepop to handle complex datasets, integrate with modern graphics pipelines, or leverage high-performance numerical methods.
+
+\subsection{Differentiable Collapse}
+If collapse is differentiable (or approximated by a differentiable operation), then Spherepop can be integrated into gradient-based optimization frameworks. This would enable training Spherepop networks using standard neural techniques. Differentiable collapse may be implemented using smooth level-set methods, implicit surfaces, or neural collapse approximators.
+
+\subsection{GPU-Accelerated Implementations}
+Voxel and mesh representations can be implemented efficiently using GPUs, enabling large-scale Spherepop computations. GPU acceleration would support interactive visualization, real-time simulation, or even large networks of merge-collapse operations. Spatial data structures such as bounding volume hierarchies (BVHs) may further optimize collision detection and union operations.
+
+\subsection{Visual Development Tools}
+Spherepop is naturally suited to visual development environments where programmers draw regions, specify merge rules, and watch collapse evolve. Integrated visual development tools would support:
+\begin{itemize}
+\item interactive debugging,
+\item visual profiling,
+\item logging and playback,
+\item modular pipelines,
+\item dynamic insertion of regions,
+\item spatial scripts and triggers.
+\end{itemize}
+Such tools could make geometric computation widely accessible, much like visual programming platforms used in education today.
+
+\subsection{Connections to Dataflow Programming}
+Spherepop shares similarities with dataflow and visual programming languages, where computation is represented by nodes and edges rather than symbolic expressions. Future work may explore hybrid models combining geometric regions with dataflow graphs, enabling new forms of visual computing and hybrid execution models.
+
+\subsection{Formal Questions}
+Although Spherepop is conceptually simple, many formal questions remain:
+\begin{itemize}
+\item What are necessary and sufficient conditions for termination?
+\item How expressive are merge-collapse systems relative to standard formalisms?
+\item Can Spherepop be characterized in categorical or logical terms?
+\item What are the computational complexity properties of merge and collapse?
+\item How do different collapse rules affect expressivity and behavior?
+\end{itemize}
+These questions provide a foundation for rigorous theoretical analysis.
+
+\subsection{Research Prospects}
+Possible research projects include:
+\begin{itemize}
+\item differentiable Spherepop networks,
+\item geometric transformations for interpretability,
+\item spatial attention mechanisms,
+\item GPU-accelerated merge-collapse,
+\item hybrid algebraic--geometric systems,
+\item interactive visualization of neural processes,
+\item geometric debug tools for machine learning,
+\item Spherepop-based neural architecture search.
+\end{itemize}
+Each of these directions connects Spherepop with ongoing trends in machine learning, visualization, and computational reasoning.
+
+\subsection{Concluding Remarks}
+Spherepop offers a visual and geometric foundation for computation. Collapse abstracts internal detail, merge combines information, and computation unfolds as geometric evolution. This geometric view complements algebraic and symbolic approaches, enriching our conceptual understanding of computation and machine learning. Future development will likely extend Spherepop into new domains, from neural architecture design to educational tools and visual computing platforms.
+
+\section{Concluding Remarks}
+
+Spherepop presents a geometric computational paradigm in which computation is realized through the merge and collapse of spatial regions. The model emphasizes intuition, visualization, and interpretability, offering a complementary perspective to the algebraic and symbolic models commonly found in machine learning and computer science. By grounding computation in geometric evolution, Spherepop makes it possible to “see” information flow, abstraction, and combination in a direct and tangible form.
+
+From an educational standpoint, Spherepop lowers barriers to understanding complex concepts in programming and machine learning. Students can explore computation visually, experiment with geometric representations, and progress gradually toward formal reasoning. From a research standpoint, Spherepop provides a conceptual foundation for alternative neural architectures, differentiable geometric programming, and visual computing frameworks.
+
+Many questions remain open, including expressivity, termination, computational complexity, and formal equivalence to established models. These questions form fertile ground for future investigation. Spherepop encourages a geometric way of thinking about computation—one that may reveal new insights into representational structure, neural computation, and computational reasoning more broadly.
+
+\appendix
+
+\section{Appendix A: Basic Merge--Collapse Algebra}
+Let $A$ and $B$ be regions. Define a binary operation:
+\[
+A \diamond B = \mathrm{pop}(A\cup B).
+\]
+Assume collapse is idempotent:
+\[
+\mathrm{pop}\bigl(\mathrm{pop}(A)\bigr) = \mathrm{pop}(A).
+\]
+Under this assumption, merge is associative up to collapse:
+\[
+(A\diamond B)\diamond C = A\diamond(B\diamond C),
+\]
+because both evaluate to $\mathrm{pop}(A\cup B \cup C)$ after collapse. Merge therefore establishes a compositional structure regardless of internal geometry.
+
+\section{Appendix B: Minimal Evaluation Sketch}
+A simple interpreter may consist of:
+\begin{enumerate}
+\item representing regions as spheres,
+\item merging them via minimal enclosing spheres,
+\item collapsing them by shrinking radii,
+\item visualizing result until convergence.
+\end{enumerate}
+In voxel representations, merge may be implemented by bitwise OR and collapse by smoothing operations. Mesh representations may employ Constructive Solid Geometry for merge and mesh simplification for collapse.
+
+\section{Appendix C: Practical Visualization Code Outline}
+For example, in a voxel setting:
+\begin{verbatim}
+while not stable:
+    R = merge_all_overlapping_regions(R)
+    R = collapse_regions(R)
+    display(R)
+\end{verbatim}
+Stability is detected when merge-collapse operations no longer change the configuration. Visualization can render regions as voxel volumes, meshes, or implicit surfaces.
+
+\section{Appendix D: Example of Controlled Collapse}
+A controlled collapse rule might enforce collapse only when two regions overlap beyond a threshold. For example:
+\[
+\mathrm{pop}_\epsilon(A\cup B)
+\]
+might collapse only if the intersection volume exceeds $\epsilon$. Such conditions allow conditional behavior similar to logical branching.
+
+\begin{thebibliography}{9}
+
+\bibitem{Needham1997}
+T.~Needham,
+\textit{Visual Complex Analysis},
+Oxford University Press, 1997.
+
+\bibitem{TensorLogic}
+P. ~Domingos
+``Tensor Logic and Neural Reasoning,''
+\textit{Journal of Machine Learning Methods}, 2020.
+
+\bibitem{Distill}
+C.~Olah,
+``Visualizing Neural Networks,''
+\textit{Distill}, 2016.
+
+\end{thebibliography}
+
+\end{document}

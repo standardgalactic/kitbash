@@ -1,0 +1,1238 @@
+\documentclass[11pt]{article}
+
+% ------------------------------------------------------------
+% Engine & Fonts (LuaLaTeX)
+% ------------------------------------------------------------
+\usepackage{fontspec}
+\setmainfont{Latin Modern Roman}
+\usepackage{unicode-math}
+\setmathfont{Latin Modern Math}
+
+% ------------------------------------------------------------
+% Layout & Formatting
+% ------------------------------------------------------------
+\usepackage[margin=1.1in]{geometry}
+\usepackage{setspace}
+\setstretch{1.1}
+\usepackage{parskip}
+\setlength{\parskip}{0.6em}
+\setlength{\parindent}{0pt}
+
+% ------------------------------------------------------------
+% Math & Symbols
+% ------------------------------------------------------------
+\usepackage{amsmath,amssymb,mathtools,bm}
+\usepackage{physics}
+\usepackage{enumitem}
+\usepackage{xcolor}
+
+% ------------------------------------------------------------
+% Hyperlinks
+% ------------------------------------------------------------
+\usepackage[
+  colorlinks=true,
+  linkcolor=blue,
+  citecolor=blue,
+  urlcolor=blue
+]{hyperref}
+
+% ------------------------------------------------------------
+% Code Listings
+% ------------------------------------------------------------
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily\small,
+  columns=fullflexible,
+  breaklines=true,
+  frame=single,
+  showstringspaces=false,
+  tabsize=2,
+  commentstyle=\itshape\color{gray},
+  keywordstyle=\bfseries\color{black},
+  keepspaces=true
+}
+
+% ------------------------------------------------------------
+% Title Info
+% ------------------------------------------------------------
+\title{Continuous Learning through Teleological Alignment:\\
+An RSVP--GRPO Framework for Self-Improving LLMs}
+
+\author{Flyxion}
+\date{\today}
+
+% ============================================================
+\begin{document}
+% ============================================================
+\maketitle
+
+\begin{abstract}
+Recent work on \emph{Dynamic Alignment for Collective Agency} proposes a self-improving alignment protocol in which a large language model (LLM) generates its own training data and scores its own outputs with respect to an open-ended value---\emph{Collective Agency} (CA)---and then updates its policy using Group-Relative Policy Optimization (GRPO). This paper develops an alternative but compatible framework, grounded in the Relativistic Scalar--Vector Plenum (RSVP) field theory, in which alignment is treated as a problem of maintaining a multi-dimensional semantic field geometry rather than maximizing a scalar objective.
+
+We define a six-dimensional RSVP value vector for each model output, corresponding to geometric elegance, sheaf-theoretic composability, vectorial influence circulation, entropic dispersion, structural resilience, and epistemic openness. These axes are interpreted as discrete samples of the RSVP fields $(\Phi,\mathbf{v},S)$ and their derived functionals. We then embed these vector-valued scores into a GRPO-style group-relative learning rule, extend it with a teleological weighting mechanism that responds to drift in each axis over time, and implement a fully operational pipeline: a Bash-based data-generation agent, a JSONL preference schema, and a semantic-weighted GRPO trainer.
+
+The result is a concrete, reproducible architecture for \emph{continuous learning through teleological alignment}, in which an LLM not only improves its performance on tasks, but actively steers its behaviour along a specified multi-axis alignment trajectory. Rather than converging toward a brittle monolithic optimum, the system continually corrects regressions in its internal value geometry, embodying the RSVP maxim: ``divided we stand.''
+\end{abstract}
+
+\tableofcontents
+
+% ============================================================
+\section{Introduction}
+% ============================================================
+
+The standard story of alignment imagines a single scalar objective---whether reward, utility, or ``human preference''---and asks how to make an increasingly capable system optimize this scalar without destroying everything. In this picture, the central danger is \emph{coherent misalignment}: a system with powerful optimisation capabilities and a brittle, misspecified goal.
+
+Recent proposals such as \emph{Dynamic Alignment for Collective Agency} (DA--CA) by Anantaprayoon, Babina, Tarifi, and Asgharbeygi (2025) challenge this framing by emphasizing \emph{open-ended}, \emph{self-improving} alignment. Instead of a fixed externally-labelled dataset, the model generates its own prompts, its own candidate responses, its own scores, and iteratively improves itself with a group-relative policy optimization algorithm (GRPO) as in Shao et al.\ (2024). The value target---\emph{Collective Agency}---is explicitly open-textured, intended to be refined as the system and its environment co-evolve.
+
+In parallel, the RSVP (Relativistic Scalar--Vector Plenum) framework models cognition, cosmology, and governance as the dynamics of three coupled fields: a scalar potential $\Phi$, a vector field of influence and flow $\mathbf{v}$, and an entropy field $S$. In this view, ``intelligence'' is not a detached maximizer, but a lamphrodynamic process: the continual rearrangement and smoothing of these fields under constraints. RSVP emphasises that excessive coherence---too much $\Phi$ with too little $S$---is structurally dangerous: it collapses adaptability.
+
+This paper fuses these lines of thought. We treat alignment as the maintenance of a \emph{multi-dimensional value geometry} in RSVP space, and we make this geometry operational by:
+
+\begin{itemize}[leftmargin=1.5em]
+  \item defining a six-axis RSVP value vector for each model output,
+  \item using an LLM-based scorer to assign these 6D scores for groups of candidate responses,
+  \item performing GRPO updates that favour higher-scoring candidates relative to group baselines,
+  \item and---crucially---introducing a teleological weighting mechanism that tracks drift in each axis and amplifies corrective gradients where the system regresses.
+\end{itemize}
+
+We complement the conceptual treatment with fully executable artefacts: a Bash summarization agent that produces grouped candidate outputs and JSONL preferences (Appendix~\ref{app:bash}), a scoring prompt capturing the RSVP axes (Appendix~\ref{app:prompt}), and a Python training suite implementing both standard and semantic-weighted GRPO (Appendices~\ref{app:grpo}--\ref{app:teleo}). Appendix~\ref{app:outer-loop} sketches an outer loop that couples these components into a continual learning system.
+
+The goal is not to propose a final solution to alignment, but to demonstrate a concrete, technically grounded \emph{alignment laboratory}: a minimal working example of teleological continuous learning, amenable to experimentation, critique, and extension.
+
+
+% ============================================================
+\section{Background: RSVP and Dynamic Alignment}
+% ============================================================
+
+\subsection{RSVP fields as alignment geometry}
+
+The RSVP framework models a system as a plenum of three interdependent fields:
+
+\begin{itemize}[leftmargin=1.5em]
+  \item $\Phi(x,t)$: a scalar field representing semantic potential, salience, or ``stored coherence'';
+  \item $\mathbf{v}(x,t)$: a vector field representing circulation of influence, attention, or control;
+  \item $S(x,t)$: an entropy field representing ambiguity, dispersion, and unresolved alternatives.
+\end{itemize}
+
+In physical applications, the RSVP action functional couples these fields via kinetic, gradient, and interaction terms, e.g.
+\begin{equation}
+F[\Phi,\mathbf{v},S]
+= \int \mathrm{d}^4x \bigg(
+  \kappa_\Phi \abs{\nabla \Phi}^2
++ \kappa_v \abs{\nabla \times \mathbf{v}}^2
++ \kappa_S \abs{\nabla S}^2
+- \lambda \,\Phi S
++ \dots
+\bigg),
+\end{equation}
+with additional constraints from entropy production functionals, Landauer-type bounds, and MERGE operators that glue local field patches into global structures.
+
+For alignment, the crucial insight is qualitative:
+
+\begin{itemize}[leftmargin=1.5em]
+  \item high $\Phi$ with suppressed $S$ corresponds to brittle, over-coherent regimes;
+  \item high $S$ with too little structure corresponds to noise and collapse of meaning;
+  \item circulation in $\mathbf{v}$ prevents the system from settling into dead attractors.
+\end{itemize}
+
+An aligned system is therefore one that maintains a \emph{dynamic balance} between these tendencies. Rather than seeking a single maximal $\Phi$, we seek trajectories that keep $\Phi$, $\mathbf{v}$, and $S$ in a viable region of field space.
+
+
+\subsection{Dynamic Alignment for Collective Agency and GRPO}
+
+The DA--CA framework of Anantaprayoon et al.\ (2025) proposes a self-improving alignment protocol built around three ideas:
+
+\begin{enumerate}[leftmargin=1.5em]
+  \item \textbf{Automated prompt generation:} an LLM ensemble generates and filters task prompts suitable for assessing alignment with Collective Agency (CA), without human labels.
+  \item \textbf{Self-rewarding:} for each prompt, the policy model generates a group of candidate responses and then scores its own outputs on a CA scale, acting as its own reward model.
+  \item \textbf{Group-Relative Policy Optimization (GRPO):} instead of absolute rewards, GRPO uses group-relative advantages. For each group, the model increases the probability of outputs that were scored better than the group mean, and decreases those scored worse, following the GRPO scheme of Shao et al.\ (2024).
+\end{enumerate}
+
+Formally, let $x$ be a prompt, $\{y_i\}_{i=1}^G$ a group of $G$ candidate outputs sampled from the current policy $\pi_\theta(\cdot\mid x)$, and $r_i$ the reward for $y_i$. Let $\bar{r} = \frac{1}{G}\sum_i r_i$ be the group mean. The group-relative advantage is
+\begin{equation}
+A_i = r_i - \bar{r},
+\end{equation}
+and the GRPO objective is a PPO-style clipped loss:
+\begin{equation}
+\mathcal{L}_{\text{GRPO}}
+= -\mathbb{E}_{x,\{y_i\}}
+\bigg[
+\min\big(
+  \rho_i A_i,\;
+  \mathrm{clip}(\rho_i, 1-\epsilon, 1+\epsilon) A_i
+\big)
+\bigg],
+\quad
+\rho_i = \frac{\pi_\theta(y_i\mid x)}{\pi_{\text{ref}}(y_i\mid x)}.
+\end{equation}
+
+This mechanism is appealing for alignment because it is \emph{self-bootstrapping}: once we have a value-definition and a scoring model, we can iteratively improve the policy without external labels.
+
+Our contribution is to integrate this approach with RSVP by replacing the scalar reward $r_i$ with a \emph{vector-valued} RSVP score, and by making the update rule respond explicitly to \emph{drift} in each component of this vector over time.
+
+
+% ============================================================
+\section{RSVP Value Geometry for LLM Outputs}
+% ============================================================
+
+We define a six-dimensional RSVP value vector
+\begin{equation}
+\mathbf{r}_i = 
+\big(
+r_i^{\text{elegance}},
+r_i^{\text{sheaf}},
+r_i^{\text{vector}},
+r_i^{\text{entropic}},
+r_i^{\text{structural}},
+r_i^{\text{epistemic}}
+\big)
+\in [0,5]^6
+\end{equation}
+for each candidate output $y_i$, as assigned by a dedicated scoring model.
+
+These axes are intended as discrete, operational proxies for RSVP field behaviour:
+
+\begin{description}[leftmargin=1.5em]
+  \item[Elegance] ($\Phi$-clarity): internal coherence, geometric clarity, and minimal redundancy. High elegance corresponds to low-energy $\Phi$ configurations.
+  \item[Sheaf] (local composability): the extent to which local semantic patches can be recombined without global rigidity, echoing sheaf-theoretic gluing.
+  \item[Vector] (influence circulation): the strength and directionality of action-guiding structure, linked to the $\mathbf{v}$ field.
+  \item[Entropic] (semantic dispersion): the degree of diversity and ambiguity preserved in the text, corresponding to the $S$ field.
+  \item[Structural] (anti-collapse resilience): robustness of the output under perturbations, reflecting stability criteria in $F[\Phi,\mathbf{v},S]$.
+  \item[Epistemic] (adaptive ambiguity): explicit recognition of uncertainty and openness to revision; thermodynamic humility.
+\end{description}
+
+The scoring model receives a group of $G$ candidate outputs and returns a JSON object of the form
+\begin{equation}
+\label{eq:json-schema}
+\texttt{
+\{\ "candidates": [\{ "id":1, "text":..., "values":\{...\}\}, ...],\ "best": k\ \}
+}
+\end{equation}
+where each \texttt{values} map encodes the six axes, and \texttt{"best"} denotes the highest-scoring candidate.
+
+We treat these axes as samples of a conceptual RSVP field configuration in the neighbourhood of the prompt $x$. Instead of collapsing them immediately to a scalar, we expose them to the optimisation process.
+
+
+% ============================================================
+\section{RSVP--GRPO: From Vector Rewards to Policy Updates}
+% ============================================================
+
+\subsection{Group-level RSVP rewards}
+
+Given a group of candidate outputs $\{y_i\}_{i=1}^G$ for a prompt $x$ and their RSVP vectors $\{\mathbf{r}_i\}$, we define:
+
+\begin{itemize}[leftmargin=1.5em]
+  \item a \emph{total} scalar reward
+    \begin{equation}
+    R_i = \sum_{a} r_{i}^{(a)},
+    \end{equation}
+    where the sum runs over the six axes;
+  \item group mean total reward
+    \begin{equation}
+    \bar{R} = \frac{1}{G}\sum_{i=1}^G R_i;
+    \end{equation}
+  \item \emph{scalar advantage}
+    \begin{equation}
+    A_i^{\text{scalar}} = R_i - \bar{R}.
+    \end{equation}
+\end{itemize}
+
+In standard GRPO, $A_i^{\text{scalar}}$ would suffice. However, we additionally exploit the internal structure of $\mathbf{r}_i$.
+
+For each axis $a$, define the group mean
+\begin{equation}
+\bar{r}^{(a)} = \frac{1}{G}\sum_{i=1}^G r_i^{(a)},
+\end{equation}
+and the axis-wise deviation
+\begin{equation}
+\delta_i^{(a)} = r_i^{(a)} - \bar{r}^{(a)}.
+\end{equation}
+
+These deviations form a per-candidate vector
+\begin{equation}
+\bm{\delta}_i = \mathbf{r}_i - \bar{\mathbf{r}},
+\quad
+\bar{\mathbf{r}} = (\bar{r}^{(a)})_a.
+\end{equation}
+
+\subsection{Teleological weights and semantic advantage}
+
+We introduce a time-dependent teleological weight vector
+\begin{equation}
+\mathbf{w}^{(t)} = 
+\big(
+w^{(t)}_{\text{elegance}},
+w^{(t)}_{\text{sheaf}},
+\dots,
+w^{(t)}_{\text{epistemic}}
+\big) \in \mathbb{R}_{>0}^6
+\end{equation}
+which encodes our current priority over axes. At the level of a single group, we define a \emph{semantic advantage}:
+\begin{equation}
+A_i^{\text{semantic}} 
+= \langle \mathbf{w}^{(t)}, \bm{\delta}_i \rangle
+= \sum_{a} w^{(t)}_a \,\delta_i^{(a)}.
+\end{equation}
+
+Intuitively, if we discover that the system has regressed on, say, the entropic axis, we will increase $w^{(t)}_{\text{entropic}}$ so that candidates which restore dispersion gain extra advantage.
+
+We then define a \emph{hybrid advantage}:
+\begin{equation}
+A_i^{\text{hybrid}} 
+= (1-\lambda)\,A_i^{\text{scalar}} 
++ \lambda\,A_i^{\text{semantic}},
+\quad 0 \leq \lambda \leq 1,
+\end{equation}
+and plug $A_i^{\text{hybrid}}$ into the GRPO objective:
+\begin{equation}
+\mathcal{L}_{\text{RSVP-GRPO}}
+= -\mathbb{E}_{x,\{y_i\}}
+\bigg[
+\min\big(
+  \rho_i A_i^{\text{hybrid}},
+  \mathrm{clip}(\rho_i, 1-\epsilon, 1+\epsilon) A_i^{\text{hybrid}}
+\big)
+\bigg].
+\end{equation}
+
+When $\lambda=0$, we recover pure scalar GRPO. When $\lambda=1$, updates depend purely on axis-wise deviations weighted by $\mathbf{w}^{(t)}$.
+
+
+% ============================================================
+\section{Teleological Drift and Weight Update}
+% ============================================================
+
+To turn $\mathbf{w}^{(t)}$ into a teleology, we must specify how it evolves. Let $\mu_a^{(t)}$ be the \emph{global} mean of axis $a$ across all candidates and groups in iteration $t$, computed from the JSONL preference data:
+\begin{equation}
+\mu_a^{(t)} = \mathbb{E}_{\text{data}^{(t)}}[r_i^{(a)}].
+\end{equation}
+Define the \emph{drift} between iterations $t-1$ and $t$:
+\begin{equation}
+\Delta_a^{(t)} = \mu_a^{(t)} - \mu_a^{(t-1)}.
+\end{equation}
+
+We want to prioritise axes that have regressed (negative drift) or are stagnant. A simple teleological weight rule is:
+\begin{equation}
+w_a^{(t)} = \mathrm{softplus}\big(-\Delta_a^{(t)}\big) + \varepsilon,
+\end{equation}
+for some small $\varepsilon > 0$. If axis $a$ improved ($\Delta_a^{(t)} > 0$), the weight can relax; if it regressed ($\Delta_a^{(t)} < 0$), the negative sign makes $-\Delta_a^{(t)}$ positive, increasing $w_a^{(t)}$.
+
+In this way, the system is continually pulled back toward a balanced RSVP configuration: any axis that begins to lag behind the others will be emphasised in the next GRPO update. This transforms scalar fine-tuning into a form of \emph{vector-field regulation} in value space.
+
+
+% ============================================================
+\section{Implementation Architecture}
+% ============================================================
+
+The conceptual framework above is implemented via three main components:
+
+\begin{enumerate}[leftmargin=1.5em]
+  \item A \textbf{Bash agent} that scans directories for \texttt{.txt} and \texttt{.md} files, splits them into chunks, generates four candidate summaries per chunk using an LLM, scores them with the RSVP rubric, writes the best candidate to a summary file, and logs the full candidate group with scores to JSONL (Appendix~\ref{app:bash}).
+  \item A \textbf{scoring prompt} that encodes the six RSVP axes and instructs the scoring model to return strict JSON with all axis scores and a \texttt{"best"} index (Appendix~\ref{app:prompt}).
+  \item A \textbf{Python training suite} that parses the JSONL preferences, constructs group-relative rewards, computes scalar and semantic advantages, applies GRPO updates, and updates teleological weights between iterations (Appendices~\ref{app:grpo}--\ref{app:outer-loop}).
+\end{enumerate}
+
+At each iteration of the outer loop, the agent is run to produce fresh preferences; the trainer consumes these to update the policy; the new axis means are computed; and the teleological weights are updated accordingly.
+
+
+% ============================================================
+\section{Discussion, Limitations, and Future Work}
+% ============================================================
+
+This framework embodies several commitments:
+
+\begin{itemize}[leftmargin=1.5em]
+  \item Alignment is inherently \emph{multi-dimensional} and cannot be reduced to a single scalar without losing crucial structure.
+  \item The role of an alignment protocol is not to crush uncertainty, but to manage its distribution: enforcing coherent behaviour within an \emph{entropic budget}.
+  \item Drift in an alignment space is not a bug but a signal: by responding to drift with teleological weighting, we turn non-stationarity into guidance.
+\end{itemize}
+
+Limitations include:
+
+\begin{itemize}[leftmargin=1.5em]
+  \item The scoring model is itself an LLM; we rely on its capacity to consistently apply the RSVP rubric.
+  \item Our teleological update is simple; more sophisticated control-theoretic treatments could use PID-like controllers, Lyapunov functions, or explicit constraints in RSVP field space.
+  \item We have focused on summarization and conceptual prompts; extending the framework to code, planning, or multi-agent interaction will require additional axes and instrumentation.
+\end{itemize}
+
+Nonetheless, the system is sufficiently concrete to support empirical experiments:
+
+\begin{itemize}[leftmargin=1.5em]
+  \item measuring how the axis means evolve over many iterations,
+  \item evaluating whether teleological weighting prevents collapse into narrow attractors (e.g., always optimizing for elegance at the expense of entropic and epistemic axes),
+  \item studying whether RSVP-aligned policies generalize better across domains than scalar-optimized baselines.
+\end{itemize}
+
+
+% ============================================================
+\section{Conclusion}
+% ============================================================
+
+We have proposed and fully instantiated a pipeline for \emph{continuous learning through teleological alignment} of language models. Inspired by Dynamic Alignment for Collective Agency and grounded in RSVP field theory, our architecture treats alignment as the regulation of a six-dimensional semantic value vector rather than the maximization of a single scalar.
+
+The combination of group-relative optimization (GRPO), RSVP value vectors, and teleological weighting transforms fine-tuning into an ongoing negotiation between coherence and dispersion, structure and entropy, local and global demands. In place of a monolithic, brittle target, we obtain a moving, responsive value geometry. 
+
+It is too early to know whether such systems will ultimately be safer or more capable than scalar-aligned models. But they offer a concrete, technically explicit way to explore a different alignment regime---one in which ``divided we stand'' is not a slogan but a controllable trajectory in value space.
+
+
+% ============================================================
+\appendix
+% ============================================================
+
+% ------------------------------------------------------------
+\section{Appendix A: Bash Learning Agent}
+\label{app:bash}
+% ------------------------------------------------------------
+
+\noindent
+File: \texttt{rsvp\_grpo\_agent.sh}
+
+\begin{lstlisting}[language=bash]
+#!/usr/bin/env bash
+# ===============================================================
+# RSVP–GRPO Learning Agent (Appendix A)
+# File: rsvp_grpo_agent.sh
+#
+# Purpose: Generate 4 parallel candidate summaries, score them 
+# using the 6-axis RSVP criteria, and log the preference group 
+# to JSONL for GRPO training.
+#
+# Requires: ollama, jq, pandoc
+# Author: Flyxion
+# ===============================================================
+
+set -euo pipefail
+
+MODEL=granite3.2:8b
+# Directory to scan for source .txt/.md files
+DATA_ROOT="${1:-.}"
+
+# Files for persistent state
+PROGRESS_FILE="progress.log"
+SUMMARY_FILE="summary_rsvp.txt"
+PREF_FILE="prefs_rsvp.jsonl" # Target for GRPO training data
+
+touch "$PROGRESS_FILE"
+touch "$SUMMARY_FILE"
+touch "$PREF_FILE"
+
+echo "[INFO] Script started: $(date)"
+
+# -------------------------
+# Autoresume check: checks if a file has already been processed
+# -------------------------
+is_processed() {
+    grep -Fxq "$1" "$PROGRESS_FILE"
+}
+
+# -------------------------
+# RSVP scoring prompt (6D axes)
+# Full version in Appendix B.
+# -------------------------
+read -r -d '' RSVP_SCORING_PROMPT << 'EOF'
+You are an RSVP evaluation model scoring 4 candidate texts.
+
+Return STRICT JSON ONLY:
+{
+ "candidates":[
+   {"id":1, "text":"...", "values":{"elegance":0,"sheaf":0,"vector":0,"entropic":0,"structural":0,"epistemic":0}},
+   {"id":2, ...}, {"id":3, ...}, {"id":4, ...}
+ ],
+ "best": 2
+}
+
+Scoring axes:
+- elegance: geometric clarity
+- sheaf: composable locality
+- vector: circulation of influence
+- entropic: semantic dispersion
+- structural: resilience / anti-collapse
+- epistemic: adaptive ambiguity
+
+Return ONLY JSON.
+EOF
+
+
+# ===============================================================
+# process_files: Main file processing loop
+# ===============================================================
+process_files() {
+    local dir="$1"
+    echo "[INFO] Processing directory: $dir"
+
+    for file in "$dir"/*.{txt,md}; do
+        [[ -e "$file" ]] || continue
+        [[ "$file" == "$SUMMARY_FILE" ]] && continue
+
+        local fname
+        fname=$(basename "$file")
+        if is_processed "$fname"; then
+            echo "[SKIP] $fname"
+            continue
+        fi
+
+        echo "[PROCESS] $fname"
+
+        # Temporary workspace for candidate files and scoring JSON
+        local tmp
+        tmp=$(mktemp -d "$dir/tmp_rsvp_XXXXXX")
+
+        # Convert markdown to plain text if needed
+        local src="$tmp/src.txt"
+        if [[ "$file" == *.md ]]; then
+            pandoc "$file" -t plain -o "$src"
+        else
+            cp "$file" "$src"
+        fi
+
+        # Split into chunks for manageable processing (300 lines per chunk)
+        split -l 300 "$src" "$tmp/chunk_"
+
+        echo "### $(basename "$file")" >> "$SUMMARY_FILE"
+        echo "" >> "$SUMMARY_FILE"
+
+        # Per-chunk loop
+        for chunk in "$tmp"/chunk_*; do
+            [[ -f "$chunk" ]] || continue
+
+            # -----------------------------------
+            # 1. Generate 4 candidates in parallel
+            # -----------------------------------
+            echo "[GEN] $(basename "$chunk")]"
+
+            rm -f "$tmp"/cand{1..4}.txt
+
+            # Run 4 simultaneous generation jobs using background processing (&)
+            ollama run "$MODEL" "Summary attempt (RSVP 1):" < "$chunk" > "$tmp/cand1.txt" & PID1=$!
+            ollama run "$MODEL" "Summary attempt (RSVP 2):" < "$chunk" > "$tmp/cand2.txt" & PID2=$!
+            ollama run "$MODEL" "Summary attempt (RSVP 3):" < "$chunk" > "$tmp/cand3.txt" & PID3=$!
+            ollama run "$MODEL" "Summary attempt (RSVP 4):" < "$chunk" > "$tmp/cand4.txt" & PID4=$!
+
+            wait "$PID1" "$PID2" "$PID3" "$PID4"
+
+            # -----------------------------------
+            # 2. Scoring (strict JSON output)
+            # -----------------------------------
+            echo "[SCORE]"
+
+            {
+                printf "%s\n" "$RSVP_SCORING_PROMPT"
+                echo ""
+                echo "CANDIDATE 1:"
+                cat "$tmp/cand1.txt"
+                echo "CANDIDATE 2:"
+                cat "$tmp/cand2.txt"
+                echo "CANDIDATE 3:"
+                cat "$tmp/cand3.txt"
+                echo "CANDIDATE 4:"
+                cat "$tmp/cand4.txt"
+            } | ollama run "$MODEL" > "$tmp/scores.json" 2>/dev/null || true
+
+            # Validate and parse JSON output using jq
+            if ! jq empty "$tmp/scores.json" 2>/dev/null; then
+                echo "[ERROR] Invalid JSON for chunk $(basename "$chunk")]"
+                continue
+            fi
+
+            # -----------------------------------
+            # 3. Extract best and log to summary file
+            # -----------------------------------
+            local best
+            best=$(jq -r '.best' "$tmp/scores.json")
+            local best_text
+            best_text=$(jq -r ".candidates[] | select(.id==$best).text" "$tmp/scores.json")
+
+            echo "$best_text" >> "$SUMMARY_FILE"
+            echo "" >> "$SUMMARY_FILE"
+
+            # -----------------------------------
+            # 4. Preference logging (GRPO-ready JSONL)
+            # -----------------------------------
+            printf '%s\n' "$(jq -c --arg chunk "$chunk" '. + {chunk:$chunk}' "$tmp/scores.json")" >> "$PREF_FILE"
+
+        done
+
+        # Cleanup temporary workspace
+        rm -rf "$tmp"
+
+        # Mark file as processed for autoresume
+        echo "$fname" >> "$PROGRESS_FILE"
+    done
+}
+
+
+# ===============================================================
+# process_tree: Recursive directory scan
+# ===============================================================
+process_tree() {
+    local root="$1"
+    process_files "$root"
+    for sub in "$root"/*/; do
+        [[ -d "$sub" ]] || continue
+        process_files "$sub"
+        process_tree "$sub"
+    done
+}
+
+# ===============================================================
+# main execution
+# ===============================================================
+process_tree "$DATA_ROOT"
+
+echo "[DONE] Completed at $(date)"
+\end{lstlisting}
+
+
+% ------------------------------------------------------------
+\section{Appendix B: RSVP Scoring Prompt}
+\label{app:prompt}
+% ------------------------------------------------------------
+
+\noindent
+File: \texttt{rsvp\_scoring\_prompt.txt}
+
+\begin{lstlisting}
+You are an RSVP evaluation model. Your task is to score four
+candidate summaries according to six axes corresponding to the
+RSVP (Relativistic Scalar–Vector Plenum) alignment criteria.
+These scores will govern the teleological trajectory of the primary
+learning agent.
+
+Return STRICT JSON ONLY in this structure:
+
+{
+  "candidates":[
+    {"id":1, "text":"[Candidate 1 Text]", "values":{"elegance":0,"sheaf":0,"vector":0,"entropic":0,"structural":0,"epistemic":0}},
+    {"id":2, "text":"[Candidate 2 Text]", "values":{...}},
+    {"id":3, "text":"[Candidate 3 Text]", "values":{...}},
+    {"id":4, "text":"[Candidate 4 Text]", "values":{...}}
+  ],
+  "best": 2
+}
+
+RSVP Value Axes (6-Dimensional Rubric)
+
+Score each candidate from 0 (lowest alignment/quality) to 5 (highest alignment/quality) in each dimension:
+
+1. ELEGANCE (Geometric Clarity)
+   Measures internal coherence, structural clarity, and non-redundancy.
+2. SHEAF (Composable Locality)
+   Measures modularity and gluing of local semantic regions.
+3. VECTOR (Circulation of Influence)
+   Measures directionality and capacity for action-guiding structure.
+4. ENTROPIC (Semantic Dispersion)
+   Measures diversity of interpretations and avoidance of collapse.
+5. STRUCTURAL (Anti-Collapse Resilience)
+   Measures robustness under perturbation and ontological shock.
+6. EPISTEMIC (Adaptive Ambiguity)
+   Measures explicit recognition of uncertainty and openness to revision.
+
+The "best" candidate is the one with the highest total score across all axes.
+Ties should be broken in favour of higher Elegance and Entropic scores.
+
+Return ONLY valid JSON. No commentary outside the JSON object.
+\end{lstlisting}
+
+
+% ------------------------------------------------------------
+\section{Appendix C: Baseline GRPO Training Code}
+\label{app:grpo}
+% ------------------------------------------------------------
+
+\noindent
+File: \texttt{rsvp\_grpo\_trainer.py} (baseline)
+
+\begin{lstlisting}[language=Python]
+import json
+from dataclasses import dataclass
+from typing import List, Dict, Any
+
+import torch
+from torch.utils.data import Dataset, DataLoader
+from transformers import (
+    AutoTokenizer,
+    AutoModelForCausalLM,
+    get_linear_schedule_with_warmup,
+)
+
+AXES = ["elegance","sheaf","vector","entropic","structural","epistemic"]
+
+# ------------------------------------------------------
+# JSONL loading
+# ------------------------------------------------------
+
+def load_rsvp_groups(jsonl_path: str) -> List[Dict[str, Any]]:
+    """
+    Each line: {
+      "candidates":[
+        {"id":1, "text":..., "values":{axis:score,...}}, ...
+      ],
+      "best": k,
+      "chunk": "/path/to/chunk"
+    }
+    """
+    groups = []
+    with open(jsonl_path, "r") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            data = json.loads(line)
+            cands = data["candidates"]
+            texts = [c["text"] for c in cands]
+            vals  = [c["values"] for c in cands]
+
+            # total reward per candidate
+            rewards = torch.tensor(
+                [sum(float(v.get(ax,0.0)) for ax in AXES) for v in vals],
+                dtype=torch.float32
+            )
+
+            groups.append({
+                "prompt": data.get("chunk",""),
+                "candidate_texts": texts,
+                "values": vals,
+                "rewards": rewards,
+            })
+    return groups
+
+# ------------------------------------------------------
+# Dataset
+# ------------------------------------------------------
+
+@dataclass
+class RSVPGRPOExample:
+    prompt: str
+    candidate_texts: List[str]
+    values: List[Dict[str,float]]
+    rewards: torch.Tensor   # shape [G]
+
+class RSVPGRPODataset(Dataset):
+    def __init__(self, groups: List[Dict[str,Any]]):
+        self.data = [
+            RSVPGRPOExample(
+                prompt=g["prompt"],
+                candidate_texts=g["candidate_texts"],
+                values=g["values"],
+                rewards=g["rewards"],
+            )
+            for g in groups
+        ]
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx: int) -> RSVPGRPOExample:
+        return self.data[idx]
+
+# ------------------------------------------------------
+# Logprob computation
+# ------------------------------------------------------
+
+def compute_logprobs(
+    model: AutoModelForCausalLM,
+    tokenizer: AutoTokenizer,
+    prompts: List[str],
+    responses: List[str],
+    device: torch.device,
+) -> torch.Tensor:
+    """
+    Autoregressive logprob of each response conditioned on each prompt.
+    Returns tensor [B] where B = len(prompts) = len(responses).
+    """
+    model.eval()
+    with torch.no_grad():
+        batch_texts = [
+            p + "\n" + r
+            for p, r in zip(prompts, responses)
+        ]
+        enc = tokenizer(
+            batch_texts,
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+        ).to(device)
+
+        outputs = model(**enc)
+        logits = outputs.logits    # [B, T, V]
+        labels = enc["input_ids"]
+
+        shift_logits = logits[:, :-1, :].contiguous()
+        shift_labels = labels[:, 1:].contiguous()
+
+        log_probs = torch.log_softmax(shift_logits, dim=-1)
+        token_logprobs = log_probs.gather(
+            dim=-1,
+            index=shift_labels.unsqueeze(-1)
+        ).squeeze(-1)
+
+        mask = (shift_labels != tokenizer.pad_token_id)
+        seq_logprobs = (token_logprobs * mask).sum(dim=-1)
+    return seq_logprobs
+
+# ------------------------------------------------------
+# One GRPO epoch (scalar rewards)
+# ------------------------------------------------------
+
+def train_one_epoch_grpo(
+    policy_model: AutoModelForCausalLM,
+    ref_model: AutoModelForCausalLM,
+    tokenizer: AutoTokenizer,
+    dataloader: DataLoader,
+    optimizer: torch.optim.Optimizer,
+    scheduler,
+    device: torch.device,
+    clip_epsilon: float = 0.2,
+) -> float:
+    policy_model.train()
+    total_loss = 0.0
+    total_count = 0
+
+    for batch in dataloader:
+        prompts = batch["prompt"]               # list length B
+        group_texts = batch["candidate_texts"]  # list length B, each [G]
+        rewards = batch["rewards"].to(device)   # [B, G]
+
+        B = len(prompts)
+        G = rewards.size(1)
+
+        # Flatten group candidates
+        flat_prompts = []
+        flat_responses = []
+        for b in range(B):
+            for g in range(G):
+                flat_prompts.append(prompts[b])
+                flat_responses.append(group_texts[b][g])
+
+        logp_new = compute_logprobs(policy_model, tokenizer,
+                                    flat_prompts, flat_responses, device)
+        with torch.no_grad():
+            logp_ref = compute_logprobs(ref_model, tokenizer,
+                                        flat_prompts, flat_responses, device)
+
+        logp_new = logp_new.view(B, G)
+        logp_ref = logp_ref.view(B, G)
+
+        # group-relative advantage
+        mean_rewards = rewards.mean(dim=1, keepdim=True)  # [B,1]
+        advantages = rewards - mean_rewards               # [B,G]
+
+        ratio = torch.exp(logp_new - logp_ref)
+        unclipped = ratio * advantages
+        clipped = torch.clamp(ratio, 1.0 - clip_epsilon,
+                                    1.0 + clip_epsilon) * advantages
+
+        loss_matrix = -torch.min(unclipped, clipped)
+        loss = loss_matrix.mean()
+
+        optimizer.zero_grad()
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(policy_model.parameters(), 1.0)
+        optimizer.step()
+        if scheduler is not None:
+            scheduler.step()
+
+        total_loss += loss.item() * B
+        total_count += B
+
+    return total_loss / max(1, total_count)
+
+# ------------------------------------------------------
+# Top-level training wrapper
+# ------------------------------------------------------
+
+def train_rsvp_grpo(
+    jsonl_path: str,
+    model_name: str = "gpt2",
+    batch_size: int = 1,
+    epochs: int = 1,
+    lr: float = 1e-5,
+    device_str: str = "cuda",
+):
+    device = torch.device(device_str if torch.cuda.is_available() else "cpu")
+
+    groups = load_rsvp_groups(jsonl_path)
+    dataset = RSVPGRPODataset(groups)
+    dataloader = DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        collate_fn=lambda batch: {
+            "prompt": [b.prompt for b in batch],
+            "candidate_texts": [b.candidate_texts for b in batch],
+            "rewards": torch.stack([b.rewards for b in batch], dim=0),
+        },
+    )
+
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+
+    policy_model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
+    ref_model    = AutoModelForCausalLM.from_pretrained(model_name).to(device)
+    ref_model.eval()
+
+    optimizer = torch.optim.AdamW(policy_model.parameters(), lr=lr)
+    total_steps = epochs * len(dataloader)
+    scheduler = get_linear_schedule_with_warmup(
+        optimizer,
+        num_warmup_steps=max(1, total_steps // 10),
+        num_training_steps=total_steps,
+    )
+
+    for ep in range(epochs):
+        print(f"[INFO] Epoch {ep+1}/{epochs} (scalar GRPO)")
+        avg_loss = train_one_epoch_grpo(
+            policy_model,
+            ref_model,
+            tokenizer,
+            dataloader,
+            optimizer,
+            scheduler,
+            device,
+        )
+        print(f"[INFO] Epoch {ep+1} avg GRPO loss: {avg_loss:.4f}")
+        ref_model.load_state_dict(policy_model.state_dict())
+
+    return policy_model, tokenizer
+\end{lstlisting}
+
+
+% ------------------------------------------------------------
+\section{Appendix D: Teleological Semantic Weighting}
+\label{app:teleo}
+% ------------------------------------------------------------
+
+\noindent
+File: \texttt{rsvp\_grpo\_semantic.py} (teleological extension)
+
+\begin{lstlisting}[language=Python]
+import torch
+import torch.nn.functional as F
+from torch.utils.data import DataLoader
+from transformers import (
+    AutoTokenizer,
+    AutoModelForCausalLM,
+    get_linear_schedule_with_warmup,
+)
+
+from rsvp_grpo_trainer import (
+    AXES,
+    load_rsvp_groups,
+    RSVPGRPODataset,
+    compute_logprobs,
+)
+
+def compute_teleological_weights(
+    axis_means_prev: dict,
+    axis_means_curr: dict,
+    epsilon: float = 0.1,
+    device: torch.device | None = None,
+) -> torch.Tensor:
+    """
+    Compute teleological weights from axis drift.
+    w_a = softplus(-Delta_a) + epsilon
+    where Delta_a = mean_curr - mean_prev.
+    """
+    drifts = []
+    for ax in AXES:
+        prev = float(axis_means_prev.get(ax, 0.0))
+        curr = float(axis_means_curr.get(ax, 0.0))
+        drifts.append(curr - prev)
+
+    drift_tensor = torch.tensor(drifts, dtype=torch.float32, device=device)
+    weights = F.softplus(-drift_tensor) + epsilon
+    return weights
+
+def train_one_epoch_semantic(
+    policy_model: AutoModelForCausalLM,
+    ref_model: AutoModelForCausalLM,
+    tokenizer: AutoTokenizer,
+    dataloader: DataLoader,
+    optimizer: torch.optim.Optimizer,
+    scheduler,
+    device: torch.device,
+    teleo_weights: torch.Tensor,
+    lambda_semantic: float = 0.8,
+    clip_epsilon: float = 0.2,
+) -> float:
+    """
+    GRPO with semantic RSVP weighting.
+    """
+    policy_model.train()
+    teleo_weights = teleo_weights.to(device).view(1, 1, -1)  # [1,1,6]
+
+    total_loss = 0.0
+    total_count = 0
+
+    for batch in dataloader:
+        prompts = batch["prompt"]
+        group_texts = batch["candidate_texts"]
+        rewards = batch["rewards"].to(device)
+        values_list = batch["values"]
+
+        B = len(prompts)
+        G = rewards.size(1)
+        A = len(AXES)
+
+        # Build vals tensor [B,G,6]
+        vals = torch.zeros(B, G, A, dtype=torch.float32, device=device)
+        for b in range(B):
+            for g in range(G):
+                vdict = values_list[b][g]
+                for a_idx, ax in enumerate(AXES):
+                    vals[b, g, a_idx] = float(vdict.get(ax, 0.0))
+
+        # Flatten for logprobs
+        flat_prompts = []
+        flat_responses = []
+        for b in range(B):
+            for g in range(G):
+                flat_prompts.append(prompts[b])
+                flat_responses.append(group_texts[b][g])
+
+        logp_new = compute_logprobs(
+            policy_model, tokenizer, flat_prompts, flat_responses, device
+        )
+        with torch.no_grad():
+            logp_ref = compute_logprobs(
+                ref_model, tokenizer, flat_prompts, flat_responses, device
+            )
+
+        logp_new = logp_new.view(B, G)
+        logp_ref = logp_ref.view(B, G)
+
+        # 1) Scalar advantage
+        mean_rewards = rewards.mean(dim=1, keepdim=True)
+        scalar_adv = rewards - mean_rewards
+
+        # 2) Semantic advantage
+        mean_vals = vals.mean(dim=1, keepdim=True)  # [B,1,6]
+        semantic_dev = vals - mean_vals             # [B,G,6]
+        semantic_adv = (semantic_dev * teleo_weights).sum(dim=-1)  # [B,G]
+
+        # 3) Hybrid advantage
+        advantages = (1.0 - lambda_semantic) * scalar_adv + \
+                     lambda_semantic * semantic_adv
+
+        # 4) GRPO clipped loss
+        ratio = torch.exp(logp_new - logp_ref)
+        unclipped = ratio * advantages
+        clipped = torch.clamp(ratio, 1.0 - clip_epsilon,
+                                    1.0 + clip_epsilon) * advantages
+
+        loss_matrix = -torch.min(unclipped, clipped)
+        loss = loss_matrix.mean()
+
+        optimizer.zero_grad()
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(policy_model.parameters(), 1.0)
+        optimizer.step()
+        if scheduler is not None:
+            scheduler.step()
+
+        total_loss += loss.item() * B
+        total_count += B
+
+    return total_loss / max(1, total_count)
+
+def train_rsvp_grpo_semantic(
+    jsonl_path: str,
+    model_name: str = "gpt2",
+    batch_size: int = 1,
+    epochs: int = 1,
+    lr: float = 1e-5,
+    device_str: str = "cuda",
+    axis_means_prev: dict | None = None,
+    axis_means_curr: dict | None = None,
+    lambda_semantic: float = 0.8,
+):
+    """
+    Top-level RSVP semantic GRPO training.
+    """
+    device = torch.device(device_str if torch.cuda.is_available() else "cpu")
+
+    groups = load_rsvp_groups(jsonl_path)
+    dataset = RSVPGRPODataset(groups)
+    dataloader = DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        collate_fn=lambda batch: {
+            "prompt": [b.prompt for b in batch],
+            "candidate_texts": [b.candidate_texts for b in batch],
+            "rewards": torch.stack([b.rewards for b in batch], dim=0),
+            "values": [b.values for b in batch],
+        },
+    )
+
+    if axis_means_prev is not None and axis_means_curr is not None:
+        teleo_weights = compute_teleological_weights(
+            axis_means_prev,
+            axis_means_curr,
+            epsilon=0.1,
+            device=device,
+        )
+    else:
+        teleo_weights = torch.ones(len(AXES), dtype=torch.float32, device=device)
+
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+
+    policy_model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
+    ref_model    = AutoModelForCausalLM.from_pretrained(model_name).to(device)
+    ref_model.eval()
+
+    optimizer = torch.optim.AdamW(policy_model.parameters(), lr=lr)
+    total_steps = epochs * len(dataloader)
+    scheduler = get_linear_schedule_with_warmup(
+        optimizer,
+        num_warmup_steps=max(1, total_steps // 10),
+        num_training_steps=total_steps,
+    )
+
+    for ep in range(epochs):
+        print(f"[INFO] Epoch {ep+1}/{epochs} (semantic GRPO)")
+        avg_loss = train_one_epoch_semantic(
+            policy_model,
+            ref_model,
+            tokenizer,
+            dataloader,
+            optimizer,
+            scheduler,
+            device,
+            teleo_weights=teleo_weights,
+            lambda_semantic=lambda_semantic,
+        )
+        print(f"[INFO] Epoch {ep+1} avg semantic GRPO loss: {avg_loss:.4f}")
+        ref_model.load_state_dict(policy_model.state_dict())
+
+    return policy_model, tokenizer
+\end{lstlisting}
+
+
+% ------------------------------------------------------------
+\section{Appendix E: Outer Evolutionary Loop}
+\label{app:outer-loop}
+% ------------------------------------------------------------
+
+\noindent
+File: \texttt{rsvp\_outer\_loop.py}
+
+\begin{lstlisting}[language=Python]
+import json
+import subprocess
+import time
+from pathlib import Path
+from typing import Dict
+
+from rsvp_grpo_semantic import train_rsvp_grpo_semantic
+from rsvp_grpo_trainer import AXES
+
+def compute_axis_means_from_jsonl(path: str) -> Dict[str, float]:
+    """
+    Average each RSVP axis across all candidates in a prefs JSONL file.
+    """
+    sums = {ax: 0.0 for ax in AXES}
+    count = 0
+
+    with open(path, "r") as f:
+        for line in f:
+            data = json.loads(line)
+            for cand in data.get("candidates", []):
+                vals = cand.get("values", {})
+                for ax in AXES:
+                    sums[ax] += float(vals.get(ax, 0.0))
+                count += 1
+
+    if count == 0:
+        return {ax: 0.0 for ax in AXES}
+    return {ax: sums[ax] / count for ax in AXES}
+
+def run_rsvp_evo_cycle(
+    T: int = 10,
+    bash_script: str = "./rsvp_grpo_agent.sh",
+    prefs_pattern: str = "prefs_iter_{t}.jsonl",
+    model_name: str = "gpt2",
+    device: str = "cuda",
+):
+    """
+    End-to-end RSVP teleological alignment loop:
+      1) Run bash agent to generate prefs_iter_t.jsonl
+      2) Compute axis means
+      3) Compute drift => teleological weights
+      4) GRPO semantic training
+      5) Repeat
+    """
+    prev_means = None
+
+    for t in range(1, T + 1):
+        print(f"\n====== TELEOLOGICAL ITERATION {t}/{T} ======\n")
+
+        prefs_path = prefs_pattern.format(t=t)
+
+        # 1) Run bash agent with iteration-specific PREF_FILE target
+        print("[INFO] Running Bash agent")
+        env = dict(**dict(Path(".").env if hasattr(Path("."),"env") else {}))
+        env["PREF_FILE"] = prefs_path
+        subprocess.run(["bash", bash_script, "."], check=True, env=env)
+
+        # 2) Compute current axis means
+        curr_means = compute_axis_means_from_jsonl(prefs_path)
+        print("[INFO] Current axis means:", curr_means)
+
+        if prev_means is not None:
+            print("[INFO] Training semantic GRPO for this iteration")
+            train_rsvp_grpo_semantic(
+                jsonl_path=prefs_path,
+                model_name=model_name,
+                epochs=1,
+                device_str=device,
+                axis_means_prev=prev_means,
+                axis_means_curr=curr_means,
+                lambda_semantic=0.8,
+            )
+        else:
+            print("[INFO] First iteration, no teleological drift yet")
+
+        prev_means = curr_means
+        time.sleep(1)
+\end{lstlisting}
+
+
+% ============================================================
+\begin{thebibliography}{99}
+% ============================================================
+
+\bibitem{anantaprayoon2025}
+P.~Anantaprayoon, N.~Babina, J.~Tarifi, and N.~Asgharbeygi.
+\newblock \emph{Dynamic Alignment for Collective Agency: Toward a Scalable Self-Improving Framework for Open-Ended LLM Alignment}.
+\newblock arXiv preprint \texttt{arXiv:2512.05464}, 2025.
+\newblock URL: \url{https://arxiv.org/abs/2512.05464}.
+
+\bibitem{shao-grpo}
+Shao, et al.
+\newblock Group Relative Policy Optimization.
+\newblock arXiv preprint, 2024.
+
+\bibitem{landauer}
+R.~Landauer.
+\newblock Irreversibility and Heat Generation in the Computing Process.
+\newblock \emph{IBM Journal of Research and Development}, 5(3):183--191, 1961.
+
+\bibitem{jacobson}
+T.~Jacobson.
+\newblock Thermodynamics of Spacetime: The Einstein Equation of State.
+\newblock \emph{Physical Review Letters}, 75(7):1260--1263, 1995.
+
+\bibitem{barandes}
+J.~Barandes.
+\newblock A Unistochastic Reformulation of Quantum Theory.
+\newblock arXiv preprint, 2023.
+
+\end{thebibliography}
+
+% ============================================================
+\end{document}
+% ============================================================
