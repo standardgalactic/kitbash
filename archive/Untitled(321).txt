@@ -1,0 +1,390 @@
+% ============================================================
+% APPENDIX G — BACKGROUND MATHEMATICS II
+% (Information Geometry, Dual Connections, Divergences)
+% ============================================================
+
+\section*{Appendix G: Background Mathematics II}
+\addcontentsline{toc}{section}{Appendix G: Background Mathematics II}
+
+This appendix covers mathematical structures required for the
+information-geometric formulation of MAGI, including dual connections,
+$\alpha$-divergences, and statistical manifolds.
+
+% ------------------------------------------------------------
+% G.1 Statistical Manifolds and Fisher Metric
+% ------------------------------------------------------------
+
+\subsection*{G.1 Statistical Manifolds and Fisher Metric}
+
+Let $\mathcal{P} = \{ p(x|\theta) : \theta \in \Theta \subset \mathbb{R}^d \}$.
+Under mild regularity, $\mathcal{P}$ is a smooth manifold.
+
+The Fisher information metric is defined by:
+\[
+g_{ij}(\theta) =
+\mathbb{E}\left[
+\partial_i \log p(x|\theta)
+\,
+\partial_j \log p(x|\theta)
+\right].
+\]
+
+This metric underlies:
+- natural gradient descent,
+- Amari's dual geometry,
+- MAGI's geometric interpretation of inference.
+
+% ------------------------------------------------------------
+% G.2 Dual Connections
+% ------------------------------------------------------------
+
+\subsection*{G.2 Amari Dualistic Structure}
+
+Information geometry is built on a pair of conjugate affine connections:
+\[
+\nabla^{(\alpha)}, \quad \nabla^{(-\alpha)}.
+\]
+
+For $\alpha = 1$, $\nabla^{(1)}$ is the e-connection (exponential family).
+For $\alpha = -1$, $\nabla^{(-1)}$ is the m-connection (mixture family).
+
+The duality relation is:
+\[
+X\langle Y,Z\rangle = 
+\langle \nabla^{(\alpha)}_X Y, Z\rangle
++ \langle Y, \nabla^{(-\alpha)}_X Z\rangle.
+\]
+
+MAGI interprets CLIO flows as natural gradients:
+\[
+\dot{\theta} = - g^{-1} \nabla_\theta F,
+\]
+where $F$ is the free-energy functional.
+
+% ------------------------------------------------------------
+% G.3 $\alpha$-Divergences and Morse Potentials
+% ------------------------------------------------------------
+
+\subsection*{G.3 $\alpha$-Divergences}
+
+The $\alpha$-divergence between $p$ and $q$ is:
+\[
+D_\alpha(p||q) =
+\frac{4}{1-\alpha^2}
+\left(
+1 - \int p^{(1-\alpha)/2} q^{(1+\alpha)/2}
+\right).
+\]
+
+Special cases:
+- $\alpha = 1$: KL divergence,
+- $\alpha = -1$: reverse KL,
+- $\alpha = 0$: Hellinger distance.
+
+Morse potentials can be constructed directly from divergences:
+\[
+S(x)
+= D_\alpha( q(x) || p(x) ).
+\]
+
+Critical points correspond to equilibrium beliefs.
+
+% ------------------------------------------------------------
+% G.4 Exponential Maps and Geodesic Flows
+% ------------------------------------------------------------
+
+\subsection*{G.4 Exponential Maps and Geodesic Flows}
+
+Given metric $g$, the exponential map is:
+\[
+\mathrm{Exp}_x(v) = \gamma_v(1)
+\]
+where $\gamma_v$ is geodesic with initial velocity $v$.
+
+In MAGI:
+\[
+C(x) = \mathrm{Exp}_x(-\eta \nabla S(x)).
+\]
+
+This unifies inference, prediction, and control as geometric operations.
+
+
+% ============================================================
+% APPENDIX H — TOPOLOGICAL DIAGNOSTICS
+% (Persistent Homology, Obstruction Theory)
+% ============================================================
+
+\section*{Appendix H: Topological Diagnostics}
+\addcontentsline{toc}{section}{Appendix H: Topological Diagnostics}
+
+This appendix introduces tools from topological data analysis (TDA)
+used in MAGI for detecting manifold structure, stratification, and
+semantic obstructions.
+
+% ------------------------------------------------------------
+% H.1 Persistent Homology
+% ------------------------------------------------------------
+
+\subsection*{H.1 Persistent Homology}
+
+Given point cloud $X \subset \mathbb{R}^n$, we consider Vietoris–Rips
+complexes $VR_\epsilon(X)$.  
+Persistent homology computes:
+\[
+H_k(VR_\epsilon(X))
+\quad \text{for } k = 0,1,2,\dots
+\]
+
+MAGI uses persistent diagrams to:
+- detect intrinsic topology of $M$,
+- locate singularities,
+- identify strata boundaries,
+- estimate homological obstructions to global sheaf sections.
+
+% ------------------------------------------------------------
+% H.2 Obstruction Theory and Sheaf Cohomology
+% ------------------------------------------------------------
+
+\subsection*{H.2 Sheaf Cohomology and Obstructions}
+
+For a sheaf $S$ on site $\mathcal{C}$, the Čech complex:
+\[
+C^p(\mathcal{U}, S) =
+\prod_{i_0 < \dots < i_p}
+S(U_{i_0} \cap \dots \cap U_{i_p})
+\]
+defines cohomology groups:
+\[
+H^p(\mathcal{C};S)
+= \ker(\delta_p) / \mathrm{im}(\delta_{p-1}).
+\]
+
+Obstruction classes in $H^1$ indicate when a global semantic section
+fails to exist.  
+MAGI uses:
+\[
+\mathcal{O} = [\{ s_{ij} - s_{ji} \}] \in H^1(\mathcal{C};S)
+\]
+as a measure of contextual inconsistency.
+
+% ------------------------------------------------------------
+% H.3 Detecting Whitney Stratification via TDA
+% ------------------------------------------------------------
+
+\subsection*{H.3 Detecting Whitney Stratification}
+
+Strata correspond to regions where:
+- tangent dimension jumps,
+- curvature discontinuities occur,
+- homology changes.
+
+We compute:
+\[
+\Delta \mathrm{dim}(T_{x_i}M),\quad
+\Delta \kappa(x_i),\quad
+\Delta H_k,
+\]
+and cluster using TDA-based metrics.
+
+
+% ============================================================
+% APPENDIX I — ADDITIONAL THEORETICAL NOTES
+% (Edge Cases · Non-Euclidean Extensions · Time-Varying Manifolds)
+% ============================================================
+
+\section*{Appendix I: Additional Theoretical Notes}
+\addcontentsline{toc}{section}{Appendix I: Additional Theoretical Notes}
+
+\subsection*{I.1 Non-Euclidean Ambient Spaces}
+
+If $M \subset (N,g_N)$ where $N$ is a Riemannian manifold:
+- tangent spaces defined via $D\iota_x$,
+- projections require solving constrained minimization in $g_N$,
+- extrinsic curvature depends on Levi–Civita connection of $N$.
+
+\subsection*{I.2 Time-Varying Manifolds}
+
+If $M = M(t)$ evolves:
+\[
+\partial_t x = V(x,t) - \nabla_M S(x,t),
+\]
+where $V$ is deformation field.
+Theory extends using time-dependent connections.
+
+\subsection*{I.3 Infinite-Dimensional Manifolds}
+
+Some generative models live in function spaces (RKHS, Sobolev spaces).
+MAGI generalizes via:
+- Fréchet manifolds,
+- Hilbert bundles,
+- weak differential structures.
+
+\subsection*{I.4 Multiple Disconnected Manifolds}
+
+For $M = \bigcup_i M_i$:
+- CLIO flows cannot cross,
+- Morse potentials defined piecewise,
+- sheaf structure becomes disjoint union category.
+
+\subsection*{I.5 Noise Beyond Gaussian}
+
+For multiplicative or structured noise:
+\[
+o = f(x) + A(x)\eta
+\]
+MAGI replaces orthogonal decomposition with generalized kernel spaces:
+\[
+\ker(A^\top(x)).
+\]
+
+
+% ============================================================
+% REFERENCES (EXPANDED)
+% ============================================================
+
+\begin{thebibliography}{99}
+
+% --- Geometry, Manifolds ---
+\bibitem{lee2012smooth}
+J.~M.~Lee.
+\newblock {\em Introduction to Smooth Manifolds}.
+\newblock Springer, 2012.
+
+\bibitem{doCarmo}
+M.~do Carmo.
+\newblock {\em Riemannian Geometry}.
+\newblock Birkhäuser, 1992.
+
+\bibitem{gromov-metric}
+M.~Gromov.
+\newblock {\em Metric Structures for Riemannian and Non-Riemannian Spaces}.
+\newblock Birkhäuser, 2007.
+
+\bibitem{federer-reach}
+H.~Federer.
+\newblock Curvature measures.
+\newblock {\em Trans. AMS}, 93(3), 1959.
+
+% --- Morse Theory ---
+\bibitem{milnor-morse}
+J.~Milnor.
+\newblock {\em Morse Theory}.
+\newblock Princeton University Press, 1963.
+
+\bibitem{goresky-macpherson}
+M.~Goresky \& R.~MacPherson.
+\newblock {\em Stratified Morse Theory}.
+\newblock Springer, 1988.
+
+% --- Information Geometry ---
+\bibitem{amari2000methods}
+S.~Amari \& H.~Nagaoka.
+\newblock {\em Methods of Information Geometry}.
+\newblock AMS, 2000.
+
+\bibitem{amari-natural-gradient}
+S.~Amari.
+\newblock Natural gradient works efficiently in learning.
+\newblock {\em Neural Computation}, 1998.
+
+% --- Sheaf Theory ---
+\bibitem{bredon-sheaf}
+G.~Bredon.
+\newblock {\em Sheaf Theory}.
+\newblock Springer, 1997.
+
+\bibitem{maclane1998categories}
+S.~MacLane.
+\newblock {\em Categories for the Working Mathematician}.
+\newblock Springer, 1998.
+
+% --- TDA ---
+\bibitem{ghrist2014}
+R.~Ghrist.
+\newblock {\em Elementary Applied Topology}.
+\newblock Createspace, 2014.
+
+\bibitem{edelsbrunnerharer}
+H.~Edelsbrunner \& J.~Harer.
+\newblock {\em Computational Topology}.
+\newblock AMS, 2010.
+
+% --- Diffusion Models ---
+\bibitem{ho2020denoising}
+J.~Ho, A.~Jain, P.~Abbeel.
+\newblock Denoising diffusion probabilistic models.
+\newblock {\em NeurIPS}, 2020.
+
+\bibitem{song2021scorebased}
+Y.~Song \& S.~Ermon.
+\newblock Score-based generative modeling through SDEs.
+\newblock {\em ICLR}, 2021.
+
+\bibitem{karras2022elucidating}
+T.~Karras et al.
+\newblock Elucidating the design space of diffusion models.
+\newblock {\em NeurIPS}, 2022.
+
+% --- JiT ---
+\bibitem{li2025backtobasics}
+T.~Li \& K.~He.
+\newblock Back to Basics: Let Denoising Generative Models Denoise.
+\newblock {\em ICML}, 2025.
+
+% --- Flow Matching ---
+\bibitem{lipman2023flow}
+Y.~Lipman et al.
+\newblock Flow matching for generative modeling.
+\newblock {\em ICLR}, 2023.
+
+\bibitem{liu2022}
+Q.~Liu et al.
+\newblock Regularized optimal transport for generative modeling.
+\newblock {\em JMLR}, 2022.
+
+% --- Optimal Transport ---
+\bibitem{villani2009optimal}
+C.~Villani.
+\newblock {\em Optimal Transport}.
+\newblock Springer, 2009.
+
+% --- PCA and Manifold Learning ---
+\bibitem{tenenbaum2000isomap}
+J.~Tenenbaum.
+\newblock A global geometric framework for nonlinear dimensionality reduction.
+
+\bibitem{roweis2000lle}
+S.~Roweis \& L.~Saul.
+\newblock Nonlinear dimensionality reduction by LLE.
+
+% --- Intrinsic Dimension ---
+\bibitem{levina2005maximum}
+E.~Levina \& P.~Bickel.
+\newblock Maximum likelihood estimation of intrinsic dimension.
+\newblock {\em NIPS}, 2005.
+
+% --- Active Inference ---
+\bibitem{friston2010freeenergy}
+K.~Friston.
+\newblock The free-energy principle.
+\newblock {\em Nature Reviews Neuroscience}, 2010.
+
+\bibitem{parr2022}
+T.~Parr et al.
+\newblock Active inference and its applications.
+\newblock {\em MIT Press}, 2022.
+
+% --- Category Theory & Cognition ---
+\bibitem{jacobson-categorical-cognition}
+A.~Jacobs.
+\newblock Categories and Cognition.
+\newblock {\em ACM SIGLOG News}, 2020.
+
+\bibitem{spivak2014}
+D.~Spivak.
+\newblock {\em Category Theory for Scientists}.
+\newblock MIT, 2014.
+
+\end{thebibliography}
+
+\end{document}

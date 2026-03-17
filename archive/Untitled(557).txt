@@ -1,0 +1,56 @@
+Got it 👍 — same situation as before. Nothing is “wrong” with the content; what you want is a clean, portable Markdown document you can drop straight into a repo, Obsidian vault, or paper draft.
+
+Below is a fully formatted Formal_Specification_of_the_Spherepop_Kernel.md.
+No names you didn’t want, no tooling assumptions, no sandbox links.
+Just copy–paste into a file and you’re done.
+
+# Formal Specification of the Spherepop Kernel --- ## 1.0 Introduction Contemporary computational systems present a stark architectural dichotomy. Traditional state-based systems overwrite past configurations with present ones, recording *what a system is* while obscuring *how it came to be*. Conversely, modern autoregressive systems generate fluent, view-only continuations without any mechanism for commitment, producing long-horizon drift and structural incoherence. Both architectures lack a stable foundation for reasoning, planning, and refusal. They cannot reliably distinguish between speculative hypotheses and irreversible facts. This document presents a formal specification of the **Spherepop kernel**, a minimal computational substrate designed to enforce invariant-preserving evolution over time by treating **event history as authoritative**. The kernel is not an application or cognitive architecture, but a foundational layer that specifies how histories are constructed, constrained, and replayed. The specification proceeds as follows: 1. Foundational concepts of event-history and invariant preservation 2. Architectural definition of the Spherepop kernel 3. Small-step operational semantics 4. Replay semantics and semantic equivalence 5. Concluding architectural commitments --- ## 2.0 Foundational Concepts: Event-History and Invariant Preservation ### Event-Based Ontology In Spherepop, history is primary and state is derived. - **State-based systems** treat history as disposable. - **Event-based systems** treat history as authoritative. All semantic identity arises from construction history, not instantaneous configuration. --- ### Authoritative State, Views, and Commitment | Concept | Notation | Definition | |------|------|------| | Authoritative Internal State | Σ | The derived semantic state summarizing all committed information | | View | v | A speculative, provisional, or hypothetical representation | | Commitment | — | An irreversible update admitted only if invariants are preserved | Views may be inconsistent. Commitments may not. --- ### Invariants and Admissibility Let Ω ⊆ Σ be the set of admissible states defined by system invariants. A transition function is defined as a **partial function**: 
+
+δ : Σ × E ⇀ Σ
+
+A transition is undefined if it would produce a state outside Ω. Illegal transitions are therefore **structurally impossible**, not merely discouraged. --- ### The Primacy of the Event Log An **event log** is the sole authoritative record. - Event Log: 
+
+L = (e₁, e₂, …, eₙ)
+
+- Replay semantics: 
+
+Replay(∅) = σ₀ Replay(L · e) = δ(Replay(L), e)
+
+All authoritative state is derived via replay. --- ### Invariant-Gated Commitment An event `e` is appended to the log `L` **if and only if**: 
+
+Replay(L · e) ∈ Ω
+
+This guarantees that invariants hold by construction. --- ### Theorem: Replay-Stabilized Consistency **Theorem 2** All reachable authoritative states obtained by replaying a committed event log satisfy system invariants. *Proof sketch:* Initial state is admissible. Each committed event preserves admissibility. Induction completes the argument. --- ## 3.0 The Spherepop Kernel: Architectural Specification ### Kernel Definition The Spherepop kernel is an authoritative event-history substrate with exclusive jurisdiction over: - Causality - Identity - Admissibility It separates invariant enforcement from speculative computation. --- ### Spherepop Configuration A configuration is a triple: 
+
+⟨H, C, M⟩
+
+- **H (Event History)** A finite partially ordered multiset `(E, ≺)` encoding causal precedence. - **C (Constraint Set)** Admissibility predicates governing future event extension. - **M (Metadata)** Non-semantic annotations with no effect on meaning. Semantic identity depends **only on H**. --- ### Event Tokens An **event token** is an atomic, irreversible transformation. - Events are not states - Events cannot be deleted - Events define identity by participation in history --- ## 4.0 Small-Step Operational Semantics ### Event Extension (Commitment) 
+
+⟨H, C, M⟩ → ⟨H ∪ {e}, C, M⟩
+
+if and only if `e` is admissible under `C`. Append-only. No overwrites. --- ### Branching 
+
+H ⇒ H₁ ‖ H₂
+
+Creates multiple futures from a shared past. Branching duplicates *possibility*, not state. --- ### Merging 
+
+H₁ ⊕ H₂ → H₃
+
+All non-conflicting events are preserved. Conflicts are resolved via **explicit resolution events**. --- ### Collapse 
+
+collapse(H) = H′
+
+Replaces a subhistory with a summary event. The act of information loss is itself recorded. --- ### Constraint Monotonicity **Proposition** Constraints restrict future events but cannot rewrite past history. This enforces a strict arrow of time. --- ## 5.0 Replay and Semantic Equivalence ### Replay Semantics Replay deterministically reconstructs meaning from history. - Partial order respected - No ambiguity - Fully auditable --- ### The Replay Equivalence Theorem **Theorem 1 (Replay Equivalence)** Any two configurations with isomorphic event histories are semantically equivalent, regardless of metadata or presentation. Meaning resides exclusively in construction history. --- ## 6.0 Conclusion This specification defines the Spherepop kernel as a minimal, invariant-preserving computational substrate grounded in authoritative event history. Its defining commitments are: 1. **Irreversible, Append-Only History** 2. **First-Class Branching of Futures** 3. **Explicit, Recorded Collapse** Unlike state-centric systems that erase the past or view-only systems that cannot commit to the future, Spherepop enforces accountability by construction. Systems that act must answer to history. Spherepop makes that answerable. --- 
+
+If you want next steps, we can:
+
+Add type theory / category-theoretic framing
+
+Produce a short formal appendix (for a paper)
+
+Align this precisely with your Spherepop Calculus operators
+
+Generate a README-level summary that links this to the other docs
+
+Just tell me which direction.
+

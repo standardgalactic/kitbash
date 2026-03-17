@@ -1,0 +1,248 @@
+# Map–Reduce in Spherepop  
+*A practical essay on doing distributed aggregation with event-history semantics.*
+
+Spherepop is an event-sourced calculus: computation is not “a function on values,” but a **history of authorized, replayable transformations**. That makes “map–reduce” especially natural: the *map* phase becomes many local event histories; the *reduce* phase becomes a sequence of **MERGE** events that irreversibly bind partial results into a durable global object.
+
+This essay shows a clean way to express map–reduce in Spherepop using only a small core:
+
+- **POP**: an authorized commitment that rules out alternatives (irreversible choice).
+- **LINK**: establishes provenance/typing/causal dependency between objects.
+- **MERGE**: composes histories into a new object whose identity is the merge result.
+- **COLLAPSE**: optional, controlled forgetting (compression) that preserves some invariants.
+
+No fenced code blocks are used; examples are written as indented code (GitHub-friendly).
+
+---
+
+## 1) The Spherepop view of computation
+
+In ordinary programming, we treat an aggregate as the return value of a function:
+
+- `reduce(f, [x1, x2, ...]) -> y`
+
+In Spherepop, we treat an aggregate as a **world-bearing artifact** whose identity is its **event lineage**:
+
+- `y := replay(H)` for some event history `H`.
+
+This flips the usual question:
+
+- Not “what value did we compute?”
+- But “what commitments were made that rule out other values?”
+
+Map–reduce becomes a disciplined way to construct a global commitment from many local commitments.
+
+---
+
+## 2) Minimal objects for map–reduce
+
+Spherepop map–reduce needs four object kinds:
+
+1. **Shard**: a piece of input data.
+2. **Mapper output**: a local summary produced from one shard.
+3. **Reducer output**: a merged summary over multiple mapper outputs.
+4. **Registry / ledger**: a record of which shard contributed to which summary.
+
+A key idea: reducer correctness is an **invariant of merge structure**, not a property of “the latest value.”
+
+---
+
+## 3) A tiny “map–reduce protocol” in Spherepop terms
+
+### 3.1 Mapping as local event histories
+
+Each mapper processes one shard and produces a summary object. The summary must carry:
+
+- the computed contribution
+- a provenance link to the shard
+- a commit that prevents silent rewrites
+
+Induced pattern:
+
+    SHARD s := source(...)
+    POP   s                         # authorize “this shard exists as input”
+    MAP   m := map_fn(s)            # local computation (may be pure)
+    POP   m                         # commit: this mapper output is now a fact
+    LINK  m -> s : "provenance"     # pin the summary to the shard that created it
+
+The *map_fn* can be ordinary arithmetic, tokenization, parsing, etc. What matters is that once the mapper emits `m`, Spherepop treats it as historically bound.
+
+### 3.2 Reducing as irreversible history composition
+
+A reducer combines mapper outputs via MERGE. The reducer’s job is not to “overwrite a variable,” but to **compose histories** and bind the resulting object to its inputs.
+
+Basic reduction pattern:
+
+    REDUCE r0 := empty_summary()
+    POP    r0
+
+    MERGE  r1 := merge_fn(r0, m1)
+    LINK   r1 -> r0 : "prior"
+    LINK   r1 -> m1 : "input"
+    POP    r1
+
+    MERGE  r2 := merge_fn(r1, m2)
+    LINK   r2 -> r1 : "prior"
+    LINK   r2 -> m2 : "input"
+    POP    r2
+
+…and so on.
+
+Important: `r2` is not “the same variable updated.” It is a **new identity** with a longer history. This is exactly what you want for auditable aggregation.
+
+---
+
+## 4) Associativity is an architectural constraint, not a math nicety
+
+Classical map–reduce assumes the reducer is associative (and often commutative) so that:
+
+- tree reductions and parallel reductions are valid.
+
+In Spherepop, that becomes a constraint on what MERGE is allowed to do.
+
+### 4.1 Merge law (practical)
+
+To support parallelism without ambiguity, `merge_fn` should satisfy:
+
+- **Associativity up to isomorphism**: merging in different groupings yields results that COLLAPSE to the same canonical summary.
+- **Idempotence under duplicate provenance** (optional but recommended): if the same shard is accidentally included twice, the ledger can detect and refuse duplication.
+
+This is where Spherepop shines: you don’t need “trust.” You can make duplication structurally inadmissible by attaching shard IDs and refusing repeats.
+
+---
+
+## 5) Worked example: word count as Spherepop map–reduce
+
+We’ll compute a word-frequency table over a corpus.
+
+### 5.1 Data model
+
+- Each shard `s` contains a list of tokens.
+- Each mapper output `m` is a small histogram: `{word -> count}` plus a provenance set `{shard_id}`.
+- Each reducer output `r` merges histograms and unions shard IDs.
+
+### 5.2 Map
+
+    SHARD s := load_text("shard_17.txt")
+    POP   s
+
+    TOKENS t := tokenize(s)
+    HIST   h := histogram(t)                 # {w -> c}
+    META   p := {"shards": {"shard_17"}}     # provenance
+
+    MAPOUT m := {"hist": h, "prov": p}
+    POP    m
+    LINK   m -> s : "provenance"
+
+### 5.3 Reduce (merge with duplication guard)
+
+Let `merge_fn(a, b)`:
+
+- sums histograms
+- unions provenance sets
+- **REFUSE** if provenance overlaps (duplicate shard)
+
+    REDUCE r0 := {"hist": {}, "prov": {"shards": {}}}
+    POP    r0
+
+    MERGE  r1 := merge_fn(r0, m1)
+    POP    r1
+    LINK   r1 -> r0 : "prior"
+    LINK   r1 -> m1 : "input"
+
+    MERGE  r2 := merge_fn(r1, m2)
+    POP    r2
+    LINK   r2 -> r1 : "prior"
+    LINK   r2 -> m2 : "input"
+
+If `m2` accidentally includes shard_17 again, we do not “correct later.” We **Refuse** the merge:
+
+    REFUSE merge_fn(r1, m2) : "duplicate shard_17"
+
+Now duplication becomes a *deontic* constraint (forbidden), not merely an error-handled edge case.
+
+---
+
+## 6) Map–reduce over streams: incremental reducers
+
+Spherepop naturally supports incremental reduction because each new merge yields a new committed object.
+
+Pattern:
+
+- Keep `r_k` as the current committed aggregate.
+- On new mapper output `m_{k+1}`, emit `r_{k+1} := MERGE(r_k, m_{k+1})`.
+
+Because histories are preserved, you get:
+
+- auditability (why is the count what it is?)
+- rollback as a **new event** (not magic reversal)
+- checkpointing by naming a particular `r_k`
+
+---
+
+## 7) Controlled forgetting: COLLAPSE as a compression boundary
+
+If reducer histories get too large, you can apply **COLLAPSE** to keep invariants while discarding detail.
+
+The key is: COLLAPSE must be explicit and governed.
+
+Example: keep histogram totals but discard exact merge tree:
+
+    COLLAPSE r2 -> rc2 : keep("hist"), keep("prov.shards"), drop("merge_tree")
+
+This is not “free optimization.” It is an authorized act that trades lineage detail for tractability, while preserving the invariants you choose.
+
+---
+
+## 8) General recipe: designing Spherepop reducers
+
+To implement map–reduce “in Spherepop style,” define:
+
+1. **Summary type** (what you keep)
+2. **Provenance type** (what you remember about inputs)
+3. **Merge law** (associativity/commutativity requirements)
+4. **Refusal rules** (what is forbidden: duplicates, out-of-domain values, policy violations)
+5. **Collapse policy** (what detail can be forgotten and when)
+
+That’s it. Everything else is wiring.
+
+---
+
+## 9) More examples you can lift directly
+
+### 9.1 Sum / average with provenance
+
+- Mapper emits `(sum, n, shard_id)`
+- Reducer merges by addition and unions shard_id
+
+### 9.2 Group-by keys (classic map–reduce)
+
+- Mapper emits pairs `(key, payload_summary)`
+- Reducer maintains a map `{key -> reduced_summary}` where each key’s summary is itself a Spherepop object with its own merge history.
+
+### 9.3 Top-k
+
+- Mapper emits local top-k list
+- Reducer merges by union then truncation
+- Provenance supports audit: which shard contributed which candidate?
+
+### 9.4 Deduped set union
+
+- Mapper emits a set plus shard provenance
+- Reducer merges sets
+- Refuse on provenance overlap if you require “each shard once”
+
+---
+
+## 10) The punchline
+
+Traditional map–reduce is about **distributing computation**.
+
+Spherepop map–reduce is about **distributing commitment**:
+
+- local POPs create local facts
+- MERGE composes facts into larger facts
+- REFUSE encodes principled “no”
+- COLLAPSE is explicit, authorized forgetting
+
+So the reducer is not just a math function. It is a *world-building mechanism*: it constructs an object whose meaning is inseparable from the irreversible history that produced it.
+

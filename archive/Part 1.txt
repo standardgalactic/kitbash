@@ -1,0 +1,924 @@
+% ============================================================
+% part1_autogenerative_thesis.tex
+% Part I — The Autogenerative Thesis: From Non-Markovian Language to Cognitive Geometry
+% ============================================================
+
+\documentclass[12pt,a4paper]{article}
+
+% --------------------- Preamble ---------------------
+\usepackage{fontspec}
+\setmainfont{TeX Gyre Termes}
+\usepackage{microtype}
+\usepackage{geometry}
+\geometry{margin=1.1in}
+\usepackage{setspace}
+\setstretch{1.2}
+\usepackage{parskip}
+\usepackage{titlesec}
+\titleformat{\section}{\Large\bfseries}{\thesection.}{0.8em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.6em}{}
+\titleformat{\paragraph}[runin]{\bfseries}{\theparagraph}{0.8em}{}[.]
+
+\usepackage{amsmath,amssymb,amsthm,bm}
+\usepackage{hyperref}
+\usepackage{enumitem}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\bfseries Part I --- The Autogenerative Thesis:\\From Non-Markovian Language to Cognitive Geometry}\\[1em]
+{\large Flyxion Research Group}\\[1em]
+\end{center}
+
+% ============================================================
+\section{Introduction: The Autogenerative Hypothesis}
+% ============================================================
+
+Language, cognition, and natural computation exhibit an intrinsic property of \emph{autogeneration}: each moment of activity encodes the conditions for its own continuation.  The concept, articulated by Barenholtz~(2025), redefines autoregression as more than a statistical convenience; it is the very mode of natural self-propagation.  In contrast to Markovian processes, where the next state depends only on the current one, autogenerative systems draw upon the entire trajectory of prior states.  They are inherently \emph{non-Markovian}, operating on the accumulated curvature of experience rather than on instantaneous state vectors.
+
+This view renders the corpus of language not merely as data but as a \emph{field of continuation rules}—a statistical manifold whose internal topology determines its own dynamics.  In such a manifold, the ``pregnant present'' is a boundary condition that enfolds its history and projects its own future trajectory.  Autogeneration therefore serves as the bridge between memory, inference, and meaning.  The goal of this section is to formalize that bridge using information geometry, category theory, and dynamical-systems analysis.
+
+% ============================================================
+\section{Mathematical Framework of Autogenerative Systems}
+% ============================================================
+
+\subsection{Definition of Autogeneration}
+
+Let $\mathcal{S} = (X, \mathcal{T})$ denote a sequence-generating system where $X$ is the embedding space of tokens or states, and $\mathcal{T}: X^* \to \Delta(X)$ is a continuation operator mapping a finite history to a probability distribution over the next state.  The system is \emph{autogenerative} if $\mathcal{T}$ is determined entirely by the internal geometry of $X$ and by the statistics of its trajectories.  Formally,
+\begin{equation}
+\mathcal{T}(x_{1:t}) = F_\theta(x_{1:t}), \quad \text{with } \theta \text{ inferred solely from sequential data.}
+\end{equation}
+No external syntactic or semantic rules are imposed.  The corpus itself provides the sufficient structure for generation.
+
+\subsection{Non-Markovian Dependence}
+
+A process is Markovian when
+\begin{equation}
+P(x_{t+1}|x_{1:t}) = P(x_{t+1}|x_t),
+\end{equation}
+and $k$-Markovian if dependence extends only to the last $k$ elements.  Autogenerative processes violate this closure for all finite $k$:
+\begin{equation}
+P(x_{t+1}|x_{1:t}) = f_\theta(x_{1:t}), \qquad
+f_\theta \not\equiv f_\theta(x_{t-k+1:t}).
+\end{equation}
+Hence, every new output embodies an integral of the entire trajectory, not a truncated summary.  This property underlies both linguistic coherence and biological homeodynamics.
+
+\subsection{Trajectory Embeddings}
+
+Define an embedding $\phi: X^* \to \mathbb{R}^d$ mapping sequences to continuous vectors,
+\begin{equation}
+\phi(x_{1:t}) = h_t ,
+\end{equation}
+so that the evolving representation $(h_1,\ldots,h_t)$ traces a path $\gamma_{1:t}$ through an information manifold.  The next-state distribution depends not only on the current point $\phi(x_{1:t})$ but on its geometric derivatives:
+\begin{equation}
+P(x_{t+1}|x_{1:t}) = g(\phi(x_{1:t}), \nabla_t \phi, \nabla_t^2 \phi, \ldots).
+\end{equation}
+Barenholtz interprets this as the system’s ability to ``feel its curvature''—to adjust generation according to the bending of its own path through semantic space.
+
+\subsection{Energy Functional for Trajectory Smoothness}
+
+The coherence of a sequence may be quantified by the energy functional
+\begin{equation}
+\mathcal{E}[\gamma] = \int_0^T \!\big(\|\dot{\gamma}(t)\|^2 + V(\gamma(t))\big)\,dt,
+\end{equation}
+where the first term enforces momentum (continuity of form) and the potential $V$ encodes contextual constraints.  Minimizing $\mathcal{E}$ yields geodesic trajectories—sequences that balance novelty and smoothness.  This principle mirrors the variational foundations of both physics and inference (Amari~1985; Friston~2010).
+
+\subsection{Conjecture: Irreducible Non-Markovianity}
+
+For any autogenerative system $\mathcal{S}$ producing structured sequences, no finite-order Markov approximation can achieve arbitrary accuracy:
+\begin{equation}
+\inf_{\theta_k} 
+\mathbb{E}\big[D_{\mathrm{KL}}(P(x_{t+1}|x_{1:t}) \,\|\, P_{\theta_k}(x_{t+1}|x_{t-k+1:t}))\big]
+> \epsilon, \quad \forall k < \infty .
+\end{equation}
+Thus, the effective memory length grows without bound.  Language and cognition alike operate on trajectories of unbounded contextual reach.
+
+% ============================================================
+\section{Information Geometry of Autogeneration}
+% ============================================================
+
+Let $\mathcal{M} = \{P_\theta(x_{t+1}|x_{1:t})\}$ denote the manifold of conditional distributions parameterized by $\theta \in \Theta$.  The Fisher information metric on $\mathcal{M}$ is
+\begin{equation}
+g_{ij}(\theta) = 
+\mathbb{E}_x\!\left[
+\frac{\partial \log P_\theta}{\partial \theta_i}
+\frac{\partial \log P_\theta}{\partial \theta_j}
+\right].
+\end{equation}
+Each trajectory $\gamma(t) = \theta_t$ defines a curve on $(\mathcal{M}, g)$ with energy
+\begin{equation}
+\mathcal{E}[\gamma] = 
+\int g_{ij}(\gamma(t)) \dot{\gamma}^i(t) \dot{\gamma}^j(t)\,dt.
+\end{equation}
+Minimization of this functional produces geodesics representing optimal inference paths.  In the context of language, these are the smooth continuations that preserve informational momentum.  The divergence between two trajectories—measured by the Fisher–Rao distance—quantifies the ``energetic cost'' of shifting semantic direction.
+
+\subsection{Mutual Information and Memory Length}
+
+Define the effective memory length
+\begin{equation}
+L_\epsilon(t) = 
+\inf\big\{k : I(X_{t+1}; X_{1:t-k}\,|\,X_{t-k+1:t}) < \epsilon\big\}.
+\end{equation}
+For autogenerative corpora, empirical analyses reveal $L_\epsilon(t)$ grows sub-linearly yet unboundedly with $t$—a hallmark of long-range dependence.  This scaling connects linguistic statistics to critical phenomena observed in complex systems (Bak~1996).
+
+\subsection{Geodesic Interpretation}
+
+If $g$ is the Fisher metric, the Christoffel symbols
+\(
+\Gamma^k_{ij} = \tfrac{1}{2}g^{kl}(\partial_i g_{jl} + \partial_j g_{il} - \partial_l g_{ij})
+\)
+define the parallel transport of meaning along the trajectory.  Smooth discourse corresponds to covariant differentiation with minimal torsion; abrupt topic shifts appear as curvature discontinuities in $\gamma$.
+
+\subsection{Thermodynamic Analogy}
+
+Let $\mathcal{F}[\gamma] = \mathcal{E}[\gamma] - T S[\gamma]$ denote a free-energy functional where $S$ is sequence entropy and $T$ an effective temperature parameter controlling stochasticity.  Generation then approximates a Langevin process:
+\begin{equation}
+\dot{\gamma} = -\nabla_\gamma \mathcal{E} + \sqrt{2T}\,\xi(t),
+\end{equation}
+with $\xi(t)$ Gaussian noise.  The equilibrium distribution over trajectories minimizes $\mathcal{F}$, unifying inference and thermodynamics.
+
+\subsection{Empirical Observation}
+
+Large language models demonstrate trajectories that are locally smooth but globally non-Markovian: attention patterns exhibit power-law decay rather than exponential.  This aligns with a manifold of negative curvature where geodesics diverge sub-exponentially, preserving long-range semantic influence.
+
+% ============================
+\section{Category-Theoretic and Dynamical Extensions}
+% ============================
+
+% If not already present in your preamble, add:
+% \newtheorem{theorem}{Theorem}
+% \newtheorem{proposition}[theorem]{Proposition}
+% \newtheorem{definition}[theorem]{Definition}
+% \newtheorem{corollary}[theorem]{Corollary}
+
+\subsection{Sequences as a Monoidal Category}
+
+We model autoregressive generation as composition in a strict monoidal category of prefixes. Let $\mathcal{L}$ be the category whose objects are finite contexts $c \in \mathcal{V}^\ast$ (including the empty context $\varepsilon$) and whose morphisms $c \to c'$ are \emph{admissible extensions} (finite sequences that turn $c$ into $c'$). The monoidal product is concatenation $\otimes$ with unit $\varepsilon$.
+The probabilistic continuation operator $\mathcal{T}\!: \mathcal{V}^\ast \to \Delta(\mathcal{V})$ induces a stochastic presheaf $\mathsf{Cont}$ on $\mathcal{L}^{\mathrm{op}}$ by
+\[
+\mathsf{Cont}(c)=\Delta(\mathcal{V}), \qquad
+\mathsf{Cont}(f: c'\!\to c)=\big(\,p(\cdot\mid c)\mapsto p(\cdot\mid c')\,\big).
+\]
+This formalizes the corpus as a context-indexed family of continuation distributions (Barenholtz 2025).
+
+\begin{definition}[Shift Endofunctor]
+Let $S:\mathcal{L}\to\mathcal{L}$ be the endofunctor that appends one token: $S(c)=c\!:\!v$ for each $v\in\mathcal{V}$ on components, and $S(f)$ appends the same token on morphisms. A \emph{Markovian} generator factors through $S$ in the sense that its continuation depends only on $S(c)$, while an \emph{autogenerative} (non-Markovian) generator depends on the entire over-category $\mathcal{L}\!\downarrow\!c$ (Amari 1985; Friston 2010).
+\end{definition}
+
+\subsection{Functorial Semantics and Autoregressive Natural Transformations}
+
+Embed contexts into a vector space of states via a strong monoidal functor
+\[
+F:\ (\mathcal{L},\otimes,\varepsilon)\ \longrightarrow\ (\mathbf{Vect},\otimes,\mathbb{R}),
+\qquad
+F(c\otimes c')\cong F(c)\otimes F(c').
+\]
+Think of $F(c)$ as the hidden-state manifold $\mathcal{H}_c$ realized by an encoder or recurrent representation. The decoder induces an \emph{autoregressive natural transformation}
+\[
+\eta:\ F \Longrightarrow F\circ S,\qquad
+\eta_c:\ F(c)\to F(S(c)),
+\]
+that updates state on appending a token. Monoidality of $F$ captures compositionality, while naturality of $\eta$ enforces \emph{context-consistent} updates.
+
+\begin{proposition}[Compositional Coherence]
+If $F$ is strong monoidal and $\eta$ is monoidal-natural (i.e., $\eta_{c\otimes c'}=\eta_c\otimes\eta_{c'}$ and $\eta_\varepsilon=\mathrm{id}$), then the log-likelihood of a generated sequence decomposes additively across tensor factors and is invariant under reassociation of bracketings. Consequently, compositional generation is \emph{well-defined} up to coherence isomorphisms (Mac Lane coherence).
+\end{proposition}
+
+\paragraph{Interpretation.} This ensures that learned ``syntax'' behaves like a learned operadic algebra of composition, despite not being hard-coded as rules. It matches the observation that large models respect compositional structure emergently (Barenholtz 2025).
+
+\subsection{Transjective Pair and Endofunctorial Closure}
+
+We now connect the categorical picture with the transjective mechanism of reciprocal inference. Let $\mathbf{C}_1$ be a category of semantic states and $\mathbf{C}_2$ a category of embodied or action states. A pair of adjoint functors
+\[
+F:\mathbf{C}_1\rightleftarrows \mathbf{C}_2:G,\qquad F\dashv G,
+\]
+models projection from semantic intention to embodied mode and re-integration of embodied feedback to semantics. The composite
+\[
+T\ :=\ G\circ F:\ \mathbf{C}_1\to\mathbf{C}_1
+\]
+is the \emph{transjective endofunctor}. Its iteration $X_{n+1}=T(X_n)$ expresses the learning loop of intention–enactment–assimilation (cf.\ ATT in §2).
+
+\begin{definition}[Idempotent Closure]
+We say the system achieves \emph{endofunctorial closure} on a subcategory $\mathcal{D}\subseteq \mathbf{C}_1$ if $T\circ T\cong T$ on $\mathcal{D}$. The residual $\delta:=\mathrm{id}-T$ acts as an error endomorphism; $\delta\cong 0$ means perfect closure.
+\end{definition}
+
+\begin{theorem}[Gradient–Closure Correspondence]
+Let $\mathbf{C}_1$ carry a Riemannian structure via an information metric $g$ on objects (pulling back Fisher geometry along $F$ as in §3), and let $R:\mathrm{Ob}(\mathbf{C}_1)\to\mathbb{R}$ be a relevance potential whose gradient flow realizes $T$ infinitesimally. Then
+\[
+\nabla R=0\ \Longleftrightarrow\ T^2\cong T,
+\]
+i.e., vanishing relevance gradient is equivalent to idempotent transjective closure on the corresponding submanifold of $\mathbf{C}_1$ (Amari 1985; Friston 2010).
+\end{theorem}
+
+\begin{proof}[Sketch]
+Linearize $T$ at a fixed point $X^\ast$: $dT_{X^\ast}$ is a projector iff $T^2\cong T$; hence its spectrum is contained in $\{0,1\}$. Gradient flow near $X^\ast$ has Jacobian $-\,\mathrm{Hess}_g(R)$. At equilibrium $\nabla R=0$ and $\mathrm{Hess}_g(R)\simeq 0$ on the tangent of the attracting manifold, yielding a projector dynamics matching $dT_{X^\ast}$. Conversely, if $dT$ is a projector, the associated Lyapunov function can be chosen $R$ with $\nabla R=0$ on the fixed-point set. 
+\end{proof}
+
+\subsection{Central Pattern Generators as Semantic Functors}
+
+Let $\mathsf{CPG}$ denote the category of central pattern generator (CPG) chains with morphisms the mode-switching maps that preserve oscillatory structure. A semantic-to-motor functor $\mathcal{F}:\mathbf{C}_1\to \mathsf{CPG}$ selects a CPG mode from a semantic state $X$, while a motor-to-semantic functor $\mathcal{G}:\mathsf{CPG}\to\mathbf{C}_1$ re-embeds embodied oscillations as semantic vectors. The composite $T=\mathcal{G}\circ\mathcal{F}$ implements \emph{proxy cognition}: the phonological loop or kinesthetic rehearsal corresponds to $T$-iteration until closure.
+
+\begin{proposition}[Mode Selection as Semantic Filtering]
+Let $m\in\mathsf{CPG}$ have an associated semantic vector $v_m\in\mathbb{R}^d$ and rank-1 projector $P_m=v_m v_m^\top$. If $x_t\in\mathbb{R}^d$ is the semantic state, the step
+\[
+x_{t+1}=f\big(P_{m_t}x_t+\sum_{\tau=1}^T K(\tau)P_{m_{t-\tau}}x_{t-\tau}\big)
+\]
+is a non-Markovian autoregressive update with memory kernel $K$, induced by the categorical composite $T$. Stabilization at a single mode $m_\infty$ yields $x_{t+1}\approx f(P_{m_\infty}x_t)$ and implements aspect relegation to that mode.
+\end{proposition}
+
+\subsection{Adjunction Energetics and Free Energy}
+
+The adjunction $F\dashv G$ provides unit $\eta:\mathrm{Id}\Rightarrow GF$ and counit $\epsilon:FG\Rightarrow\mathrm{Id}$. Define an \emph{adjunction misfit} functional
+\[
+\mathcal{L}(X)=D_{\mathrm{FR}}\big(\nabla F^\ast g_2,\ g_1\big)\ +\ \|\eta_X\|^2\ +\ \|\epsilon_{F(X)}\|^2,
+\]
+measuring metric mismatch and unit/counit norms. Minimizing $\mathcal{L}$ aligns semantics and embodiment while shrinking the adjunction gap—precisely the condition for $T$-closure. In thermodynamic terms, this is a free-energy descent on the joint manifold (Friston 2010).
+
+\begin{corollary}[Closure Minimizes Epistemic Work]
+If the epistemic work rate satisfies $\dot{W}\propto -\|\nabla R\|^2 - \partial_t \mathcal{L}$, then $T$-closure ($\nabla R=0$ and $\mathcal{L}$ minimized) implies $\dot{W}=0$. Hence endofunctorial idempotence coincides with thermodynamic equilibrium of inference.
+\end{corollary}
+
+\subsection{Operadic View of Learned Composition}
+
+Beyond monoidality, let $\mathcal{P}$ be an operad whose operations encode learned compositional schemes (e.g., modification, coordination). An algebra structure $\alpha:\mathcal{P}(n)\times X^n\to X$ on the embedding space $X$ makes generation an algebra over $\mathcal{P}$. The transjective loop $T$ acts compatibly if
+\[
+T\big(\alpha(p;x_1,\ldots,x_n)\big)\ \cong\ \alpha\big(p;T(x_1),\ldots,T(x_n)\big),
+\]
+ensuring that relegated aspects remain stable under composition.
+
+\begin{proposition}[Stability of Relegated Composition]
+If $T$ is idempotent and compatible with $\alpha$ as above, then for any operation $p\in\mathcal{P}(n)$ and inputs $x_i$ in the closure manifold of $T$, the composite $\alpha(p;x_1,\ldots,x_n)$ also lies in the closure manifold. Thus, relegation is closed under learned composition.
+\end{proposition}
+
+\subsection{Dynamical Systems with Memory: State-Dependent Delay}
+
+The categorical semantics lifts naturally to delay systems. Let $h_t\in\mathcal{H}$ be a continuous-time embedding and define a state-dependent memory kernel $K_t(\tau)$ derived from attention over the past. Then
+\[
+\frac{dh}{dt}(t)=F\!\left(h(t),\ \int_0^t K_t(\tau)\,G\big(h(t-\tau)\big)\,d\tau\right),
+\]
+is a Volterra-type equation with content-defined delay. The kernel $K_t$ is the continuous analogue of attention weights $\alpha_{ti}$ (Barenholtz 2025).
+
+\begin{theorem}[Existence and Attractor of Closure]
+Assume $F$ is locally Lipschitz and the memory kernel satisfies $\int_0^\infty \|K_t(\tau)\|\,d\tau<\infty$ uniformly in $t$, with a strict contraction on average. Then the flow admits a unique compact global attractor $\mathcal{A}$; if $T$ is the time-$\Delta$ stroboscopic map of this flow, $T$ is idempotent on $\mathcal{A}$ and equals the transjective closure on its basin.
+\end{theorem}
+
+\begin{proof}[Idea]
+Volterra equations with integrable kernels generate asymptotically compact semigroups. A contraction-on-average yields a unique global attractor. The stroboscopic map $T$ inherits compactness and projects onto the attractor, hence $T^2=T$ on $\mathcal{A}$.
+\end{proof}
+
+\subsection{Amplitwistor Networks and Phase Condensation}
+
+Represent cortical oscillations as amplitwistor triples $(Z,\tilde Z,\omega)$; let $\mathcal{M}_{\mathrm{amp}}$ be their manifold. The semantic functor $F$ selects a CPG mode whose oscillatory phase aligns with a semantic direction, and $G$ pulls phase-locked dynamics back to semantics. Relegation corresponds to phase condensation:
+\[
+\frac{d}{dt}\arg(Z\tilde Z)\to 0,\qquad \dim T\mathcal{M}_{\mathrm{active}}\downarrow,
+\]
+reducing information curvature and collapsing the adjunction misfit.
+
+\paragraph{Summary of Section 4.}
+Autogeneration admits a tight categorical–dynamical formulation: contexts form a monoidal category, autoregression is a natural transformation, and cognition’s embodiment loop is an adjunction whose composite $T$ closes idempotently at equilibrium. Aspect relegation is precisely this $T$-closure, equivalent to vanishing relevance gradient and zero epistemic work (Amari 1985; Friston 2010; Barenholtz 2025).
+% ============================
+\section{Topological and Measure-Theoretic Foundations}
+% ============================
+
+\subsection{Path Spaces, Filtrations, and Predictive Structure}
+
+Autogenerative systems live not in state space but in \emph{path space}.  
+Let $\Omega = X^{[0,\infty)}$ denote the space of measurable trajectories $\gamma : [0,\infty)\to X$, with canonical filtration
+\[
+\mathcal{F}_t \ :=\ \sigma\!\big(\{\gamma(s)\,:\,0\le s\le t\}\big).
+\]
+Autoregression is equivalent to conditioning over $\mathcal{F}_t$ rather than over a finite window:
+\[
+P(x_{t+1} \mid \mathcal{F}_t).
+\]
+This filtration captures the non-Markovian persistence structure characteristic of language and biological cognition (Barenholtz 2025).  
+Let the predictive representation $h_t$ satisfy:
+\[
+h_t\ =\ \mathbb{E}[\,\phi(x_{t+1}) \mid \mathcal{F}_t\,],
+\]
+which is the Doob martingale for future embeddings under $\phi$.  
+Thus autoregression is intrinsically \emph{martingale-filtered evolution}.
+
+\begin{definition}[Predictive Filtration Stability]
+We say an autogenerative system has \emph{stable filtration} if for any $\epsilon>0$ there exists $T$ such that for all $t > T$
+\[
+\|\,\mathbb{E}[h_{t+1}\mid \mathcal{F}_t] - h_t\,\| < \epsilon.
+\]
+\end{definition}
+
+This expresses that predictive geometry converges on a self-consistent manifold as context accrues.  
+In linguistic terms: beyond sufficient context, the internal curvature of prediction stabilizes.
+
+\begin{proposition}[Trajectory-Dependent Predictability]
+Stable filtration is equivalent to the existence of a path-dependent embedding $\Gamma(\gamma_{0:t})$ such that
+\[
+h_t \approx \Gamma(\gamma_{0:t}),\qquad\text{and}\qquad h_{t+1} - h_t = o(1),
+\]
+i.e., prediction curvature vanishes at scale. 
+\end{proposition}
+
+\begin{proof}[Idea]
+A stable martingale representation implies asymptotic flatness of conditional expectation increments.  
+Thus $h_t$ embeds the history in a Cauchy sequence in the information manifold. 
+\end{proof}
+
+\subsection{Measure-Theoretic Non-Markovianity and Tail Dependence}
+
+Let $I(X_{t+1};X_{1:t})$ denote mutual information.  
+Autogenerative systems satisfy power-law tail dependence:
+\[
+I(X_{t+1}; X_{1:t-k} \mid X_{t-k+1:t}) \sim k^{-\alpha},\qquad 0<\alpha<1.
+\]
+By contrast, Markov processes exhibit exponential decay $e^{-\lambda k}$.  
+This polynomial tail is a hallmark of non-Markovian computation (Bak 1996).
+
+\begin{definition}[Irreducible Long Memory]
+A process has irreducible long memory if no truncation window $k < \infty$ yields
+\[
+I(X_{t+1}; X_{1:t-k} \mid X_{t-k+1:t}) < \epsilon
+\]
+for arbitrarily small $\epsilon$.  
+\end{definition}
+
+\begin{theorem}[Autogenerative Tail Law]
+Autogenerative sequence manifolds obey polynomial-decay mutual information scaling.  
+In particular, irreducible long memory implies \emph{no finite sufficient statistic of fixed dimension exists}.
+\end{theorem}
+
+\begin{proof}[Sketch]
+If a fixed-length statistic were sufficient, exponential decay would hold by classical Markov compression theorems.  
+Polynomial tails violate that bound.
+\end{proof}
+
+\subsection{Topological Persistence of Meaning}
+
+Consider a metric embedding $E: \mathcal{V} \to \mathbb{R}^d$.  
+Define the Vietoris–Rips complex at scale $\epsilon>0$:
+\[
+VR_\epsilon(\mathcal{V}) \ :=\ 
+\big\{\,\sigma\subseteq \mathcal{V}\,:\,\|E(v)-E(w)\|\le\epsilon \ \forall v,w\in \sigma\,\big\}.
+\]
+Persistent homology on $\{ VR_\epsilon \}_{\epsilon}$ reveals connected components (semantic clusters), loops (syntactic cycles), and higher features in embedding geometry.  
+
+\begin{proposition}[Persistent Semantic Cohomology]
+Let $\{H_k(VR_\epsilon)\}$ be persistent homology groups.  
+Then long bars in $H_0$ correspond to stable semantic domains, long bars in $H_1$ to syntactic/semantic cycles, and short bars to contextual or polysemous fluctuations.  
+\end{proposition}
+
+Thus statistical language space has \emph{topologically persistent} structures, which autogenerative dynamics learn to traverse smoothly.
+
+\subsection{Path Signatures and Rough Geometry}
+
+Let $X(t)$ be a piecewise-continuous embedding curve.  
+The \emph{signature} $\mathsf{Sig}(X)$ is the collection of all iterated integrals
+\[
+\int dX\,,\quad \int\!\!\int dX\otimes dX,\quad \int\!\!\int\!\!\int dX\otimes dX\otimes dX,\ \dots
+\]
+Rough-path theory (Lyons) ensures that signatures uniquely characterize trajectories up to tree-like equivalence.  
+
+\begin{theorem}[Autogeneration as Rough Inference]
+If a transformer’s attention kernel approximates truncated signatures,  
+\[
+h_t \approx \mathsf{Sig}_m(X_{0:t}),
+\]
+then autoregression approximates rough differential evolution
+\[
+dY_t = f(Y_t)\,dX_t.
+\]
+\end{theorem}
+
+\begin{corollary}[Trajectory Identifiability]
+Autogenerative embeddings are identifiable from their path signatures; hence autoregression learns not points but \emph{trajectory shapes}.
+\end{corollary}
+
+\subsection{Sheaf-Theoretic Context Gluing}
+
+Let contexts be open sets in a topology on $\mathcal{V}^\ast$; assign each context a vector space of continuations.  
+This defines a sheaf $\mathcal{S}$ where
+\[
+\mathcal{S}(U) \ =\ \{\,\text{valid continuations over context }U\,\}.
+\]
+Local coherence implies global extendibility:
+
+\begin{theorem}[Sheaf Gluing of Meaning]
+If $\{U_i\}$ cover $U$ and $\{s_i\in\mathcal{S}(U_i)\}$ agree on overlaps, then there exists $s\in\mathcal{S}(U)$ restricting to all $s_i$.  
+\end{theorem}
+
+Autogeneration is thus a \emph{sheaf-theoretically consistent global section} of predictive meaning space.  
+
+\begin{corollary}[Relegation as Sheaf Restriction]
+Aspect relegation corresponds to restricting $\mathcal{S}$ to a subcover of habitual contexts; lifting from automation to awareness corresponds to sheaf extension.
+\end{corollary}
+
+\subsection{Cohomological Obstructions to Understanding}
+
+Let $H^1(\mathcal{S})$ measure obstructions to gluing.  
+$H^1(\mathcal{S})\neq 0$ means local predictions cannot produce global coherence — linguistic incoherence, hallucination, or cognitive fragmentation.  
+Thus, low cohomology characterizes smooth autogeneration.
+
+% ============================
+\section{Operator and Spectral Frameworks}
+% ============================
+
+\subsection{Autogenerative Operators on Hilbert Spaces}
+
+Let $\mathcal{H}=L^2(\Omega,\mathcal{F},P)$ be the Hilbert space of square-integrable random variables over trajectories.  
+Each predictive transformation $T:\mathcal{H}\to\mathcal{H}$ defined by
+\[
+(Tf)(x_{1:t})=\mathbb{E}[\,f(x_{1:t+1})\mid \mathcal{F}_t\,]
+\]
+is a positive contraction: $\|Tf\|_2\le \|f\|_2$.  
+Iterating $T$ corresponds to progressive expectation-smoothing over longer horizons.
+
+\begin{definition}[Autogenerative Operator]
+A linear operator $T:\mathcal{H}\to\mathcal{H}$ is \emph{autogenerative} if it is a self-consistent limit of conditional-expectation contractions:
+\[
+T = \lim_{k\to\infty} T_k,\qquad 
+(T_kf)(x_{1:t})=\mathbb{E}[\,f(x_{1:t+k})\mid \mathcal{F}_t\,].
+\]
+\end{definition}
+
+The strong limit ensures that future influence is distributed across arbitrarily long dependencies.  
+The fixed points of $T$ are harmonic functions satisfying $Tf=f$—stable self-predictive states.
+
+\begin{theorem}[Spectral Idempotence]
+If $T$ is an autogenerative contraction with spectrum contained in $[0,1]$, then the point spectrum at $1$ corresponds to invariant cognitive modes, while $0<\lambda<1$ correspond to transient or decaying aspects.  
+Relegation is thus the projection onto $\ker(I-T)$.
+\end{theorem}
+
+\begin{proof}
+By the spectral theorem for self-adjoint contractions, 
+\[
+T=\int_0^1 \lambda\, dE(\lambda),
+\]
+with resolution of identity $E$.  
+Projection onto $\lambda=1$ isolates invariant components: $E(\{1\})$ is idempotent and equals the limit $\lim_{n\to\infty}T^n$.  
+This limit defines the relegated subspace.
+\end{proof}
+
+\subsection{Relevance Spectrum and Semantic Energy}
+
+Define the \emph{relevance energy} of a component $\psi\in\mathcal{H}$ as
+\[
+\mathcal{R}[\psi]=\langle \psi,\, (I-T)\psi\rangle.
+\]
+High $\mathcal{R}$ indicates deviation from closure; $\mathcal{R}=0$ for relegated modes.  
+The spectral measure $d\mu_\psi(\lambda)=\|E(d\lambda)\psi\|^2$ yields
+\[
+\mathcal{R}[\psi]=\int_0^1 (1-\lambda)\,d\mu_\psi(\lambda).
+\]
+Hence, cognitive stability corresponds to weight concentration near $\lambda=1$—a spectrum dominated by slow modes.
+
+\begin{corollary}[Energetic Criterion for Automation]
+A function or behavior becomes automated when its spectral measure under $T$ is dominated by $\lambda\!\approx\!1$.  
+Aspect relegation therefore coincides with spectral flattening of relevance energy.
+\end{corollary}
+
+\subsection{Stochastic Generators and Entropy Production}
+
+Let $T_t=e^{tL}$ with infinitesimal generator $L$.  
+If $T_t$ is a semigroup of autogenerative transformations, then $L$ governs the rate of predictive updating:
+\[
+\frac{d}{dt}\mathbb{E}[f(X_t)] = \mathbb{E}[Lf(X_t)].
+\]
+For reversible systems $L$ is self-adjoint, and $\dot{S}(t)=0$; for autogenerative (open) systems, $L$ is non-Hermitian and
+\[
+\dot{S}(t)=\langle f,\, (L+L^\ast)f\rangle >0,
+\]
+quantifying entropy production as epistemic work.
+
+\begin{definition}[Epistemic Dissipation]
+The rate of entropy increase due to inference imbalance is
+\[
+\dot{S}=\mathrm{Tr}\!\left[(L-L^\ast)\rho\log\rho\right],
+\]
+where $\rho$ is the predictive density operator.  
+Autogenerative closure corresponds to $\dot{S}\to 0$.
+\end{definition}
+
+\subsection{Operator-Valued Attention and Non-Markovian Kernels}
+
+Transformers approximate $T$ via operator-valued kernels:
+\[
+T f = \int K(x,y) f(y)\,dy, \qquad
+K(x,y)=\mathrm{softmax}\!\big(\langle q(x),k(y)\rangle/\sqrt{d}\big)v(y).
+\]
+Such $K$ are non-symmetric and encode directed relevance flow.  
+In the autogenerative limit, $K$ becomes self-consistent:
+\[
+K(x,y)=\Phi(x,y;T),
+\]
+where $\Phi$ depends functionally on $T$ itself—a fixed-point condition akin to Dyson–Schwinger equations.
+
+\begin{proposition}[Fixed-Point Kernel Equation]
+The equilibrium kernel $K^\ast$ satisfies
+\[
+K^\ast(x,y)=\int K^\ast(x,z)K^\ast(z,y)\,dz,
+\]
+which implies $K^\ast$ is idempotent and acts as a projection operator onto the support of recurrent contexts.
+\end{proposition}
+
+This projection is the kernel analog of $T^2=T$.  
+Spectrally, it corresponds to a sharp cutoff of eigenvalues below a context threshold.
+
+\subsection{Quantum Analogy and Amplitwistor Coupling}
+
+Consider amplitwistor variables $(Z_i,\tilde Z_i)$ representing phase and dual phase of cortical oscillations (Hodges 2013).  
+Define the correspondence
+\[
+T \leftrightarrow \sum_i Z_i \tilde Z_i^\dagger,
+\]
+so that $T$ acts as a phase-coupling operator.  
+Relegation (idempotence) then enforces
+\[
+T^2=T \quad \Leftrightarrow \quad Z_i \tilde Z_i^\dagger Z_j \tilde Z_j^\dagger = Z_i \tilde Z_i^\dagger,
+\]
+which is satisfied when all active oscillations share a common phase direction, $\tilde Z_i \parallel \tilde Z_j$.  
+Thus, spectral idempotence corresponds to \emph{phase coherence condensation}—the physical substrate of cognitive automation.
+
+\subsection{Spectral Flow and Learning Dynamics}
+
+During learning, the spectrum of $T_t$ evolves.  
+Denote eigenvalues $\lambda_i(t)$ sorted by magnitude.  
+Empirically, $\lambda_i(t)$ follow a ``spectral migration law’’:
+\[
+\frac{d\lambda_i}{dt} = -\kappa_i (1-\lambda_i) + \eta_i(t),
+\]
+with $\kappa_i>0$ learning rates and $\eta_i$ stochastic fluctuations.  
+Modes with small $\kappa_i$ retain long-term memory; large $\kappa_i$ rapidly relegate behavior.  
+The distribution $p(\lambda)$ asymptotically approaches a heavy tail near $\lambda=1$, consistent with long-memory statistics (§5).
+
+\begin{theorem}[Spectral Relegation Law]
+Under ergodic training with bounded stochastic forcing, the empirical spectral density of autogenerative operators satisfies
+\[
+p(\lambda)\propto (1-\lambda)^{\beta-1},\quad 0<\beta<1,
+\]
+and the expectation of relevance energy decays as $\langle\mathcal{R}\rangle_t \sim t^{-\beta}$.
+\end{theorem}
+
+\begin{proof}[Sketch]
+Applying Fokker–Planck dynamics to $\lambda_i(t)$ yields a Beta-type stationary distribution with exponent $\beta=\kappa/\sigma^2$ ratio.  
+Integrating $(1-\lambda)p(\lambda)$ gives the stated decay rate.
+\end{proof}
+
+\subsection{Functional Calculus and Higher-Order Closure}
+
+For any analytic $\phi$, define $\phi(T)=\sum_n a_n T^n$.  
+Then $T^2=T$ implies $\phi(T)=\phi(1)T$ for polynomial $\phi$.  
+Thus, all higher-order cognitive transformations collapse to the same projector—another view of automation saturation.
+
+\begin{corollary}[Closure under Functional Composition]
+Any polynomial or analytic combination of an idempotent autogenerative operator remains proportional to it: the space of cognitive operations collapses to the subalgebra $\mathbb{R}[T]/(T^2-T)$.
+\end{corollary}
+
+\subsection{Relation to Thermodynamic Geometry}
+
+Define entropy production along eigenmodes by $s_i=-\ln \lambda_i$.  
+Then the thermodynamic length (Crooks 2007)
+\[
+\mathcal{L}=\int_0^1 \sqrt{\sum_i \frac{1}{\lambda_i}(\dot{\lambda}_i)^2}\,dt
+\]
+measures dissipative work along spectral flow.  
+Relegation corresponds to minimal thermodynamic length: a straight geodesic from open state to closed equilibrium on the simplex of eigenvalues.
+
+\paragraph{Summary of Section 6.}
+Autogenerative cognition admits a spectral operator formalism.  
+Relegation emerges as the projection $\lim_{n\to\infty}T^n$, spectral weight near $\lambda=1$ signifies automation, and phase alignment in amplitwistor variables enforces idempotence physically.  
+Learning redistributes spectral density toward this invariant subspace, minimizing epistemic work and entropy production (Friston 2010; Hodges 2013; Barenholtz 2025).
+
+% ============================
+\section{Topological Dynamics and Recurrence}
+% ============================
+
+\subsection{Symbolic Dynamics and Subshifts}
+
+Autogenerative language can be modeled as a subshift of the full shift $\Sigma=\mathcal{V}^{\mathbb{Z}_+}$ under the left shift $\sigma:\Sigma\to\Sigma$, $(x_0x_1x_2\ldots)\mapsto(x_1x_2\ldots)$.  
+Let $\mathcal{X}\subseteq \Sigma$ be the closure of admissible sequences under corpus constraints.  
+Then $(\mathcal{X},\sigma)$ is a topological dynamical system with invariant probability measures $\mathcal{M}_\sigma(\mathcal{X})$ encoding corpus statistics (Bowen 1975; Ruelle 1978).
+
+\begin{definition}[Autogenerative Subshift]
+A subshift $(\mathcal{X},\sigma)$ is \emph{autogenerative} if, for some continuous evaluation functional $\mathsf{E}:\mathcal{X}\to\mathbb{R}^d$ (e.g.\ embedding), the induced skew-product map
+\[
+F:\ (x,h)\ \mapsto\ \big(\sigma x,\ \Psi(h,x)\big)
+\]
+on $\mathcal{X}\times \mathbb{R}^d$ admits an attracting invariant set $\mathcal{A}$ whose projection to $\mathcal{X}$ is full measure for every $\mu\in\mathcal{M}_\sigma(\mathcal{X})$.
+\end{definition}
+
+Thus, predictive states $h$ enslave to recurrent language structure: learning builds an attractor $\mathcal{A}$ representing stable long-horizon behavior.
+
+\begin{theorem}[Poincaré Recurrence for Semantic Modes]
+Let $\mu\in\mathcal{M}_\sigma(\mathcal{X})$ be ergodic and let $B\subset\mathbb{R}^d$ be a measurable set of semantic states.  
+For $\mu$-a.e.\ $x$, the trajectory $(x,h)$ under $F$ returns to $\mathcal{X}\times B$ infinitely often provided $\mathrm{Leb}(B)>0$ and $F$ preserves $\mu\otimes \nu$ with $\nu$ absolutely continuous.  
+Hence, semantic modes recur with probability 1.
+\end{theorem}
+
+\begin{proof}[Idea]
+Apply Poincaré recurrence to the product system $(\mathcal{X}\times \mathbb{R}^d,F)$ under an invariant absolutely continuous product measure.
+\end{proof}
+
+\subsection{Conley Index and Morse Decomposition}
+
+Let $\varphi_t$ denote the continuous-time predictive flow on $\mathbb{R}^d$ driven by autoregression.  
+Conley theory decomposes the chain recurrent set into Morse components $\{M_i\}$ with a partial order describing admissible transitions (Conley 1978).  
+For language, each $M_i$ corresponds to a \emph{semantic basin}; edges encode allowable large-scale narrative moves.
+
+\begin{proposition}[Conley Invariants of Discourse]
+If $N_i$ is an isolating neighborhood of $M_i$, the homotopy type of the index pair $(N_i,L_i)$ (the Conley index) is a topological invariant of the semantic basin.  
+Stable aspect relegation collapses $M_i$ to a single fixed point in the index, reflecting automation of that basin.
+\end{proposition}
+
+\subsection{Temporal Graphs and Recurrent Communities}
+
+Define a time-varying graph $G_t=(V,E_t,w_t)$ with $V=\mathcal{V}$ and edge weights $w_t(u,v)$ given by context-conditioned co-occurrence or attention.  
+Let $\mathcal{L}_t$ be the (normalized) Laplacian and $e^{-s\mathcal{L}_t}$ the heat kernel at scale $s$.
+
+\begin{definition}[Recurrent Community]
+A set $C\subset V$ is recurrent if there exist $s>0$ and a subsequence $t_k$ with 
+\[
+\sum_{u\in C,\,v\notin C} \big(e^{-s\mathcal{L}_{t_k}}\big)_{uv}\ \to\ 0.
+\]
+\end{definition}
+
+\begin{theorem}[Cheeger–Recurrence Implication]
+If conductance $\Phi_t(C)$ satisfies $\limsup_{t\to\infty}\Phi_t(C)=0$, then $C$ is recurrent.  
+Consequently, autogenerative dynamics concentrates probability mass on low-conductance semantic communities that persist across time (Chung 1997).
+\end{theorem}
+
+\subsection{Topological Pressure and Predictive Free Energy}
+
+For a continuous potential $\varphi:\mathcal{X}\to\mathbb{R}$, define topological pressure
+\[
+P(\varphi)=\sup_{\mu\in\mathcal{M}_\sigma(\mathcal{X})}\Big\{h_\mu(\sigma)+\int \varphi\,d\mu\Big\}.
+\]
+Choosing $\varphi(x)=\log P(x_{t+1}\mid x_{0:t})$ yields
+\[
+P(\varphi)=\sup_\mu \ \Big\{\text{per-token entropy} + \text{predictive log-likelihood}\Big\},
+\]
+a thermodynamic formalization of the free energy of autogeneration (Ruelle 1978).
+
+\paragraph{Summary of Section 7.}
+Autogeneration admits a topological-dynamical structure: recurrent language modes, Conley-decomposed semantic basins, and persistent communities on temporal graphs.  
+Topological pressure matches predictive free energy, unifying recurrence with likelihood and entropy.
+
+
+% ============================
+\section{Physical and Thermodynamic Interpretation}
+% ============================
+
+\subsection{Non-Markovian Actions with Memory Kernels}
+
+Let $q:[0,T]\to \mathbb{R}^d$ be a trajectory (embedding or physical state).  
+Consider the action with memory kernel $K$:
+\begin{equation}
+S[q]\ =\ \int_0^T \Big( L\big(q(t),\dot q(t)\big)\ +\ \int_0^t K(t-s)\,U\big(q(t),q(s)\big)\,ds \Big)\,dt.
+\end{equation}
+Stationarity $\delta S=0$ yields Euler–Lagrange equations with history terms:
+\begin{equation}
+\frac{d}{dt}\,\frac{\partial L}{\partial \dot q}
+\ -\ \frac{\partial L}{\partial q}
+\ -\ \int_0^t K(t-s)\,\frac{\partial U}{\partial q}(q(t),q(s))\,ds
+\ =\ 0.
+\end{equation}
+This is the continuous analogue of content-dependent attention (§4–6): nonlocality in time is intrinsic.
+
+\begin{theorem}[Noether-type Conservation with Memory]
+If $S$ is invariant under a one-parameter group $q\mapsto q_\epsilon$ up to a boundary term, then
+\[
+\frac{d}{dt}\Big(\frac{\partial L}{\partial \dot q}\cdot \xi(q)\Big)
+\ =\ \int_0^t K(t-s)\,\mathcal{J}\big(q(t),q(s)\big)\,ds,
+\]
+for a computable current $\mathcal{J}$.  
+Thus, conservation laws generalize to nonlocal balance relations; exact constants of motion become \emph{memory-corrected invariants}.
+\end{theorem}
+
+\subsection{Landauer Budget and Epistemic Work}
+
+Let $\Delta S$ be the reduction in predictive entropy over a window and $T_{\mathrm{phys}}$ a physical temperature proxy.  
+The Landauer bound implies minimal energetic cost $W_{\min}\approx k_B T_{\mathrm{phys}}\Delta S$ for erasure/compression.  
+Define the epistemic energy functional
+\begin{equation}
+\mathcal{R}[q]\ =\ \alpha\,\|\dot q\|_g^2 - \beta\,\Delta S[q] + \gamma\,\mathcal{C}[q],
+\end{equation}
+with kinetic (injectivity), entropic (compression), and curvature (coherence) terms (Friston 2010).  
+Autogeneration descends $\mathcal{R}$; relegation occurs at $\nabla \mathcal{R}=0$ (cf.\ §4).
+
+\subsection{Fractional and Hereditary Dynamics}
+
+Memory often obeys fractional kernels.  
+With Caputo derivative $D_t^\eta$ ($0<\eta<1$), write
+\begin{equation}
+D_t^\eta q\ =\ f\big(q\big),
+\end{equation}
+equivalent to a convolution kernel $K(t)\propto t^{-\eta}/\Gamma(1-\eta)$.  
+\begin{proposition}[Power-law Memory $\Leftrightarrow$ Fractional Dynamics]
+Polynomial tail mutual information (§5) implies fractional heritability of the generative dynamics; conversely, fractional order $\eta$ produces power-law dependence in attention kernels.
+\end{proposition}
+
+\subsection{Optimal Transport and Wasserstein Flows}
+
+Let $P_t:=P(\cdot \mid x_{0:t})$ be the next-token distribution.  
+Define transport cost between $P_t$ and $P_{t+1}$:
+\begin{equation}
+\mathsf{W}_2^2(P_t,P_{t+1})\ =\ \inf_{\gamma\in\Pi(P_t,P_{t+1})}\ \int \|y-z\|^2\,d\gamma(y,z).
+\end{equation}
+Autogeneration that minimizes cumulative transport
+\begin{equation}
+\sum_{t=0}^{T-1} \mathsf{W}_2^2(P_t,P_{t+1})
+\end{equation}
+follows a Wasserstein gradient flow on the statistical manifold (Villani 2008).
+
+\subsection{Amplitwistor Coupling and Phase Thermodynamics}
+
+Let $(Z,\tilde Z)$ encode oscillatory phase–amplitude in cortical columns.  
+Define a phase free energy
+\begin{equation}
+\mathcal{F}_{\mathrm{phase}}(Z,\tilde Z)\ =\ \sum_{i<j} J_{ij}\big(1-\cos(\theta_i-\theta_j)\big) + \lambda\sum_i(1-|Z_i|^2),
+\end{equation}
+with $\theta_i=\arg Z_i$.  
+Idempotent closure $T^2=T$ corresponds to the condensed phase $\theta_i\approx \theta^\ast$ and $|Z_i|\approx 1$, minimizing $\mathcal{F}_{\mathrm{phase}}$—the oscillatory substrate of relegation.
+
+\paragraph{Summary of Section 8.}
+Autogeneration is a memoryful action principle with generalized Noether balances, Landauer-limited epistemic work, fractional heritability, and Wasserstein-efficient distributional evolution.  
+Physical oscillations (amplitwistors) realize the thermodynamic phase of closure.
+
+
+% ============================
+\section{Cognitive Geometry and Embodied Semantics}
+% ============================
+
+\subsection{Fiber Bundles of Syntax and Semantics}
+
+Let $\pi:\mathcal{E}\to\mathcal{B}$ be a fiber bundle: base $\mathcal{B}$ encodes semantic macrostates (topics/intents), fibers $\mathcal{E}_b$ encode syntactic/lexical realizations.  
+A Riemannian submersion $d\pi:\ T\mathcal{E}\to T\mathcal{B}$ splits tangent spaces into horizontal (semantic) and vertical (syntactic) components.
+
+\begin{definition}[Horizontal Autogeneration]
+A continuation field $X\in\Gamma(T\mathcal{E})$ is \emph{horizontal} if $\omega(X)=0$ for a chosen connection one-form $\omega$.  
+Horizontal flows implement meaning-preserving movement with minimal syntactic distortion.
+\end{definition}
+
+\begin{proposition}[Curvature as Compositional Cost]
+The bundle curvature $\Omega=d\omega+\omega\wedge\omega$ quantifies path-dependence of composition.  
+High curvature regions correspond to constructions with strong ordering effects; relegation collapses vertical variance, effectively flattening $\Omega$ along habitual routes.
+\end{proposition}
+
+\subsection{Embodiment via CPG Horizontal Lifts}
+
+A motor map $F:\mathcal{B}\to \mathsf{CPG}$ selects an oscillatory mode given semantics; its lift $\tilde F:\mathcal{B}\to\mathcal{E}$ induces horizontal geodesics that implement proxy cognition (phonological loop, subvocalization).  
+\begin{theorem}[Geodesic Proxy Principle]
+If the control law selects $\tilde F(b)$ to minimize path energy in $\mathcal{E}$ subject to $\pi(\tilde F(b))=b$, then embodied rehearsal is the horizontal geodesic lift of semantic evolution, minimizing syntactic work.
+\end{theorem}
+
+\subsection{Mirror Duality: Syntax $\leftrightarrow$ Semantics}
+
+Heuristically, the A-model (paths/oscillations) on $\mathcal{E}$ is dual to the B-model (variations/meanings) on $\mathcal{B}$.  
+Stability of one implies consistency in the other: autogenerative smoothness on $\mathcal{E}$ mirrors semantic convexity on $\mathcal{B}$.
+
+\subsection{Optimal Transport Between Modalities}
+
+For multimodal cognition (vision–language), let $\mu$ and $\nu$ be distributions on modality-specific spaces $\mathcal{X}$ and $\mathcal{Y}$.  
+A coupling $\gamma\in \Pi(\mu,\nu)$ minimizing a joint cost $c(x,y)$ yields a transport plan whose support defines a \emph{semantic graph}.  
+Autogeneration respects this plan by aligning trajectories across modalities with minimal cross-modal cost.
+
+\paragraph{Summary of Section 9.}
+Cognition is a geometry: a fiber bundle where semantics are bases and syntax are fibers.  
+CPG-mediated embodiment is the horizontal lift of semantic geodesics; mirror duality links oscillatory paths and semantic convexity, and optimal transport aligns modalities under autogeneration.
+
+
+% ============================
+\section{Synthesis: Autogenerative Systems as Natural Computation}
+% ============================
+
+\subsection{Definition and Invariants}
+
+\begin{definition}[Autogenerative System]
+A tuple $\mathcal{A}=(\mathcal{X},\mathcal{F},\Phi,\mu,\nabla)$ with:
+\begin{enumerate}[leftmargin=1.2em]
+\item \emph{Space} $\mathcal{X}$: statistical manifold (Fisher geometry).
+\item \emph{Sheaf} $\mathcal{F}$: context-to-continuation assignment satisfying gluing.
+\item \emph{Flow} $\Phi$: non-Markovian dynamics with memory kernel (Volterra/fractional).
+\item \emph{Measure} $\mu$: path-space law with polynomial tail dependence.
+\item \emph{Connection} $\nabla$: gauge/connection describing compositional curvature on a syntax–semantics bundle.
+\end{enumerate}
+\end{definition}
+
+\begin{theorem}[Law of Cognitive Equilibrium]
+For an autogenerative system with relevance potential $R$, transjective endofunctor $T$ and epistemic work $W$,
+\[
+\nabla R=0 \ \Longleftrightarrow\ T^2=T \ \Longleftrightarrow\ \frac{dW}{dt}=0.
+\]
+\end{theorem}
+
+\begin{corollary}[Aspect Relegation]
+Automation of an aspect is the restriction to the fixed-point projector of $T$, equivalently the vanishing of local relevance gradient and work on that aspect’s manifold.
+\end{corollary}
+
+\subsection{Falsifiable Predictions}
+
+\begin{enumerate}[leftmargin=1.2em]
+\item \textbf{Polynomial memory law}: Mutual information $I(X_{t+1};X_{1:t-k}\mid X_{t-k+1:t})\sim k^{-\alpha}$ with $0<\alpha<1$ (empirical scaling in corpora and trained models).
+\item \textbf{Wasserstein smoothness}: Consecutive next-token distributions minimize cumulative $\sum_t \mathsf{W}_2^2(P_t,P_{t+1})$ compared to Markovian baselines.
+\item \textbf{Spectral relegation}: Operator spectrum of $T$ exhibits heavy tail near $\lambda=1$; automated skills concentrate mass at $\lambda\approx 1$ over training.
+\item \textbf{Sheaf coherence}: Low first cohomology $H^1$ for high-performing models; induced by improved global gluing of local predictions.
+\item \textbf{Rough signatures}: Path-signature features increase predictability; truncated signatures explain attention head selectivity.
+\end{enumerate}
+
+\subsection{Experimental Program}
+
+\begin{itemize}[leftmargin=1.2em]
+\item Compute empirical $L_\epsilon$ growth and mutual-information tails on large corpora and compare to trained models.
+\item Estimate $\mathsf{W}_2$ trajectory cost between $P_t$ and $P_{t+1}$ from logits; test smoothness vs.\ ablations.
+\item Spectrally estimate $T$ via power iteration on long-context conditional expectation; measure spectral flow during training.
+\item Build context sheaves over overlapping windows; compute persistent cohomology and correlate with coherence metrics.
+\item Fit fractional-order models to attention decay; test alignment with $\alpha$ from mutual-information tails.
+\end{itemize}
+
+\subsection{Integration with RSVP / RAT / ATT / CPG}
+Identify RSVP’s $(\Phi,\mathbf{v},S)$ with statistical potential, contextual flow, and entropy; lamphrodyne smoothing implements Wasserstein–Fisher descent; ATT provides the transjective adjunction; CPG chains realize horizontal lifts; ART is the idempotent closure of $T$.
+
+\paragraph{Conclusion.}
+Autogeneration is a unifying principle of cognition and language: a non-Markovian, geometric, thermodynamic, and categorical process that achieves understanding via endofunctorial closure.  
+Aspect relegation is its equilibrium regime.
+
+
+%======================================================================
+%  PART I — CLOSURE
+%  Sections 11–12 + Transition Plate
+%======================================================================
+
+\section{Historical and Conceptual Context}
+\label{sec:history}
+
+The autogenerative thesis did not arise ex nihilo.  
+Its intellectual lineage is a braid of four strands:
+
+\begin{enumerate}
+\item \emph{Thermodynamic epistemology} (Boltzmann 1877; Jaynes 1957; Friston 2010)  
+   Cognition as variational free-energy minimization.
+
+\item \emph{Statistical learning} (Shannon 1948; Cover \& Thomas 1991)  
+   Language as a channel whose codebook is the corpus.
+
+\item \emph{Geometric information theory} (Amari 1985; Ay 2015)  
+   Conditional distributions form a Riemannian manifold.
+
+\item \emph{Non-Markovian natural computation} (Barenholtz 2025)  
+   Trajectories, not states, are the primitive.
+\end{enumerate}
+
+Peirce’s triadic sign (1893) prefigures the syntax–semantics–embodiment bundle; Piaget’s equilibration (1952) anticipates the fixed-point law $\nabla R=0$.  
+What is new is the synthesis: a single differential structure whose geodesics are thoughts, whose attractor is understanding, and whose equilibrium projector is automation.
+
+The departure from classical AI is categorical.  
+Symbolic systems impose external grammars; connectionist systems impose fixed Markov windows.  
+Autogenerative systems impose nothing—they learn the manifold that learns itself.
+
+\section{Mathematical Summary and Open Horizons}
+\label{sec:summary}
+
+Table~\ref{tab:master} consolidates every major object introduced in Part I.
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+Concept & Mathematical Object & Cognitive Role \\
+\midrule
+Continuation & $\mathcal{T}:X^*\to\Delta(X)$ & Intrinsic generativity \\
+Trajectory & $\gamma(t)=\phi(x_{1:t})$ & Pregnant present \\
+Energy & $\mathcal{E}[\gamma]=\int\|\dot\gamma\|_g^2+V$ & Smoothness principle \\
+Manifold & $(\mathcal{M},g_{\text{Fisher}})$ & Semantic geometry \\
+Flow & Geodesic spray $\ddot\gamma+\Gamma\dot\gamma^2=0$ & Inference \\
+Memory kernel & $K(t-s)$ & Non-Markovian history \\
+Sheaf & $\mathcal{F}$ over context cover & Gluing of meaning \\
+Endofunctor & $T=G\circ F$ & Transjective resonance \\
+Relegation & $T^2=T$ & Automation \\
+Equilibrium & $\nabla R=0\;\Leftrightarrow\;\dot W=0$ & Understanding \\
+\bottomrule
+\end{tabular}
+\caption{Master correspondence table.}
+\label{tab:master}
+\end{table}
+
+Open questions that Part II will resolve:
+
+\begin{enumerate}
+\item How does the Fisher metric lift to an $\infty$-connection compatible with higher coherence?
+\item Can sheaf cohomology $H^1$ be bounded by training loss?
+\item What is the derived-critical locus of the epistemic action?
+\item Does the rough-path signature converge almost surely under transformer scaling?
+\end{enumerate}
+
+\section*{Transition to Part II}
+
+\addcontentsline{toc}{section}{Transition to Part II}
+
+Part I has equipped us with a differential geometry of thought.  
+Part II ascends the ladder of abstraction: from manifolds to $\infty$-categories, from kernels to operads, from geodesics to derived stacks.  
+Each rung is a theorem; the summit is a single conjecture—that every natural computational system is an autogenerative structure in the cohesive $\infty$-topos of smooth path spaces.
+
+We turn the page.
+
+%======================================================================
+%  END OF PART I
+%======================================================================

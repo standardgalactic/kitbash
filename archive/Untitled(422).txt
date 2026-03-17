@@ -1,0 +1,314 @@
+from pathlib import Path
+base = Path("/mnt/data/sphereforth_gforth")
+base.mkdir(parents=True, exist_ok=True)
+
+files = {}
+
+files["README.md"] = """# SphereForth (gforth prototype)
+
+This is a deliberately tiny, *thermodynamics-first* Spherepop prototype written for **gforth**.
+
+## What this is
+- An **append-only log** of irreversible acts.
+- A stack-based “Ω-frontier” where options live *until* you spend them.
+- A **replay** command that reconstructs the frontier by re-executing the log.
+
+## What this is not (yet)
+- Not SPC.
+- Not a full type system.
+- Not a “nice” user language.
+
+## Run
+```sh
+gforth main.fs
+```
+
+## Core words (minimal)
+- `S" name" OPT`  ( -- id )  
+  Push a fresh option token named `name` (allocates an integer id).
+- `POP`           ( id -- )  
+  Irreversibly drop the top option and log it.
+- `REFUSE`        ( id -- )  
+  Same stack effect as POP, different accounting label.
+- `BIND`          ( a b -- a b )  
+  Log a dependency between the top two options (keeps them).
+- `COLLAPSE`      ( a b -- q )  
+  Replace top two options with a synthesized token `qN`, log the quotient.
+- `.LOG`          ( -- )  
+  Print the authoritative log (as executable Forth source lines).
+- `REPLAY`        ( -- )  
+  Clear the stack and re-run the log to reconstruct the same frontier.
+- `RESET`         ( -- )  
+  Clear log + symbol table (new world).
+
+## Notes / limitations (prototype-level)
+- The log is stored as Forth source lines and re-executed on `REPLAY`.
+- `OPT` logging uses `S" ..."`; if your name contains a double quote `"`, replay will break.
+"""
+
+files["log.fs"] = r"""\ log.fs — append-only *executable* log (stored as Forth source lines)
+
+40960 constant LOGCAP
+create log-buf LOGCAP allot
+variable log-pos
+0 log-pos !
+
+variable replaying?
+0 replaying? !
+
+: log-reset ( -- )
+  0 log-pos ! ;
+
+: log-room? ( u -- f )
+  log-pos @ + LOGCAP <= ;
+
+: log-append ( c-addr u -- )
+  \ Append raw bytes into log-buf
+  dup log-room? 0= if
+    2drop ." [LOG FULL]" cr exit
+  then
+  log-buf log-pos @ + swap move
+  log-pos @ + log-pos ! ;
+
+: log-line ( c-addr u -- )
+  \ Append a line plus newline, unless replaying
+  replaying? @ if 2drop exit then
+  \ ensure room for newline too
+  dup 1+ log-room? 0= if 2drop ." [LOG FULL]" cr exit then
+  log-append
+  s" \n" log-append ;
+
+: .LOG ( -- )
+  cr ." --- LOG (executable) ---" cr
+  log-buf log-pos @ type
+  ." --- /LOG ---" cr ;
+"""
+
+files["sym.fs"] = r"""\ sym.fs — symbol table (id -> name) + fresh ids
+
+\ We allocate ids 1..N
+variable next-id
+1 next-id !
+
+\ Store names in a simple heap + table of (addr,len)
+16384 constant NAMEHEAP
+create name-heap NAMEHEAP allot
+variable name-pos
+0 name-pos !
+
+4096 constant MAXIDS
+create name-addr MAXIDS cells allot
+create name-len  MAXIDS cells allot
+
+: sym-reset ( -- )
+  1 next-id !
+  0 name-pos !
+  \ Clear tables (prototype: just zero first MAXIDS; fast enough)
+  MAXIDS 0 do
+    0 name-addr i cells + !
+    0 name-len  i cells + !
+  loop ;
+
+: heap-room? ( u -- f )
+  name-pos @ + NAMEHEAP <= ;
+
+: heap-store ( c-addr u -- c-addr' u )
+  \ Copy string bytes into name-heap and return stable addr/u
+  dup heap-room? 0= if
+    2drop s" ?" exit
+  then
+  name-heap name-pos @ + over >r  \ dst, keep u in rstack
+  swap r@ move                    \ copy
+  name-heap name-pos @ +          \ addr'
+  r>                              \ u
+  name-pos @ + name-pos ! ;
+
+: set-name ( id c-addr u -- )
+  \ Store name ptr/len for id (id must be < MAXIDS)
+  rot dup MAXIDS >= if
+    drop 2drop ." [ID OUT OF RANGE]" cr exit
+  then
+  \ heap-store gives stable addr/u
+  heap-store
+  \ save
+  rot \ bring id back
+  dup name-addr swap cells + !    \ addr
+  name-len  swap cells + ! ;      \ len
+
+: get-name ( id -- c-addr u )
+  dup MAXIDS >= if drop s" ?" exit then
+  dup name-addr swap cells + @
+  swap name-len swap cells + @ ;
+
+: fresh-id ( -- id )
+  next-id @ dup 1+ next-id ! ;
+"""
+
+files["ops.fs"] = r"""\ ops.fs — SphereForth primitives (gforth)
+
+include log.fs
+include sym.fs
+
+\ --- stack utilities ---
+: clear-stack ( -- )
+  depth 0 ?do drop loop ;
+
+\ --- logging helpers (build source lines) ---
+: log-word ( c-addr u -- )  \ log "WORD"
+  log-line ;
+
+: log-opt ( c-addr u -- )   \ log: S" <name>" OPT
+  \ WARNING: doesn't escape quotes in <name>
+  pad 0!
+  \ write 'S" '
+  s" S\" " pad swap move
+  3 constant _P0
+  \ write name
+  pad _P0 + 2over rot move
+  \ write '" OPT'
+  pad _P0 + over + s" \" OPT" rot move
+  \ total len = 3 + u + 5
+  _P0 + 5 + log-line
+  2drop ;
+
+: log-simple ( c-addr u -- ) \ log a single word line
+  log-line ;
+
+\ --- core words ---
+: OPT ( c-addr u -- id )
+  \ create fresh option with name, push id
+  2dup log-opt
+  fresh-id dup >r
+  r@ -rot set-name
+  r> ;
+
+: .OPT ( id -- )
+  dup . ." :" space
+  get-name type ;
+
+: POP ( id -- )
+  s" POP" log-simple
+  drop ;
+
+: REFUSE ( id -- )
+  s" REFUSE" log-simple
+  drop ;
+
+: BIND ( a b -- a b )
+  s" BIND" log-simple ;
+
+variable q-counter
+0 q-counter !
+
+: next-qname ( -- c-addr u )
+  \ build "qN" into PAD and return addr/u
+  pad 0!
+  pad [char] q swap c!
+  q-counter @ dup 1+ q-counter !
+  \ append digits after 'q'
+  1 pad + swap ( n ) <# #s #> \ returns addr u for digits
+  \ digits live in pictured numeric buffer; copy them into PAD after q
+  \ compute digits addr/u:
+  2dup >r >r
+  \ r: u addr
+  r> r> \ restore addr u
+  \ copy digits into PAD+1
+  1 pad + swap move
+  \ total length = 1 + u
+  1 + pad swap ;
+
+: COLLAPSE ( a b -- q )
+  s" COLLAPSE" log-simple
+  \ consume two, produce qN
+  drop drop
+  next-qname 2dup \ keep name for table
+  fresh-id dup >r
+  r@ -rot set-name
+  r> ;
+
+\ --- views ---
+: .STACK ( -- )
+  cr ." --- STACK (top last) ---" cr
+  depth 0= if ." <empty>" cr exit then
+  depth 0 do
+    i pick .OPT cr
+  loop
+  ." --- /STACK ---" cr ;
+
+\ --- replay ---
+: REPLAY ( -- )
+  \ Reconstruct frontier by re-executing the log.
+  \ Disable logging during replay so we don't duplicate the log.
+  clear-stack
+  0 q-counter !
+  sym-reset
+  1 replaying? !
+  log-buf log-pos @ evaluate
+  0 replaying? !
+  ." [replayed]" cr ;
+"""
+
+files["repl.fs"] = r"""\ repl.fs — interactive loop
+
+include ops.fs
+
+: RESET ( -- )
+  log-reset
+  sym-reset
+  0 q-counter !
+  clear-stack
+  ." [reset]" cr ;
+
+: HELP ( -- )
+  cr ." SphereForth (gforth) — commands:" cr
+  ."   S\" name\" OPT      push a fresh option token (returns id)" cr
+  ."   POP               drop top option (logs POP)" cr
+  ."   REFUSE            drop top option (logs REFUSE)" cr
+  ."   BIND              log dependency between top two (keeps them)" cr
+  ."   COLLAPSE           collapse top two into qN (logs COLLAPSE)" cr
+  ."   .STACK             show stack (ids + names)" cr
+  ."   .LOG               show executable log" cr
+  ."   REPLAY             clear + replay log (rebuild stack)" cr
+  ."   RESET              clear log + symbol table + stack" cr
+  ."   BYE                exit" cr ;
+
+: run ( -- )
+  HELP
+  begin
+    cr ." sp> " refill 0= if cr bye then
+    interpret
+  again ;
+"""
+
+files["main.fs"] = r"""\ main.fs — entrypoint
+
+include repl.fs
+RESET
+run
+"""
+
+files["demo.fs"] = r"""\ demo.fs — scripted example
+
+include ops.fs
+log-reset sym-reset 0 q-counter ! clear-stack
+
+S" door-sill:pine" OPT
+S" door-sill:oak"  OPT
+BIND
+POP
+S" fastener:galv" OPT
+S" fastener:ss"   OPT
+COLLAPSE
+.STACK
+.LOG
+"""
+
+for name, content in files.items():
+    (base / name).write_text(content, encoding="utf-8")
+
+zip_path = Path("/mnt/data/sphereforth_gforth.zip")
+with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
+    for name in files.keys():
+        z.write(base / name, arcname=f"sphereforth_gforth/{name}")
+
+str(zip_path), str(base)

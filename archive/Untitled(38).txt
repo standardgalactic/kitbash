@@ -1,0 +1,105 @@
+Your issue is not the .bib file—that part is perfect.
+The problem is how TeX compiles a document that contains filecontents* plus biblatex/biber.
+
+Below are the three exact fixes you must apply.
+After that, your citations will appear author–year and your bibliography will print correctly.
+
+✔️ Fix 1 — Put filecontents* before \documentclass
+
+filecontents* must appear as the very first thing in the file, before the \documentclass line.
+
+Right now it is technically before, which is good.
+Just make sure there is absolutely no whitespace or BOM or comment above it.
+
+The very first character in your .tex file must be:
+
+\begin{filecontents*}{references.bib} 
+
+If there is even a blank line before this, Biber will not see the file.
+
+✔️ Fix 2 — Ensure your compiler runs in this order
+
+With biblatex + biber, compilation must be:
+
+pdflatex
+
+biber
+
+pdflatex
+
+pdflatex (sometimes optional, but recommended)
+
+If you compile with:
+
+TexShop: choose "Typeset → LaTeX → BibLaTeX (biber)"
+
+Overleaf: go to Menu → Compiler → LaTeX (NOT bibtex), and Overleaf runs biber automatically.
+
+If you see errors like:
+
+I didn't find a database entry for ... 
+
+it always means: biber was not run after references.bib was created.
+
+Run:
+
+biber yourdocument 
+
+Then recompile twice with LaTeX.
+
+✔️ Fix 3 — Remove packages that conflict with biblatex
+
+You included:
+
+\usepackage{url} 
+
+This sometimes interferes with biblatex’s built-in URL handler. It is rarely needed.
+
+Replace both of these:
+
+\usepackage{xurl} \usepackage{url} 
+
+with a single:
+
+\usepackage{xurl} % safe with biblatex 
+
+✔️ Here is the exact minimal working header that WILL compile
+
+Paste this above \begin{document}:
+
+\begin{filecontents*}{references.bib} ... your entire bib file exactly as written ... \end{filecontents*} \documentclass[12pt]{article} \usepackage{amsmath, amssymb, amsthm, bm} \usepackage{geometry} \usepackage{setspace} \usepackage{hyperref} \usepackage{mathtools} \usepackage{bbm} \usepackage{csquotes} % REQUIRED by biblatex \usepackage{xurl} % allow URL breaks \sloppy \emergencystretch=3em \usepackage[ backend=biber, style=authoryear, maxcitenames=2, maxbibnames=4, url=false, doi=false ]{biblatex} \addbibresource{references.bib} \geometry{margin=1in} \setstretch{1.15} 
+
+If the document compiles without warnings and runs biber, the bibliography will print correctly.
+
+🚀 Verification Step
+
+After your first LaTeX compile, run:
+
+biber yourfilename 
+
+You should see output containing:
+
+INFO - Found BibTeX data source 'references.bib' 
+
+Then compile twice more with LaTeX.
+
+If it STILL fails
+
+Paste the output of:
+
+biber yourdocument --debug 
+
+and I’ll diagnose it line-by-line.
+
+But nine times out of ten, biber simply wasn't run or filecontents wasn’t at the top.
+
+If you'd like, I can produce:
+
+a fully minimal .tex with your exact bibliography embedded
+
+or a single-file version with zero external dependencies
+
+or even a Makefile for reliable compilation.
+
+Just tell me.
+

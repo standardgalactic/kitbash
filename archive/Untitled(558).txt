@@ -1,0 +1,117 @@
+% ------------------------------------------------------------
+% CHAPTER 10
+% ------------------------------------------------------------
+
+\chapter{Digital Delta--Sigma Modulators}
+
+Delta--sigma modulation originated in analog signal processing, where integrators, comparators, and analog loop filters acted on continuous-time signals. Over time, however, digital delta--sigma modulators have become equally important, serving as essential components in digital-to-analog converters, digital power control systems, pulse-width modulation schemes, and numerous embedded applications. Digital modulators differ from their analog counterparts in that all states, loop filters, and nonlinear operations are implemented in discrete time, often with finite precision arithmetic. Despite these differences, the underlying principles—prediction, symbolic projection, entropy shaping, and vector-field dynamics—remain the same. In this chapter we develop a rigorous field-theoretic and geometric account of digital delta--sigma modulation, showing that digital modulators inherit the same fundamental structure as analog ones but operate on a discrete manifold rather than a continuous one.
+
+A digital delta--sigma modulator replaces the continuous integrator with a discrete-time accumulator. The simplest digital modulator is the first-order accumulator defined by
+\[
+x[n+1] = x[n] + u[n] - y[n],
+\quad
+y[n] = Q(x[n]).
+\]
+This is precisely the same recursion as the analog first-order modulator analyzed earlier, with the difference that \(x[n]\) now lives in a discrete or quantized numerical domain determined by the implementation environment. Digital accumulators often operate on fixed-point numbers with a limited word length, and the quantizer is often a single-bit sign comparator. Despite these practical differences, the mathematical behavior is identical to the real-valued first-order modulator. The accumulator integrates the difference between the input and the quantized output, forcing the long-term average of the output to match the input. This is the core mechanism of digital noise shaping.
+
+To understand the digital modulator field-theoretically, we must consider the discrete nature of the state space. Let the accumulator state be stored in a fixed-point representation with \(N\) bits, yielding a discrete set of possible states
+\[
+\mathcal{X}_N = \{ k 2^{-N} : k \in \mathbb{Z} \}.
+\]
+The loop filter matrix \(A\), the input matrix \(B\), and the quantizer map \(Q\) all act on this discrete state space. From the perspective of discrete geometry, the state space becomes a lattice in \( \mathbb{R} \), and the vector field induced by the state update equation becomes a discretized approximation of the continuous vector field studied in earlier chapters. The quantizer acts as a collapse operator on the lattice, projecting the discrete state onto a smaller discrete set of output symbols.
+
+The discrete nature of the state space introduces additional dynamical features. The accumulator may saturate when it exceeds the representable range, causing the system to clip. This clipping corresponds to reflecting or absorbing boundary conditions on the discrete manifold \( \mathcal{X}_N \). The behavior of the clipped system diverges from that of the ideal continuous system, introducing new types of limit cycles, artifacts, and noise components. From a geometric perspective, saturation corresponds to folding the lattice state space onto itself at the boundaries, producing singularities in the vector field.
+
+A central question in digital delta--sigma modulation is the derivation of the noise transfer function in the discrete setting. Let the loop filter be an Lth-order accumulator chain with state
+\[
+x[n+1] = A x[n] + B u[n] - B y[n],
+\quad y[n] = Q(Cx[n]).
+\]
+Assuming that the quantization error can be represented as an additive term, we have
+\[
+y[n] = Cx[n] + e[n].
+\]
+Substituting into the state update equation yields
+\[
+x[n+1] = A x[n] + B u[n] - B C x[n] - B e[n].
+\]
+In the z-domain, the output becomes
+\[
+Y(z) = STF(z) U(z) + NTF(z) E(z),
+\]
+where the noise transfer function is derived as
+\[
+\mathrm{NTF}(z) = 1 - C (zI - A)^{-1} B.
+\]
+For a first-order accumulator with \( A = 1 \) and \( B = C = 1 \), this reduces to
+\[
+\mathrm{NTF}(z) = 1 - z^{-1}.
+\]
+For an Lth-order accumulator chain, this becomes
+\[
+\mathrm{NTF}(z) = (1 - z^{-1})^L.
+\]
+This replicates the noise shaping behavior of analog modulators exactly. However, the discrete implementation introduces subtle differences. The finite precision of the accumulator introduces quantization into the state itself. This internal quantization interacts with the external quantizer, producing multi-layered error dynamics. In effect, the digital modulator contains a quantizer inside the loop filter in addition to the explicit quantizer at the output. This nested quantization structure produces an error manifold more complicated than the one described in the analog case.
+
+To understand this nested structure, let the state quantization operator be written as \( Q_x \), so that the actual state update is
+\[
+x[n+1] = Q_x( A x[n] + B u[n] - B y[n] ).
+\]
+The internal quantizer \( Q_x \) introduces an additional error term
+\[
+\epsilon[n] = x[n+1] - (A x[n] + B u[n] - B y[n]).
+\]
+This error term propagates through the integrator chain and interacts with the main quantization error \( e[n] \). The combined error is filtered by the loop filter, producing a composite noise transfer function. In practical digital modulators, this internal quantization often dominates the external quantization for high-order systems or for systems with low word length. The proper analysis therefore requires modeling both sources of quantization error and their interactions within the vector field.
+
+The entropy dynamics of digital delta--sigma modulators reflect the interplay of two sources of entropy: internal quantization and external quantization. Internal quantization injects entropy at every state update step, while external quantization injects entropy at each output sample. The entropy field therefore contains contributions from both operations. Let \( S_{\mathrm{int}}(x) \) be the entropy associated with the internal state quantization and \( S_{\mathrm{ext}}(x) \) be the entropy associated with the external quantizer. The total entropy field is the sum
+\[
+S(x) = S_{\mathrm{int}}(x) + S_{\mathrm{ext}}(x).
+\]
+The integrator dynamics smooth this total entropy field, while the quantizers inject new entropy at each collapse. The noise shaping arises from the alternating sequence of smoothing and collapse operations, just as in the analog case. The discrete nature of the state space means that smoothing is itself quantized, making the process stochastic even when the input is deterministic.
+
+Digital modulators often employ multi-bit quantizers to reduce quantization noise. A multi-bit quantizer has many levels \( q_0, q_1, \ldots, q_{M-1} \), reducing the amplitude of the quantization error and providing finer resolution. The geometric interpretation of a multi-bit quantizer is that the discrete output manifold \( \Lambda \) becomes finer and more densely sampled. This reduces the curvature of the derived fiber product \( \mathcal{X}_N \times_{\mathbb{R}} \Lambda \), resulting in fewer singularities in the vector field and improved stability. Multi-bit quantizers are particularly advantageous in higher-order digital modulators, where single-bit quantizers can trigger chaotic behavior or limit cycles due to the coarse partitioning of the state space.
+
+Another key feature of digital modulators is the possibility of implementing highly optimized loop filters using direct-form, cascade-of-integrators, or feed-forward structures. In the digital domain, the loop filter can be designed using arbitrary linear difference equations. This allows precise placement of zeros in the noise transfer function, shaping the quantization noise in highly controlled ways. For example, a feed-forward structure can be designed so that
+\[
+\mathrm{NTF}(z) = (1 - z^{-1})^L P(z),
+\]
+where \( P(z) \) is a shaping polynomial that places additional zeros at desired frequencies. These zeros can be tuned to match psychoacoustic masking thresholds or to minimize in-band distortion for specific applications.
+
+Digital modulators are also intimately linked to pulse-width modulation (PWM) and class-D amplifiers. The binary or multi-bit output of the modulator can be used to drive power switches, modulating the output voltage or current. The high-frequency shaped noise is filtered by an analog filter or the load itself, producing a clean analog output. The field-theoretic interpretation remains valid: the digital modulator shapes entropy through discrete collapse and smoothing operations, and the analog reconstruction filter removes out-of-band entropy, converting the symbolic stream back into a continuous field.
+
+Finally, we consider bitstream arithmetic. A key advantage of digital delta--sigma modulators is that arithmetic operations can be performed directly on the bitstream. Adding two bitstreams corresponds to combining two quantized signals in the delta--sigma domain. Because the modulator shapes noise away from the signal band, the arithmetic errors introduced by bit-level operations are shaped out of band. This makes digital modulators ideal for low-power embedded systems where full-resolution arithmetic is expensive or impossible.
+
+The field-theoretic framework developed in this chapter reveals the deep connection between digital and analog delta--sigma modulation. Both systems operate by alternately collapsing and smoothing the entropy field, both employ vector fields to shape noise, and both realize the same underlying geometric and dynamical principles. The discrete nature of digital implementations introduces new complexities, such as state quantization and saturation, but the essential structure remains intact. The next chapter will revisit stability from both classical and geometric perspectives, integrating the results of the past chapters and generalizing stability criteria to a unified field-theoretic setting.
+
+
+
+Chapter 10 — Vector-Valued Quantization and Multi-Channel RSVP Dynamics
+
+Chapter 10 treats vector-valued signals, multi-channel modulators, and multi-dimensional quantization. This area has deep connections to vector quantization, high-dimensional signal geometry, and multi-agent control. The essential references include Gersho & Gray’s Vector Quantization and Signal Compression, which provides the foundational theory. Zador’s classic results on high-dimensional quantization error rates (and their information-theoretic implications) should also be included.
+
+When the chapter discusses multi-dimensional stability, contraction theory or standard control references may be cited (Lohmiller & Slotine; Slotine & Li). The geometric arguments again may draw from Amari and Lee. If you discuss cross-coupled modulators, Norsworthy–Schreier–Temes remains relevant.
+
+Finally, if you include material about high-dimensional manifolds or embeddings, you may optionally cite works on Whitney embedding or Johnson–Lindenstrauss theory, although these are not mandatory.
+
+References appropriate to Chapter 10:
+Gersho & Gray (1991); Zador (1982); Norsworthy, Schreier & Temes (1996); Schreier & Temes (2005); Slotine & Li (1991); Lohmiller & Slotine (1998); Amari (2016); Lee (2013).
+
+CHAPTER 10 — Measurement Theory, Collapse, and Symbolic Output
+
+Core
+
+vonneumann1932foundations
+
+busch1996quantummeasurement
+
+Optional
+
+kandel2000neuroscience (perceptual collapse analogy)
+
+Where Cited
+
+Formal collapse mathematical analogy: von Neumann
+
+Operational measurement framework: Busch–Lahti–Mittelstaedt
+
+Neural interpretation: Kandel–Schwartz–Jessell

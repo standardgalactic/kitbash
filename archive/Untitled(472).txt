@@ -1,0 +1,396 @@
+\documentclass[11pt,a4paper,twoside]{book}
+
+% ------------------------------------------------------------
+% Packages
+% ------------------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{mathrsfs}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,decorations.pathmorphing}
+\usepackage{caption}
+\usepackage{subcaption}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  citecolor=blue,
+  urlcolor=blue,
+  pdftitle={CLIO and the RSVP Field of Conscious Agents},
+  pdfauthor={Flyxion}
+}
+
+% ------------------------------------------------------------
+% Theorem environments
+% ------------------------------------------------------------
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{assumption}{Assumption}[chapter]
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+
+% ------------------------------------------------------------
+% TikZ styles
+% ------------------------------------------------------------
+\tikzset{
+  neuron/.style={circle,draw,thick,minimum size=1cm,inner sep=0pt},
+  level/.style={rectangle,rounded corners,draw,thick,inner sep=6pt,fill=gray!5},
+  arrow/.style={-{Stealth[length=3mm]},thick},
+  world/.style={ellipse,draw,thick,inner sep=4pt,fill=gray!5},
+}
+
+% ------------------------------------------------------------
+% Epigraph / Part heading helpers
+% ------------------------------------------------------------
+\newenvironment{partepigraph}
+  {\begin{quotation}\itshape}
+  {\end{quotation}}
+
+\newcommand{\ScriptureRef}[1]{\textup{\small(#1)}}
+
+% ------------------------------------------------------------
+% Title, author, date
+% ------------------------------------------------------------
+\title{\Huge CLIO and the RSVP Field of Conscious Agents:\\[4pt]
+       \Large Affective Gradients, Recursive Coherence,\\
+       and the Geometry of Consciousness}
+\author{Flyxion}
+\date{\today}
+
+% ------------------------------------------------------------
+\begin{document}
+% ------------------------------------------------------------
+
+\frontmatter
+
+\maketitle
+
+\tableofcontents
+
+\chapter*{Preface}
+This book develops a unified theory of consciousness, inference, and
+coherence across biology, artificial intelligence, and society.
+It weaves together three strands:
+
+\begin{enumerate}
+  \item Mark Solms' affective neuroscience, which argues that
+        \emph{feeling}---not sensory representation---is the true core of
+        consciousness \citep{solms_hidden_2021,solms_thehardproblem_2013}.
+  \item The Relativistic Scalar--Vector Plenum (RSVP), a proposed
+        field-theoretic ontology in which scalar potential, vector flow,
+        and entropy density jointly describe the physical substrate of
+        agents and environments.
+  \item CLIO (Coherent Layered Inference Optimization), a hierarchical,
+        affect-steered information-geometric architecture that models
+        how minds---biological and artificial---perform recursive,
+        self-correcting inference.
+\end{enumerate}
+
+Across seven Parts, we move from the computational architecture of feeling,
+through the RSVP field theory and its neural realization, into CLIO as a
+concrete computational scheme, a design for artificial agents, and finally
+a template for repairing intersubjective collapse in human societies.
+
+The central claim is simple:
+
+\begin{quote}
+Consciousness is recursive coherence in a scalar--vector--entropy field,
+driven by affective gradients that track deviation from viable order.
+\end{quote}
+
+\bigskip
+
+\noindent
+This text is intentionally synthetic and ambitious.
+It aims not merely to comment on existing theories, but to propose an
+integrated framework in which:
+
+\begin{itemize}
+  \item affect is mathematically explicit,
+  \item field dynamics and information geometry are reconciled,
+  \item artificial systems can be aligned by design,
+  \item and societal pathologies can be understood as failures of
+        multi-level coherence.
+\end{itemize}
+
+Readers interested primarily in neuroscience may focus on
+Parts~I--III; those interested in AI and alignment may emphasize
+Parts~III--V; and those concerned with social and civilizational
+dynamics may find Part~VI most relevant.
+Part~VII attempts a final synthesis.
+
+\bigskip
+
+\noindent
+All errors in this ambitious unification are mine.
+They are offered as scaffolding for a better, more rigorous, and more
+empirically grounded theory to come.
+
+\bigskip
+
+\noindent
+\textit{Flyxion}\\
+\textit{\today}
+
+% ------------------------------------------------------------
+\mainmatter
+% ------------------------------------------------------------
+
+% ============================================================
+% PART I
+% ============================================================
+\part{The Computational Architecture of Feeling}
+
+\begin{partepigraph}
+``You shall not surely die.'' \ScriptureRef{Genesis 3:4}
+
+\medskip
+
+The first promise spoken to humans in scripture is an ambiguous
+guarantee of survival.
+In this book, we take that line not as a deception but as a design
+challenge: under what conditions can an agent, or an ecosystem, sustain
+its own viability?
+CLIO will be our answer:
+a recursive architecture in which affective gradients continuously steer
+a system back toward life-supporting configurations.
+Xylomorphic architecture---cities, networks, and institutions patterned
+on living forests and self-healing tissues---is the large-scale
+expression of the same principle:
+if feeling is correctly wired into structure, then everything built on
+top of it tends, locally, not to die.
+\end{partepigraph}
+
+% ------------------------------------------------------------
+\chapter{The Problem of Consciousness Revisited}
+\label{ch:problem-consciousness}
+
+\section{The Limits of Representation-First Theories}
+
+Contemporary theories of consciousness fall broadly into four families:
+Integrated Information Theory (IIT) \citep{tononi_consciousness_2004,tononi_integrated_2016},
+Global Workspace Theory (GWT) \citep{baars_global_1988,dehaene_consciousness_2014},
+Higher-Order Thought (HOT) theories \citep{rosenthal_higher_2005,lau_higherorder_2019},
+and predictive-processing or Free Energy Principle (FEP) accounts
+\citep{friston_free_2010,friston_lifeasweknowit_2013}.
+Each offers an important facet of the problem, yet all share a crucial
+limitation: they treat \emph{representation} as primary and \emph{feeling}
+as secondary or derivative.
+
+IIT identifies consciousness with the integrated information $\Phi$
+generated by a system's causal structure.
+GWT equates consciousness with the ignition of a global broadcast in
+a distributed network.
+HOT theories require that a mental state be the object of a sufficiently
+sophisticated higher-order representation to be conscious.
+Predictive-processing frameworks treat cognition as approximate Bayesian
+inference under a generative model, with consciousness often identified
+with error dynamics in specific cortical hierarchies.
+
+What these approaches share is an emphasis on \emph{content}:
+what is represented, what is broadcast, what is integrated, what is
+predicted.
+They struggle, however, with cases where content is degraded yet
+consciousness (in the sense of felt experience) persists, and with
+cases where content is rich but no one seems to be ``home.''
+Clinical and developmental evidence suggest that affect---the lived
+valence of being in a bodily state---is more primitive than any specific
+representation \citep{panksepp_affective_1998,damasio_selfcomes_2010,solms_hidden_2021}.
+
+\section{Solms' Inversion: Feeling as the Core of Consciousness}
+
+Mark Solms argues that mainstream cognitive neuroscience has the arrow
+of explanation backwards \citep{solms_hidden_2021}.
+Rather than beginning with cortical representation and asking how it
+becomes conscious, he proposes that consciousness originates in
+subcortical affective circuits which compute the organism's deviation
+from viable homeostatic ranges.
+The cortex, on this view, elaborates and refines \emph{what} is known,
+but it is the brainstem and hypothalamus that determine \emph{how it
+feels} to be the organism.
+
+Several strands of evidence support this inversion:
+
+\begin{itemize}
+  \item Children with \emph{hydranencephaly}, who lack almost all
+        neocortex, nonetheless show rich emotional lives---smiling,
+        laughing, crying, seeking comfort---suggesting that
+        consciousness, at least in the affective sense, does not depend
+        on cortex \citep{merker_consciousness_2007,solms_hidden_2021}.
+  \item Destruction of specific brainstem nuclei---the periaqueductal
+        gray (PAG), upper brainstem reticular formation, or parabrachial
+        complex---abolishes consciousness even when cortex is largely
+        intact \citep{parvizi_consciousness_2000,schiff_recovering_2010}.
+  \item Decorticate animals retain the seven primary affective systems
+        identified by Panksepp (SEEKING, FEAR, LUST, CARE, PANIC/GRIEF,
+        RAGE, PLAY), each with a distinctive behavioral and subjective
+        character \citep{panksepp_affective_1998,panksepp_crossspecies_2011}.
+\end{itemize}
+
+From these and related findings, Solms concludes that consciousness is
+not primarily about \emph{seeing} the world, but about \emph{feeling}
+how one is doing in the world:
+a continuous evaluation of the match between expected and actual
+internal states, expressed phenomenologically as valence.
+
+In this book we accept Solms' inversion as a starting point:
+\begin{quote}
+  Consciousness is fundamentally affective, and affect is rooted in
+  homeostatic error signals computed by subcortical circuits.
+\end{quote}
+Everything else---representation, reasoning, imagination---is layered
+on top of this affective core.
+
+\section{Towards a Unified Field-Theoretic and Computational Account}
+
+Solms' theory is powerful but leaves two large gaps unaddressed:
+
+\begin{enumerate}
+  \item It does not specify an underlying \emph{physical ontology} in
+        which affect, value, and policy can be treated on equal footing
+        with energy and matter.
+  \item It does not provide a fully explicit \emph{computational
+        architecture} describing how affect steers inference across
+        multiple levels of organization, from reflexes to abstract
+        thought.
+\end{enumerate}
+
+The Relativistic Scalar--Vector Plenum (RSVP) is introduced to address
+the first gap:
+a field-theoretic framework in which scalar potential $\Phi$,
+vector flow $v^\mu$, and entropy density $S$ form a triad of primitive
+fields defined over spacetime.
+RSVP is designed to be compatible with known physics while making
+\emph{value}, \emph{policy}, and \emph{disorder} explicit and dynamical.
+
+CLIO (Coherent Layered Inference Optimization) is introduced to address
+the second gap:
+a hierarchical, information-geometric architecture in which:
+
+\begin{itemize}
+  \item Level~0 tracks affective homeostasis,
+  \item Level~1 handles fast local prediction,
+  \item Level~2 builds structured generative models,
+  \item Level~3 performs metacognitive strategy selection.
+\end{itemize}
+
+CLIO extends predictive processing by making:
+
+\begin{enumerate}
+  \item affect a first-class scalar signal that modulates all learning
+        rates and precision weights, and
+  \item recursive coherence across levels a formal criterion for
+        consciousness.
+\end{enumerate}
+
+RSVP supplies the physics; Solms supplies the affective phenomenology;
+CLIO supplies the computational dynamics.
+
+\section{A First Schematic: The Feeling-Centred Loop}
+
+Before going further, it is useful to visualize the architecture at its
+most abstract.
+Figure~\ref{fig:feeling-loop} shows the basic loop:
+
+\begin{enumerate}
+  \item The \emph{World} presents a state to the organism.
+  \item \emph{Sensing} generates prediction errors relative to internal
+        models.
+  \item \emph{Feeling} evaluates these errors in terms of viability.
+  \item \emph{Action/Policy} changes the world and the body in response.
+\end{enumerate}
+
+This loop is repeated at multiple scales and levels of abstraction,
+but its affective centre is what distinguishes a conscious agent from
+a mere representational device.
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[node distance=2.5cm]
+    \node[world]   (world)  {World};
+    \node[level, right=of world] (sense)  {Sensing /\\Prediction};
+    \node[level, right=of sense] (feel)   {Feeling /\\Valence};
+    \node[level, right=of feel]  (action) {Action /\\Policy};
+
+    \draw[arrow] (world) -- node[above]{sensory input} (sense);
+    \draw[arrow] (sense) -- node[above]{prediction error} (feel);
+    \draw[arrow] (feel)  -- node[above]{affective drive} (action);
+    \draw[arrow] (action) to[bend left=20] node[below]{interventions} (world);
+  \end{tikzpicture}
+  \caption{The minimal feeling-centred control loop.
+  The key claim is that \emph{Feeling}---the organism's evaluation of
+  homeostatic deviation---is the central control node, not a passive
+  by-product of Sensing.}
+  \label{fig:feeling-loop}
+\end{figure}
+
+\section{From Promise to Architecture}
+
+The epigraph to Part~I---``You shall not surely die''---is often read
+as a false promise.
+In the present context we reinterpret it as a design specification:
+build a system whose internal architecture is such that, for a wide
+range of perturbations, it tends to return to viable states rather than
+collapse.
+
+To meet that specification we will need:
+
+\begin{itemize}
+  \item a \emph{state manifold} describing what can change in the
+        organism,
+  \item a \emph{homeostatic potential} describing which states are
+        viable,
+  \item a \emph{gradient mechanism} linking deviation from viability to
+        felt affect,
+  \item a \emph{field theory} describing how these quantities evolve in
+        space and time,
+  \item and a \emph{computational architecture} describing how agents
+        use these gradients to update beliefs and policies.
+\end{itemize}
+
+The next chapters construct these ingredients step by step.
+Chapter~\ref{ch:state-manifold} defines the organismic state manifold.
+Chapter~\ref{ch:affect-gradient} formalizes affect as a gradient field.
+Chapter~\ref{ch:functional-anatomy} and
+Chapter~\ref{ch:homeostasis-error} tie these structures to real neural
+circuits and homeostatic control.
+Chapter~\ref{ch:affective-manifold-action} and
+Chapter~\ref{ch:rsvp-ground-feeling} then show how RSVP supplies a
+field-theoretic grounding for these constructions.
+
+Our eventual goal is to show that:
+\begin{quote}
+  If an agent's architecture implements a CLIO-like, feeling-centred
+  loop grounded in RSVP-like field dynamics, then ``you shall not surely
+  die'' becomes not a metaphysical promise but a statistical property
+  of the system's trajectories in state space.
+\end{quote}
+
+\bigskip
+
+\noindent
+We begin, in the next chapter, by defining the state manifold on which
+feeling is computed.
+
+
+
+\bibliographystyle{apalike}
+\bibliography{flyxion-book}
+
+\end{document}

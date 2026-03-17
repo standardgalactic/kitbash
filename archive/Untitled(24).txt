@@ -1,0 +1,139 @@
+% ------------------------------------------------------------
+% CHAPTER 8
+% ------------------------------------------------------------
+
+\chapter{Higher--Order Delta--Sigma Modulators}
+
+The generalization from first--order to higher--order delta--sigma modulators introduces nontrivial geometric and dynamical phenomena that do not occur in the one-dimensional case. The system state becomes a point in a higher-dimensional manifold, the loop filter corresponds to a vector field of increasing complexity, and the quantizer partitions a multidimensional state space rather than a single real line. These changes create new possibilities for noise shaping and performance but also introduce new challenges in stability analysis and entropy management. This chapter develops the theoretical framework required to understand and design higher--order delta--sigma modulators within the field-theoretic and geometric perspective established in previous chapters.
+
+To begin, consider a general Lth-order modulator in discrete time. Let the state vector be
+\[
+x[n] = \begin{pmatrix}
+x_1[n] \\
+x_2[n] \\
+\vdots \\
+x_L[n]
+\end{pmatrix}
+\in \mathbb{R}^L,
+\]
+and let the state update equation be written in linear form as
+\[
+x[n+1] = A x[n] + B u[n] - B y[n],
+\]
+with output
+\[
+y[n] = Q(Cx[n]).
+\]
+The matrices \(A\), \(B\), and \(C\) specify the loop filter. The quantizer \(Q\) is a nonlinear, discontinuous operator that induces a partition \( \{ \Omega_k \} \) of \( \mathbb{R}^L \), where each region corresponds to a constant quantizer output.
+
+The classical engineering approach to higher--order modulators focuses on the z-domain transfer functions. Under linearization, the noise transfer function becomes
+\[
+\mathrm{NTF}(z) = (1 - z^{-1})^L,
+\]
+for many canonical topologies, reflecting an Lth-order high-pass behavior. While this viewpoint captures the spectral shaping properties of the modulator, it conceals the rich geometry of the state trajectories and the deep relationship between stability and entropy that governs real delta--sigma loops. To study the higher-order modulator rigorously, we must understand the vector field structure in the L-dimensional state space.
+
+Consider the continuous-time surrogate model defined by
+\[
+\frac{dx}{dt} = v(x,u,Q(Cx)),
+\]
+where \(v\) is a piecewise-smooth vector field. The quantizer partitions the state space into regions \( \Omega_k \), within each of which the vector field is of the form
+\[
+v_k(x) = A x + B u - B q_k.
+\]
+Thus, on each region, the system follows a linear flow that depends on the quantizer output value \( q_k \). When the trajectory crosses from one region \( \Omega_k \) into another region \( \Omega_{k'} \), the vector field shifts abruptly, reflecting the quantizer transition.
+
+The first major geometric difference between first-order and higher-order modulators is the existence of multiple internal modes. In two dimensions, these internal modes manifest as invariant curves or spiraling trajectories, while in three or more dimensions they can form invariant manifolds of various topologies. These manifolds represent the internal memory and dynamics of the loop filter and play a crucial role in shaping the quantization noise.
+
+To illustrate these ideas concretely, consider the second-order modulator defined by the state equations
+\[
+x_1[n+1] = x_1[n] + u[n] - y[n],
+\]
+\[
+x_2[n+1] = x_2[n] + x_1[n],
+\]
+with output \( y[n] = Q(x_2[n]) \). The continuous-time analog is the system
+\[
+\frac{dx_1}{dt} = u(t) - Q(x_2(t)),
+\]
+\[
+\frac{dx_2}{dt} = x_1(t).
+\]
+This system defines a vector field in the plane. Within each quantizer region, the dynamics are linear and can be expressed as
+\[
+\frac{d}{dt} \begin{pmatrix} x_1 \\ x_2 \end{pmatrix}
+=
+\begin{pmatrix}
+0 & 0 \\
+1 & 0
+\end{pmatrix}
+\begin{pmatrix}
+x_1 \\ x_2
+\end{pmatrix}
++
+\begin{pmatrix}
+u - q_k \\
+0
+\end{pmatrix}.
+\]
+The eigenvalues of the system matrix are zero and zero, reflecting a marginally stable integrator chain. Thus the geometry is dominated by shear dynamics. When the input is constant, trajectories follow parabolic arcs in each quantizer region, switching direction abruptly when crossing quantizer thresholds.
+
+The noise shaping behavior can be derived by linearizing the quantizer. Let the quantizer error be \( e[n] \), so that \( y[n] = x_2[n] - e[n] \). Linearizing the system leads to the classical second-order noise transfer function
+\[
+\mathrm{NTF}(z) = (1 - z^{-1})^2.
+\]
+However, the linearization is only valid when the quantizer input lies near the threshold. The true nonlinear dynamics must be studied using geometric methods. The linearized system reveals two important facts: the noise is doubly differentiated by the NTF, and low-frequency quantization noise is severely attenuated. This explains why second-order modulators achieve significantly higher effective resolution for audio and measurement applications.
+
+The state space trajectory of the second-order modulator can be analyzed using Poincaré maps. Let the quantizer have evenly spaced thresholds at integer values. Define a Poincaré section at each threshold crossing of \( x_2(t) \). The first return map relates the value of \( x_1 \) at one threshold crossing to the next. The characteristics of this return map determine whether the system enters a limit cycle, a quasi-periodic orbit, or chaotic behavior. When the return map is contractive, the system enters a stable limit cycle. When the return map has a slope of magnitude greater than one, the system may become chaotic. These behaviors manifest in the output spectrum as idle tones, low-level oscillations, or broadband noise.
+
+Generalizing to third-order modulators introduces new phenomena. The continuous-time model becomes
+\[
+\frac{dx_1}{dt} = u(t) - Q(x_3(t)),
+\]
+\[
+\frac{dx_2}{dt} = x_1(t),
+\]
+\[
+\frac{dx_3}{dt} = x_2(t).
+\]
+The linearized system matrix has a triple zero eigenvalue, and trajectories in each quantizer region follow cubic curves. The quantizer partitions the three-dimensional state space into slabs perpendicular to the \( x_3 \)-axis. The vector field is smooth within each slab and discontinuous across slab boundaries. As the state evolves, it spirals through slabs, experiencing a sequence of discrete vector-field changes. The dynamic behavior is richer because trajectories can now twist around internal manifolds or escape to infinity, depending on the input amplitude and loop filter structure.
+
+Higher-order modulators can experience chaotic behavior even for small inputs. This arises because the map induced by the quantizer event sequence can have sensitive dependence on initial conditions. The presence of cubic or higher-degree internal dynamics means that slight perturbations to the state or the quantizer transition time can produce large changes in the trajectory after many cycles. Chaos in delta--sigma modulation is not necessarily harmful; in many cases it increases effective noise randomization and can improve the perceived noise floor. However, chaotic regions often coexist with unstable regions where trajectories diverge. Therefore, stability analysis becomes critical.
+
+Stability can be analyzed using Lyapunov functions. A general Lth-order modulator can be studied using the Lyapunov function
+\[
+V(x) = x^\top P x + \alpha S(x),
+\]
+where \(P\) is a positive definite matrix chosen to reflect the internal structure of the loop filter, and \(S(x)\) is the entropy field defined previously. The time derivative of \(V\) in continuous time is
+\[
+\frac{dV}{dt} = x^\top (P A + A^\top P) x + 2 x^\top P (Bu - BQ(Cx)) + \alpha \frac{dS}{dt}.
+\]
+The term \( x^\top (P A + A^\top P) x \) governs the contraction or expansion arising from the linear portion of the dynamics. The term \( 2 x^\top P (Bu - BQ(Cx)) \) captures the effect of the quantizer on the energy of the system. The entropy derivative \( \frac{dS}{dt} \) reflects the smoothing effect of the integrator chain and the collapse induced by quantizer transitions. Between transitions, \( \frac{dS}{dt} \le 0 \), while at transitions, \( S \) drops as the continuous state is forced into one of the discrete quantizer bins.
+
+The Lyapunov analysis reveals that the delta--sigma loop is stable when the contraction induced by the matrix \(PA + A^\top P\) dominates the expansion that arises from the quantizer-induced reset dynamics. This provides a rigorous stability criterion for loop filters and clarifies why certain configurations are more robust than others.
+
+A second approach to stability is through dissipativity. The modulator is said to be dissipative if the vector field satisfies
+\[
+\langle x, v(x) \rangle \le -\gamma \| x \|^2 + \beta,
+\]
+for some positive constants \( \gamma \) and \( \beta \). Under this condition, the state trajectories remain in a bounded region determined by \( \gamma \) and \( \beta \). Dissipativity ensures that the vector field does not permit runaway behavior, regardless of the quantizer transitions, as long as the input remains bounded.
+
+Higher-order modulators also exhibit derived-geometric structures. Each quantizer region corresponds to a smooth affine submanifold of \( \mathbb{R}^L \), and the vector field is smooth on each region. At the boundaries between regions, the vector field undergoes a derived-gluing operation that respects the geometry of the modulator. In the language of derived geometry, the system can be interpreted as a derived mapping stack with a piecewise-linear structure. The quantizer induces a homotopy-truncation that maps the continuous state into a discrete symbol, and the integrator reconstructs a smooth embedding. The interplay between discrete and continuous dynamics can therefore be described using derived fiber products.
+
+The remainder of this chapter develops several explicit examples of higher-order modulators, including canonical CIFB and CIFF architectures, feed-forward and feed-back optimized structures, and MASH modulators. For each architecture, we analyze the geometry of the state space, derive conditions for stability, and examine the noise shaping behavior. These examples showcase the power of the geometric and field-theoretic framework and lay the foundation for the design principles presented in subsequent chapters.
+
+Notes:
+Chapter 8 — Higher-Order Modulators: Stability, Curvature, and Catastrophe
+
+Higher-order delta–sigma modulators notoriously exhibit delicate stability properties that demand careful mathematical justification. The chapter’s analysis of curvature, divergence, and Lyapunov potentials should cite classical nonlinear-systems texts such as Khalil’s Nonlinear Systems, Vidyasagar’s Nonlinear Systems Analysis, and Slotine & Li’s Applied Nonlinear Control. The spectral arguments relating order to NTF shape should refer to Schreier & Temes for the well-known engineering principles.
+
+When discussing catastrophic instability and bifurcations, Strogatz’s Nonlinear Dynamics and Chaos is an essential reference, as are Guckenheimer & Holmes for bifurcation theory. The geometric interpretation of higher-order error shaping may again call upon Amari and Arnold. When discussing dissipativity or inequalities that restrict loop gain, Willems should be cited.
+
+If the chapter references modern contraction-based stability or differential Lyapunov methods, Lohmiller & Slotine (1998) or Forni & Sepulchre (2014) may be introduced.
+
+References appropriate to Chapter 8:
+Schreier & Temes (2005); Khalil (2002); Vidyasagar (1993); Slotine & Li (1991); Strogatz (1994); Guckenheimer & Holmes (1983); Arnold (1989); Willems (1972); Amari (2016); Forni & Sepulchre (2014).
+
+
+Chapter 8 (Higher-Order
+Robust-control references such as
+Zhou-Dovle-Glover, Bovd's LMI text, and Basar-Bernhard (Hco control) directly underpin the analysis of higher-order noise-shaping structures and loop stability. The Zames-Falb framework is essentia for slope-restricted quantizers.

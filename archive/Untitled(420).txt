@@ -1,0 +1,489 @@
+3.9Harnessing Complex Systems for Control
+All the solutions presented until now focus on designing external controllers to influence networked systems. An alternative and powerful approach involves harnessing one complex system to control another. In this framework, a group of controller agents is responsible for controlling another population of uncontrolled target agents. A paradigmatic example of this is the shepherding problem, where a group of agents (herders) must coordinate to control the collective dynamics of another group (targets). This scenario appears naturally in biological systems, such as dolphins hunting fish (Haque et al. 2009) or ants collecting aphids, and has important applications in technological domains including search and rescue operations, crowd control, and environmental cleanup.
+
+In its essence, this control framework revolves around designing 
+M
+ controllers tasked with coordinating the behavior of 
+N
+ targets. In general, denoting with 
+x
+t
+,
+i
+ the state of the 
+i
+-th target, this population can be microscopically modeled as
+
+x
+˙
+t
+,
+i
+=
+f
+t
+⁢
+(
+x
+t
+,
+i
+)
++
+∑
+j
+=
+1
+N
+h
+tt
+⁢
+(
+x
+t
+,
+i
+,
+x
+t
+,
+j
+)
++
+∑
+j
+=
+1
+M
+h
+tc
+⁢
+(
+x
+t
+,
+i
+,
+x
+c
+,
+j
+)
+(10)
+where 
+h
+tt
+ and 
+h
+tc
+ are the interaction protocols between controllers and targets, and 
+f
+t
+ describes the individual dynamics of the targets. Similarly, the controllers’ dynamics is described by
+
+x
+˙
+c
+,
+i
+=
+f
+c
+⁢
+(
+x
+c
+,
+i
+)
++
+∑
+j
+=
+1
+M
+h
+cc
+⁢
+(
+x
+c
+,
+i
+,
+x
+c
+,
+j
+)
++
+∑
+j
+=
+1
+N
+h
+tc
+⁢
+(
+x
+t
+,
+j
+,
+x
+c
+,
+i
+)
++
+u
+i
+(11)
+where 
+f
+c
+ represents the controllers individual dynamics, 
+h
+cc
+ is the interaction protocol between the controllers, and 
+u
+i
+ describes the control input. Different control solutions have been proposed for this control problem, ranging from heuristic rules (Lama & di Bernardo 2024, Nalepka et al. 2019) to optimal control solutions (Escobedo et al. 2016). This framework has several important implications for the design of multi-agent control systems. It provides guidelines for determining the minimum number of control agents needed (Lama & di Bernardo 2024), clarifies the relationship between local interactions and global control objectives, and offers insights into how system performance scales with the number of agents (Maffettone et al. 2024). These findings are particularly relevant for large-scale distributed systems where centralized control is impractical or impossible.
+
+Several open challenges remain in harnessing complex systems for control. These include developing continuum models to describe emergent shepherding behavior, engineering local interaction rules for more complex tasks, addressing scenarios with actively escaping targets, and extending the framework to three-dimensional spaces and other geometries.
+
+4Proving Stability
+The paramount property of a feedback controller is its ability to ensure that the controlled system converges to desired behavior and maintains it despite disturbances. Formally, this normally means that a specific region in the state space of the network is made invariant and asymptotically stable (Meiss 2017). Thus, it is fundamental to establish in which conditions controlled complex networks are stable. Multiple theoretical frameworks have emerged to address this challenge, each offering distinct insights and capabilities while complementing the others.
+
+4.1Global Stability through Lyapunov Theory
+Lyapunov-based methods offer powerful analytical tools to prove local or global stability of invariant solutions (DeLellis et al. 2011). The approach centers on constructing suitable candidate Lyapunov functions (Khalil 2002). These are scalar functions 
+V
+:
+ℝ
+N
+⁢
+n
+→
+ℝ
+ that are continuous and differentiable, and positive everywhere but in the desired state 
+x
+∗
+. Then, to ensure that the trajectories of the system converge to the desired one, it is necessary to establish conditions so that
+
+V
+˙
+⁢
+(
+x
+)
+<
+0
+,
+∀
+x
+≠
+x
+∗
+.
+(12)
+Numerous extensions to this theory exist, to prove convergence to invariant sets that are not points, with non-autonomous systems, etc. (Khalil 2002); when inputs must directly be taken into account, passivity theory can be employed (Arcak 2007). The main difficulty associated with Lyapunov based methods is finding a suitable function 
+V
+. While these methods can handle nonlinear vector fields and provide global results, they often require additional conditions to impose some regularity on the dynamics, such as the one-sided Lipschitz (or QUAD) condition (and its extensions) (Bullo 2024, Coraggio 2020), and the resulting stability criteria can be conservative. Nevertheless, their analytical nature makes them particularly valuable for theoretical analysis.
+
+4.2Dynamical Analysis through Contraction Theory
+Contraction theory (Lohmiller & Slotine 1998, Slotine et al. 2004, Bullo 2024) offers a powerful alternative focusing on the convergence of trajectories through analysis of the differential dynamics
+
+δ
+⁢
+x
+˙
+⁢
+(
+t
+)
+=
+J
+⁢
+(
+x
+,
+t
+)
+⁢
+δ
+⁢
+x
+⁢
+(
+t
+)
+,
+(13)
+where 
+δ
+⁢
+x
+⁢
+(
+t
+)
+ is a virtual displacement with respect to 
+x
+∗
+⁢
+(
+t
+)
+, that is the desired trajectory, and 
+J
+≔
+∂
+f
+∂
+x
+⁢
+(
+x
+⁢
+(
+t
+)
+,
+t
+)
+ is the Jacobian matrix of the system described by 
+x
+˙
+⁢
+(
+t
+)
+=
+f
+⁢
+(
+x
+⁢
+(
+t
+)
+,
+t
+)
+. The theory shows that if there exists a matrix measure (also known as logarithmic norm) (Söderlind 2006) of 
+J
+ that is negative, then all trajectories converge toward each other (incremental stability). This approach proves particularly effective for certain system classes, especially biological networks (Russo & Slotine 2010, Russo et al. 2010), offering several advantages. First, it provides a natural framework for synchronization analysis, directly addressing the convergence of trajectories rather than stability of particular solutions (which need not be known a priori) (Russo et al. 2013). Second, it allows the use of different matrix measures, providing flexibility in analyzing various types of systems. Finally, it readily handles time-varying dynamics, making it suitable for adaptive and evolving networks.
+
+4.3Local Stability in Synchronization Problems: The Master Stability Function
+When the desired emergent behavior is the synchronization of all the agents onto the same trajectory, the master stability function (MSF) approach, pioneered by Pecora & Carrol (1998) [see also Fujisaka & Yamada (1983)], provides a powerful framework for analyzing local stability. The method proceeds through systematic reduction of the high-dimensional stability problem to a parametric analysis of individual modes. Namely, linearization of equations (1)–(2) about the synchronous solution 
+x
+s
+⁢
+(
+t
+)
+ is considered:3
+
+ξ
+˙
+i
+⁢
+(
+t
+)
+=
+∂
+f
+∂
+x
+⁢
+(
+x
+s
+⁢
+(
+t
+)
+)
+⁢
+ξ
+i
+⁢
+(
+t
+)
+−
+σ
+⁢
+∑
+j
+=
+1
+N
+L
+i
+⁢
+j
+⁢
+∂
+h
+∂
+x
+⁢
+(
+x
+s
+⁢
+(
+t
+)
+)
+⁢
+ξ
+j
+,
+(14)
+where 
+ξ
+i
+⁢
+(
+t
+)
+=
+x
+i
+⁢
+(
+t
+)
+−
+x
+s
+⁢
+(
+t
+)
+ is the synchronization error. The approach employs then block diagonalization; specifically, one lets 
+𝜻
+≔
+(
+Q
+−
+1
+⊗
+I
+)
+⁢
+𝝃
+, where 
+Q
+ is the modal matrix of 
+L
+, 
+⊗
+ is the Kronecker product, and 
+𝝃
+,
+𝜻
+∈
+ℝ
+N
+⁢
+n
+ are stack vectors. Thus, it is possible to obtain the variational equation
+
+ζ
+i
+˙
+=
+[
+∂
+f
+∂
+x
+⁢
+(
+x
+s
+)
+−
+α
+⁢
+∂
+h
+∂
+x
+⁢
+(
+x
+s
+)
+]
+⁢
+ζ
+i
+,
+(15)
+where 
+α
+≔
+σ
+⁢
+λ
+i
+; 
+λ
+i
+ being the 
+i
+-th eigenvalue of the Laplacian matrix. The MSF, typically denoted as 
+Λ
+⁢
+(
+α
+)
+, is the largest Lyapunov exponent of Equation (15). Hence, the synchronization manifold is locally asymptotically stable if 
+Λ
+⁢
+(
+α
+)
+<
+0
+ for 
+α
+∈
+{
+σ
+⁢
+λ
+2
+,
+…
+,
+σ
+⁢
+λ
+N
+}
+.
+
+This approach elegantly combines network structural properties (through the spectrum of the Laplacian matrix) with node dynamics, providing explicit conditions on coupling strength required for synchronization. While semi-analytical in nature, requiring numerical computation of Lyapunov exponents, it enables systematic classification of synchronizability for different network topologies. Recent extensions extended the use of the master stability function to study synchronization of piecewise-smooth systems (Dieci & Elia 2023) and the transitions from cluster to full synchronization (Bayani et al. 2024).
+
+4.4Unified Understanding through Comparative Analysis
+These approaches complement each other in several key aspects. In terms of scope, the MSF provides detailed local stability conditions, and tend to be less conservative and more flexible with respect to different interaction protocols, while Lyapunov methods and contraction theory can provide also global results, but tend to be more conservative, especially depending on which Lyapunov function or contraction norm are selected. Computationally, the approaches differ significantly: the MSF requires numerical computation of Lyapunov exponents, Lyapunov methods often yield analytical results but require appropriate selection of a valid Lyapunov function, and contraction theory enables a hybrid approach combining analytical insights with numerical verification. Each method also shows distinct strengths in different applications: the MSF excels for networks of identical nodes, Lyapunov methods handle heterogeneous systems well, and contraction theory proves particularly effective for certain dynamical structures common in biological and physical systems.
+
+Recent developments have significantly expanded these foundational approaches. Unified frameworks now combine different methodologies (Khong et al. 2016), while extensions address time-varying networks (Wieland et al. 2011) and nonlinear systems (Andrieu et al. 2018). New methods for analyzing partial and cluster synchronization have emerged, broadening the scope of application (Zhang et al. 2021, Della Rossa, Pecora, Blaha, Shirin, Klickstein & Sorrentino 2020). However, several fundamental challenges persist. The analysis of heterogeneous networks remains difficult, particularly when considering convergence in adaptive and evolving networks. Understanding the impact of noise and uncertainties, developing scalable methods for large networks, and establishing tight bounds on convergence rates represent ongoing challenges. A comprehensive treatment of these developments and challenges can be found in di Bernardo et al. (2016).
+
+5Summary and Future Directions
+Complex systems in modern applications are characterized by three fundamental components: node dynamics describing individual agent behavior, interaction functions governing inter-agent influences, and network structure defining interconnection topology. These systems exhibit remarkable emergent properties, with synchronization representing the most extensively studied collective behavior. Control strategies have evolved along three complementary paths: direct influence on selected agents through node control, modification of interaction dynamics via edge control, and dynamic rewiring of network topology through structural control. Recent advances have expanded these approaches to address large-scale systems and harness complex networks for control purposes.
+
+Despite significant progress, multiple challenges persist. Heterogeneity presents a fundamental obstacle, particularly in biological systems where network components vary significantly. Time-varying structures in robotics and modern power grids demand novel theoretical frameworks. Practical implementation must address noise, uncertainties, and communication complexities, including intermittent connections, limited range, and packet drops. The theoretical framework must expand to encompass heterogeneous stochastic systems, strongly nonlinear or hybrid agents, and the role of noise in control (Russo & Shorten 2018, Burbano-Lombana et al. 2017).
+
+The field is advancing toward sophisticated paradigms emphasizing self-organization through adaptive network structures, interacting complex systems, and distributed decision-making. Bio-inspired strategies derive crucial insights from natural systems—from fish schools performing coordinated maneuvers to bird flocks maintaining formations and social insect colonies exhibiting collective intelligence. Advanced control architectures increasingly incorporate hybrid strategies, multi-layer structures, and adaptive, learning-based approaches. Furthermore, compact descriptions of emergent behavior in large-scale networks have established foundations for applying PDE control to complex systems.
+
+Applications span diverse emerging fields. In biology, these range from cell colony coordination to tissue engineering and synthetic biology. Robotics applications encompass swarm systems, microrobot collectives, and autonomous vehicle formations. Infrastructure benefits through applications in smart power grids, transportation networks, and communication systems.
+
+Future research focuses on developing control strategies with enhanced capabilities: self-organization and adaptation to changing conditions, robust operation in uncertain environments, efficient scaling to large networks, effective function with limited communication, and achievement of complex collective behaviors. This represents a fundamental shift in complex system management. This field continues to expand control theory’s frontiers, offering opportunities for both fundamental research and practical applications. Success will enable new technologies in swarm robotics, biological engineering, and fields where coordinated collective behavior is essential. As we uncover principles governing complex collective behavior, we approach control systems matching the sophistication of natural systems, opening possibilities from medicine to robotics where numerous units must coordinate to achieve common objectives.

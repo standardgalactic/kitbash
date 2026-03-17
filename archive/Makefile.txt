@@ -1,0 +1,96 @@
+# RSVP Simulation Lab - Complete Pipeline
+# Usage: make [target]
+
+BLENDER := blender
+PYTHON := python3
+FIELD_DIR := sim/fields
+OUT_DIR := out/renders
+
+.PHONY: all clean sim render anim vectors diag geonodes help
+
+# Default target
+all: sim render
+
+help:
+	@echo "RSVP Simulation Lab Targets:"
+	@echo "  make sim        - Run field evolution"
+	@echo "  make plot       - Plot diagnostics (entropy, energy)"
+	@echo "  make render     - Render single frame (default: t020)"
+	@echo "  make geonodes   - Fast geometry nodes render"
+	@echo "  make vectors    - Vector field visualization"
+	@echo "  make anim       - Full time evolution animation"
+	@echo "  make diag       - Quantitative diagnostics"
+	@echo "  make video      - Convert animation to MP4"
+	@echo "  make clean      - Remove output files"
+	@echo ""
+	@echo "Configuration:"
+	@echo "  Edit sim/run_sim.py for N, T, dt, dx"
+	@echo "  Edit blender/*.py for THRESH, SCALE, etc."
+
+# ========== Simulation ==========
+sim:
+	@echo "=== Running RSVP simulation ==="
+	$(PYTHON) sim/run_sim.py
+	@echo "✓ Saved snapshots to $(FIELD_DIR)"
+
+# ========== Rendering ==========
+render:
+	@echo "=== Rendering single frame ==="
+	$(BLENDER) -b -P blender/render_field.py
+	@echo "✓ Rendered to $(OUT_DIR)/frame.png"
+
+geonodes:
+	@echo "=== Geometry Nodes render (fast) ==="
+	$(BLENDER) -b -P blender/render_geonodes.py
+	@echo "✓ Rendered to $(OUT_DIR)/geonodes.png"
+
+vectors:
+	@echo "=== Vector field visualization ==="
+	$(BLENDER) -b -P blender/render_vectors.py
+	@echo "✓ Rendered to $(OUT_DIR)/vectors.png"
+
+anim:
+	@echo "=== Time evolution animation ==="
+	$(BLENDER) -b -P blender/render_animation.py
+	@echo "✓ Frames saved to $(OUT_DIR)/anim/"
+
+diag:
+	@echo "=== Quantitative diagnostics ==="
+	$(BLENDER) -b -P blender/render_diagnostics.py
+	@echo "✓ Rendered to $(OUT_DIR)/diagnostics.png"
+
+# ========== Post-processing ==========
+video:
+	@echo "=== Creating video from frames ==="
+	ffmpeg -y -framerate 30 \
+		-i $(OUT_DIR)/anim/frame_%04d.png \
+		-c:v libx264 -pix_fmt yuv420p \
+		$(OUT_DIR)/evolution.mp4
+	@echo "✓ Video: $(OUT_DIR)/evolution.mp4"
+
+# ========== Utilities ==========
+clean:
+	@echo "=== Cleaning outputs ==="
+	rm -rf $(FIELD_DIR)/*.npz
+	rm -rf $(OUT_DIR)/*
+	@echo "✓ Cleaned"
+
+# ========== Quick workflows ==========
+quick: sim plot geonodes
+	@echo "✓ Quick sim + diagnostics + render complete"
+
+full: sim plot anim video
+	@echo "✓ Full pipeline complete"
+
+inspect:
+	@echo "=== Field statistics ==="
+	@$(PYTHON) -c "import numpy as np; d=np.load('$(FIELD_DIR)/t020.npz'); \
+		phi=d['phi']; v=d['v']; s=d['s']; \
+		print(f'φ: [{phi.min():.3f}, {phi.max():.3f}]'); \
+		print(f'|v|: {np.sqrt(np.sum(v**2, axis=0)).max():.3f}'); \
+		print(f'S: [{s.min():.3f}, {s.max():.3f}], ⟨S⟩={s.mean():.3f}')"
+
+plot:
+	@echo "=== Plotting diagnostics ==="
+	$(PYTHON) sim/plot_diagnostics.py
+	@echo "✓ Saved to out/diagnostics.png"

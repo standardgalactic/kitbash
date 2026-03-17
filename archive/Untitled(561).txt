@@ -1,0 +1,428 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,bm,mathtools}
+\usepackage{booktabs,enumitem,hyperref,lmodern,microtype}
+\usepackage{graphicx,caption,float,cleveref}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  citecolor=blue,
+  urlcolor=blue,
+  pdftitle={Memeplexes as Collectively Autocatalytic Sets of Theory-Laden Facts — An RSVP Embedding},
+  pdfauthor={Flyxion},
+  pdfsubject={Memetic Theory, Epistemology, Systems Theory, RSVP},
+  pdfkeywords={memeplex, autocatalytic sets, theory-ladenness, epistemic closure, cultural evolution, RSVP, entropy, PDE}
+}
+
+\title{\Large\bfseries Memeplexes as Collectively Autocatalytic Sets of Theory-Laden Facts\\
+\large\itshape with an RSVP Embedding and Quantitative Appendix}
+\author{Flyxion}
+\date{\today}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+
+\begin{document}
+\maketitle
+
+\begin{center}
+\begin{minipage}{0.8\textwidth}
+\small\itshape
+``Technique has taken on a life of its own; it is self-determining, and it tends inevitably to totality.'' — Jacques Ellul, *The Technological Society* (1964)\\[4pt]
+``Images do not merely depict ideology; they perform it. They are the dreamwork of power.'' — Helen Rollins, *Psychocinema* (2021)
+\end{minipage}
+\end{center}
+
+\begin{abstract}
+\textbf{Narrative.}  
+Cultures do not merely accumulate facts; they metabolize them.  
+A memeplex is not a heap of propositions but a living tissue of mutually sustaining claims, stories, and practices.  
+The thesis of this paper is that memeplexes are collectively autocatalytic sets of theory-laden facts.  
+Like prebiotic chemistries that become self-sustaining through mutual catalysis, belief systems persist because their parts produce the interpretive enzymes needed for one another to endure.
+
+\textbf{Formal.}  
+We formalize memeplexes as networks of memes linked by inferential relations whose activation is catalyzed by other memes.  
+Using a kinetic system on directed graphs, we define closure and self-sufficiency conditions, derive spectral thresholds for self-sustainment, introduce entropy-balance identities, and embed the discrete model in a field-theoretic plenum (RSVP) with scalar potential $\Phi$, vector flow $\mathbf v$, and entropy $S$.  
+We provide stability criteria, PDE-level interpretations, and practical algorithms for detection and intervention in empirical corpora.
+\end{abstract}
+
+%==================================================
+\section{Introduction}
+\textbf{Narrative.}  
+Since Dawkins coined the meme, most treatments have modeled cultural units as replicators competing for scarce attention.  
+Yet ideologies persist not merely by replication but by metabolic closure: they regenerate the criteria of their own intelligibility.  
+This paper formalizes that intuition, merging memetic theory with autocatalytic chemistry and RSVP field dynamics.
+
+\textbf{Formal.}  
+Let $M$ be a set of memes, $R$ a family of inferential relations, and $F$ a food set of exogenous perceptions.  
+Each relation $r_i$ requires catalysts $C(r_i)\subseteq M$.  
+The external input term $u_i$ in later kinetics is mapped as
+\[
+u_i = \sum_{f\in F}\gamma_{if},
+\]
+with coefficients $\gamma_{if}\ge0$ describing how raw observations activate meme $i$.  
+Autocatalytic closure arises when all $M$ can be generated from $F$ through internally catalyzed relations.
+
+%==================================================
+\section{From Autocatalytic Sets to Memeplexes}
+\textbf{Narrative.}  
+Kauffman’s notion of collectively autocatalytic sets described life emerging from chemistry without external design.  
+Here, cognition and culture emerge from inference without external truth arbiters.  
+Facts and theories catalyze each other’s persistence.
+
+\textbf{Formal.}  
+For memes $m_i$, relations $r_i$, and catalysts $C(r_i)$,  
+\[
+(M,R,C)\ \text{is autocatalytic if}\ 
+\forall r_i\in R,\ C(r_i)\cap M\ne\emptyset,\quad 
+\forall m\in M,\ m\ \text{derivable from}\ F\ \text{via}\ R.
+\]
+In kinetic form, define the catalytic adjacency
+\[
+A_{ij} =
+\begin{cases}
+1,& m_j\in C(r_i),\\[2pt]
+0,&\text{otherwise}.
+\end{cases}
+\]
+
+%==================================================
+\section{Formal Definition and Spectral Criterion}
+\textbf{Narrative.}  
+A mature memeplex is a self-referential equilibrium: every belief justified by others within the same web.
+
+\textbf{Formal.}  
+Dynamics on $A$:
+\[
+\dot{x}_i=\beta_i\sigma\!\left(\sum_jA_{ij}x_j^\alpha\right)+u_i-\lambda_i x_i,
+\qquad 
+\sigma(z)=\frac{1}{1+e^{-z}},
+\]
+with heterogeneous $\beta_i,\lambda_i>0$ and exponent $\alpha\in(0,1]$.  
+
+\begin{proposition}[General Spectral Threshold]
+Let $G=\mathrm{diag}(\beta)cA-\mathrm{diag}(\lambda)$, where $c=\sigma'(0)$.  
+If the principal eigenvalue $\Lambda_{\max}(G)>0$, there exists a positive fixed point $x^*>0$.  
+Equivalently,
+\[
+\rho(A_{SS})>\frac{\min_i \lambda_i/\beta_i}{c}.
+\]
+\end{proposition}
+
+\emph{Proof (sketch).}  
+Linearize at $x=0$; apply Perron–Frobenius to $A_{SS}$ and continuity of nonlinear $\sigma$ to ensure local persistence.
+
+\paragraph{Lyapunov Stability.}  
+Near equilibrium $x^*$, define
+\[
+V=\tfrac12\sum_i(x_i-x_i^*)^2,\quad 
+\dot V=(x-x^*)^\top(\dot x-\dot x^*).
+\]
+If all $\lambda_i>c\beta_i\rho(A)$, $\dot V<0$, giving local asymptotic stability.
+
+%==================================================
+\section{RSVP Embedding: Fields $\Phi,\mathbf v,S$}
+\textbf{Narrative.}  
+RSVP treats meaning as a continuous field in which interpretive potentials attract attention flows and consume entropy.  
+Discrete meme activations emerge as coarse-grained densities of this plenum.
+
+\textbf{Formal.}  
+Let fields on $\Omega\subset\mathbb R^d$:
+\[
+\Phi(\mathbf r,t),\quad \mathbf v(\mathbf r,t),\quad S(\mathbf r,t),\quad 
+\rho(\mathbf r,t)\ge0,\quad \int_\Omega\rho=1.
+\]
+Example functions:
+\[
+\mathcal{R}(\Phi,S,\rho)=\rho\,h(\Phi)\,e^{-S},\quad
+\Lambda(\rho)=\lambda\rho^p,\quad
+\mathcal{F}_\Phi=-\partial_\Phi U(\Phi)+\eta_\Phi\rho,\quad
+\mathcal{F}_S=\gamma_S(\nabla\!\cdot\!\mathbf v-\sigma_S\rho).
+\]
+Field dynamics:
+\[
+\partial_t\Phi=D_\Phi\Delta\Phi-\kappa_\Phi\Phi+\mathcal{F}_\Phi,\quad
+\partial_tS=D_S\Delta S-\kappa_S S+\mathcal{F}_S,\quad
+\partial_t\rho+\nabla\!\cdot(\rho\mathbf v)=D_\rho\Delta\rho+\mathcal{R}-\Lambda,
+\]
+with $\mathbf v=-\mu\nabla\Phi$.  
+Entropy balance on finite domains includes boundary flux:
+\[
+\frac{d}{dt}\!\int_\Omega\!\rho\log\frac{\rho}{\rho_0}
+=\!\int_\Omega(\Pi-\Phi_{\text{diss}})\,d\mathbf r
+-\!\oint_{\partial\Omega}\!\rho\log\!\frac{\rho}{\rho_0}\,\mathbf v\!\cdot\! d\mathbf S.
+\]
+
+%==================================================
+\section{Entropy Production and Stability}
+\textbf{Narrative.}  
+Self-sealing memeplexes correspond to localized regions where internal production exceeds dissipation; revolutions correspond to $S$-influx destabilizing those basins.
+
+\textbf{Formal.}  
+Discrete entropy production:
+\[
+\frac{d}{dt}D_{\mathrm{KL}}
+=\sum_i[\beta_i\sigma(\phi_i)\log\!\frac{x_i}{q_i}
++u_i(\log\!\frac{x_i}{q_i}+1)
+-\lambda_i x_i\log\!\frac{x_i}{q_i}],
+\]
+with $\phi_i=\sum_jA_{ij}x_j^\alpha$.  
+For fields, stability requires 
+$\langle\Pi-\Phi_{\text{diss}}\rangle>0$ inside attractors and a Lyapunov-type inequality
+\[
+\frac{d}{dt}\!\int_\Omega\!(\Phi^2+S^2+\rho^2)\,d\mathbf r
+\le -\int_\Omega\!(\kappa_\Phi\Phi^2+\kappa_S S^2+\lambda\rho^{p+1})\,d\mathbf r.
+\]
+
+%==================================================
+\section{Numerical Example: 3-Node Cycle}
+\textbf{Narrative.}  
+To illustrate, consider a minimal closed inference loop of three mutually catalyzing memes.
+
+\textbf{Formal.}  
+Let
+\[
+A=\begin{pmatrix}
+0&1&0\\[2pt]
+0&0&1\\[2pt]
+1&0&0
+\end{pmatrix},\quad
+\rho(A)=1.
+\]
+With uniform parameters $\beta,\lambda$, linearized gain $G=\beta cA-\lambda I$ has eigenvalues
+$\{-\lambda+\beta c\,e^{2\pi i k/3}\}$.  
+Stability changes when $\Re(\beta c\,e^{2\pi i k/3})=\lambda$.  
+Thus the bifurcation threshold $\beta_c=\lambda/c$.  
+For $\beta>\beta_c$, a limit cycle or positive equilibrium appears, demonstrating the spectral criterion.
+
+%==================================================
+\section{Cultural and Cognitive Implications}
+\textbf{Narrative.}  
+Memetic autocatalysis explains ideological persistence and fusion.  
+Belief networks act as energy-minimizing configurations in the interpretive field.  
+Revolutions occur when external novelty flux forces reconfiguration.
+
+\textbf{Formal.}  
+Bridging two subnetworks $S_1,S_2$ that increases $\rho(A_{S_1\cup S_2})$ above both originals yields fusion.  
+Undirected or hypergraph generalizations allow symmetric mutual catalysis;  
+time-varying $u_i(t)$ model periodic external shocks, capturing revolutionary dynamics.
+
+%==================================================
+\section{The Technological Republic as a Case Study}
+\textbf{Narrative.}  
+*Karp \& Zamiska (2025)* depict the West’s moral-technological crisis as a loss of memetic closure: technique detached from shared belief.  
+Their “Technological Republic” seeks re-integration—an ideology where efficacy and purpose mutually justify one another.
+
+\textbf{Formal.}  
+Minimal two-node loop:
+\[
+M_{\text{tech}}=\{\text{belief in progress},\,\text{technological mastery}\},
+\quad
+A_{\text{tech}}=\begin{pmatrix}0&a\\b&0\end{pmatrix},
+\]
+eigenvalues $\pm\sqrt{ab}$.  
+Self-sustainment when $\sqrt{ab}>\lambda/c$.  
+Here $a$ represents moral mobilization, $b$ technological demonstration.  
+In RSVP terms, the Republic is a low-entropy attractor where $\Phi_{\text{belief}}$ and $\Phi_{\text{efficacy}}$ co-stabilize while $S$ is suppressed.  
+Its coherence grants strength; its rigidity limits adaptation.  
+Empirically, feedback intensity could be estimated by co-activation between “destiny” and “innovation” narratives in discourse networks.
+
+%==================================================
+\section{Practical Simulation and Empirical Detection}
+\textbf{Narrative.}  
+Empirical modeling translates text or behavior streams into catalytic graphs, then tests persistence criteria.
+
+\textbf{Formal.}  
+Construct $A_{ij}$ via cosine similarity on contextual embeddings or conditional PMI;  
+fit $(\beta,\lambda,\alpha)$;  
+identify autocatalytic subsets with $\rho(A_{SS})>\tau$;  
+simulate interventions by dampening edges and tracking changes in $D_{\mathrm{KL}}$ and $\Pi-\Phi_{\text{diss}}$.
+
+%==================================================
+\section{Comparative Overview}
+\textbf{Narrative.}  
+Both the discrete and continuum models describe the same phenomenon—epistemic closure through mutual catalysis—at different resolutions.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}p{3.2cm}p{5cm}p{5cm}@{}}
+\toprule
+\textbf{Aspect} & \textbf{Discrete Model} & \textbf{RSVP Continuum}\\
+\midrule
+State & $x\in\Delta^{n-1}$ & $\rho,\Phi,S$ fields\\
+Dynamics & Sigmoidal ODE system & Reaction–advection–diffusion\\
+Closure Condition & $\rho(A_{SS})>\tau$ & $\langle\Pi-\Phi_{\text{diss}}\rangle>0$\\
+Entropy Measure & $D_{\mathrm{KL}}(x\|q)$ & $\mathcal D=\int\rho\log(\rho/q)$\\
+Perturbations & Edge/node removal & Entropy influx $\delta S>0$\\
+Interpretation & Network of beliefs & Field of meaning flows\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%==================================================
+\section{Integration with Extended RSVP Frameworks}
+\textbf{Narrative.}  
+RSVP’s sub-frameworks—TARTAN, BV-entropy, Lamphrodyne, SpherePop—describe complementary views of informational self-organization.
+
+\textbf{Formal.}  
+\begin{itemize}
+\item \textbf{TARTAN:} Memeplex $\leftrightarrow$ closed tiling subalgebra with minimal entropy flux.  
+\item \textbf{BV–Entropy:} Memeplex $\leftrightarrow$ BV-cohomology class with $\{S_{\text{BV}},S_{\text{BV}}\}=0$.  
+\item \textbf{Lamphrodyne:} Reciprocity potential $\Gamma=\sum_{ij}R_{ij}x_ix_j$ non-decreasing $\Rightarrow$ $\Pi\!\ge\!\Phi_{\text{diss}}$.  
+\item \textbf{SpherePop:} Semantic explosions as curvature instabilities $\partial_t^2\Phi+\omega^2\Phi<0$.  
+\item \textbf{Categorical Synthesis:} Memeplex as derived stack over entropy base; morphisms are entropy-non-increasing functors preserving cohomological invariants.  
+\end{itemize}
+
+%==================================================
+\section{Conclusion and Future Directions}
+\textbf{Narrative.}  
+To shift worldviews is to perturb their metabolism—altering not only beliefs but the inferential enzymes that make those beliefs self-sustaining.  
+
+\textbf{Formal.}  
+This framework unites memetic autocatalysis with RSVP field theory.  
+Future work: stochastic variants (Langevin noise on $\Phi$ and $\rho$); graph-neural inference of $A_{ij}$; and empirical calibration on cultural datasets to test predictions of fusion, collapse, and revolution.
+%==================================================
+\appendix
+\section*{Appendix: Mathematical Framework (Expanded)}
+\addcontentsline{toc}{section}{Appendix}
+
+\section{A1. Kinetic Derivation from Autocatalytic Closure}
+\textbf{Narrative.}  
+To connect the epistemic and kinetic levels, we derive the rate equations directly from the closure condition.
+
+\textbf{Formal.}  
+Each meme $i$ corresponds to a catalytic transformation of interpretive substrate $s_i$.  
+If $r_i$ uses catalysts $C(r_i)$, the net formation rate is
+\[
+\dot{x}_i = \sum_{r_i:\,i\in P(r_i)} \beta_i \prod_{j\in C(r_i)}x_j^\alpha + u_i - \lambda_i x_i.
+\]
+Linearization gives $\dot{x}=(\beta cA-\lambda I)x+u$.  
+Stationarity requires $\rho(A)>\lambda/(\beta c)$ as in the main text.
+
+\section{A2. Entropy-Balance Identities}
+\textbf{Narrative.}  
+Entropy measures divergence from neutral interpretive equilibrium $q$.  
+
+\textbf{Formal.}  
+Discrete KL entropy:
+\[
+D_{\mathrm{KL}}(x\|q)=\sum_i x_i\log\frac{x_i}{q_i}.
+\]
+Time derivative:
+\[
+\dot D_{\mathrm{KL}}
+=\sum_i\dot x_i(\log\frac{x_i}{q_i}+1).
+\]
+For the RSVP continuum:
+\[
+\partial_t(\rho\log\frac{\rho}{q})
+= -\nabla\!\cdot\!(\rho\log\frac{\rho}{q}\mathbf v)
++\rho\nabla\!\cdot\!\mathbf v
++(\mathcal{R}-\Lambda)\log\frac{\rho}{q}.
+\]
+Integration over $\Omega$ with no-flux boundaries yields
+\[
+\frac{d}{dt}\!\int_\Omega\rho\log\frac{\rho}{q}
+=\!\int_\Omega(\Pi-\Phi_{\text{diss}})\,d\mathbf r.
+\]
+
+\section{A3. Spectral and Lyapunov Analysis}
+\textbf{Narrative.}  
+The transition from decay to persistence is governed by the spectral radius; stability by Lyapunov descent.
+
+\textbf{Formal.}  
+Linearized system $\dot x=Gx$, $G=\mathrm{diag}(\beta)cA-\mathrm{diag}(\lambda)$.  
+Stability $\Leftrightarrow \Re[\Lambda_{\max}(G)]<0$.  
+Lyapunov function $V=\frac{1}{2}\|x-x^*\|^2$ yields
+\[
+\dot V = (x-x^*)^\top(G-G^*)(x-x^*),
+\]
+which is negative definite when $\lambda_i>\beta_i c \rho(A)$ for all $i$.  
+
+For fields, candidate energy
+\[
+E=\int_\Omega(\Phi^2+S^2+\rho^2)\,d\mathbf r,
+\]
+satisfies
+\[
+\dot E=-\int_\Omega(\kappa_\Phi\Phi^2+\kappa_S S^2+\lambda\rho^{p+1})\,d\mathbf r
++\oint_{\partial\Omega}\rho\mathbf v\!\cdot\!d\mathbf S.
+\]
+Zero-flux boundaries ensure $\dot E<0$.
+
+\section{A4. Threshold Bounds and Mean Approximation}
+\textbf{Narrative.}  
+For heterogeneous nodes, mean-field estimates give tighter persistence criteria.
+
+\textbf{Formal.}  
+Define arithmetic means $\bar{\lambda}$ and $\bar{\beta}$; threshold condition
+\[
+\rho(A_{SS}) > \frac{\bar{\lambda}}{c\bar{\beta}}.
+\]
+Alternatively, for variance $\sigma_\beta^2$, apply Jensen bound:
+\[
+\mathbb{E}[\lambda_i/\beta_i]
+\ge \bar{\lambda}/\bar{\beta}
+\ge \frac{\bar{\lambda}}{\bar{\beta}+\sigma_\beta}.
+\]
+
+\section{A5. Stochastic and Perturbative Extensions}
+\textbf{Narrative.}  
+Cultural transmission involves stochasticity from noise, innovation, and communication error.
+
+\textbf{Formal.}  
+Additive noise terms yield Langevin form
+\[
+\dot{x}_i = \beta_i\sigma\!\left(\sum_jA_{ij}x_j^\alpha\right)+u_i-\lambda_i x_i+\xi_i(t),
+\quad
+\langle\xi_i(t)\xi_j(t')\rangle=2D_i\delta_{ij}\delta(t-t').
+\]
+The corresponding Fokker–Planck equation:
+\[
+\partial_t P = -\sum_i\partial_{x_i}\!\left[(\beta_i\sigma(\phi_i)+u_i-\lambda_i x_i)P\right]
++\sum_iD_i\partial_{x_i}^2P.
+\]
+Stationary $P^*$ approximates log-normal around deterministic equilibria.
+
+\section{A6. Empirical Inference and Graph Learning}
+\textbf{Narrative.}  
+Estimating $A$ from data enables quantitative tests of memetic autocatalysis.
+
+\textbf{Formal.}  
+Given documents $\{d_k\}$, define embeddings $\mathbf e_k$;  
+edge weights
+\[
+A_{ij}=\frac{\mathbf e_i\!\cdot\!\mathbf e_j}{\|\mathbf e_i\|\|\mathbf e_j\|}.
+\]
+Infer parameters by minimizing
+\[
+\mathcal{L}=\sum_i\left(\dot x_i-\beta_i\sigma\!\left(\sum_jA_{ij}x_j^\alpha\right)-u_i+\lambda_i x_i\right)^2.
+\]
+Graph neural networks can approximate this mapping via learned adjacency matrices $A_\theta$.  
+
+%==================================================
+\section*{Bibliography}
+\addcontentsline{toc}{section}{Bibliography}
+
+\begin{itemize}
+\item Dawkins, R. (1976). \textit{The Selfish Gene}. Oxford University Press.
+\item Eigen, M., \& Schuster, P. (1979). \textit{The Hypercycle: A Principle of Natural Self-Organization}. Springer.
+\item Hanson, N. R. (1958). \textit{Patterns of Discovery}. Cambridge University Press.
+\item Hordijk, W., \& Steel, M. (2016). ``Chasing the tail: The emergence of autocatalytic networks.'' \textit{Biosystems}, 150, 65–73.
+\item Karp, A. C., \& Zamiska, N. W. (2025). \textit{The Technological Republic: Hard Power, Soft Belief, and the Future of the West}. Penguin Random House.
+\item Kauffman, S. A. (1993). \textit{The Origins of Order: Self-Organization and Selection in Evolution}. Oxford University Press.
+\item Kuhn, T. S. (1962). \textit{The Structure of Scientific Revolutions}. University of Chicago Press.
+\item Shannon, C. E. (1948). ``A Mathematical Theory of Communication.'' \textit{Bell System Technical Journal}, 27, 379–423, 623–656.
+\item Kullback, S., \& Leibler, R. A. (1951). ``On information and sufficiency.'' \textit{Annals of Mathematical Statistics}, 22(1), 79–86.
+\item Ellul, J. (1964). \textit{The Technological Society}. Vintage Books.
+\item Rollins, H. (2021). \textit{Psychocinema}. Self-published monograph.
+\end{itemize}
+
+\end{document}

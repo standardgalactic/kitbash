@@ -1,0 +1,645 @@
+\documentclass[12pt]{article}
+
+% ------------------------------------------------------------
+% LuaLaTeX Setup: Fonts, Layout, Mathematics
+% ------------------------------------------------------------
+\usepackage{fontspec}
+\setmainfont{Latin Modern Roman}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{setspace}
+\setstretch{1.15}
+
+\usepackage{amsmath, amssymb, amsthm, mathtools}
+\usepackage{bm}
+\usepackage{hyperref}
+\usepackage{xcolor}
+
+% ------------------------------------------------------------
+% Theorem Environments
+% ------------------------------------------------------------
+\newtheorem{definition}{Definition}
+\newtheorem{proposition}{Proposition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{remark}{Remark}
+
+% ------------------------------------------------------------
+% Macros
+% ------------------------------------------------------------
+\newcommand{\CYC}{\mathrm{CYC}}
+\newcommand{\catC}{\mathcal{C}}
+\newcommand{\Sh}{\mathbf{Sh}}
+\newcommand{\Hom}{\mathrm{Hom}}
+\newcommand{\id}{\mathrm{id}}
+
+\title{The Category Theory of Cymatic Yogurt Computing:\\
+A Thermodynamically-Aware Resource Theory}
+
+\author{Flyxion}
+
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Cymatic Yogurt Computing (CYC) is a speculative but mathematically concrete
+bio-stochastic computing paradigm in which vibrated microbial cultures serve
+as computational media. Patterns on yogurt cultures, shaped by cymatic
+excitation and transferred through sieving operations, embody information
+processing under explicit thermodynamic constraints. In this essay we
+develop a categorical and resource-theoretic formalism for CYC. We define a
+category of culture states, equip it with a symmetric monoidal and
+comonoidal structure, introduce entropy and Fisher information as
+functorial scalar invariants, and show how closed monoidal structure
+enables higher-order ``control cultures'' that implement learning-like
+adaptation. The resulting framework clarifies how bio-stochastic substrates
+can be rigorously modeled as thermodynamically-aware resource theories and
+connects naturally to broader work on scalar--vector field theories and
+semantic infrastructure.
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction: The Need for Categorical Rigor in Bio-Stochastic Systems}
+
+\subsection{The computational crisis and the digital bottleneck}
+
+Classical computing is dominated by the von Neumann architecture: a clean
+separation between memory, processing, and control, coordinated through a
+global clock and a narrow instruction pipeline. This architecture has been
+astonishingly successful, but it carries structural liabilities that become
+acute for highly parallel, noisy, and energy-constrained regimes.
+
+First, the \emph{digital bottleneck}: even if the underlying hardware
+contains vast numbers of degrees of freedom (transistors, photonic modes,
+molecular states), the usable interface is compressed into a serial stream
+of discrete instructions. Moving information across memory hierarchies and
+interconnects often costs more energy and time than the logical operations
+themselves. Second, the von Neumann model is largely indifferent to
+thermodynamic structure. Landauer's principle is acknowledged in theory but
+rarely appears as a first-class design constraint; energy is something to
+minimize, not a quantity to be structurally modeled.
+
+These limitations become visible in neuromorphic hardware, synthetic
+biology, and other emerging domains where computation is massively parallel,
+inherently stochastic, and embedded in non-equilibrium thermodynamic
+flows. In such contexts, the usual abstractions---bit-level logic, Turing
+machines, RAM models---are not so much wrong as insufficiently structured:
+they do not track which transformations are physically cheap, which require
+irreversible mixing, and which depend on fine-grained spatial coherence.
+
+\subsection{Introducing Cymatic Yogurt Computing (CYC)}
+
+Cymatic Yogurt Computing (CYC) pushes this situation to an intentionally
+extreme and playful limit. Consider a shallow tray of yogurt seeded with
+microbial cultures and subjected to controlled vibrational patterns. The
+resulting standing-wave fields, diffusion gradients, and microbial
+responses produce rich spatial patterns: nodal lines, clustering domains,
+and traveling waves. These patterns are treated as \emph{computational
+states}. 
+
+Computation proceeds in three coupled steps:
+\begin{enumerate}
+  \item \textbf{Cymatic pattern formation:} vibrational modes and boundary
+  conditions induce spatial modes in the culture, shaping density and
+  metabolic fields.
+  \item \textbf{Sieving and transfer:} the patterned culture is passed
+  through a physical sieve or stencil, producing a filtered pattern that is
+  embedded onto a fresh culture.
+  \item \textbf{Entropic descent and reorganization:} the newly seeded
+  culture relaxes toward thermodynamic equilibrium, generating further
+  structure along the way.
+\end{enumerate}
+The core mechanism is thus ``computation via vibration, pattern transfer,
+and entropic descent.'' The substrate is biological and stochastic; the
+state space is defined over spatial domains; and the cost of computation is
+unavoidably thermodynamic.
+
+\subsection{Thesis: CYC as a thermodynamically-aware resource theory}
+
+The central claim of this essay is that Category Theory furnishes the
+appropriate structural language for CYC. We will show that:
+\begin{itemize}
+  \item Culture states and their transformations form a well-defined
+  category \(\catC\) whose objects encode spatially distributed patterns as
+  sheaves over a domain, and whose morphisms model sieve--transfer
+  operations.
+  \item \(\catC\) admits a symmetric monoidal structure \((\catC, \otimes,
+  I)\) corresponding to parallel juxtaposition of culture bins, with
+  entropy acting as a monoidal functor that tracks thermodynamic cost.
+  \item Duplication and erasure operations endow objects with comonoid
+  structure, making CYC a \emph{resource theory}: objects are resources,
+  morphisms are allowed processes, and comonoid axioms express the laws of
+  resource budgeting under entropic constraints.
+  \item A closed monoidal upgrade equips \(\catC\) with internal homs
+  \([C,D]\) that represent ``higher-order yogurt functions,'' or control
+  cultures that implement morphisms between other cultures. This supplies a
+  structural basis for learning and adaptation in CYC.
+\end{itemize}
+In short, CYC becomes a thermodynamically-aware resource theory whose
+categorical structure is rich enough to support higher-order computation,
+yet grounded in physical operations on microbial media.
+
+\section{Objects and Foundations: The Category of Culture States \texorpdfstring{\(\catC\)}{C}}
+
+\subsection{Culture states as computational sheaves}
+
+We begin by specifying the objects of our category.
+
+\begin{definition}[Culture state]
+A \emph{culture state} \(C\) is a pair \(C = (X,\mathcal{F})\) where
+\begin{itemize}
+  \item \(X \subset \mathbb{R}^2\) is a compact spatial domain representing
+  the footprint of the culture tray;
+  \item \(\mathcal{F} \in \Sh(X)\) is a \emph{pattern sheaf} assigning to
+  each open set \(U \subseteq X\) a space \(\mathcal{F}(U)\) of admissible
+  local configurations (e.g.\ microbial density, nutrient and metabolite
+  concentrations), together with restriction maps satisfying the usual
+  sheaf axioms.
+\end{itemize}
+We write \(\mathrm{Ob}(\catC)\) for the class of all such culture states.
+\end{definition}
+
+The sheaf \(\mathcal{F}\) encodes local-to-global consistency: patterns
+overlapping in space must agree on intersections. This is crucial for
+modeling diffusion, reaction--diffusion dynamics, and morphogenetic
+constraints. Intuitively, \(\mathcal{F}\) describes the \emph{computable
+pattern space} over the culture domain.
+
+\subsection{Entropy and Fisher information as scalar functionals}
+
+CYC is explicitly thermodynamic, so each culture state carries global
+entropy and information measures.
+
+\begin{definition}[Entropy functional]
+Let \(C = (X,\mathcal{F})\) be a culture state, and let
+\(\sigma_C : X \to \mathbb{R}_{\ge 0}\) denote a local entropy density
+associated with a particular realization of the sheaf data. The
+\emph{thermodynamic entropy} of \(C\) is
+\begin{equation}
+  S(C) \;=\; \int_X \sigma_C(\mathbf{x}) \, \mathrm{d}\mathbf{x}.
+\end{equation}
+\end{definition}
+
+In parallel, we introduce a dual measure of structure.
+
+\begin{definition}[Fisher information]
+Given a parametric family of local state distributions
+\(\{p_\theta(\cdot \mid \mathbf{x})\}\) over \(\mathcal{F}(\{\mathbf{x}\})\),
+we define the \emph{local Fisher information} as
+\begin{equation}
+  I_C(\mathbf{x}) \;=\; \mathbb{E}\!\left[
+    \left(\frac{\partial}{\partial \theta} \log p_\theta(\cdot \mid \mathbf{x})
+    \right)^2
+  \right],
+\end{equation}
+and the global Fisher information as
+\begin{equation}
+  I(C) \;=\; \int_X I_C(\mathbf{x}) \, \mathrm{d}\mathbf{x}.
+\end{equation}
+\end{definition}
+
+Heuristically, \(S(C)\) quantifies thermodynamic ``spread'' while
+\(I(C)\) quantifies structural precision. CYC computation can be viewed as
+a structured compromise: patterns evolve under operations that, on
+average, increase \(S\) while selectively concentrating \(I\) into
+computationally meaningful modes.
+
+\section{Morphisms: The Core Sieving Step}
+
+\subsection{Sieve transfer as a composite morphism}
+
+Morphisms in \(\catC\) represent physically admissible operations on
+culture states. The core step in CYC is the \emph{sieve transfer}:
+patterned yogurt is forced through a stencil onto a fresh culture.
+
+\begin{definition}[Sieve transfer]
+Given culture states \(C_s = (X_s,\mathcal{F}_s)\) and
+\(C_t = (X_t,\mathcal{F}_t)\), a \emph{sieve transfer} is a morphism
+\(f : C_s \to C_t\) of the form
+\begin{equation}
+  f \;=\; \psi \circ \phi,
+\end{equation}
+where \(\phi\) is a filtration operator on the source pattern, and \(\psi\)
+is a propagation operator embedding the filtered pattern into the target
+culture.
+\end{definition}
+
+We now specify these components more explicitly.
+
+\subsection{Filtration: coarse-graining as semantic compression}
+
+The filtration operator \(\phi\) models the effect of the physical sieve or
+stencil that selectively transmits features of the source pattern.
+
+\begin{definition}[Filtration operator]
+Let \(K : \mathbb{R}^2 \to \mathbb{R}_{\ge 0}\) be a \emph{sieve kernel}
+encoding the geometry and pore structure of the sieve (or more general
+non-linear weight). A filtration operator
+\(\phi : C_s \to C_s'\) acts at the level of sections by a non-linear
+convolution
+\begin{equation}
+  \phi(\mathcal{F}_s)(\mathbf{x}) 
+  \;=\; \Phi\!\left(
+    \int_{X_s} K(\mathbf{x}-\mathbf{y}) \, \mathcal{F}_s(\mathbf{y}) \,
+    \mathrm{d}\mathbf{y}
+  \right),
+\end{equation}
+for a suitable non-linearity \(\Phi\) reflecting thresholding,
+saturation, or other biological responses.
+\end{definition}
+
+Physically, \(\phi\) implements semantic compression: fine-grained
+variations below the sieve scale are suppressed; only features that
+couple strongly to \(K\) survive. From the perspective of information
+theory, \(\phi\) is typically non-invertible and strictly reduces
+Fisher information:
+\begin{equation}
+  I(C_s') \;\le\; I(C_s),
+\end{equation}
+with strict inequality in generic cases.
+
+\subsection{Propagation: stochastic embedding and entropy gradients}
+
+Once filtered, the pattern is projected onto a fresh culture.
+
+\begin{definition}[Propagation operator]
+Let \(C_s' = (X_s,\mathcal{F}_s')\) be the filtered source and
+\(C_t = (X_t,\mathcal{F}_t)\) a fresh target. A \emph{propagation operator}
+\(\psi : C_s' \to C_t\) is a stochastic monomorphism determined by a
+transition kernel
+\begin{equation}
+  P(\mathbf{z} \mid \mathbf{x}) : X_s \times X_t \to [0,1],
+\end{equation}
+such that sections of \(\mathcal{F}_t\) are drawn from
+\(\mathcal{F}_s'\) according to \(P\). Formally, for suitable test
+functionals \(G\),
+\begin{equation}
+  \mathbb{E}\!\left[G(\mathcal{F}_t)\right]
+  \;=\; \int_{X_t}\!\!\int_{X_s}
+  G\!\left(\mathcal{F}_s'(\mathbf{x})\right)
+  P(\mathbf{z}\mid \mathbf{x}) \,
+  \mathrm{d}\mathbf{x}\,\mathrm{d}\mathbf{z}.
+\end{equation}
+\end{definition}
+
+The act of landing the filtered culture onto the fresh medium typically
+introduces an immediate local entropy gradient \(\nabla S\) on \(X_t\),
+driving further entropic descent and pattern formation. In this sense,
+\(\psi\) is both a structural embedding and an entropic kick, aligning
+with the idea that computation in CYC is always embedded in a
+thermodynamic story.
+
+\subsection{The identity morphism as a zero-work baseline}
+
+The identity morphism in \(\catC\) corresponds to a vanishingly idealized
+sieve transfer that performs no net work on the pattern.
+
+\begin{definition}[Identity morphism]
+For a culture state \(C = (X,\mathcal{F})\), the identity morphism
+\(\id_C : C \to C\) is realized as the limit in which
+\begin{itemize}
+  \item the filtration kernel \(K\) approaches a Dirac delta
+  (\(K \to \delta\)), so that \(\phi\) performs no coarse-graining; and
+  \item the propagation kernel \(P(\mathbf{z} \mid \mathbf{x})\) becomes
+  a deterministic identity map with zero stochastic variance and no net
+  entropy gradient (\(\nabla S = 0\)).
+\end{itemize}
+\end{definition}
+
+Physically this limit is unattainable: any real sieve introduces both
+irreversible loss of information and some thermodynamic cost. However,
+\(\id_C\) serves as a conceptual baseline. The ``distance'' between a
+real sieve transfer \(f\) and \(\id_C\) (e.g.\ in terms of changes in
+\(S\) and \(I\)) quantifies the entropic and informational work done by
+\(f\).
+
+\section{Monoidal Structure: Parallelism and Resource Management}
+
+\subsection{The monoidal product as parallel juxtaposition}
+
+We now introduce parallel composition.
+
+\begin{definition}[Monoidal product]
+Given culture states \(C_1 = (X_1,\mathcal{F}_1)\) and
+\(C_2 = (X_2,\mathcal{F}_2)\) with disjoint domains, their \emph{monoidal
+product} is
+\begin{equation}
+  C_1 \otimes C_2
+  \;=\; \bigl(X_1 \sqcup X_2,\; \mathcal{F}_1 \sqcup \mathcal{F}_2\bigr),
+\end{equation}
+where \(\sqcup\) denotes disjoint union of spaces and sheaves.
+\end{definition}
+
+Morphisms tensor similarly: given \(f_i : C_i \to D_i\), the monoidal
+product \(f_1 \otimes f_2 : C_1 \otimes C_2 \to D_1 \otimes D_2\) acts
+componentwise. The associativity and symmetry constraints are provided by
+the canonical homeomorphisms between iterated disjoint unions, making
+\((\catC,\otimes, I)\) a symmetric monoidal category once the unit
+object \(I\) is specified.
+
+\subsection{Entropy additivity for parallel cultures}
+
+Because the domains are disjoint, entropy behaves additively under the
+monoidal product.
+
+\begin{proposition}[Additivity of entropy]
+Let \(C_1 = (X_1,\mathcal{F}_1)\) and \(C_2 = (X_2,\mathcal{F}_2)\) be
+culture states with disjoint domains. Then
+\begin{equation}
+  S(C_1 \otimes C_2) \;=\; S(C_1) + S(C_2).
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+By definition,
+\begin{equation}
+  S(C_1 \otimes C_2)
+  \;=\; \int_{X_1 \sqcup X_2} \sigma(\mathbf{x}) \, \mathrm{d}\mathbf{x}
+  \;=\; \int_{X_1} \sigma_1(\mathbf{x})\,\mathrm{d}\mathbf{x}
+        + \int_{X_2} \sigma_2(\mathbf{x})\,\mathrm{d}\mathbf{x},
+\end{equation}
+which is exactly \(S(C_1) + S(C_2)\).
+\end{proof}
+
+This strict additivity has two important implications. First, parallelism
+incurs no ``mysterious'' entropic overhead purely by juxtaposing culture
+bins: the cost of running \(n\) computations in parallel is \(n\) times
+the cost of running one, at least in the idealized model where bins do
+not interact. Second, it justifies modeling CYC as a resource theory in
+which resources combine under a strictly monoidal law for entropy.
+
+\subsection{The unit object as waste sink and null culture}
+
+We now introduce the neutral element for \(\otimes\).
+
+\begin{definition}[Unit object]
+The unit object \(I\) is either
+\begin{itemize}
+  \item the empty culture \((\emptyset,\mathcal{F}_\emptyset)\), or
+  \item a maximally homogenized culture \(C_{\mathrm{max}}\) in which all
+  spatial gradients have relaxed and the pattern sheaf carries only
+  uniform sections.
+\end{itemize}
+In both cases, \(I\) satisfies
+\begin{equation}
+  C \otimes I \;\cong\; C 
+  \quad\text{and}\quad
+  I \otimes C \;\cong\; C
+\end{equation}
+for all \(C\).
+\end{definition}
+
+Operationally, it is convenient to treat \(I\) as a \emph{waste sink}:
+a reservoir into which structured patterns can be discarded and
+homogenized.
+
+\subsection{Comonoid structure: duplication and erasure}
+
+To complete the resource-theoretic picture, we endow each culture state
+with a comonoid structure that models duplication and erasure.
+
+\begin{definition}[Comonoid on a culture state]
+A culture state \(C\) is a \emph{comonoid} in \((\catC,\otimes,I)\) if it
+is equipped with morphisms
+\begin{equation}
+  \Delta : C \to C \otimes C
+  \quad\text{and}\quad
+  \epsilon : C \to I
+\end{equation}
+satisfying the usual coassociativity and counitality axioms:
+\begin{align}
+  (\Delta \otimes \id_C)\circ \Delta
+  &= (\id_C \otimes \Delta)\circ \Delta, \\
+  (\epsilon \otimes \id_C)\circ \Delta
+  &= \id_C
+  = (\id_C \otimes \epsilon)\circ \Delta.
+\end{align}
+\end{definition}
+
+\subsubsection*{Duplication via physical splitting}
+
+The comultiplication \(\Delta : C \to C \otimes C\) models splitting a
+single culture into two boxes and propagating the pattern into both
+halves. Physically, this might involve pouring a patterned culture into
+two receiving trays and allowing diffusion and growth to fill each.
+
+The key thermodynamic insight is that duplication is not free. Even if
+the pattern is replicated with high fidelity, mixing and re-equilibration
+in each half generate additional entropy.
+
+\begin{theorem}[Thermodynamic cost of duplication]
+Let \(C\) be a culture state with entropy \(S(C)\). Then the duplicated
+state \(\Delta(C)\) satisfies
+\begin{equation}
+  S(\Delta(C)) \;=\; 2S(C) + \Delta S_{\mathrm{mix}},
+\end{equation}
+where \(\Delta S_{\mathrm{mix}} \ge 0\) is a mixing entropy term arising
+from the reorganization of the medium during splitting and propagation.
+\end{theorem}
+
+\noindent
+In particular, \(\Delta S_{\mathrm{mix}}>0\) in generic cases, so
+duplication is thermodynamically irreversible. This mirrors no-cloning
+constraints in other physical theories: perfect duplication without
+entropy increase is forbidden.
+
+\subsubsection*{Erasure as homogenization or autoclaving}
+
+The counit \(\epsilon : C \to I\) represents erasure or consumption of a
+culture state.
+
+\begin{definition}[Counit as erasure]
+The \emph{counit} \(\epsilon : C \to I\) is realized physically by
+operations such as
+\begin{itemize}
+  \item homogenization: vigorous stirring or mixing that eliminates all
+  spatial gradients and pattern structure; or
+  \item autoclaving/thermal shock: driving the culture to a thermodynamic
+  fixed point in which microbial life ceases and only uniform disorder
+  remains.
+\end{itemize}
+At the level of sheaves, \(\epsilon\) collapses all sections of
+\(\mathcal{F}\) to the unique section of \(\mathcal{F}_\emptyset\),
+effectively forgetting all pattern information.
+\end{definition}
+
+Erasure is, by construction, a maximally irreversible operation. The
+associated entropy production approximates the Landauer cost of
+destroying information:
+\begin{equation}
+  S_{\mathrm{dissipated}}
+  \;\approx\; S_{\mathrm{max}} - S(C),
+\end{equation}
+where \(S_{\mathrm{max}}\) is the entropy of the fully homogenized state.
+
+Counitality ensures that duplication followed by erasure of one copy
+restores the original resource (up to approximations set by
+\(\Delta S_{\mathrm{mix}}\)): splitting a culture into two and immediately
+destroying one half leaves the other half essentially unchanged at the
+level of computational state.
+
+\section{Higher-Order Computation: Closed Monoidal Structure}
+
+\subsection{Why internal homs matter}
+
+So far, \(\catC\) can express sequences and parallel combinations of
+sieve transfers. To capture \emph{higher-order} behavior---cultures that
+encode and modify other cultures' dynamics---we require an internal
+representation of morphisms. This is precisely what a closed monoidal
+structure provides.
+
+\begin{definition}[Closed monoidal category]
+A symmetric monoidal category \((\catC,\otimes,I)\) is
+\emph{(right) closed} if for every pair of objects \(C,D\) there exists an
+object \([C,D]\) (the \emph{internal hom}) and a natural isomorphism
+\begin{equation}
+  \Hom(A \otimes C, D) \;\cong\; \Hom\bigl(A, [C,D]\bigr)
+\end{equation}
+that is natural in \(A\).
+\end{definition}
+
+In CYC terms, \([C,D]\) should be a \emph{control culture} whose internal
+pattern encodes an entire family of sieve transfers from \(C\) to \(D\).
+
+\subsection{Internal hom as control culture}
+
+We now propose an interpretation of \([C,D]\) for CYC.
+
+\begin{definition}[Control culture]
+Given culture states \(C_1 = (X_1,\mathcal{F}_1)\) and
+\(C_2 = (X_2,\mathcal{F}_2)\), a \emph{control culture}
+\([C_1,C_2]\) is a culture state \((X_{\mathrm{ctrl}},\mathcal{F}_{\mathrm{ctrl}})\)
+equipped with a sheaf morphism
+\begin{equation}
+  \mathcal{F}_{\mathrm{ctrl}} \;\to\;
+  \underline{\Hom}(\mathcal{F}_1,\mathcal{F}_2),
+\end{equation}
+where \(\underline{\Hom}(\mathcal{F}_1,\mathcal{F}_2)\) is the
+\emph{Hom-sheaf} assigning to each open set \(U\subseteq X_1\) the set of
+sheaf morphisms \(\mathcal{F}_1|_U \to \mathcal{F}_2|_{\phi(U)}\) for
+suitable embeddings \(\phi\).
+\end{definition}
+
+Physically, the control culture consists of specialized regulatory
+bacteria and chemical gradients. When brought into interaction with an
+input culture \(C_1\), the combined system
+\[
+  C_1 \otimes [C_1,C_2]
+\]
+relaxes, through the usual CYC dynamics, into a pattern that matches the
+desired output state in \(C_2\). In other words, the control culture
+biases the filtration and propagation operators toward a specific family
+of morphisms \(C_1 \to C_2\).
+
+\subsection{Currying, uncurrying, and learning in CYC}
+
+The closed structure asserts that giving a morphism
+\[
+  f : A \otimes C \to D
+\]
+is equivalent to giving a morphism
+\[
+  \tilde{f} : A \to [C,D].
+\]
+In the CYC picture, the first is a direct, ``hard-wired'' sieve pipeline
+that takes an auxiliary culture \(A\) and an input culture \(C\) and
+produces an output \(D\). The second is a process by which the auxiliary
+culture \(A\)---perhaps a training dataset, environment, or ``curriculum
+culture''---shapes the control culture \([C,D]\) itself.
+
+This is precisely the categorical shape of learning:
+\begin{itemize}
+  \item \emph{Uncurried view:} apply a fixed control culture to many
+  inputs in parallel to compute outputs.
+  \item \emph{Curried view:} treat observed input--output behavior as a
+  morphism from an environment \(A\) into the space of possible control
+  cultures.
+\end{itemize}
+In more concrete terms, a control culture could be evolved by repeatedly
+subjecting it to a training protocol: co-culturing with \(C\), applying
+sieves and vibrational patterns, and selecting for those descendants that
+move the joint system toward the desired state in \(D\). Over time, this
+implements a physical approximation to a map \(A \to [C,D]\).
+
+\section{Conclusion: CYC as a Thermodynamically-Aware Resource Theory}
+
+\subsection{Synthesis of the categorical structure}
+
+We can now summarize the categorical formalism of CYC:
+\begin{itemize}
+  \item The category \(\catC\) of culture states has objects
+  \(C=(X,\mathcal{F})\) representing spatially distributed microbial
+  patterns, and morphisms \(f:C_s \to C_t\) representing sieve transfers
+  composed from filtration and propagation operators.
+  \item Entropy \(S(C)\) and Fisher information \(I(C)\) are scalar
+  functionals on objects that quantify thermodynamic spread and structural
+  precision, respectively.
+  \item A symmetric monoidal structure \((\catC,\otimes,I)\) models
+  parallel juxtaposition of cultures, with entropy strictly additive under
+  \(\otimes\), ensuring that parallel computation is transparently
+  accounted for in thermodynamic terms.
+  \item Comonoid structure \((\Delta,\epsilon)\) on objects captures
+  duplication (with irreducible mixing entropy) and erasure (with
+  Landauer-like dissipation), making CYC a resource theory in which
+  objects are computational resources and morphisms are allowed physical
+  processes.
+  \item A closed monoidal upgrade introduces internal homs \([C,D]\) that
+  represent control cultures encoding families of morphisms \(C \to D\),
+  supplying a natural setting for higher-order computation and learning.
+\end{itemize}
+
+\subsection{Positioning within a broader theoretical ecosystem}
+
+While Cymatic Yogurt Computing is deliberately whimsical in its choice of
+substrate, the formal structure developed here is fully general. Any
+computational medium with the following properties
+\begin{enumerate}
+  \item spatially extended states modeled by sheaves or related
+  local-to-global data structures,
+  \item inherently stochastic and thermodynamically constrained
+  transformations, and
+  \item physically meaningful duplication and erasure operations
+\end{enumerate}
+can, in principle, be organized into a similar thermodynamically-aware
+resource theory.
+
+In this sense, CYC can be seen as a toy model of more ambitious frameworks
+in which scalar--vector field theories, semantic infrastructures, and
+entropic alignment mechanisms are unified. The category \(\catC\) is a
+local caricature of much larger plenum-like systems where information and
+energy flow through structured, self-organizing media.
+
+\subsection{Future directions}
+
+Several extensions suggest themselves:
+\begin{itemize}
+  \item \textbf{Enrichment over stochastic kernels.} One can refine the
+  formalism by treating \(\catC\) as enriched over a category of stochastic
+  matrices or Markov kernels, so that morphisms carry explicit probability
+  structures and compositional noise models.
+  \item \textbf{Compact closure and feedback.} Introducing duals and
+  exploring compact closed or traced monoidal structure would allow
+  feedback loops and cyclic sieve pipelines to be modeled explicitly,
+  capturing the dynamics of resonant or recurrent CYC setups.
+  \item \textbf{Higher sheaf-theoretic structure.} Replacing simple
+  sheaves with more sophisticated objects (e.g.\ cosheaves or factorization
+  algebras) could provide richer handles on locality, causality, and
+  multi-scale organization in bio-stochastic computation.
+  \item \textbf{Experimental toy models.} Finally, building small physical
+  prototypes---using dye patterns, colloids, or simple microbial cultures
+  under vibration and sieving---would test which parts of the categorical
+  story survive contact with experimental reality.
+\end{itemize}
+
+Cymatic Yogurt Computing thus plays a dual role: it is both a playful
+thought experiment and a serious probe into what it means to treat
+computation as an explicitly thermodynamic, spatially extended, and
+categorically organized process. In situating CYC as a
+thermodynamically-aware resource theory, we obtain a template for future
+work on non-digital architectures---from yogurt cultures to cosmological
+plenums---that compute by falling, mixing, and reorganizing in the
+direction of entropy.
+
+\end{document}

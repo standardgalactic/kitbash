@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+"""
+rsvp_entropy_torsion_suppression.py
+-----------------------------------
+Implements torsion (vorticity) suppression of entropy production:
+production *= 1/(1 + alpha * omega^2)
+"""
+
+import numpy as np
+
+def roll(a, s, ax): return np.roll(a, s, axis=ax)
+
+def grad_x(f, dx): return (roll(f, -1, 1) - roll(f, 1, 1)) / (2.0 * dx)
+def grad_y(f, dy): return (roll(f, -1, 0) - roll(f, 1, 0)) / (2.0 * dy)
+
+def curl_z(vx, vy, dx, dy):
+    return grad_x(vy, dx) - grad_y(vx, dy)
+
+def torsion_suppression_factor(vx, vy, dx, dy, alpha=1.0):
+    """
+    Gamma(omega) = 1/(1 + alpha*omega^2) in (0,1]
+    """
+    omega = curl_z(vx, vy, dx, dy)
+    return 1.0 / (1.0 + alpha * (omega**2)), omega
+
+def suppressed_entropy_production(
+    TA, TB, vx, vy, dx, dy,
+    sigma0=0.01,
+    beta_gradT=0.02,
+    alpha_omega=1.0
+):
+    """
+    Returns production term P_S(x,t) = Gamma(omega) * (sigma0 + beta*|∇(TA-TB)|^2)
+    (You can include more sources if desired.)
+    """
+    dTx = grad_x(TA - TB, dx)
+    dTy = grad_y(TA - TB, dy)
+    gradT2 = dTx**2 + dTy**2
+
+    Gamma, omega = torsion_suppression_factor(vx, vy, dx, dy, alpha=alpha_omega)
+
+    production = (sigma0 + beta_gradT * gradT2) * Gamma
+    return production, Gamma, omega

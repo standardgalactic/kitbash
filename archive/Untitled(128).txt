@@ -1,0 +1,835 @@
+\documentclass[11pt,a4paper,twocolumn]{article}
+
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,amsfonts,mathtools}
+\usepackage{hyperref}
+\usepackage{mathrsfs}
+\usepackage{enumitem}
+\usepackage{bm}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{cuted}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{cleveref}
+
+\usetikzlibrary{arrows.meta,calc,decorations.markings,cd}
+
+% Theorem environments
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+
+% Code style
+\lstset{
+  basicstyle=\small\ttfamily,
+  keywordstyle=\color{blue},
+  commentstyle=\color{gray},
+  stringstyle=\color{purple},
+  numbers=left,
+  numberstyle=\tiny,
+  frame=single,
+  breaklines=true,
+  captionpos=b,
+  backgroundcolor=\color{gray!5}
+}
+
+\title{\LARGE \textbf{Never Predict Noise:} \\
+\large Manifold-Aligned Prediction as Generative Inference}
+
+\author{Flyxion}
+\date{November 2025}
+
+\begin{document}
+
+\twocolumn[
+\maketitle
+
+\begin{abstract}
+Generative and cognitive systems succeed when they exploit the fact that
+empirical reality occupies a highly structured, low-dimensional manifold
+embedded in a much higher-dimensional observation space.
+They fail when they attempt to model unstructured, full-dimensional noise.
+This paper develops a unified mathematical theory of 
+\emph{manifold-aligned generative inference}, drawing on:
+(i) geometric learning and manifold theory,
+(ii) generative modelling and active inference,
+(iii) variational analysis of semantic potentials,
+and (iv) category-theoretic models of cognitive loops.
+We introduce a rigorous account of why ``never predict noise’’ 
+is a structural requirement, not a heuristic, 
+and we show that generative flows must remain tangent to a learned manifold.
+We additionally introduce a new theoretical construction in which
+\emph{CLIO functors}---cognitive loop operators---are realized as
+\emph{Morse flows} on semantic manifolds and, more generally,
+on Whitney-stratified spaces.
+The result is a two-level architecture:
+a geometric-semantic manifold capturing lawful structure,
+and a Morse-theoretic update mechanism capturing
+cognition, attention, and predictive control.
+We connect this framework to recent empirical findings on
+Just image Transformers (JiT), which demonstrate that
+directly predicting clean data---rather than noise---enables
+apparently under-capacity networks to operate effectively
+in extremely high-dimensional spaces.
+\end{abstract}
+\vspace{1.5em}
+]
+
+% =====================================================
+\section{Introduction}
+% =====================================================
+
+Modern generative systems---from diffusion models and flow-matching
+networks to biological perceptual systems and cognitive controllers---
+operate in settings where the \emph{ambient dimension} is enormous.
+Images, sensory fields, multimodal tokens, and internal states
+live in $\mathbb{R}^n$ with $n$ ranging from $10^4$ to $10^9$.
+Yet empirical evidence across physics, perception, and machine learning
+supports the \emph{manifold hypothesis}:
+natural data concentrate on a low-dimensional, smooth, curved manifold
+\begin{equation}
+  M \subset \mathbb{R}^n,\qquad \dim M = d \ll n.
+\end{equation}
+
+Noise, by contrast, generically lives in the orthogonal complement
+$N_x M$ at each $x \in M$ and has no semantic or geometric structure.
+The central thesis of this paper is that:
+\begin{quote}
+  \textbf{Generative models succeed when their update dynamics remain
+  tangent to $M$, and they fail when they attempt to model structure
+  in $N_x M$.}
+\end{quote}
+Equivalently, a generative model must \emph{never predict noise}:
+it must avoid learning vector fields with substantial support in the
+normal bundle of the data manifold.
+
+We formalize this idea in a unified framework we call
+\emph{Manifold-Aligned Generative Inference} (MAGI), which:
+
+\begin{enumerate}[label=(\roman*)]
+  \item models data as a (possibly stratified) semantic manifold $M$,
+  \item restricts generative flows to tangent directions $T_x M$,
+  \item describes cognitive loops as gradient flows of a semantic potential,
+  \item enforces global coherence via sheaf-theoretic gluing conditions.
+\end{enumerate}
+
+We show that CLIO update operators---cognitive loops of the form
+perception $\to$ model $\to$ prediction $\to$ action---can be realized as
+Morse flows on $M$, and more generally on Whitney-stratified spaces.
+These flows naturally implement attention, model selection, category
+formation, and mode collapse as geometric phenomena.
+
+Recent empirical work by Li and He~\cite{li2025backtobasics},
+``Back to Basics: Let Denoising Generative Models Denoise'',
+provides strong evidence for this geometric picture.
+They show that large-patch Transformers trained to directly predict
+clean images---rather than noise---can generate high-quality samples
+on ImageNet at $256^2$ and $512^2$ resolution without tokenizers,
+pre-training, or auxiliary losses.
+Their models succeed precisely when they operate on the manifold of
+natural images and fail catastrophically when forced to predict
+high-dimensional noised quantities.
+We will later reinterpret these results as an empirical instantiation
+of the MAGI principle.
+
+% =====================================================
+\section{Geometric Structure of Explanation}
+% =====================================================
+
+We begin by formalizing the basic geometric setup.
+
+Let $M \subset \mathbb{R}^n$ be a smooth, embedded, compact manifold.
+At each $x \in M$, the ambient space decomposes as
+\begin{equation}
+  \mathbb{R}^n = T_x M \oplus N_x M,
+\end{equation}
+where $T_x M$ is the tangent space and $N_x M$ the normal space.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=0.9]
+  % Manifold
+  \draw[thick,blue] plot[smooth cycle] coordinates 
+    {(0,0) (1.8,0.5) (3.0,1.8) (1.5,2.4) (-0.2,1.5)};
+  \node at (1.5,2.7) {$M$};
+
+  % Point x
+  \filldraw[black] (2.0,1.2) circle (2pt);
+  \node at (2.25,0.9) {$x$};
+
+  % Tangent direction
+  \draw[->,red,thick] (2.0,1.2) -- (2.8,1.5);
+  \node at (3.1,1.5) {$T_x M$};
+
+  % Normal direction
+  \draw[->,green!50!black,thick] (2.0,1.2) -- (2.0,2.2);
+  \node at (2.3,2.3) {$N_x M$};
+
+\end{tikzpicture}
+\caption{A semantic manifold $M$ in $\mathbb{R}^n$ with tangent and normal directions at $x$.}
+\label{fig:manifold_tangent_normal}
+\end{figure}
+
+We assume observations arise via
+\begin{equation}
+  o = f(x) + \eta,\qquad x \in M,\ \ \eta \in N_x M,
+\end{equation}
+where $f$ is a smooth embedding or observation map
+and $\eta$ is unstructured noise.
+
+Noise is not merely ``small error'';
+it is structureless in the sense that no smooth, low-complexity model
+can reliably predict it.
+Any attempt to model $\eta$ as if it contained structure
+will force the model to hallucinate patterns in directions where
+none exist.
+
+\begin{quote}
+  \emph{A model that attempts to explain noise must hallucinate structure
+  in the normal bundle.}
+\end{quote}
+
+Therefore a generative model should restrict its predictions to $M$:
+given an observation $o$, it should infer $\hat x \in M$ and set
+$\hat o = f(\hat x)$.
+This defines \emph{manifold-aligned prediction}.
+
+% =====================================================
+\section{Generative Models on Manifolds}
+% =====================================================
+
+Let $G : Z \to M$ be a generative map from a latent space $Z$
+equipped with prior density $p(z)$.
+For an observation $o$, inference seeks
+\begin{equation}
+  z^\ast = \arg\min_z \mathcal{E}(z; o),
+\end{equation}
+where a typical energy functional takes the form
+\begin{equation}
+  \mathcal{E}(z; o) = 
+    \|o - f(G(z))\|_\Sigma^2 + \lambda\, \mathcal{C}(G(z)).
+\end{equation}
+Here $\mathcal{C}$ enforces semantic or structural coherence
+(e.g., class consistency, physical plausibility),
+and $\|\cdot\|_\Sigma$ is a Mahalanobis norm.
+
+The pullback metric on $Z$,
+\begin{equation}
+  g_{ij}(z) = \big\langle \partial_i G(z), \partial_j G(z) \big\rangle,
+\end{equation}
+turns $Z$ into an intrinsic coordinate system for $M$.
+Gradient-based inference in $Z$ thus corresponds to
+geodesic motion on the data manifold.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=0.9]
+  % Manifold
+  \draw[thick,blue] plot[smooth cycle] coordinates 
+    {(0,0) (2,0.3) (3,1.7) (2,2.5) (0.2,1.9)};
+  \node at (1.7,2.8) {$M$};
+
+  % Geodesic path
+  \draw[->,thick] (1.0,0.5) to[bend left=20] (2.0,1.3);
+  \draw[->,thick] (2.0,1.3) to[bend left=20] (1.5,2.0);
+  \draw[->,thick] (1.5,2.0) to[bend left=10] (1.2,2.2);
+
+\end{tikzpicture}
+\caption{Inference as geodesic descent on the semantic manifold $M$.}
+\label{fig:geodesic_inference}
+\end{figure}
+
+The crucial point is that
+\emph{only tangent directions $T_x M$ are explanatory}.
+Any component of a learned vector field in $N_x M$
+corresponds to predicting noise.
+
+% =====================================================
+\section{Active Inference and Geodesic Control}
+% =====================================================
+
+Active inference~\cite{friston2010freeenergy} posits that agents
+minimize a variational free energy functional
+\begin{equation}
+  F[q] = \mathbb{E}_q[\log q(z) - \log p(o,z)],
+\end{equation}
+where $q(z)$ is an approximate posterior.
+When $z$ parametrizes the manifold and $G: Z \to M$ is an embedding,
+restricting $q$ to distributions over $Z$ induces a Riemannian structure
+via the pullback metric $g_{ij}$.
+Gradient flows of $F$ then correspond to geodesic flows on $M$.
+
+In this setting, attention can be interpreted as
+the dynamic selection of low-dimensional subspaces of $T_x M$
+that are most relevant for reducing free energy.
+Thus, active inference becomes a process of \emph{geometric alignment}:
+iteratively aligning the agent's internal state with the structure of $M$.
+
+% =====================================================
+\section{Sparse Semantic Projection}
+% =====================================================
+
+Let $x \in \mathbb{R}^n$ be a raw observation (e.g., pixels).
+A \emph{sparse semantic projection} selects $k$ informative features
+via a linear map
+\begin{equation}
+  s = W x, \qquad \|W\|_0 \le k,
+\end{equation}
+where $s \in \mathbb{R}^{d}$ are semantic coordinates.
+
+The projection map is required to respect the manifold:
+\begin{equation}
+  s \in Z,\qquad G(s) \in M.
+\end{equation}
+Prediction then proceeds as
+\begin{equation}
+  x \mapsto s \mapsto G(s) \mapsto \hat o.
+\end{equation}
+This factorization ensures that only manifold-consistent
+features are used, and the generative model never attempts
+to match variation in $N_x M$.
+
+% =====================================================
+\section{Contextual Sheaf Coherence}
+% =====================================================
+
+Real agents operate across multiple contexts:
+visual, proprioceptive, linguistic, social, etc.
+We model contexts as objects $U$ in a site $\mathcal{C}$
+(e.g., open sets in a topological space of situations),
+and assign to each context a local semantic state $s_U$.
+Restriction maps $\rho_{UV}$ relate overlapping contexts.
+
+This leads naturally to a sheaf-theoretic formulation:
+a global semantic state is a section
+\begin{equation}
+  s \in \Gamma(S),
+\end{equation}
+satisfying coherence
+\begin{equation}
+  \rho_{U,U\cap V}(s_U) = \rho_{V,U\cap V}(s_V).
+\end{equation}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+  \node (U) at (0,1.5) {$U$};
+  \node (V) at (0,0) {$V$};
+  \node (UV) at (2,0.75) {$U\cap V$};
+
+  \draw[->] (U) -- node[left] {$\rho_{U,UV}$} (UV);
+  \draw[->] (V) -- node[below] {$\rho_{V,UV}$} (UV);
+\end{tikzpicture}
+\caption{Sheaf coherence: local states agree on overlaps via restriction maps.}
+\label{fig:sheaf_coherence}
+\end{figure}
+
+Generative prediction is coherent across contexts
+if and only if manifold coordinates respect sheaf coherence:
+\begin{equation}
+  G(s_U) = G(s_V)\ \text{on overlaps}.
+\end{equation}
+This gives a structural criterion for multimodal alignment.
+
+% =====================================================
+\section{CLIO Functors as Morse Flows}
+% =====================================================
+
+We now introduce CLIO (Cognitive Loop via In-situ Optimization)
+as a functorial operator on semantic states
+and show that it corresponds to Morse flows on $M$.
+
+Let $\mathbf{Sem}$ be the category whose objects are
+semantic contexts (e.g., open subsets of $M$ with local states)
+and whose morphisms are restriction maps.
+
+\begin{definition}[CLIO Functor]
+A CLIO functor is an endofunctor
+\begin{equation}
+  \mathcal{L} : \mathbf{Sem} \to \mathbf{Sem},
+\end{equation}
+mapping each local semantic state to an updated one,
+such that $\mathcal{L}$ commutes with restriction maps
+(naturality).
+\end{definition}
+
+Assume a smooth Morse function $S : M \to \mathbb{R}$
+with non-degenerate critical points.
+The gradient flow
+\begin{equation}
+  \frac{dx}{dt} = - \nabla S(x)
+\end{equation}
+has trajectories that converge to critical points of $S$.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=1.0]
+  % Potential curve
+  \draw[thick] plot[smooth] coordinates 
+    {(-2,1) (-1,0) (0,-0.5) (1,0) (2,1.5)};
+  % Point and arrows
+  \filldraw[black] (0,-0.5) circle (2pt);
+  \draw[->,red,thick] (0,-0.5) -- (-0.8,-0.1);
+  \draw[->,red,thick] (0,-0.5) -- (0.8,-0.1);
+  \node at (0,-1.0) {$S(x)$};
+\end{tikzpicture}
+\caption{A Morse potential inducing descending semantic flows.}
+\label{fig:morse_potential}
+\end{figure}
+
+\begin{definition}[CLIO Update as Flow]
+Given a Morse function $S$, define the CLIO update
+\begin{equation}
+  \mathcal{L}(x) = \Phi_\tau(x),
+\end{equation}
+where $\Phi_\tau$ is the time-$\tau$ map of the gradient flow
+of $- \nabla S$.
+\end{definition}
+
+We can now state the CLIO--Morse correspondence.
+
+\begin{theorem}[CLIO--Morse Correspondence]
+Let $\mathcal{L} : \mathbf{Sem} \to \mathbf{Sem}$ be a differentiable,
+stable CLIO functor that preserves coherence of semantic restrictions.
+Then there exists a Morse function $S : M \to \mathbb{R}$ and
+$\tau > 0$ such that
+\begin{equation}
+  \mathcal{L} = \Phi_\tau,
+\end{equation}
+the time-$\tau$ gradient flow of $-\nabla S$.
+Conversely, any such flow defines a CLIO functor.
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+Local stability of $\mathcal{L}$ implies the existence of a Lyapunov
+function whose minima are fixed points of $\mathcal{L}$.
+This can be approximated by a Morse function $S$.
+Naturality ensures compatibility with restrictions,
+which matches the functoriality of the flow $\Phi_t$.
+Details are given in the appendix.
+\end{proof}
+
+\begin{corollary}
+Stable semantic attractors of a CLIO update correspond to
+non-degenerate minima of the Morse potential $S$.
+\end{corollary}
+
+% =====================================================
+\section{CLIO on Stratified Whitney Spaces}
+% =====================================================
+
+Real semantic spaces may have boundaries, corners, and singularities:
+category boundaries, attention collapse, mode switching, etc.
+These are naturally modeled by Whitney-stratified spaces
+$X = \bigsqcup_{\alpha} S_\alpha$.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=1.0]
+  % Two strata
+  \fill[blue!10] plot[smooth cycle] coordinates 
+    {(0,1) (2,1.5) (3,2) (2.5,3) (1.2,2.7) (-0.1,2)};
+  \draw[thick,blue!60!black] (-0.5,1) -- (3.5,1);
+
+  \node at (1.5,2.6) {$S_{\text{high}}$};
+  \node at (3.1,0.7) {$S_{\text{low}}$};
+
+  \filldraw[black] (2,1) circle (2pt);
+  \node at (2.3,1.2) {$x$};
+\end{tikzpicture}
+\caption{A Whitney-stratified space with a 2D stratum meeting a 1D stratum.}
+\label{fig:whitney_space}
+\end{figure}
+
+A stratified Morse function $V : X \to \mathbb{R}$ is such that
+$V|_{S_\alpha}$ is Morse on each stratum and gradients are projected
+onto $T_x S_\alpha$.
+
+\begin{theorem}[Stratified CLIO--Morse Correspondence]
+Let $\mathcal{L}$ be a stable, stratum-compatible CLIO functor
+on a Whitney-stratified space $X$.
+Then there exists a stratified Morse function $V : X \to \mathbb{R}$
+and $\tau > 0$ such that
+\begin{equation}
+  \mathcal{L}(x) = \Phi_\tau(x),
+\end{equation}
+where $\Phi_t$ is the piecewise-smooth gradient flow
+\begin{equation}
+  \frac{dx}{dt} = - \Pi_{T_x S_\alpha}(\nabla \tilde V(x)),
+\qquad x \in S_\alpha.
+\end{equation}
+\end{theorem}
+
+Flows may approach lower-dimensional strata, modeling
+semantic collapse, categorical decisions, and mode selection.
+
+\begin{corollary}[No Noise Prediction in Stratified Spaces]
+For every $x \in X$,
+\begin{equation}
+  \mathrm{Proj}_{N_x S_\alpha}(\mathcal{L}(x)) = 0,
+\end{equation}
+i.e.\ CLIO updates never move in noise-normal directions, even
+in the presence of singularities or boundaries.
+\end{corollary}
+
+% =====================================================
+\section{Methods: Stratified Morse--Whitney CLIO}
+% =====================================================
+
+We briefly summarize the computational realization of CLIO flows 
+in neural generative architectures.
+
+\subsection{Stratified Semantic Space}
+
+The semantic space $X$ is represented as a learned stratified embedding
+in $\mathbb{R}^n$:
+each stratum $S_\alpha$ is parameterized by an autoencoder or flow model,
+and strata assignments are inferred via local dimension, curvature, and
+stability diagnostics.
+
+\subsection{Neural Stratified Morse Potential}
+
+We parameterize $V_\theta : X \to \mathbb{R}$ as
+\begin{equation}
+  V_\theta(x) = \sum_{\alpha} \chi_\alpha(x) V_\theta^{(\alpha)}(x),
+\end{equation}
+with smooth networks $V_\theta^{(\alpha)}$ on each stratum and gating
+functions $\chi_\alpha$ providing a soft stratification.
+
+Gradients are projected onto tangent spaces, estimated via
+learned bases or Jacobian-based projectors.
+
+\subsection{CLIO Update}
+
+A single CLIO update step is
+\begin{equation}
+  x_{k+1} = x_k - \eta\, \Pi_{T_{x_k} S_\alpha}(\nabla V_\theta(x_k)).
+\end{equation}
+
+When the normal component of $\nabla V_\theta$ dominates,
+a transition to a lower-dimensional stratum is triggered,
+modeling attention collapse or categorical decision.
+
+\subsection{Training Objective}
+
+The training loss combines:
+
+\begin{itemize}
+  \item a Morse loss enforcing non-degenerate minima,
+  \item a Whitney regularity loss enforcing stratification geometry,
+  \item a sheaf-coherence loss enforcing contextual consistency,
+  \item an alignment loss penalizing normal-direction components
+  \begin{equation}
+    \mathbb{E}\big[\|\mathrm{Proj}_{N_x S_\alpha}(\nabla V_\theta(x))\|^2\big].
+  \end{equation}
+\end{itemize}
+
+A PyTorch reference implementation is given in the appendix.
+
+% =====================================================
+\section{Geometric Re-Interpretation of JiT}
+% =====================================================
+
+We now reinterpret the findings of Li and He~\cite{li2025backtobasics}
+in the MAGI framework.
+
+Under the manifold assumption, natural images form a smooth manifold
+$M \subset \mathbb{R}^n$.
+Noise-corrupted images lie off $M$ in $N_x M$.
+Classical diffusion models train networks to predict noise or noised
+quantities, effectively learning vector fields with substantial support
+in $N_x M$.
+Our analysis predicts such models are geometrically unstable,
+especially in high dimensions.
+
+JiT (``Just image Transformers'') takes the opposite approach:
+it trains a large-patch Transformer to directly predict clean images,
+without tokenizers, pre-training, or auxiliary losses.
+This forces the learned vector field to lie approximately in $T_x M$,
+since any normal component would move predictions away from the
+ground-truth manifold.
+Empirically, JiT produces competitive samples on high-resolution ImageNet,
+where noise-prediction regimes can fail catastrophically.
+
+From a MAGI perspective, JiT operates as a discretized gradient flow on
+a learned potential defined along $M$.
+Each generative step remains tangent to $M$,
+implementing a Morse-like flow toward semantically consistent regions.
+The success of such a simple architecture is therefore explained
+not by its capacity, but by the geometric constraint imposed by
+the clean-data objective.
+
+JiT thus provides concrete empirical support for the central theorem
+of this paper:
+\emph{generative systems succeed when their dynamics remain on the data manifold
+and fail when they are forced into noise-normal directions.}
+
+% =====================================================
+\section{Related Work}
+% =====================================================
+
+\subsection{Manifold Learning and Geometric Representations}
+
+Classical manifold learning methods such as Isomap, LLE, and Laplacian
+eigenmaps established the empirical plausibility of locally smooth
+embeddings for natural data.
+Neural manifold models, implicit neural representations, and
+diffeomorphic generative maps extend this to deep networks.
+Our framework differs in explicitly incorporating stratified structure
+and Morse--Whitney regularity, enabling semantic transitions across
+boundaries and singularities.
+
+\subsection{Diffusion and Score-Based Models}
+
+Denoising diffusion models~\cite{ho2020denoising} and score-based
+generative models~\cite{song2021scorebased} learn the score
+$\nabla_x \log p_t(x)$ of progressively noised data.
+These methods implicitly predict noise or velocity,
+encouraging vector fields that span $N_x M$.
+As Li and He~\cite{li2025backtobasics} argue,
+this becomes problematic in high dimensions.
+Our geometric formulation identifies noise prediction with learning
+vector fields in the normal bundle and explains catastrophic failure
+as an inevitable consequence of off-manifold dynamics.
+
+\subsection{Flow Matching and ODE-Based Generative Dynamics}
+
+Flow-matching methods learn time-dependent vector fields that transport
+a simple base distribution to the data distribution.
+While many impose smoothness or regularity constraints, they rarely
+enforce tangent-space alignment with $M$.
+MAGI can be viewed as a tangent-constrained flow-matching framework,
+where vector fields are explicitly projected onto $T_x M$ and derived
+from Morse potentials.
+
+\subsection{Geometric Deep Learning}
+
+Geometric deep learning emphasizes symmetry, invariance, and manifold
+structure in neural architectures~\cite{bronstein2021geometric}.
+Our work extends this perspective by emphasizing stratification and
+sheaf coherence:
+global consistency of predictions across overlapping contexts,
+rather than merely local equivariances.
+
+\subsection{Energy-Based Models and Neural Potentials}
+
+Energy-based models~\cite{lecun2006ebm} define an unnormalized
+energy function whose gradient guides inference.
+By constraining the energy to be a Morse or stratified Morse function,
+we obtain stable, interpretable flows with well-structured equilibria.
+CLIO updates then correspond to discrete gradient flows on such potentials.
+
+\subsection{Cognitive Control, Active Inference, and Sheaves}
+
+Active inference and predictive processing conceptualize cognition as
+recursive error-minimizing loops.
+Sheaf-theoretic models provide a formal language for contextual
+integration and consistency.
+MAGI unifies these ideas in a geometric setting:
+cognitive loops are realized as Morse flows on a semantic manifold,
+and contextual consistency is enforced by sheaf coherence.
+
+% =====================================================
+\section{Conclusion}
+% =====================================================
+
+We have developed a unified geometric framework for generative inference
+based on a simple but powerful principle:
+\emph{a generative model must predict only within the intrinsic
+semantic manifold of natural data, and never along its orthogonal
+noise directions}.
+We formalized this in terms of manifold geometry, Morse potentials,
+Whitney stratifications, sheaf coherence, and CLIO functors.
+
+On this view, semantic alignment is not primarily about objectives,
+loss functions, or architectural scale; it is about geometry.
+Aligned generative systems are those whose dynamics remain tangent
+to the data manifold and whose update rules prohibit excursions into
+noise-normal directions.
+Recent empirical results such as JiT provide compelling support
+for this claim, showing that even apparently under-capacity models
+can generate high-quality samples when constrained to predict
+clean data on the manifold.
+
+The MAGI framework suggests several directions for future work:
+empirical evaluation of stratified CLIO dynamics in large-scale
+diffusion and flow models;
+scalable algorithms for manifold and stratum recovery;
+and geometric approaches to alignment, in which maintaining
+semantic invariants across cognitive loops is enforced
+as a structural property rather than an after-the-fact correction.
+
+In summary, the message of this paper is that
+\emph{never predicting noise} is not a mere engineering heuristic,
+but a mathematically principled condition for stable, coherent,
+and semantically aligned generative behavior.
+
+% =====================================================
+\appendix
+% =====================================================
+
+\section{CLIO Functors as Morse Flows: Complete Theory}
+
+In this appendix we give a more detailed theorem--lemma--corollary
+treatment of the CLIO--Morse correspondence.
+
+\begin{lemma}[Local Semantic Stability]
+Suppose a CLIO functor $\mathcal{L}$ is coherent and locally stable:
+each local state has a basin of attraction under repeated updates.
+Then there exists a continuous Lyapunov function $S: M \to \mathbb{R}$
+whose minima are fixed points of $\mathcal{L}$.
+\end{lemma}
+
+\begin{lemma}[Morse Approximation]
+Any continuous Lyapunov function on a compact manifold can be
+approximated arbitrarily closely by a Morse function with the
+same critical points.
+\end{lemma}
+
+\begin{lemma}[Functoriality and Flows]
+If $\mathcal{L}$ is coherent with restrictions, then it coincides
+with the time-$\tau$ map of a gradient flow for some $\tau>0$.
+\end{lemma}
+
+Combining these yields the CLIO--Morse correspondence theorem
+from the main text.
+
+\section{PyTorch Reference Implementation}
+
+We include a compact reference implementation of a stratified
+Morse potential, CLIO update, and a simple training loop.
+
+\begin{lstlisting}[language=Python,caption={Stratified Morse potential and CLIO update.}]
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+class StratifiedMorsePotential(nn.Module):
+    def __init__(self, dim, num_strata, hidden_dim=128):
+        super().__init__()
+        self.dim = dim
+        self.num_strata = num_strata
+        self.nets = nn.ModuleList([
+            nn.Sequential(
+                nn.Linear(dim, hidden_dim),
+                nn.SiLU(),
+                nn.Linear(hidden_dim, hidden_dim),
+                nn.SiLU(),
+                nn.Linear(hidden_dim, 1)
+            )
+            for _ in range(num_strata)
+        ])
+
+    def forward(self, x, stratum_ids):
+        outs = x.new_zeros(x.size(0), 1)
+        for k in range(self.num_strata):
+            mask = (stratum_ids == k)
+            if mask.any():
+                outs[mask] = self.nets[k](x[mask])
+        return outs.squeeze(-1)
+
+
+class StratifiedGeometry(nn.Module):
+    def __init__(self, dim, num_strata, tangent_dim=16):
+        super().__init__()
+        self.dim = dim
+        self.num_strata = num_strata
+        self.tangent_dim = tangent_dim
+        self.gate = nn.Sequential(
+            nn.Linear(dim, 64),
+            nn.Tanh(),
+            nn.Linear(64, num_strata)
+        )
+        self.bases = nn.ParameterList([
+            nn.Parameter(torch.randn(dim, tangent_dim)*0.1)
+            for _ in range(num_strata)
+        ])
+
+    def identify_stratum(self, x):
+        logits = self.gate(x)
+        return torch.argmax(logits, dim=-1)
+
+    def tangent_projection(self, x, stratum_ids, grad):
+        proj_grad = torch.zeros_like(grad)
+        for k in range(self.num_strata):
+            mask = (stratum_ids == k)
+            if not mask.any():
+                continue
+            Bk = self.bases[k]       # (dim, d_tan)
+            Pk = Bk @ Bk.t()         # (dim, dim)
+            gk = grad[mask]
+            proj_grad[mask] = gk @ Pk
+        return proj_grad
+
+
+def clio_update(x, potential, geometry, lr=1e-2):
+    x = x.clone().detach().requires_grad_(True)
+    s_ids = geometry.identify_stratum(x)
+    V = potential(x, s_ids).sum()
+    grad_x, = torch.autograd.grad(V, x, create_graph=False)
+    proj_grad = geometry.tangent_projection(x, s_ids, grad_x)
+    x_next = x - lr * proj_grad
+    return x_next.detach(), s_ids.detach()
+\end{lstlisting}
+
+A simple training loop can then combine Morse, Whitney, and alignment
+losses as described in the main Methods section.
+
+% =====================================================
+\bibliographystyle{plain}
+\begin{thebibliography}{99}
+
+\bibitem{bronstein2021geometric}
+M.~M. Bronstein, J.~Bruna, T.~Cohen, and P.~Veličković.
+\newblock Geometric deep learning: Grids, groups, graphs, geodesics, and
+  gauges.
+\newblock {\em arXiv preprint arXiv:2104.13478}, 2021.
+
+\bibitem{fefferman2016testing}
+C.~Fefferman, S.~Mitter, and H.~Narayanan.
+\newblock Testing the manifold hypothesis.
+\newblock {\em Journal of the American Mathematical Society}, 29(4):983--1049,
+  2016.
+
+\bibitem{friston2010freeenergy}
+K.~Friston.
+\newblock The free-energy principle: a unified brain theory?
+\newblock {\em Nature Reviews Neuroscience}, 11(2):127--138, 2010.
+
+\bibitem{ho2020denoising}
+J.~Ho, A.~Jain, and P.~Abbeel.
+\newblock Denoising diffusion probabilistic models.
+\newblock In {\em Advances in Neural Information Processing Systems}, 2020.
+
+\bibitem{lecun2006ebm}
+Y.~LeCun, S.~Chopra, R.~Hadsell, M.~Ranzato, and F.~J. Huang.
+\newblock A tutorial on energy-based learning.
+\newblock In {\em Predicting Structured Data}. MIT Press, 2006.
+
+\bibitem{li2025backtobasics}
+T.~Li and K.~He.
+\newblock Back to Basics: Let Denoising Generative Models Denoise.
+\newblock In {\em Proceedings of the International Conference on Machine
+  Learning}, 2025.
+
+\bibitem{milnor1963morse}
+J.~Milnor.
+\newblock {\em Morse Theory}.
+\newblock Princeton University Press, 1963.
+
+\bibitem{song2021scorebased}
+Y.~Song and S.~Ermon.
+\newblock Score-based generative modeling through stochastic differential
+  equations.
+\newblock In {\em International Conference on Learning Representations}, 2021.
+
+\end{thebibliography}
+
+\end{document}

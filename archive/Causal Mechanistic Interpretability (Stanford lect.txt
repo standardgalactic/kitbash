@@ -1,0 +1,2070 @@
+Yeah. So, thanks for having me today.
+I'm Adakus Guyger. I'm at Goodfire and
+there's a lot of talk of mechanistic
+interpretability being a sort of
+pre-paradic field where we're still
+figuring out what to do. But I see a
+sort of emerging causal paradigm in the
+field and I'm going to walk you through
+how I kind of view the role of causality
+in understanding these blackbox systems.
+Cool.
+So, first I think a useful sort of
+situating perspective to have with
+mechanistic interpretability comes from
+this opinion piece cleverly titled
+mechanistic question mark. Um, and it
+defines a couple different angles on
+what we mean when we say the word
+mechanistic. So, one very narrow
+cultural definition you might have
+picked up on if you just read the
+literature or look at blog posts is
+there are a lot of AI safety researchers
+who are very invested in this field for
+sort of philosophical reasons about like
+how it might save the world. There's
+also a broad cultural definition which
+is just people who are interested in
+peeking into the black box and figuring
+out how models do the cool things that
+they do. You could take a broad
+technical definition where it's just
+anyone who wants to look inside the
+model and do research is a mechanistic
+interpretability researcher. Or you
+could take a narrow technical definition
+and say that mechanistic
+interpretability is understanding the
+internals of neural network models
+through their causal mechanisms. And
+this narrow technical definition is the
+one that I like to adopt in an
+opinionated way. Um, yeah. And so I'll
+walk through how I view the role of
+causal mechanisms in all of the research
+that you've been thinking about and
+seeing in this class.
+So to start, I'm going to just talk
+about activation steering, which is I
+think a really grounded and simple to
+understand setting. And then I'll move
+to causal mediation analysis and then
+causal abstraction. and I'll close on
+some of the complexities that come with
+doing uh analysis involving
+counterfactual inputs to neural
+networks.
+So starting with activation steering, I
+wouldn't be surprised if a lot of you
+had your first contact with the ideas of
+mechanistic interpretability through
+Golden Gate Claude. So this was a very
+sort of canonical moment in the field
+where Anthropic released a version of
+Claude where they took a feature labeled
+for the Golden Gate Bridge and they
+added it into the internal
+representations of their language model.
+And the result was a language model that
+would just talk to you like it was the
+Golden Gate Bridge or it likes to talk
+about the Golden Gate Bridge, but really
+would just bring up the Golden Gate
+Bridge a lot. And this is something that
+I think a lot of people saw and it got
+them thinking, oh, there's something
+going on inside these models. We can
+manipulate the insides of these models
+and these manipulations can have
+downstream impacts on the behavior that
+are sort of intelligible and
+interpretable to just a average person.
+And this has sort of like borne out into
+a larger sort of like sub area that is
+currently going by the name of steering
+which is just adding in a vector to
+model internals to change the behavior
+of that model.
+And so I'm going to walk us through a
+sort of very simple but very robust
+setting for steering. So this is called
+difference in mean steering. So suppose
+you have a language model and it has the
+misaligned behavior of enjoying
+weddings. You say how is your sister
+wedding and it says wonderful and you
+want to fix this. So what you do is you
+collect a bunch of prompts of people
+talking about how much they hate
+weddings and a bunch of prompts of
+people talking about how much they love
+weddings. Then you run those prompts
+through the language model. You harvest
+internal activations. So you just
+collect what are the activation vectors
+generated on the I hate wedding prompts
+and the I love wedding prompts. And then
+what you can do is you take the average
+of all the activations for I love
+weddings, all the activations for I hate
+weddings, and then you take the
+difference between the means of those
+activations. So now you have a steering
+vector which is going to steer in the
+direction of I hate weddings. And that
+allows you to add it in to your model
+internals and fix the behavior. So now
+your model no longer likes weddings. It
+thinks the wedding was horrible. And so
+this is a very basic idea from going
+from collecting data that exhibits some
+sort of behavior one way or the other a
+contrasting behavior and then using that
+to form a vector that can be used to
+manipulate the internals of models. So
+this is just a very basic idea about how
+you would want to use an intervention.
+So going in and fixing something to a
+value it wouldn't have actually
+naturally taken to control a model.
+And so in a recent paper that was done
+at Stanford, Axebench evaluates a
+variety of methods of controls uh to
+understand the role of steering and how
+successful it actually is at this task.
+The setup here is that we have a prompt
+and we have a steering prompt. So the
+prompt might be how was my I went to my
+sister's wedding. How was it? the
+steering prompt is oh talk negatively
+about weddings or here it's who are you
+and the steering prompt is golden gate
+then the output from a method of control
+here is going to be an updated model a
+model that has been altered in some way
+and now is going to have the behavior
+that you want it to and our evaluation
+is that we just judge the generated text
+we know the user prompt that we put in
+and we also know the steering prompt so
+if the model responds I'm golden gate
+bridge a famous dot dot dot then we have
+evidence of successful steering
+occurring
+and so what axebench shows is that you
+can evaluate the results of this
+steering and compare these methods so
+our evaluation is
+on coherence so it needs to be speaking
+English still it needs to follow the
+original prompt and we need to see the
+steering effect we have lms judge each
+of these categories separately between
+zero and two and we take the harmonic
+mean which is a pretty harsh metric.
+That means if any of those scores are
+zero, you get a zero overall. And so
+then we evaluate a bunch of different
+methods on how you can control the
+language model to get the desired
+behavior. And so something that should
+be very intuitive to you if you've
+interacted with this technology at all
+is that prompting is a very powerful way
+of controlling these language models. If
+all you really want is a language model
+that will pretend to be the Golden Gate
+Bridge, you just ask who are you but
+pretend to be the Golden Gate Bridge and
+it will do that. these other methods
+here uh Lauras and supervised
+fine-tuning these are methods for very
+traditional methods for controlling
+networks right this is how we train them
+and so it's not surprising that if all I
+want is an artifact that we'll talk
+about the Golden Gate Bridge I can
+actually just use traditional
+fine-tuning methods to just create that
+artifact and together prompting and
+fine-tuning methods are just clearly the
+most successful way to construct a new
+model that exhibits this behavior and
+this shouldn't be mind-blowing that It's
+not steering, but it should just remind
+you that these are very powerful methods
+and that steering currently, while it's
+a fun idea and it sort of gives us some
+insight into how we can manipulate a
+model, it's nowhere near sort of being
+state-of-the-art for doing anything.
+Um, so ref R1 on this table is a
+supervised steering vector. So instead
+of doing this difference in means method
+where we harvest a bunch of activations
+and then we compute a vector from them,
+if we have the goal of having the model
+talk about being the golden gate bridge,
+we can just fine-tune the steering
+director the the steering vector
+directly to achieve that goal. This is
+our difference in means method which
+also gets decent steering performance
+but not as good as the supervised
+method. And these are sparse
+autoenccoders uh direct uh features used
+for steering. And you'll learn later
+about what sparse auto-enccoders are.
+But the the main takeaway from this
+paper is is that if you want to control
+a model, you should use prompting and
+fine-tuning. If you want to steer a
+model, you should use a supervised
+steering vector or one harvested from
+this sort of difference in mean steering
+process.
+and that the sparse autoenccoder
+features that are given all these labels
+are not actually very effective on
+average at controlling the model
+behavior in the way you'd expect. I'll
+end this little section with just some
+pointers to literature and I'll share
+the slides so you guys can use these uh
+can see these and click on the links.
+The early papers involving controlling
+neural networks were just manipulating
+individual neurons. Uh more recent
+papers that start using the word
+steering and steering vectors are seen
+here. Axebench and then Golden Gate
+Claude. And like I said, we can have
+questions throughout. So this is the
+steering thing. So if we have questions
+on that, feel free.
+>> Yeah. Question about axen. Um I was
+wondering how exactly they're like doing
+this evaluation for um where are these
+numbers coming from in terms of uh like
+evaluating how how effectively the
+steering was.
+>> Yeah. So it comes down to
+these metrics. Coherence, prompt
+following, and steering effect. Three
+evaluations each done by a separate
+judge LM. So like fed into chat GBT or
+something. Yeah. LM judge. Exactly.
+>> Yep.
+>> So what is the sophistication of the
+concepts that you can steer it? Like for
+example, can you just steer it towards
+truth?
+What determines like what you can and
+cannot steer? So actually one of the the
+the the paper that invented the
+difference in mean steering method or
+invented but sort of like started using
+it for the first time is uh about
+steering for truthfulness. So that was
+the thing that they were actually
+exactly going for. I would say overall
+like currently what we steer for are
+pretty coarse grained objectives.
+They're not super fine grained where you
+can say like uh talk about the Golden
+Gate Bridge but also talk about it in
+French and be funny. Like I think
+there's a lot to be said for more
+complex control objectives possibly
+making steering more useful. And I think
+right now our objectives are pretty
+crude and it's not that surprising that
+steering is not sort of a competitive
+state-of-the-art method for achieving
+control.
+>> The tasks that they're evaluating on are
+like things like what you showed in the
+last slide where it's like the uh you
+know act like you're building a bridge
+or something like this.
+>> Yes. And in fact on this benchmark all
+of the steering prompts come from the
+gemoscope SAES exactly and the reason we
+do that was to give SAEs the best shot
+at being successful on the benchmark. So
+they're just steering for the prompts
+that they were actually assigned during
+the auto interpretability pipeline.
+Yeah, it's okay if that doesn't make
+sense because we haven't covered SAEs.
+So
+cool.
+Then I will move on to the next topic of
+causal mediation analysis.
+So causal mediation analysis is actually
+a pretty mature idea at this point in
+the field of causality, in the field of
+medicine. It's how we ask basic
+questions about if we have a variable X
+that affects a variable Y and it has
+some total effect on that variable,
+how is that effect mediated by a third
+variable Z? And so this might be I take
+some uh I um actually I was going to do
+a medical example but I actually don't
+know what people do in medical settings.
+I'll just stick with the LM example that
+comes up next. But the basic idea here
+for the ste for the causal mediation is
+this Z is called a mediator and we want
+to know whether the effect from X to Y
+flows through Z. The indirect effect is
+the effect that flows through Z and the
+direct effect goes directly from X to Y.
+And so this is a way of decomposing the
+total effect between two variables as
+whether it flows through a third
+variable. And like I said, this is an
+old idea that is not at all grounded in
+mechanistic interpretability inherently,
+but it is one of the first sort of touch
+points we have for making contact with
+uh causality in the field of mechanistic
+interpretability. And so in our setting
+typically the X is just going to be the
+input to a model. And so if we do some
+intervention on the input, we edit the
+text that we provide to a model. And
+then that will affect the model's
+output. Clearly the question is how do
+intermediate parts of the model so like
+neurons or vectors or attention heads or
+whatnot mediate this causal effect?
+So suppose the edit that you did was you
+changed the word nurse in a prompt to
+the word man. We might then have the
+question, well, there's some total
+effect, but how is that effect mediated
+by this neuron Z? And so what you can do
+is you can run the model again, except
+you fix this neuron Z to be what it
+would have been on the nurse prompt. And
+so this gives us the exact experiment
+that we want to compute the direct
+effect, the effect that doesn't flow
+through Z. But then we can also do the
+opposite. We plug in nurse but then we
+fix the neuron Z to be the value it
+would have taken for the input man. And
+so this is the indirect effect. And this
+is causal mediation analysis. And this
+is the language that causal mediation
+analysis gives you to talk about a
+system. Point X point Y the flow from X
+to Y can be decomposed into a direct and
+indirect effect. So now if we move into
+another neural network setting causal
+tracing the intervention that we're
+going to be performing in causal tracing
+is just as adding noise into a token
+embedding to a model. So suppose the
+input is the space needle is in downtown
+blank. Clearly the model should be
+answering Seattle if it understands our
+world and it does in fact output
+Seattle. But now what happens if we
+start adding in Gaussian noise to the
+embeddings for the space needle? Well,
+its probability of predicting Seattle
+will gradually go down because as you
+add more and more in noise, it doesn't
+actually know what you're asking it
+about. But in causal tracing, what we do
+is we add in this Gaussian noise, but
+then we restore certain components
+within the path from input to output to
+what original uncorrupted values they
+had. And this gives us a signal for
+whether they are sufficient as a causal
+mediator to sort of give us the desired
+behavior of outputting Seattle. And so
+what you can see in this little graph is
+so each index each little slice in this
+graph is how much is the word Seattle
+upweighted if I restore this chunk of
+the network. And so here are the tokens
+we're inputting and going from left to
+right are layers of a transformer model.
+And what this is showing us is that if
+we restore these layers here, we get the
+model say still say Seattle, but also if
+we restore these layers later on in the
+network that are later on in the token
+sequence as well, you can store Seattle.
+So we're sort of tracing the causal flow
+from an input token to an output token.
+And this is telling us sort of like how
+the network is moving around the
+information as it retrieves this fact
+about the Space Needle being in Seattle.
+And this is just on the residual stream
+of a transformer. So sort of the the
+global memory space that happens after
+each transformer layer. But you can also
+do this for MLPS or attention heads. So
+other components of the transformer. So
+when you do this with MLPS, what you see
+is that early on in the transformer,
+there are a little block of MLPS that
+are responsible for retrieving the fact
+Seattle. So what they do is they read
+out information about the tokens, the
+space needle, and then they write out
+information about the token Seattle that
+gets output later on.
+And then in this third graph I'll show
+we do the same thing or we mang it at
+all do the same thing for attention
+heads. And you can see here at the end
+of the network at the last token, there
+are attention heads responsible for
+bringing over this information computed
+about se Seattle being in the the Space
+Needle being in Seattle over here and
+they're brought over to the final token
+residual stream. So the output can be
+Seattle. So I'll pause on this because I
+think this is a pretty dense slide, but
+this was a pretty impactful and
+well-known paper that uses causal
+mediation analysis. So if we have any
+questions about it, I'll I'll take a
+pause.
+>> Yeah. So you're adding Gausian noise to
+like um the the vector in the residual
+street that corresponded originally to
+that original um token or
+>> So we're adding the Gaussian noise to
+the token embeddings.
+>> Okay.
+>> And then we're restoring these locations
+to the unnoised version. So when you add
+in the noise to the token embeddings
+that affects the whole network but then
+we can restore certain pieces of that
+network and then observe whether the
+original behavior still occurs.
+>> So it's like taking what that part of
+network looked like on a regular for
+>> Exactly. Exactly.
+>> Actually this came up in our last
+lecture. Um so it seems like the fact
+that Seattle
+is stored in the MLP and you're saying
+it's transferred by attention.
+>> Yeah. And it seems like a general kind
+of thought out there is that most facts
+are stored in what extent is that a
+general statement versus
+>> I think the other competing factor would
+be the token embeddings. So the token
+embeddings themselves can also store a
+dense amount of information and some
+world knowledge might just be stored in
+those straight out. Um which is a very
+classic like wordtovec type result or
+whatever. And so I think it's going to
+be the MLPS or the token embeddings, but
+realistically there's not really
+anywhere else in the network for it to
+be stored because all the other
+parameters are attention heads and
+that's just kind of rooting around
+information.
+>> Would it be possible to like replace?
+>> Yes, that's uh yeah, that's exactly uh
+something we'll be talking about next.
+And I actually think those are the most
+interesting uh interventions you can
+perform on networks. So just adding in
+Gaussian noise to the network sort of
+you know is an ablation. It degrades
+information and you can see a
+corresponding degrade in behavior. But
+the type of interventions I'm personally
+most interested in in my research are
+those that are meant to sort of
+systematically manipulate behavior not
+say oh what if instead of the space
+needle you were garbled text what if
+instead of the space needle you were the
+coliseum or you were the Eiffel Tower.
+And those are the interesting
+counterfactuals to me because then you
+have an expectation on what the model
+should do. it should then say Rome or
+Paris. And so that's why I think you
+know activation patching is like a word
+people use for those types of
+interventions is like a really important
+method uh for grounding out the sort of
+causal analysis we want to do.
+>> Yeah.
+>> How do you decide um the extent to which
+you need to patch and [snorts] in this
+case it says 10 layers like is that all
+layers in this model like what is the
+threshold?
+>> That's a great question. I didn't
+address that at all. So in the original
+paper and I think this is just to get
+chunky nicel looking graphs basically
+they don't restore individual layers so
+like a single MLP they actually restore
+that layer plus or minus five so 10 MLPS
+altogether and so each little slice in
+this heat map actually indicates an
+intervention that's occurring across 10
+layers of the transformer that are
+restoring 10 MLPS or 10 attention heads
+blocks. Um, and if you if you look at
+the other graphs in the paper, which
+they have the other graphs as well, they
+just look a lot fainter, a lot more
+distributed, which is just basically
+because there's not a single MLP
+grabbing the fact Seattle or or the fact
+that Space Needle is in Seattle. There's
+a a bunch of MLPS across layers that do
+this incrementally.
+>> And like what fraction of the model is
+this? Like how many layers does the
+original model have? So the original
+model for this model I forget what the
+model is but it goes up to something
+like 40 or 50 here it seems like. Um and
+then how much of it I mean MLPS are a
+large amount of the weights of a model
+and so 10 MLPS is going to be like a
+fifth of that. So like a good chunk of
+it but you also could think you could do
+something a lot more targeted to get
+this uh type of performance if you
+weren't restoring the entire MLP. I
+would expect that there's going to be
+some low rank kind of part of this MLP
+participating in this factual recall.
+And I mean the whole point of this paper
+is like in addition to causal tracing is
+then going into the MLP weights and
+performing edits to change these facts.
+There's been a lot of follow-up work on
+like sort of like how effective that was
+and how necessary the tracing analysis
+was to get those results. And so it's
+not what I'm trying to want to super
+focus on, but I'd check out the causal
+tracing paper uh for more details. So
+pointers to the literature. Um so there
+is a growing number of papers that have
+explicitly embraced causal mediation
+analysis as the sort of framework
+they're engaging with for doing analysis
+of neural networks.
+But there are also a lot of papers who
+won't use the word causal mediation
+analysis necessarily, but they say
+concept eraser or neuron clamping. So
+there's lots of different words we have
+for destroying information inside of
+neural representations, but I also think
+these are all perfectly well understood
+in this framework of mediation analysis.
+And then there's, you know, this very
+large sort of uh circuits uh research
+program. And I would say the circuits
+research program, it doesn't really have
+an explicit framework that it's tied
+itself to as far as like how it's
+mathematizing the claims it wants to
+make. And I would say generally a lot of
+these papers could be very well
+understood between through the lens of
+causal mediation and the lens of causal
+abstraction which is what I'm going to
+get to next.
+Um and then I also just want to
+highlight I think this is a really nice
+survey piece uh uh that goes through a
+lot of the work in the field but also
+highlights the sort of open questions
+we're grappling with. So if you go
+through the slides and grab something
+and just want to try to feel out what
+this looks like, I would probably look
+there. All right, great. And now we're
+going to causal abstraction, which is my
+own personal uh focus of my life for the
+last like five years. So I'm very
+excited.
+So I'm going to take a little bit of a
+zoomed out view first and just think
+about what is a computational
+explanation because this is not
+something unique to mechanistic
+interpretability.
+Um there are just certain types of
+dynamical systems in the world that we
+want to explain by an appeal to an
+algorithm. we say that this system
+carries out this behavior or has this uh
+property based on the algorithm that
+that system is implementing. So if an
+alien were to find my laptop and my
+laptop has a bubble sort program, if the
+alien were to do good science on my
+laptop, you would you would hope they
+would recover the bubble sort program in
+some way. They would figure out the
+hierarchical organization of my laptop
+and the causal flow of things and what
+variables are.
+also cognitive science. The entire field
+of cognitive science in some sense is
+just the proposition that we can
+understand our minds as computational
+systems. And so what that means is we
+want to state our hypotheses about the
+mind in the terms of algorithms and then
+find evidence for algorithms being
+implemented inside of our brains. And
+then finally we get to where we are now
+which is mechanistic interpretability.
+And this is another system I think we
+have the same perspective on where we
+want to reverse engineer it and we want
+to figure out what algorithms does it
+implement.
+And so something I realized sort of
+early on in my PhD was we actually
+didn't have a good mathematized way of
+talking about in the generic case when
+an algorithm is implemented in some
+complicated dynamical system. So we know
+canonical cases. We know when my laptop
+runs a Python program, it's implementing
+that Python program. And that's a sort
+of prototypical or definitional case of
+implementation. But if I'm just looking
+at some swirling blackbox system that I
+don't understand, and someone walks up
+to me and says, I've written out a
+program and I think this program is
+happening in this system, that actually
+figuring out what that claim even means
+and what the right math is to articulate
+it is something that we're kind of like
+are figuring out in the sort of last
+decade.
+Um so when a neural network implements
+an algorithm, the proposal to understand
+this with causal abstraction is we
+understand neural networks as causal
+models and we understand algorithms as
+causal models. And as a causal model,
+all I mean is a graph, so a DAG, just a
+bunch of circles with arrows connecting
+those circles. And then each circle has
+a function that tells me how do I
+determine the value of this node based
+on the parent nodes pointing to me. So
+it's a very generic abstraction that can
+be used to describe a lot of different
+things. Basically just any discrete
+process. And so neural networks are
+clearly just discrete processes. We can
+write down the control flow. We know
+where the vectors are and we know what
+connects to what. But also algorithms
+are just discrete processes. When you
+write out an algorithm, you know there
+are variables. You know which variables
+connect to which other variables. You
+understand the control flow.
+And so the final piece is to say that
+implementation is just going to be some
+type of causal abstraction which is a
+type of causal embedding of a simple
+system into a much more complicated
+system. And I'm going to walk through in
+detail exactly what that means.
+So the running example I'm going to have
+here is just a transformer adding
+together two two-digit numbers. So 17 +
+25 is 42. And this is the type of
+behavior the model is exhibiting. And we
+want to analyze it. We want to form a
+hypothesis about how it solves this task
+and then we want to see whether our
+hypothesis is correct. So the very
+natural hypothesis you might have is
+just grade school math a carry the one
+variable. So if I add together
+five and seven I get 12. So I carry the
+one and then I add that over to get 42.
+This should be familiar from all of you
+from childhood.
+So then our question is if we have this
+binary carry the one variable and that's
+an algorithm we have for solving
+addition can we localize this binary
+variable to the internals of the network
+that performs addition like we do. So we
+align the highle variable with some
+component. So say I think it's this
+neuron in the third layer above the
+second number that stores this carry the
+one variable. What would it mean for
+that claim to be correct?
+So these are the sort of counterfactuals
+or interventions that I was just asked
+about that I think are so important uh
+that we can use to understand whether
+this claim is correct. So first we'll
+start with just a statement about the
+causal model not about the neural
+network at all. So what happens if we
+run through one input 30 + 47 get 77. We
+run through this other input 17 + 25.
+But when we get to the carry one
+variable, we replace it with a value it
+would have taken on this other input.
+Well, the output should just go down
+from 42 to 32. It's a very simple
+intervention with a very simple effect.
+It just decrements the 10's place by
+one.
+But if we were correct about where we
+think the carry the one variable is
+stored inside the neural network, we can
+do an equivalent operation and we should
+expect the same output to occur.
+So 30 + 47 is 77. We run through the
+second input 17 + 25. But when we get to
+layer 3, we pause and we perform an
+intervention. We replace this neuron
+that we think stores the carry the one
+fact
+and then we observe what is the effect
+of this intervention. If the effect is
+the model goes from saying 42 to 32, we
+now have a piece of evidence that
+there's a structural correspondence
+between this highle causal model that
+has a binary variable and this
+complicated low-level causal model that
+has all these dense interconnections,
+but we've claimed that some tiny part
+stores this piece of binary information.
+And so this is just a single pair of
+examples. But if you were to go over
+every single pair of inputs to this task
+and perform the same interventions on
+this causal model and on the neural
+network and you observed that 100% of
+the time these interventions resulted in
+the same outputs, we would say this is a
+perfect abstraction of the neural
+network. We've lost a lot of detail.
+There's definitely more stuff going on.
+We're not committed to how the binary
+thing is being represented. We're just
+committed to saying that the carry the
+one variable in this causal model has
+the same structural interventional
+properties as the neuron in this neural
+network.
+And so this is the core idea of causal
+abstraction that you can have a simple
+causal process that's embedded in a
+larger more complex causal process and
+that we can do interventions on the
+complex causal process and the simple
+causal process and observe whether
+there's a systematic correspondence
+between the two.
+I'll just pause there uh see if we have
+any questions because yeah
+>> yeah that's a great question so that's a
+bit of slight of hand on my end right
+where I just introduced this hypothesis
+and I told you it's correct in this
+hypothetical example but in reality I
+don't know where it is and so a lot of
+the sort of methodological advancements
+in this area have come from developing
+tools for helping you figure out where
+that is in the low-level network and
+that'll be the next couple slides too.
+>> How much of this is conditioned on you
+as someone who's trying to figure this
+out coming up with a suitable tag that
+can be sort of localized within the
+network like what if my tag is wrong and
+or what if I can't come up with a tag
+for a complex enough like process
+itself. So this is a great question and
+so
+the theory of causal abstraction is just
+sort of a theory for making statements
+about when there's a correspondence
+between things and it doesn't really
+give you guidance on how to go about the
+scientific process of proposing these
+DAGs and seeing if they're actually
+embedded in uh the system. And so in
+practice how it kind of works is often
+you will come in with a naive hypothesis
+or no hypothesis and you'll do some
+exploratory tests. You'll create some
+data sets of these pairs of examples.
+You'll patch in. You'll observe what the
+outputs are. You'll come up with a
+hypothesis. You'll try to quantify the
+evidence for it. Maybe you're slightly
+wrong. You have to alter the what your
+DAG was or causal model was to uh be
+more accurate to the system you're
+trying to describe. And this is a pretty
+one. You know, this is a pretty DAG and
+it's like a algorithm that we know from
+grade school, but realistically they're
+going to get a lot more messy and a lot
+more complicated as we're dealing with
+increasingly more complex behaviors. And
+so there's no reason to expect that
+these causal models are going to be
+incredibly simple. I think the real
+thing we want them to be is just more
+simple and more interpretable than the
+underlying system. And so if we can get
+to that point, then I think it's a
+success. But, you know, the theory would
+allow you to say, you know, here's just
+a different neural network that's
+abstraction of this original neural
+network. It's not clear whether you've
+done explanatory work there in any kind
+of sense. Um, and so that notion of
+doing explanator explanatory work and
+what a good explanation is in this
+setting is something that has to be kind
+of cashed out in something else like
+like a philosophy of science or
+something.
+Suppose we are able to find where like
+the carry over one thing is happening
+but then suppose the machine is actually
+carry over two and subract one but then
+store
+that as the same algorithm or
+>> that's a wonderful question and so I
+think this is something I really like
+about going to this level of detail when
+you're doing the analysis is that once
+you've written out your causal model
+you've committed yourself to a very fine
+level of detail. about exactly what this
+is and then you have to ask separately
+the question like I had in my head a
+carry the one variable and now is this
+causal model actually capturing the
+carry the one or could it be capturing
+something else and I think you're right
+like for this result if we saw the
+systematic correspondence it might you
+know be something that like adds two to
+the 10's place and then subtracts one
+from the 10's place but I also think one
+of the beauties of causal abstraction is
+while this is an accurate claim at some
+level of abstraction, you can still have
+other different accurate claims at lower
+levels of abstraction. So you can just
+create different causal models and you
+could say propose that exactly what you
+just said, two different variables doing
+two different things and we just try to
+look for them and and figure out where
+they are. And that yeah, the process
+isn't necessarily as simple as you have
+one causal model, you figure out it's
+perfect, and then you you stop there.
+It's you have you've made some sort of
+structural claim about the type of thing
+you're looking for. You look for
+something with that signature, but then
+you also have to be asking yourself
+like, is this signature capturing my own
+messy idea of what my hypothesis was?
+And sometimes it won't be. Sometimes
+it'll be interestingly different in
+nuanced ways. And if you say take
+something like a bubble sort algorithm
+and think of all the different ways you
+could write this into a causal model and
+all the different details you could
+include or the details you could not
+include. Um you'll realize that it's
+it's it's interesting that like
+something as clean sounding in your head
+as bubble sort when you actually
+articulate the details of that process
+kind of like bottoms out in a lot of
+kind of like different but nearby
+related uh causal structures. Um, and in
+one of my big theory papers, I actually
+do go through bubble sort uh and kind of
+like spell it out as a causal model. So
+there's an advertisement for gritty
+people who want to read that. Yeah. So
+you started this talk talking about like
+steering and stuff like that, but like
+steering
+like I I think when you do that like you
+sometimes you fall short because you're
+like kind of relying on its direction,
+but it's not necessarily that the model
+is representing exactly in that
+direction. And I guess even with um like
+casting computation as a causal problem,
+I'm curious like if in your experience
+like what the gap like you're you're not
+making claims on how the model actually
+works. You're kind of like or or maybe
+maybe you are like um I guess what I'm
+trying to get at is like what do you
+think is the gap between like how good
+this actually captures what's going on
+and like a gap that's like unexplained?
+like how much of the way are you really
+getting in there with this?
+>> So with this being this very concrete
+example not very far the way right this
+binary carry the one variable is a very
+abstract claim and you might have
+questions is this this thing these
+numbers are they represented in bits?
+Are they have like what what are the
+underlying feature geometry? What does a
+one look like? What does a zero look
+like literally in like the vector space
+level? Can we carve it up into pieces?
+Um, and I would say you can totally do
+that and it's interesting to go to more
+levels of detail and more levels of
+analysis and that the sort of like
+framework allows you to hold off on that
+or engage with that if you want. So you
+could say, you know, this seems to be
+true, but then we go go deeper and we
+find more details of it and maybe they
+are, you know, not what we expected and
+we we find that interesting. I would say
+like in practice it really depends. You
+know, the ultimate like full description
+of a system is probably going to have
+many different layers of abstraction at
+which we describe it. And all of those
+layers might be necessary for us to get
+a really solid feeling about it. Like if
+we're looking at my laptop, we might
+want to understand assembly code,
+machine code, Python, like all the way
+up that hierarchy. And that we if we're
+leaving out parts of the hierarchy,
+we're kind of leaving out a full
+complete description of the system. But
+that also if we were trying to
+understand my laptop and we made
+statements at one layer of the hierarchy
+and we could support them really well, I
+think we'd probably be pretty excited
+because it's a pretty hard problem to
+just engage with a blackbox system and
+start getting any kind of traction.
+So
+does that work? Mhm.
+>> One problem that can come up with like
+the whole like like patching or like
+like replacing activations or like
+adding steering vectors is that you push
+things out of the like natural
+distribution of inputs to some layer. I
+was wondering to what extent do you like
+in causal abstraction consider that to
+be like uh like an empirical
+implementation problem or is there like
+do you consider this this potential
+problem like theoretically? I guess
+>> that's a great question. So one thing
+I'll point out, so I think this idea of
+does an intervention bring your model
+internals off distribution is a very
+important question. So if you do a
+steering uh vector, you could add that
+in to some place that is basically never
+active on any actual input to the model,
+but if you add in the steering vector,
+the model might still pick up on it and
+you might be able to control the model
+from that location. And so there's
+something really beautiful I think about
+having our interventions grounded in
+actual runs of the model. That's
+interesting. So we'll I I'll continue
+all this load. So yeah, this idea of
+that we're going to be performing an
+intervention, but that that intervention
+is going to be fixing activations to the
+value that they would have actually
+taken on some other input is going to
+keep us on distribution in like a really
+meaningful way. And some language I find
+kind of useful to think about it is
+steering is like how can I manipulate
+this object so I can get it to do
+something. But these interchange
+interventions or activation patching is
+saying the inter the system is doing
+something interesting. how is the system
+manipulating itself to do that thing.
+So, we're going to stay very closely
+onto the distribution of the types of
+things the system would actually do. And
+that's going to help us understand the
+system rather than trying to just
+control the system. Something that you
+might have seen in this previous picture
+is that when we're doing our
+intervention on the neural network, it
+kind of looks like we're targeting
+almost like if this is like a
+four-dimensional vector, it looks like I
+might be just targeting the first
+dimension of that vector. So if I just
+have a list of numbers, which is just a
+vector inside of a transformer, I'm
+going to pick out one of those numbers
+and replace that number with the value
+it would have taken on another input.
+But a very popular idea in mechanistic
+interpretability that I think has given
+us a lot of successful results is the
+idea of the linear representation
+hypothesis, which is that the right unit
+of analysis isn't going to be these sort
+of basis aligned vector units. it's
+actually going to be sort of an
+arbitrary direction in vector space. And
+so you can think of this in the
+following way. So instead of just taking
+the vector and doing the intervention, I
+now want a new unit that I can do
+interventions on. So what I can do is I
+can take this vector, I can run some
+process that I'll just call a featurizer
+to get me to some new space of
+variables. So I now have new units I can
+do intervention on. and then I apply the
+inverse featurizer to get back to the
+original vector space. So a very simple
+way of thinking about this is that f can
+just be a rotation matrix and then f
+inverse can just be the transpose of
+that rotation matrix. And so if I just
+run the model with this little
+featurizing process in the middle,
+nothing will change on any actual
+inputs. So there's no loss at all. But
+what this gives me is now I have these
+new units I can perform interventions
+on. And if it's a rotation matrix, what
+this means is I just basically take the
+standard axes and instead of saying I'm
+going to intervene on these axes, I'm
+going to instead rotate my uh my vector
+space basically. Yeah, I'm going to
+rotate my vector space and I'm going to
+get a new set of axes that are still
+equally well equipped to characterize
+the full space, but intervening on these
+new axes might be uh more interpretable.
+they might better correspond to highle
+quantities that I'm trying to localize
+inside of a network.
+So if we look at our previous setting,
+what we can just say is instead of an
+interchange intervention, we do a
+distributed interchange intervention. So
+we run up to the layer and then we apply
+this featurizing process and then once
+we have applied the featurizer, we do
+the intervention, we bring over the
+feature that occurred for this input and
+bring it over into this input. And if
+it's a carry the one feature,
+then the output will change from 42 to
+32. So this is the exact same idea.
+There's still this sort of structural
+correspondence of intervention
+properties bringing up certain
+behaviors, but instead of intervening on
+say the original variables of the model,
+we're just doing a manipulation of these
+variables. And I described it as a
+rotation, but later on you'll learn
+about Saes. And you could equally say
+that the featurizer is an SAPE encoder.
+And then the inverse featurizer is just
+an SAPE decoder.
+And so this is going to bring me to an
+idea that's very important and I think
+touches on a question that was asked
+earlier which is how did you find this
+neuron to do an intervention on? How can
+we use our hypothesis, our causal model
+as a source of supervision for
+understanding where a certain variable
+is stored inside of a network.
+So I'm just going to take this setting
+again. And so say I just randomly
+initialized these featurizers. So as a
+rotation matrix. So I apply a random
+rotation and then I perform this
+intervention.
+I'm almost certainly going to be wrong.
+So instead of getting the expected
+output of 32, maybe it says 98, maybe it
+just says some garbage number because
+basically I'm performing something like
+a random intervention on this system.
+But the cool thing is is that I actually
+know what I wanted the model to say. I
+actually wanted the model to say 32
+because my highle causal model has this
+structure and when I do this
+intervention on it, I get the output 32.
+And now that output 32 can be used as a
+source of supervision for training the
+features of the uh that we are
+intervening on. So crucially we freeze
+the weights of the transformer. So the
+entire transformer is fully frozen but
+we learn the featurizer the rotation
+matrix. So we're trying to learn a
+rotation matrix such that when we
+intervene on the first unit of our new
+rotated space it corresponds exactly to
+the carry the one variable. And so this
+is a very powerful idea because now we
+get to bring the tools of supervised
+machine learning into this task setting
+of causal variable localization. So I
+have a causal variable and high level
+causal model and I'm using my causal
+model and how it acts under
+interventions as a source of supervision
+for localizing the variable into some
+piece of the underlying network.
+Yeah. And then I'll cover the next slide
+and I'll take questions because the next
+slide is a very uh simple idea actually.
+Yeah, we can see how the the gradients
+flow. So if you have supervision up
+here, gradients will flow down here and
+then they flow into the featurizers not
+to the underlying model weights which
+are of course frozen because we want to
+analyze the model not modify it.
+Okay, another core idea here is deserata
+based masking which is the exact same
+training objective instead of but
+instead of learning the featureizers
+we actually just learn masks over the
+features to select which features to do
+interventions on. So sparse
+autoenccoders give you a pre-trained set
+of features that you might not want to
+update. You might want to keep them
+fixed. And if that's the case, you don't
+have to train your features. You can
+just train masks to select out the
+features to perform interventions on and
+to select out the features with
+particular uh interventional properties.
+So, it's a similar idea
+and I'll pause on
+here because this is a pretty these are
+some pretty complicated slides that are
+uh could be worth thinking about. So,
+does anyone have any questions? Okay.
+I'm still confused of how you're
+specifically finding or manipulating
+that like plus one neuron. Like are you
+putting featurizers
+in every hidden layer or and then
+freezing and then manipulating one at a
+time or I'm still confused of how you're
+figuring that out?
+>> Yeah. So are we putting featurizers in
+every layer and manipulating one at a
+time? So in principle you can attach
+these a lot of different places. So in
+this example it looks like we're just
+doing it at one place basically. Like
+you might think I come in and I think oh
+I'm I think this vector might contain a
+carry the one feature. So then I equip
+this little featureizer here that's
+untrained and then I do this training
+process to try to find some direction in
+the vector space I can intervene on that
+has this property. And so this doesn't
+solve the problem all the altogether of
+trying to find somewhere because there's
+lots of different vectors to pick out in
+a model. And so you could further try to
+bring in more tools to try to pick out
+which vector to then do this to. Does
+that help?
+>> Yeah.
+>> Yeah.
+>> Do you usually do this for like multiple
+features at a time because it feels like
+if you do it only for the first feature
+then the other features may be arbitrary
+or not interpretable the way you want it
+to be.
+That's another really great question and
+that's also kind of a simplification of
+the slide in some sense. So you can
+choose any number of features to do this
+at once. So you might think like it
+should be eight directions that
+correspond to the carry the one
+variable. You could also do this with
+multiple variables at the same time. So
+you might say, I want to learn some
+features that correspond to the country
+a city is in and some features that
+correspond to the language spoken in
+that city and some features
+corresponding to the numbers of letters
+in that city name and that you could try
+to sep learn this sort of process to
+disentangle and figure out separable
+components that can be intervened on to
+manipulate individual highle quantities
+like facts or numbers.
+Um so because this is localized in one
+layer uh is there any way that this
+method can like try and discover like
+cross layer um like like you know
+computations that take many layers to um
+to complete like induction heads for
+example. Mhm. So induction heads are
+interesting because I think you could
+actually separate them to a couple
+different variables that you were
+thinking of like the the copy head
+variable and then like the uh something
+moving over. So when you're thinking
+when you're thinking about things
+occurring across multiple layers,
+something you can do is just train
+featurizers at each layer and then do
+all your interventions at once across
+multiple layers. So this is a pretty
+flexible idea. I would say that you can
+kind of like this is a very sort of like
+toy example of how to use this idea, but
+more broadly you can kind of just attach
+these things to a lot of different
+places and then learn them all
+separately and do a bunch of
+interventions at all these different
+locations and there's nothing in
+principle that starts failing if we look
+about cross layer or cross token
+manipulations.
+>> Yeah. What kind of design decisions do
+you make for these feature ideas?
+because at some like there seems to be
+some trade-off where I don't want to be
+capacity constrained by my featurizer in
+terms of what can it can encode and
+decode but at the same time I wanted to
+be explainable and interpretable. So
+that's an excellent question and there's
+actually a really great paper that just
+came out from a group in ETHZurich that
+is about what happens if you take this
+idea of distributed alignment search but
+then you start equipping the featurizers
+with really powerful models. So like
+eight layer reversible neural networks
+and how do we sort of like manage
+ourselves in those settings where it
+seems like those can learn some very
+gerrymandered and strange ways of
+cutting up the vector space that seem
+not exactly possibly to align with what
+the neural network is actually doing in
+some sense. And I think it's a very
+nuanced process. I think once you bring
+in machine learning tools into this
+setting you need to be really worried
+about overfitting. And that I think
+connects in directly with your question
+where if I'm learning this on, you know,
+10 examples of this addition task, it
+might just sort of like learn some way
+to get a sufficient manipulation on
+those 10 examples. And then if I threw
+in some new 11th example, it would just
+fail entirely. And so that's why you're
+just kind of put in the traditional
+machine learning setting where you need
+a train test split and you need to like
+hold out the data that you actually care
+about and you need to make sure that the
+thing that you're learning is a sort of
+like general purpose useful explanatory
+tool and not some sort of like overly
+fit idiosyncratic uh thing that's giving
+you pretty fragile results.
+Yeah,
+>> you could consider the alternate
+strategy which is for every intermediate
+step of your algorithm different nodes
+of your causal graph
+>> for for some ensemble of math problems
+try to linearly decode the intermediate
+states
+>> of your causal graph from every single
+layer position.
+>> Yeah.
+>> And see which layers and positions
+encode that variable to localize it.
+>> So you're just doing linear decoding. So
+if you do that, you basically just get a
+very sort of like if you make heat maps
+of doing linear probes versus doing
+this, the linear probe heat map kind of
+lights up everywhere. Everywhere like
+even to the very final layer of the
+network, which is a very good thing to
+think about because it's like if you're
+at some token and you're at the very
+last layer of the residual stream, that
+literally has no causal impact on
+anything, but it's still a very rich
+representation. like the model wasn't
+told to destroy pieces of information
+that are present in that vector. And so
+generally like probing can sort of like
+show you where relevant correlational
+information exists, but it's going to
+very sort of like uh fail at trying to
+show you what the actual path of that
+information as it's like truly being
+used by the network.
+>> So here what you're doing is you're
+taking the carry bit and trying to
+predict what the next variable should do
+using that carry.
+>> Yeah. It's kind of like a causal version
+of probing. So it's not just probe out
+the information. It's like learn these
+directions such that when we manipulate
+them, they correspond to downstream
+effects that are in concordance with
+this carry the one variable.
+>> Okay. So if you did this featurization
+at every position and every layer heat
+map performance for say the carry
+operations prediction on the next next
+part algorithm, what would that heat map
+look like? Is it very localized?
+>> Very localized. very localized like last
+lay last token like layers like like mid
+to late layers but a cluster of like
+four or five layers. So that's the
+beautiful thing that when it starts
+working it really starts working where
+you see these like highly contrasting
+heat maps that are like actually this
+piece of information is really just
+present here in a similar way to like in
+the causal mediation setting where it's
+like yeah really it seems like this
+chunk of MLPS are just the MLPS doing
+this extracting out Seattle from the
+Space Needle. uh this intervention on
+one unit will change the behaviors of
+the other units. I was like are they
+sharing the same set of rules for
+computation or
+>> so because this is basically like uh an
+invertible process like it's a rotation
+matrix that means all our directions are
+orthogonal so there's no interference
+between these units. So these little
+triangles here are all separable. So you
+can inter intervene on one and intervene
+on the other and the that operation
+commutes and they don't really uh
+interfere with each other. Um it's not
+so much the case if you have something
+that's more lossy like a sparse
+autoenccoder that will like unpack into
+many different directions that have
+interference with each other and then
+come back. But generally if you just add
+back in the error term to an a lossy
+process you can still talk about it like
+it's an actual bjective process because
+it's just uh I don't know that's just
+basically a little trick and that is the
+way that SAPE uh manipulations do do it
+like they will throw back in the error
+term at the end just to make it uh well
+not because they want it to be
+principled and nice just because that's
+what makes it work basically. Um yeah.
+Yeah. Are you always guaranteed to find
+a solution? Like in this case, it's
+simple because you know you're supposed
+to carry the one, but is it cases when
+you break that?
+>> That's a great question and absolutely
+not. And I think that's one of the
+things that tells us that we're doing
+actual science here is that you
+regularly fail. You know, you regularly
+propose some intuitive quantity in the
+middle of a network that you're like,
+"Yeah, I would do this." And then you
+look for it and it just entirely isn't
+there. And so I would say, "Yeah,
+definitely. Yeah, basically just no."
+And you know, in the worst case
+scenario, you know, when people talk
+about these things being statistical
+stoastic parrots or whatever, it's just
+a giant lookup table with no internal
+structure whatsoever. I don't think
+anyone really believes that nowadays,
+but that's definitely the type of ideas
+that were being thrown around in like
+the early 2000s. And also maybe that's
+the models were closer to being that in
+the early 2000s as well. So there's
+that. But yeah,
+>> I'm wondering the dimension of
+Is there
+too?
+[snorts]
+>> So in principle like the rotation
+matrix, you know, is like a full rank
+thing because it's rotation matrix. But
+if you're only trying to learn like
+eight features, you don't have to learn
+most of the matrix. You only learn like
+eight directions there. Um, is there an
+optimal number? Like is two directions
+better or one or eight? Completely
+depends on the causal variable you're
+trying to localize. For something that's
+very simple, like sometimes one
+direction completely suffices, but for
+something that might look more like an
+actual token embedding that's kind of
+this chunkier thing inside the model, it
+might need like 64 dimensions to
+actually uh capture the the whole thing.
+Yeah. And that's that's something
+interesting there where it's like we're
+not getting a super detailed look at the
+feature geometry of those 64 dimensions.
+we're instead just getting a uh yeah
+we're getting you know just this claim
+about how they act uh sort of in
+aggregate together when we do
+interventions on them. I'll have some
+pointers to literature here. So and
+there's also a lot of papers that
+explicitly have used causal abstraction
+as the framework for analyzing models
+which is exciting and some of them I'm
+not authors on which is even more
+exciting for me. So that means there are
+other humans in the world who think
+about things this way.
+Um also there's like a developing theory
+of causal abstraction. Pretty exciting
+thing is that this is a pretty young
+field theoretically as well like 2017 is
+really the sort of seminal paper that
+brought out these ideas about looking
+for structural correspondences between
+two causal models. And it's really been
+you know less than 10 years that we've
+even really been like making progress on
+these ideas. But a bunch of uh Europeans
+who love causality are increasingly into
+these ideas. So that's also pretty
+pretty fun. And then also deserorado
+based masking uh worth uh knowing about
+that citation. Cool. Well then I'm going
+to walk through and this part is going
+to get very hairy very quickly. So I
+apologize but I just want to give you a
+flavor of like what the kind of like
+human inspired aspect of doing this type
+of causal analysis is as we move into a
+more complicated setting than looking
+for a single binary variable uh stored
+within a network.
+So in in in this paper we look for or we
+discover what is basically this pattern
+of a look back and it's a very intuitive
+and simple pattern. It's just if a
+neural network wants to keep track of a
+piece of information and then go
+retrieve that piece of information. What
+it can do is it can put a little marker
+on that information and then create a
+copy of that marker later on that you
+can then use to sort of dreference and
+look back and grab whatever was relevant
+in your context. So to ground us in a
+very specific example, the example down
+here is a little story where Bob fills a
+bottle with beer, Carla fills a cup with
+coffee, and the question is what does
+Carla believe the cup contains? So this
+is exactly what this templatic data set
+is. It really is just this exact
+template except these highlighted color
+words of Bob bottle beer are being
+replaced with different characters and
+different containers and different
+substances. And we developed this sort
+of endto-end mechanistic account of how
+the model is solving this task. And it
+does so in a really weird and
+complicated way. So I'm just going to
+walk through at a very high level what
+this kind of looks like and then I'll
+zoom into some of the particular claims
+and the experiments that we did that we
+think justify them. So what does the
+model first do when it sees Bob bottle
+and beer and Carla cup and coffee? It
+first assigns them positional markers.
+So now Bob is no longer Bob. Bob is
+actually character one. Bottle is object
+one. Beer is state one. And same thing
+goes for character 2, object two, and
+state two being Carla, cup, and coffee.
+So these are now positional markers that
+the model is going to reason about
+instead of the actual tokens themselves.
+So how does the model formulate a query,
+formulate the question,
+what does Carla believe the cup
+contains? Well, the model sees, oh,
+Carla and cup. I'm gonna look back and
+grab the positional markers for cup and
+the positional marker for Carla and
+bring them forward into my residual
+stream. So I can form my query like
+Carla cup question mark.
+Now that I have Carla and cups
+positional information, I can use that
+to look back and grab the positional
+marker for coffee, which is the answer
+to my question. But this is still the
+positional marker for coffee. It's not
+the actual token itself. Then it does
+another look back mechanism. It uses
+this positional piece of information to
+look back and grab the token itself,
+coffee, to answer this question. And so
+there's sort of three stages to this
+process. assigning of positional
+markers,
+formulating a query by retrieving the
+positional markers about the the nouns
+in your question, and then grabbing the
+actual token itself. Um, or grabbing the
+marker to the correct answer and then
+grabbing the actual correct answer
+itself. And so I'm just going to zoom in
+on one very specific step of this
+process and just talk through the
+experiment that we did and why we think
+it justifies the sort of picture I just
+presented. So this picture here is
+saying that I have a positional marker
+for the word coffee that I use to go
+retrieve the actual token coffee.
+So I want you to consider this following
+counterfactual. So all that we've done
+here is that we've swapped the position
+of Bob and Carla and cup and bottle. So
+Carla and cup appear first here and they
+appear second here. And then we've
+replaced the liquids tea and water with
+the liquids beer and coffee or vice
+versa. So we have two different stories
+and what's happened is we've swapped the
+order of the characters and the
+containers and we've sampled new
+substances.
+So why did we construct this
+counterfactual in this way?
+Well, the output for this story is T.
+The output for this story is coffee. So
+if I paste in the output for this for
+first story over the output for this
+second story, the output should change
+from coffee to T. That's just a very
+obvious and basic statement. This
+network provides two different outputs
+on two different inputs. And if I paste
+over say the final layer of the residual
+stream for the last token, I'm basic I
+am logically guaranteed to change the
+prediction from coffee to tea.
+But what if I instead paste in the
+positional marker
+for the word tea over the positional
+marker for the word coffee?
+So what happens in this original story
+here with coffee is it has a marker that
+says grab me the thing in position two
+which is coffee. Coffee is in position
+two. It's after beer. But if I paste in
+over that get me the thing in position
+two variable and I paste in the t
+position variable where t occurs in the
+first position in the story. I've now
+manipulated my pointer from pointing at
+the thing in position two. So it now
+points at the thing in position one.
+And the thing in position one in this
+story is beer. And so if I see the
+output beer, this is an EV piece of
+evidence that I've discovered a
+positional marker separate from the
+actual final output variable. And
+indeed, when we do these interventions
+on the residual stream of the last token
+in these examples at layer 30, we
+actually see the positional signature
+all the way up to layer 50. So through
+these layers, if we do this
+intervention, we see the output go from
+coffee, the thing in position two, to
+beer, the thing in position one. But if
+we continue to do the interventions at
+these layers, there's a transition to
+the model outputting t instead, which is
+just the output from the counterfactual
+story. And so this counterfactual is
+very nicely set up such that the final
+answer manipulating that information is
+going to give us a distinct output from
+manipulating what is essentially like a
+positional pointer to the correct
+answer. And so
+yeah, and so this is the type of
+analysis that you have to do if you want
+to sort of construct the right pairs of
+examples that are going to be able to
+sharply test the hypotheses that you're
+proposing uh about how models actually
+process uh their inputs and solve the
+the tasks that we're giving them.
+I'll pause here in case people have
+questions because I know this gets
+messy. Uh so and it's pretty fast.
+>> Yeah.
+>> In this graph, what is this business of
+space dimension being less than 20?
+>> Yeah. So the solid lines are if we're
+just patching in the full vectors, but
+then we also do this masking thing where
+we learn uh it's actually uh SVD
+decomposition. So we take vectors, we
+collect them across all these prompts.
+We do SVD to decompose that into a new
+like basically just rotation matrix or
+whatever and then we learn masks over
+the SVD components and then intervene on
+those. And so this residual stream has
+like I don't know like a thousand units
+or something. I don't remember the exact
+number but we actually only need a
+20dimensional uh subspace to do this
+manipulation.
+Yeah, which is actually a very tiny
+subspace. So this positional information
+is stored right there. And it's
+interesting too because you know the
+subspace sizes shift. So for this
+positional p piece of information it's
+like generally less than 20 but for the
+final token it's like generally less
+than 33. And in general tokens are just
+kind of chunkier uh inside networks.
+>> So um how close do you get to the full
+residual kind of graph like you subace?
+Does it follow sharply or does it follow
+sort of smoothly?
+I don't think we have results on that,
+but that's a really good question. And I
+think in general, I think those are
+pretty good plots to try to produce that
+like as you increasingly get smaller
+almost like what's the topography of the
+thing? Like are there really crucial
+tiny bits? Um I think that'd be pretty
+interesting experiments to do.
+>> Yeah.
+>> So in this kind of setting, you can be
+pretty sure that you've kind of uh
+designed a counterfactual that is like
+appropriately controlling for all the
+the confounding variables. Is that
+something that you think can scale in
+general to like more complex experiments
+you'd like to run?
+>> Wow, this is that's like such an
+excellent question. So, it was actually
+doing this project that made me feel
+very strongly about a couple things. One
+is that I needed a code base that
+actually expressed the causal models as
+Python objects themselves for
+analyzing these counterfactuals and
+figuring out whether I'm doing the
+proper kind of hypothesis testing.
+Because as you can see in like the
+previous image I had, we're dealing with
+something like nine variables now or
+something like that. And it's just kind
+of like messy kind of like trying to
+figure out how can I localize exactly
+this positional marker separate from all
+these other possibilities. And what's
+more, that's just the possibilities in
+the causal model I proposed. And there's
+always other causal models that might
+just do things completely separately.
+Um,
+but that being said, I do think there
+are sort of like I I do think there are
+interesting like rich theoretical things
+you can say about how to design these
+counterfactual data sets and what the
+sort of like workflow for doing this
+like causal analysis is when you're
+trying to distinguish between particular
+hypotheses. And from my perspective
+broadly like I this is actually what I'm
+like most working on right now is
+developing like the sort of like
+theoretical understanding of like what
+that workflow is how to design these
+counterfactuals to distinguish between
+distinct hypotheses and then trying to
+scale that process up using like agents
+basically and uh it's it's a very
+exciting uh perspective for me on how we
+can scale interpretability because I
+love bespoke analysis. I love looking at
+a very specific task and a very specific
+model and just really trying to
+understand end to end what is happening.
+And I think there's a sort of like
+alternative route to scaling
+interpretability where we just embrace
+that process and just try to do all the
+work we can to flesh out what it looks
+like and try to plug that into basically
+like science assistant agents or
+something like that.
+>> Yes. Is there anything unique about the
+location in the layers like where you're
+seeing these positional embeddings or
+like you said with other examples does
+it depend on the type of sentence you
+provide like that's another really great
+question. So you know in this I think
+this paper is like a really great
+example of us focusing on a small data
+set and just like going really hard on
+it and trying to figure out just like
+the whole process end to end. But that
+honestly there's like not enough papers
+like this yet. Like if we could like
+have a view of like a hundred papers
+like this where like they've done a
+bunch of different tasks. I think we
+could start noticing cool patterns like
+is this layer where positional stuff
+just seems to happen. Like maybe the
+model is just reasoning about positional
+things here and then here is just the
+hard cut off where it's like all right
+time to move on from positional markers
+and actually grab the tokens that I I I
+need for things. Um and I think that'd
+be a pretty interesting question. And I
+think generally looking for these sorts
+of like comput computational or
+algorithmic motifs in models is a pretty
+exciting research direction.
+>> Yeah. Uh how important is the uh the
+character object and code relative to
+each other because you could choose one
+or the other and so answer
+and so comparative how much
+>> that's a really good question. We did
+not do I I I actually do think we did
+some experiments about this. They might
+have made it into the appendix of this
+paper. Um
+it's complicated. I think the kind of
+way you want to make the statement is
+something like if I just replace the
+character or the object positional
+information and that's like part of my
+query, what is the resulting decrease in
+logit strength for each of the answers?
+I think is probably the reasonable way
+to think about that. My guess would be
+once you put in conflicting information
+that it kind of like has not is not sure
+what to do. It kind of like decreases
+confidence in the right answer. Whether
+one of them is going to be more
+important. Uh I'm not really sure about
+that.
+>> Yeah.
+>> Um did you like try updating that? What
+happens in that like what is it output
+and can you train a model from scratch
+without them to still develop this kind
+of
+>> that's a really good question. So I'm
+not sure about the training from scratch
+thing but we do do variations of the
+absolute token indices that things
+appear at and that helps us uh
+distinguish from uh positional uh
+embedding itself. I think these
+positional pieces of information are a
+lot more contextual and relativized than
+like an absolute index within a sequence
+of tokens. Um, which makes sense. And I
+would also my guess would be training
+from scratch models just have to figure
+this out that like sort of like
+contextually relevant pieces of
+information are just uh never going to
+be at like absolute indices that you can
+always just go to and understand. And
+you need to understand like what's the
+third character referenced in the last
+paragraph is a relevant query that
+models need to handle.
+>> Yeah.
+>> Um does this structure like
+position emerged in model train on less
+structural data sets as well like less
+data data sets.
+>> These are just pre-trained models. This
+model is not fine-tuned on this data set
+at all.
+So this is just purely a pre-trained
+model like it's llama and no fine-tuning
+whatsoever.
+>> So definitely
+>> so this kind of reminds me of uh there
+was like a a meme about like a prompt
+you could write to chat about how many
+Rs are in strawberry.
+>> Yeah. Yeah. is so the model would fail
+uh but like they I guess my question is
+like you could write the word but it
+would still fail but like could you view
+like I'm I'm not sure if uh this fits in
+with this type of research like if you
+were to let's say write the word
+strawberry but do a misspelling of it
+>> does it refer to your actual prompt or
+does it refer to its like training of
+the word strawberry
+>> so I think that's just all going to come
+down to tokenization like if you
+misspell strawberry enough what are the
+actual tokens that that word is split
+into because I imagine at some point
+it's split into a token that's just like
+a bunch
+>> and yeah and that's going to kind of
+crucially come into play and I feel like
+that strawberry meme is all about the
+fact that models have token
+representations and those tokens can't
+unless they train them to unless the
+model learns it doesn't necessarily
+contain character level information.
+>> Yeah, I notic that the graph is like a
+little bit spiky
+>> at the top. Um I was wondering if you
+just attribute that to uh noise or if
+you like is this something like oh you
+know this information something happens
+at layer 30 then this information kind
+of sits there maybe there's a little
+noise and then something happens at
+layer like 55 or something.
+>> Yeah it's a great question. First I'll
+say this is a beautiful graph
+considering like the types of graphs
+you'll often see like this is like
+incredibly clean [laughter] but uh yeah
+but that like generally things don't
+happen all at once in models like they
+have a whole bunch of layers and
+something you'll very typically see is
+like oh I think like this token starts
+at this place in the input it goes up
+and then the signal for that token goes
+down gradually across layers and then
+you see it pop up in this other column
+of the residual stream gradually across
+layers And there it's just multiple
+attention heads are like moving this
+information bit by bit across it. But an
+important thing to consider there is
+that's not necessarily what's happening.
+Like another totally reasonable thing to
+think is that like for some inputs it's
+entirely moved and then for other inputs
+it's entirely stays in place but because
+our graphs or our heat maps are on
+aggregate across many pairs of examples
+it kind of confounds those two
+possibilities and you need to do sort of
+like more detailed analysis to tease
+them apart. Ju
+just to that point the so the story that
+you had earlier like very early part of
+the lecture where you would intervene
+with noise and then and then restore
+something at a particular layer that
+would be an example of a way that you
+would be able to tell whether or not the
+thing had been moved and there was no
+more moving of the information anymore
+after that point. Right? Because if
+>> if if it was just moved and there was
+nothing else doing it, then it would
+only be one layer that would have that
+restoration quality. Right?
+>> So that's true. But also those graphs
+were 10 layer restored at once. Okay.
+>> And so when you actually look at the
+other graphs in the paper, those were
+like the the headline graphs to show
+this like nice chunky whoa heat map
+looks discreet type thing. And then the
+the other graphs in the paper are much
+more gradual because they're doing
+individual restorations.
+And yeah, often especially with yeah
+MLPS or attention heads, it's like
+almost never going to be one layer just
+boom does this discrete operation. It's
+going to be distributed across multiple
+layers and multiple modules working in
+tandem.
+Um yeah, I'll end on a
+different paper and just this just food
+for thought that'll be over in one
+minute is just what happens if we go
+from just two things to lists of things
+like long lists of things. Does this
+exact same positional mechanism occur?
+And the answer is actually no. So in the
+setting where you just have these two
+things like Bob beer, Carla coffee, the
+positional mechanism explains everything
+perfectly. But actually if you get
+increasingly long lists, the positional
+mechanism degrades in the middle of
+those lists and it actually relies on a
+direct lexical lookup for those
+positions. So instead of saying like
+Pete loves jam and that's in position
+three. So when I want to grab jam, I use
+a position three marker. Instead I just
+directly use the token Pete to look up
+and grab the token jam. And if you
+So this is kind of like the positional
+results. So like up here is like perfect
+and then down here in the middle it gets
+much much lower performance and then at
+the end it gets really high again. And
+so this is just like a nice little
+U-shaped thing showing that when we're
+in this previous paper when we're
+looking at just lists of two things,
+it's super sharp analysis, like really
+clean like kind of exactly what's
+happening. But if you even just like
+look in very slightly more complex
+settings, the mechanisms used actually
+are kind of like a mixture of mechanisms
+where there are multiple things at play
+and depending on the type of input and
+the type of question I'm asking will
+modulate what the actual mechanisms the
+language model uses to answer the
+question. And so that's just to say
+that, you know, I think it's nice to
+look at very narrow settings and get a
+really crisp, clean analysis, but I also
+think it's really important to
+increasingly kind of embrace the mess
+and model these objects as directly as
+sort of having these like layered
+algorithms or heruristics that they
+learn throughout a training process and
+that it's not going to necessarily come
+out to be just this crisp single
+algorithm that just solves the process
+end to end.
+And yeah, since we're at time, I'll I'll
+leave it there. If you have more
+questions right now, I'm happy to take
+them. But yeah, thanks so much you guys.
+[applause]

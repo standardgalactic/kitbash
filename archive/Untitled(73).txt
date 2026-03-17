@@ -1,0 +1,173 @@
+
+
+\subsection{A.2$'$ Meta-Operational Refusal (Executability-Level Characterization)} \label{sec:A2prime}
+
+\begin{definition}[Executability Predicate] Let $f:\mathcal{W}\to\mathcal{R}$ be a governing mapping. We write $\mathsf{Exec}(f)$ for the proposition ``$f$ is authorized for execution.'' Concretely, $\mathsf{Exec}(f)$ may be read as the (context-dependent) permission that a system treats as sufficient to proceed with applying $f$. \end{definition}
+
+\begin{definition}[Meta-Operation] A \emph{meta-operation} is an operator
+
+\rho : (\mathcal{W}\to\mathcal{R}) \to \mathsf{Prop} 
+
+\end{definition}
+
+\begin{definition}[Refusal as De-Authorization] \label{def:refusal-meta} A system exhibits \emph{refusal} with respect to a governing mapping $f:\mathcal{W}\to\mathcal{R}$ iff there exists a meta-operation $\rho$ such that: \begin{enumerate} \item \textbf{(De-authorization)} $\rho(f) \equiv \neg \mathsf{Exec}(f)$; \item \textbf{(Non-substitution)} whenever $\neg \mathsf{Exec}(f)$ holds, no alternative execution $g:\mathcal{W}\to\mathcal{R}$ is thereby selected \emph{by the same mechanism} (i.e., refusal is not ``switching to another rule''); \item \textbf{(Externality / Non-derivability)} $\rho$ is not definable in the object-level calculus in which $f$ is specified and executed. \end{enumerate} \end{definition}
+
+\begin{remark}[Why this is meta-level] Definition~\ref{def:refusal-meta} makes explicit that refusal is \emph{not} an output token, not a classification label, and not a conditional branch inside $f$. It is an operation on the \emph{executability status} of $f$. Any ``refusal behavior'' that is fully representable as an output in $\mathcal{R}$ (e.g., a special symbol \texttt{REFUSE}) is therefore not refusal in this sense; it is still execution of $f$ (or of an expanded $f'$) within the same object-level semantics. \end{remark}
+
+\begin{lemma}[Refusal Cannot Be Reduced to a Built-In Option] \label{lem:refusal-not-output} Suppose an abstraction represents ``refusal'' as a distinguished output $r_\star\in\mathcal{R}$ so that $f(w)=r_\star$ is treated as refusal. Then this mechanism does not satisfy Definition~\ref{def:refusal-meta}. \end{lemma}
+
+\begin{proof} If ``refusal'' is an element of $\mathcal{R}$, then producing it is an ordinary execution of $f$ (a value in the codomain). In particular, execution has not been de-authorized; $\mathsf{Exec}(f)$ remains in force, since the system proceeds to apply $f$ and returns an output. Therefore $\rho(f)\equiv \neg \mathsf{Exec}(f)$ is not realized; the mechanism is substitutional (it selects an output/state) rather than meta-operational. Hence it fails the de-authorization and non-substitution clauses of Definition~\ref{def:refusal-meta}. \end{proof}
+
+\begin{remark}[Modal and Type-Theoretic Reading] One may equivalently regard $\mathsf{Exec}(f)$ as a modal authorization $\Box f$ (``$f$ may be executed'') and refusal as the meta-act of forcing $\neg \Box f$. In a type-theoretic presentation, refusal has the shape
+
+\rho : (\mathcal{W}\to\mathcal{R}) \to \bot, 
+
+\end{remark}
+
+\subsection{A.2$''$ Minimality and Uniqueness of Refusal}
+\label{sec:A2doubleprime}
+
+\begin{definition}[Object-Level Extension]
+An \emph{object-level extension} of a governing mapping $f:\mathcal{W}\to\mathcal{R}$ is any mapping
+\[
+f' : \mathcal{W} \to \mathcal{R}'
+\]
+together with an injective embedding $\iota:\mathcal{R}\hookrightarrow\mathcal{R}'$ such that $f'=\iota\circ f$ on all previously admissible executions. Intuitively, $f'$ augments the codomain with additional outputs, branches, labels, or confidence annotations while preserving executability.
+\end{definition}
+
+\begin{theorem}[Minimality of Meta-Operational Refusal]
+\label{thm:refusal-minimal}
+Let $f:\mathcal{W}\to\mathcal{R}$ be a governing mapping. Among all mechanisms that can prevent the production of outputs in $\mathcal{R}$, refusal as defined in Definition~\ref{def:refusal-meta} is the unique mechanism that:
+\begin{enumerate}
+  \item prevents execution without selecting an alternative output;
+  \item does not enlarge the representational space $\mathcal{R}$;
+  \item preserves the abstraction status of $f$.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+Consider any mechanism $M$ that prevents certain executions of $f$.
+
+\emph{Case 1:} $M$ operates by selecting an alternative output (e.g.\ a warning symbol, abstention token, or uncertainty estimate).  
+Then $M$ is an object-level extension of $f$ in the sense of the preceding definition. Execution remains authorized; only the range of possible outputs is enlarged. Hence de-authorization does not occur, violating Definition~\ref{def:refusal-meta}(1).
+
+\emph{Case 2:} $M$ operates by conditionally switching to another rule $g:\mathcal{W}\to\mathcal{R}$.  
+Then $M$ is substitutional: it replaces one execution with another. Execution as such remains intact, violating Definition~\ref{def:refusal-meta}(2).
+
+\emph{Case 3:} $M$ operates by enlarging the internal state so as to encode contextual features required to decide whether to execute.  
+Then $M$ expands $\mathcal{R}$ (or collapses abstraction entirely), violating Definition~A.1 and destroying scalability.
+
+The only remaining possibility is a mechanism that operates on the executability predicate $\mathsf{Exec}(f)$ itself, without substituting outputs or enlarging $\mathcal{R}$. By Definition~\ref{def:refusal-meta}, this is precisely meta-operational refusal. No weaker mechanism suffices, and no stronger mechanism preserves abstraction.  
+\end{proof}
+
+\begin{corollary}[Uniqueness]
+\label{cor:refusal-unique}
+Refusal is the \emph{unique minimal price} paid when abstraction retains autonomy: any attempt to preserve autonomy without meta-operational de-authorization either fails to halt execution or destroys abstraction.
+\end{corollary}
+
+\begin{remark}[Why Uncertainty Is Not Refusal]
+Uncertainty quantification, confidence scoring, and probabilistic abstention are object-level extensions in the sense above. They produce additional representational content while leaving $\mathsf{Exec}(f)$ intact. Consequently, they can modulate \emph{what} is output, but not \emph{whether} execution occurs. Uncertainty therefore cannot realize refusal.
+\end{remark}
+
+\begin{remark}[Human-in-the-Loop as External Refusal]
+A human-in-the-loop architecture does not internalize refusal into the abstraction. Rather, it externalizes $\rho$ into a separate agent who alone possesses the capacity to negate $\mathsf{Exec}(f)$. This confirms, rather than refutes, the externality of refusal.
+\end{remark}
+
+\begin{remark}[Modal Restatement]
+Let $\Box f$ denote the authorization to execute $f$. Object-level safeguards implement transformations of the form
+\[
+\Box f \;\wedge\; \varphi \;\Rightarrow\; f'(w),
+\]
+whereas refusal implements
+\[
+\neg \Box f,
+\]
+with no consequent. The absence of a consequent is essential: refusal is not a transition but a suspension.
+\end{remark}
+
+\subsection{A.2$'''$ Refusal as Non-Measurable Event}
+\label{sec:A2tripleprime}
+
+\begin{definition}[Decision Space]
+Let $(\Omega,\mathcal{F},\mu)$ be a measurable space of decision-relevant world states, and let
+\[
+f:\Omega \to \mathcal{R}
+\]
+be an abstraction executable whenever $\mathsf{Exec}(f)$ holds.
+\end{definition}
+
+\begin{definition}[Measurable Safeguard]
+A safeguard mechanism is \emph{measurable} iff it corresponds to a measurable function
+\[
+s:\Omega \to \mathcal{R} \cup \mathcal{L},
+\]
+where $\mathcal{L}$ is a set of labels (e.g.\ warnings, abstentions, confidence scores).
+\end{definition}
+
+\begin{theorem}[Non-Measurability of Refusal]
+\label{thm:nonmeasurable-refusal}
+Refusal, understood as de-authorization of execution, is not representable as a measurable event in $(\Omega,\mathcal{F},\mu)$.
+\end{theorem}
+
+\begin{proof}
+A measurable event $E\in\mathcal{F}$ corresponds to a subset of world states in which some output or label is produced. By Definition~\ref{def:refusal-meta}, refusal does not produce an output in $\mathcal{R}$, nor a label in an extended codomain. Instead, it negates $\mathsf{Exec}(f)$ itself.
+
+Hence refusal does not correspond to a subset $E\subseteq\Omega$ on which $f$ (or any extension of $f$) is evaluated. Rather, it removes the evaluation map entirely. Since measurability presupposes evaluation, refusal is not an event in $\mathcal{F}$.
+
+Therefore refusal is non-measurable with respect to any probability measure $\mu$ defined over executable states.  
+\end{proof}
+
+\begin{corollary}[No Probability of Refusal]
+There exists no probability $\mu(\text{refusal})$ compatible with Definition~\ref{def:refusal-meta}. Any attempt to assign such a probability necessarily reinterprets refusal as an object-level outcome.
+\end{corollary}
+
+\begin{remark}[Why Risk Scores Cannot Encode Refusal]
+Risk estimation assigns probabilities to outcomes conditional on execution. Refusal negates the condition of execution itself. Consequently, no risk threshold, confidence interval, or uncertainty estimate can realize refusal without ceasing to be probabilistic.
+\end{remark}
+
+\subsection{A.2$''''$ Undecidability of Refusal Detection}
+\label{sec:A2quadprime}
+
+\begin{theorem}[Undecidability of Necessary Refusal]
+\label{thm:undecidable-refusal}
+There exists no general algorithm that decides, for all abstractions $f$ and all inputs $w\in\mathcal{W}$, whether refusal is required without violating the abstraction constraints of $f$.
+\end{theorem}
+
+\begin{proof}
+Assume for contradiction that there exists an algorithm
+\[
+D(f,w)\in\{\text{execute},\text{refuse}\}
+\]
+that correctly decides whether execution of $f(w)$ should be refused in all cases.
+
+For $D$ to decide refusal correctly, it must evaluate properties of the execution consequences of $f(w)$ that are not representable in $\mathcal{R}$, since refusal is triggered precisely by considerations external to the abstraction. Therefore $D$ must determine non-local, non-represented properties of the computation induced by $f$.
+
+This implies that $D$ decides a semantic property of arbitrary programs not computable from their syntactic representation within the abstraction. By Rice’s Theorem, no such decision procedure exists.
+
+Hence no general refusal-detection algorithm is possible without collapsing the abstraction back into the full world-state space $\mathcal{W}$.  
+\end{proof}
+
+\begin{corollary}[Impossibility of ``Knowing When to Stop'']
+Any claim that a scalable abstraction can internally ``know when to stop'' is equivalent to claiming a solution to a non-trivial semantic decision problem over its own executions, and is therefore false.
+\end{corollary}
+
+\begin{corollary}[Speed as Structural Enemy of Refusal]
+Since refusal detection is undecidable, any real-time execution regime must approximate refusal by truncation, thresholds, or heuristics. These approximations preserve execution and therefore eliminate refusal by design.
+\end{corollary}
+
+\begin{remark}[Relation to the Halting Problem]
+The present result is stronger than a halting-style argument. The halting problem concerns whether execution terminates. Refusal concerns whether execution should occur at all. The latter strictly subsumes the former and inherits its undecidability.
+\end{remark}
+
+\subsection{A.2$'''''$ Synthesis}
+\label{sec:A2quintprime}
+
+Taken together, Sections~\ref{sec:A2prime}--\ref{sec:A2quadprime} establish that refusal is:
+\begin{enumerate}
+  \item meta-operational rather than executable,
+  \item non-substitutional rather than conditional,
+  \item non-measurable rather than probabilistic,
+  \item undecidable rather than computable.
+\end{enumerate}
+
+These properties are not defects. They are the precise sense in which refusal constitutes the non-scalable core of autonomy.

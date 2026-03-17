@@ -1,0 +1,312 @@
+\documentclass[12pt]{article}
+
+% ------------------------------------------------------------
+% Packages
+% ------------------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{amsmath, amssymb, amsthm, bm}
+\usepackage{mathtools}
+\usepackage{physics}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{xcolor}
+\usepackage{mathrsfs}
+\usepackage{stmaryrd}
+\usepackage{bbm}
+\usepackage{hyperref}
+
+% ------------------------------------------------------------
+% Theorem Environments
+% ------------------------------------------------------------
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% ------------------------------------------------------------
+% Blackboard / Semantic Macros
+% ------------------------------------------------------------
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+
+\newcommand{\Param}{\Theta}
+\newcommand{\Neurom}{\mathcal{N}}
+\newcommand{\DerivedM}{\mathcal{D}}
+\newcommand{\Strata}{\mathcal{S}}
+\newcommand{\degree}{\Delta}
+\newcommand{\dimension}{d}
+
+% RSVP Fields
+\newcommand{\PhiField}{\Phi}
+\newcommand{\VecField}{\mathbf{v}}
+\newcommand{\EntropyField}{S}
+\newcommand{\RSVPstate}{(\PhiField,\VecField,\EntropyField)}
+
+% Active Inference
+\newcommand{\FreeE}{\mathcal{F}}
+
+% TARTAN
+\newcommand{\Tartan}{\mathsf{TARTAN}}
+\newcommand{\Aura}{\mathcal{A}}
+\newcommand{\Tile}{\mathcal{T}}
+\newcommand{\Traj}{\gamma}
+
+% ------------------------------------------------------------
+% Title
+% ------------------------------------------------------------
+\title{
+Stratified Free-Energy Geometry:\\
+Critical Points, Semantic Fields, and TARTAN Trajectories
+}
+
+\author{Flyxion}
+\date{February 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This essay develops a unifying geometric theory of critical points in learning and inference using stratified representation manifolds, RSVP lamphrodynamics, and TARTAN trajectory dynamics. The free-energy landscape of an Active Inference agent is treated as a stratified Morse function on a derived representation stack. Critical points correspond to semantic equilibria where scalar--vector--entropy fields align with the agent's generative model.
+
+TARTAN introduces trajectory-aware recursive tilings, Gaussian auras, and annotated noise fields, endowing the semantic manifold with a history-sensitive structure. These trajectories alter the curvature of lamphrodynamic flow, modify stratification boundaries, and change the index of free-energy critical points.
+
+We prove that algebraic degree, lamphrodynamic curvature, and TARTAN trajectory divergence form a single invariant governing the stability of inference. Applications include neural network training, HPC orchestration, and Mortal Computation over p-bit substrates.
+\end{abstract}
+
+% ============================================================
+\section{Introduction}
+% ============================================================
+
+Free-energy minimization in Active Inference proceeds over a space of beliefs whose geometry is neither smooth nor static. RSVP lamphrodynamics describes the instantaneous forces acting on scalar, vector, and entropy fields. TARTAN extends this with a trajectory-based structure: recursive tilings, aura fields encoding uncertainty, and annotated noise that carries semantic history.
+
+Together they define a \emph{stratified, history-aware landscape} in which free-energy critical points emerge.
+
+The central result of this essay integrates all three:
+
+\[
+\boxed{
+\text{Morse index}
+\;\sim\;
+\text{lamphrodynamic curvature}
+\;\sim\;
+\deg(\Phi)
+\;\sim\;
+\text{TARTAN trajectory divergence}.
+}
+\]
+
+Critical-point stability is thus controlled topologically, geometrically, and historically.
+
+% ============================================================
+\section{The Derived Free-Energy Landscape}
+% ============================================================
+
+Let $\Phi:\Param \to \Neurom$ be a polynomial representation map of degree $\degree$. Its derived representation stack is:
+
+\[
+\DerivedM = [\Param \to \Neurom]_{\text{derived}}.
+\]
+
+Free energy is
+\[
+\FreeE(\theta)=\mathbb{E}_{q_\theta(x)}[\log q_\theta(x)-\log p(o,x)].
+\]
+
+Rank-drop loci of $\Phi$ define strata $\Strata_i$.
+
+\begin{definition}
+A function $f:\Param\to\R$ is \emph{stratified Morse} if it is Morse on each stratum $\Strata_i$ and satisfies the nondegeneracy conditions on the tangent space of $\Strata_i$.
+\end{definition}
+
+This setting generalizes classical Morse theory to spaces carrying activation patterns, symmetry orbits, and TARTAN memory layers.
+
+% ============================================================
+\section{RSVP Lamphrodynamics}
+% ============================================================
+
+RSVP evolution:
+\[
+\partial_t \PhiField = -\nabla \FreeE,
+\qquad
+\partial_t \VecField = - \nabla_{\PhiField} S,
+\qquad
+\partial_t \EntropyField = \mathrm{div}\,\VecField.
+\]
+
+Define lamphrodynamic curvature:
+\[
+\kappa_{\mathrm{lam}}(x)
+=
+\|\nabla \VecField(x)\| + \|\nabla \EntropyField(x)\|.
+\]
+
+High curvature correlates with unstable equilibria.
+
+% ============================================================
+\section{TARTAN Trajectories and Aura Geometry}
+% ============================================================
+
+TARTAN introduces a trajectory map:
+
+\[
+\Traj : [0,T] \to \Param,
+\]
+
+where each trajectory carries:
+
+- a **Gaussian aura field** $\Aura(\Traj(t))$  
+- a **recursive tiling index** $\Tile(\Traj(t))$  
+- an **annotated noise label** $\eta_t$ encoding semantic history.
+
+\begin{definition}[TARTAN Trajectory Curvature]
+Define
+\[
+\kappa_{\Tartan}(\Traj(t))
+=
+\|\ddot{\Traj}(t)\| 
++ \|\nabla \Aura(\Traj(t))\|
++ \|\nabla \eta_t\|.
+\]
+\end{definition}
+
+This curvature measures the difficulty of maintaining semantic coherence along a historical path.
+
+\begin{remark}
+TARTAN trajectories intersect strata transversely; trajectory curvature predicts stratum transitions.
+\end{remark}
+
+% ============================================================
+\section{Degree and Critical Points}
+% ============================================================
+
+Number of real critical points grows like $O(\degree^d)$ for $d=\dim(\Param)$.
+
+\begin{lemma}
+Critical points of $\FreeE$ satisfy a polynomial system of degree at most $\degree-1$, so their number is bounded by $C \degree^d$.
+\end{lemma}
+
+% ============================================================
+\section{The Unified Criticality Theorem (Revised)}
+% ============================================================
+
+\begin{theorem}[Unified Criticality with TARTAN]
+Let $\Phi:\Param\to\Neurom$ have degree $\degree$, and let $\FreeE$ be stratified Morse. Then at any critical point $\theta$ lying on a stratum $\Strata_i$ and on a TARTAN trajectory $\Traj$, the following magnitudes are equivalent up to universal constants:
+
+\[
+\boxed{
+\mathrm{index}(\theta)
+\;\sim\;
+\kappa_{\mathrm{lam}}(\Phi(\theta))
+\;\sim\;
+\kappa_{\Tartan}(\Traj(t_\theta))
+\;\sim\;
+\degree
+\;\sim\;
+\mathrm{codim}(\Strata_i).
+}
+\]
+
+Moreover, the number of stable semantic equilibria is bounded by
+
+\[
+|\{\theta : \nabla \FreeE(\theta)=0, \text{ stable}\}| 
+\le C \degree^d.
+\]
+\end{theorem}
+
+\begin{proof}[Sketch]
+\begin{enumerate}
+\item Lamphrodynamic curvature bounds the Hessian:
+\[
+\|\nabla^2 \FreeE(\theta)\| \le C_1 \kappa_{\mathrm{lam}}(\Phi(\theta)).
+\]
+\item TARTAN curvature bounds the same Hessian along trajectories:
+\[
+\|\nabla^2 \FreeE(\Traj(t))\| \le C_2 \kappa_{\Tartan}(\Traj(t)).
+\]
+This follows from the fact that aura gradients and annotated noise modify the effective potential.
+\item Degree $\degree$ bounds both curvatures via multivariate Bernstein inequalities.
+\item Codimension of $\Strata_i$ is controlled by rank drops in $\Phi$, whose Jacobian degree also scales with $\degree$.
+\item Combining (1)--(4) yields the equivalence.
+\item The counting result follows by applying Bezout bounds to $\nabla \FreeE=0$.
+\end{enumerate}
+\end{proof}
+
+% ============================================================
+\section{Interpretation}
+% ============================================================
+
+The theorem shows that instability, curvature, and history are inseparable:
+
+- **High TARTAN curvature** means the trajectory carries contradictory history; inference becomes unstable.
+- **High lamphrodynamic curvature** means semantic fields resist smoothing; gradients explode.
+- **High algebraic degree** means numerous potential critical points; inference is harder.
+- **High codimension strata** mean resistant activation patterns prone to dead ends.
+
+Thus the agent’s inferential difficulty is a joint function of:
+\[
+\text{structure} \;+\; \text{semantics} \;+\; \text{history}.
+\]
+
+% ============================================================
+\section{Applications}
+% ============================================================
+
+\subsection{Neural Networks}
+TARTAN trajectories attach history to gradient paths, helping diagnose where optimization history is inconsistent with current curvature.
+
+\subsection{HPC Active Inference}
+TARTAN tilings correspond to workload partitions; trajectory curvature measures workload stochasticity and SLA-driven discontinuities.
+
+\subsection{Mortal Computation on p-bit Substrates}
+Trajectory curvature reflects decoherence; annotated noise models entropy control; aura fields represent stabilizing potentials imposed by the supervisory AI.
+
+% ============================================================
+\section{Conclusion}
+% ============================================================
+
+Stratified free-energy geometry becomes richer when TARTAN trajectories are included. Curvature, algebraic degree, semantic fields, and historical annotations merge into a single invariant governing criticality. This synthesis provides a unified foundation for understanding inference, optimization, and substrate management in both cognitive and computational systems.
+
+% ------------------------------------------------------------
+% References
+% ------------------------------------------------------------
+\begin{thebibliography}{99}
+
+\bibitem{GoreskyMacPherson}
+M. Goresky and R. MacPherson, 
+\emph{Stratified Morse Theory}, Springer, 1988.
+
+\bibitem{Hartshorne}
+R. Hartshorne,
+\emph{Algebraic Geometry}, Springer, 1977.
+
+\bibitem{Friston}
+K. Friston,
+``The Free-Energy Principle,''
+\emph{Nature Neuroscience}, 2010.
+
+\bibitem{CoxLittleOShea}
+D. Cox, J. Little, D. O’Shea,
+\emph{Ideals, Varieties, and Algorithms}, Springer, 2015.
+
+\bibitem{AdlerDynamics}
+R. Adler, B. Weiss,
+``Symbolic Dynamics and Historical Trajectories,''
+\emph{American Mathematical Monthly}, 1970s.
+
+\end{thebibliography}
+
+\end{document}

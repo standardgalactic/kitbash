@@ -1,0 +1,532 @@
+% ======================================================================
+% Spherepop Calculus: A Recursive Geometry of Coherence
+% A Research Monograph in the RSVP Framework
+% Flyxion Research Group, 2025 ======================================================================
+
+\documentclass[12pt]{book}
+
+% --- Packages ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{microtype}
+\usepackage{titlesec}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{quoting}
+\usepackage{csquotes}
+\usepackage{fancyhdr}
+\usepackage{float}
+
+% --- Style: suppress numbering in headers/footers ---
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+% No page numbers visibly:
+\fancyfoot{}
+\pagenumbering{gobble}
+
+% --- Section formatting ---
+\setstretch{1.12}
+\titleformat{\chapter}[display]{\bfseries\Large}{}{0pt}{\Large}
+\titleformat{\section}{\bfseries\large}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\bfseries\normalsize}{\thesubsection}{0.6em}{}
+
+% --- Theorem-like environments ---
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{proposition}[definition]{Proposition}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{corollary}[definition]{Corollary}
+\theoremstyle{remark}
+\newtheorem{remark}[definition]{Remark}
+
+% --- Macros ---
+\newcommand{\Pl}{\mathcal{P}}
+\newcommand{\Sph}{\mathsf{Sph}}
+\newcommand{\Spherepop}{\mathsf{Spherepop}}
+\newcommand{\vv}{\mathcal{v}}
+\newcommand{\dP}{\partial_{P}}
+\newcommand{\popint}{\int_{\Pl}^{!!\mathrm{pop}}}
+\newcommand{\muo}{\mu_{\circ}}
+\newcommand{\KL}{\mathrm{KL}}
+\newcommand{\E}{\mathbb{E}}
+
+% --- Title page ---
+\begin{document}
+
+\begin{titlepage}
+\centering
+{\LARGE \textbf{Spherepop Calculus: A Recursive Geometry of Coherence}\par}
+\vspace{0.6em}
+{\large \textit{A Research Monograph in the RSVP Framework}\par}
+\vspace{2em}
+{\large Flyxion Research Group, 2025\par}
+\vfill
+\begin{quoting}[leftmargin=1cm,rightmargin=1cm]
+\itshape
+To the bubbles we pop, in thought and in play—\\
+the simplest act of coherence-seeking,\\
+rediscovered by every mind that learns to see.\\
+(An intuition echoed by our species’ visual foraging.)
+\end{quoting}
+\vfill
+\end{titlepage}
+
+% --- Abstract ---
+\chapter*{Abstract}
+This monograph presents \emph{Spherepop Calculus}, a derived-geometric extension of the \emph{Relativistic Scalar–Vector Plenum} (RSVP) framework. It offers a universal account of coherence—bridging cosmology, cognition, and computation—by treating the local emergence, interaction, and dissolution of structured regions (``pops'') as morphisms in a higher differential category of entropic fields. Each spherepop is a bounded negentropic region embedded in the plenum, equipped with scalar potential $\Phi$, flow $\vv$, and local entropy density $S$. Linear differentials are replaced by a \emph{radial-coherence derivative} $\dP$, tensor products by an \emph{entropy-preserving merge} $\muo$, and additive integrals by a \emph{nested-pop integral}. We formulate the geometry (curvature flow), topology (cobordisms), algebraic topology (pop homology/cohomology), and quantization (BV–AKSZ) of this calculus, and we derive renormalization-style \emph{coherence flow equations} whose fixed points explain persistent structures across scales. The thesis is simple: \emph{coherence is conserved through transformation}. Spherepop Calculus is the resulting language of recursive coherence.
+
+% --- Table of Contents ---
+\tableofcontents
+\thispagestyle{empty}
+
+% =========================================================
+% Chapter 1: Mathematical Introduction
+% =========================================================
+\chapter{Mathematical Introduction}
+\section{The plenum as base category}
+We begin with the RSVP plenum $\Pl$, a derived smooth space supporting the scalar–vector–entropy triad $(\Phi,\vv,S)$. The scalar $\Phi:\Pl\to\mathbb{R}$ is a potential of coherence, $\vv:T\Pl\to T\Pl$ encodes flow, and $S$ is local entropy density (Jacobson (1995); Verlinde (2011)). In our formalism, a \emph{spherepop} is a local morphism of derived stacks $f:\Sph_r\to\Pl$, where $\Sph_r$ is a shifted derived sphere with symplectic inheritance in the sense of shifted symplectic geometry (Pantev, Toën, Vaquié, and Vezzosi (2013), hereafter PTVV).
+
+\section{Pop derivative}
+We define the \emph{pop derivative} as the curvature-weighted radial change of $\Phi$ along spherical embeddings:
+\begin{equation}
+\dP \Phi \;=\; \lim_{\epsilon\to 0}\frac{\Phi(\Sph_{r+\epsilon})-\Phi(\Sph_r)}{\epsilon}
+\;=\; (\nabla\cdot \mathbf{n})\,\partial_r \Phi \;+\; \vv\cdot\nabla\Phi.
+\label{eq:pop-derivative}
+\end{equation}
+Here $\mathbf{n}$ is the outward normal on the pop boundary. Positive $\dP\Phi$ indicates emergent coherence; negative values signal dissolution.
+
+\section{Merge product and entropy constraint}
+Given $\Phi_1,\Phi_2$ on overlapping pops, the \emph{merge} $\muo$ is defined by a coherence-preserving convolution
+\begin{equation}
+(\Phi_1\,\muo\,\Phi_2)(x)\;=\;\int_{\Sph_{12}} w(x,y)\,\Phi_1(y)\Phi_2(y)\,dV_y,
+\label{eq:merge}
+\end{equation}
+with kernel $w$ respecting entropy flux. Categorically, $\muo:\Sph\times\Sph\to\Sph$ is monoidal, associative up to a homotopy encoding global conservation $dS_{\text{total}}=0$ (Baez and Dolan (1995); Mac~Lane (1978)).
+
+\section{Pop integral}
+Global coherence is reconstructed by nested integration over spherical boundaries:
+\begin{equation}
+\popint \Phi \;=\; \sum_{r_i}\int_{\Sph_{r_i}}\Phi\,dA_{r_i}.
+\label{eq:pop-integral}
+\end{equation}
+This “pop integral’’ is RSVP’s counterpart to spacetime integration, weighted by boundary entropy.
+
+% =========================================================
+% Chapter 2: Visual and Geometric Interpretation
+% =========================================================
+\chapter{Visual and Geometric Interpretation}
+\section{Geometry of a pop}
+A pop is a bubble of negentropy nucleating in the plenum: curvature concentrates, $\Phi$ steepens across a thin membrane, and $\vv$ circulates tangentially. The human instinct to ``pop bubbles’’ in play mirrors a primal cognitive behavior: \emph{visual foraging} seeks high-curvature, high-surprise loci in the field of view, continually rediscovering the same act of coherence-seeking.
+
+\section{Merge and dissolve}
+When two pops overlap with aligned gradients, the merge $\muo$ yields constructive interference of $\Phi$; opposing gradients yield dissolution and entropy radiation. These are geometric versions of monoidal product and inverse morphism.
+
+\section{Curvature flow and the pop derivative}
+Concentric shells visualize \eqref{eq:pop-derivative}; positive flow expands coherence, negative collapses it. This is a mean-curvature flow modulated by RSVP dynamics (Arnol'd (1992)).
+
+\section{The coherence foam}
+Iterated pops, merges, and dissolves form a dynamic tessellation—a \emph{coherence foam}. RSVP’s “entropic smoothing’’ arises as the macroscopic envelope of these micro-events.
+
+% =========================================================
+% Chapter 3: Topological Foundations
+% =========================================================
+\chapter{Topological Foundations}
+\section{Cobordisms of coherence}
+Abstracting from metric data, each pop becomes a cobordism between sphere boundaries; merges are topological gluings, dissolves are orientation-cancellations. The resulting category $\mathsf{Cob}^{\mathrm{pop}}_n$ is monoidal under disjoint union and differential under entropy-preserving currents $d\sigma=0$ (Freed (1992); Schommer-Pries (2011)).
+
+\section{Orientation and duality}
+Reversing the pop orientation $(\Phi,\vv,S)\mapsto(\Phi,-\vv,-S)$ yields a negentropic dual; dissolving is composition with the dual.
+
+\section{Derived cobordisms}
+Lifting to the tangent $\infty$-topos, spherepops become derived stacks $\mathcal{S}_r=\mathrm{Map}(\Sph_r,\Pl)$ with shifted symplectic forms (PTVV (2013); Lurie (2009); Gaitsgory and Rozenblyum (2017)). The differential relations
+\begin{equation}
+\dP^2=0,\qquad dS=0
+\label{eq:topo-relations}
+\end{equation}
+encode coherence continuity.
+
+\section{Pop homology}
+Define a chain complex $(C^{\mathrm{pop}}_\bullet,\dP)$ with $k$-chains representing $k$-dimensional coherence. Homology classes $H_k^{\mathrm{pop}}$ are persistent structures: $H_0$ (entities), $H_1$ (interaction loops), $H_2$ (membranes) (Hatcher (2002); May (1999)).
+
+% =========================================================
+% Chapter 4: Homological and Cohomological Formalism
+% =========================================================
+\chapter{Homological and Cohomological Formalism}
+\section{Chains, boundaries, persistence}
+The boundary operator $\dP:C^{\mathrm{pop}}_k\to C^{\mathrm{pop}}_{k-1}$ satisfies $\dP^2=0$. Pop homology
+\begin{equation}
+H_k^{\mathrm{pop}}=\ker(\dP)/\mathrm{im}(\dP)
+\end{equation}
+captures what persists through transformation.
+
+\section{Entropy as a cocycle}
+Entropy is a cochain $S\in C^k_{\mathrm{pop}}=\mathrm{Hom}(C_k^{\mathrm{pop}},\mathbb{R})$ with coboundary $\delta_P S=S\circ \dP$. Coherence conservation is $\delta_P S=0$, i.e.\ $S$ closed.
+
+\section{Pairing and pop integral}
+Homology–cohomology pairing yields the pop integral:
+\begin{equation}
+\langle[\Phi],[S]\rangle \;=\; \int_{\mathrm{pop}}\Phi,
+\end{equation}
+interpreting every stable structure as carrying an entropic meaning.
+
+\section{Merge as cup product}
+Merges define a graded-commutative cup product $\smile_\circ$ on cochains, making $(C^\bullet_{\mathrm{pop}},\smile_\circ,\delta_P)$ a DGA, the algebraic shadow of the monoidal geometry (Kelly (1982)).
+
+\section{Pop Laplacian}
+Define the Laplacian
+\begin{equation}
+\Delta_P\;=\;\dP\,\delta_P+\delta_P\,\dP,
+\label{eq:pop-laplacian}
+\end{equation}
+whose eigenmodes $\Delta_P\Phi_\lambda=\lambda \Phi_\lambda$ reveal the coherence spectrum.
+
+% =========================================================
+% Chapter 5: Derived Quantization (BV–AKSZ)
+% =========================================================
+\chapter{Derived Quantization and BV–AKSZ Formulation}
+\section{Shifted symplectic structure}
+Following PTVV (2013), the derived mapping stack of pop fields carries a $(-1)$-shifted symplectic form
+\begin{equation}
+\omega_{\mathrm{pop}}=\int_{\Sph}\delta\Phi\wedge \delta\vv.
+\end{equation}
+This induces a BV bracket and operator (Alexandrov, Kontsevich, Schwarz, and Zaboronsky (1997)).
+
+\section{AKSZ action and master equation}
+An AKSZ-type action reads
+\begin{equation}
+S_{\mathrm{AKSZ}}[\Phi,\vv]=\int_{T[1]\Sigma}\Big(\langle \vv,d\Phi\rangle -\tfrac12\langle \vv,[\vv,\vv]\rangle - H(\Phi)\Big),
+\end{equation}
+satisfying the classical master equation $\{S_{\mathrm{AKSZ}},S_{\mathrm{AKSZ}}\}_{\mathrm{BV}}=0$, the quantum analogue of $dS=0$ (Costello and Gwilliam (2016–2021)).
+
+\section{Gauge symmetry and BV fields}
+Reparameterizations of coherence boundaries yield ghosts $c$ and antifields. The BRST differential acts by $s\Phi=\mathcal{L}_c\Phi$, $s\vv=[c,\vv]$, $sc=-\tfrac12[c,c]$ with $s^2=0$.
+
+\section{Partition function}
+The quantum partition function integrates over coherence geometries:
+\begin{equation}
+Z=\int e^{\tfrac{i}{\hbar}S_{\mathrm{AKSZ}}}\,\mathcal{D}\Phi\,\mathcal{D}\vv\,\mathcal{D}c\,\mathcal{D}\Phi^*\,\mathcal{D}\vv^*\,\mathcal{D}c^*.
+\end{equation}
+
+% =========================================================
+% Chapter 6: Quantized Observables and Derived Feynman Graphs
+% =========================================================
+\chapter{Quantized Observables and Derived Feynman Graphs}
+\section{Graphs of interaction}
+Stationary-phase expansion organizes contributions by derived Feynman graphs $\Gamma$; vertices encode merges, edges propagate entropy influence. Amplitudes integrate propagators $G=\Delta_P^{-1}$ and vertex weights over derived moduli $\mathcal{M}_\Gamma$.
+
+\section{Categorical interpretation}
+Let $\mathsf{PopGraph}$ be the $\infty$-category of labeled boundaries and interaction graphs; composition is gluing along boundaries; higher morphisms are entropic homotopies (Baez and Stay (2011)).
+
+\section{Renormalization as smoothing}
+Coarse-graining small pops yields an effective action $S_{\mathrm{eff}}$ and a flow of parameters: RSVP’s ``entropic smoothing’’ becomes renormalization of coherence amplitudes.
+
+% =========================================================
+% Chapter 7: Entropic Renormalization and Coherence Flow
+% =========================================================
+\chapter{Entropic Renormalization and Coherence Flow Equations}
+\section{Entropic beta function}
+Define the scale-dependent entropy $S(\Lambda)$ with
+\begin{equation}
+\beta_S(\Lambda)=\Lambda\,\frac{dS(\Lambda)}{d\Lambda}
+\;=\;\Big\langle \vv\cdot\nabla S + (\nabla\cdot\vv)\,S\Big\rangle.
+\label{eq:betaS}
+\end{equation}
+Signs classify smoothing $(\beta_S>0)$, structuring $(\beta_S<0)$, or fixed-point $(\beta_S=0)$ phases.
+
+\section{Callan–Symanzik analogue}
+For a renormalized observable $\mathcal{O}_R(\Lambda)$,
+\begin{equation}
+\Big(\Lambda\partial_\Lambda + \beta_S\,\partial_S + n\,\gamma_\Phi\Big)\langle \mathcal{O}_R\rangle \;=\;0,
+\end{equation}
+where $\gamma_\Phi$ is a coherence anomalous dimension.
+
+\section{Gradient flow}
+Introduce an entropic potential $\mathcal{F}[\Phi,S]$ with
+\begin{equation}
+\frac{d}{d\ln\Lambda}\begin{pmatrix}\Phi\\S\end{pmatrix}
+\;=\;-\nabla_{\Phi,S}\,\mathcal{F}\,,
+\label{eq:gradflow}
+\end{equation}
+encapsulating RSVP’s descent principle.
+
+\section{Wilson–Polchinski form}
+A schematic effective-action flow is
+\begin{equation}
+\Lambda\frac{\partial S_{\mathrm{eff}}}{\partial \Lambda}
+=\frac{i\hbar}{2}\,\mathrm{Tr}\!\left[
+\Lambda\frac{\partial G_\Lambda}{\partial\Lambda}\!
+\left(\frac{\delta^2 S_{\mathrm{eff}}}{\delta \Phi^2}
+-\frac{i}{\hbar}\Big(\frac{\delta S_{\mathrm{eff}}}{\delta \Phi}\Big)^2
+\right)\right].
+\label{eq:WP}
+\end{equation}
+
+% =========================================================
+% Chapter 8: Entropy–Coherence Phase Diagram
+% =========================================================
+\chapter{Entropy–Coherence Phase Diagram and Critical Manifolds}
+\section{The flow plane}
+The system
+\begin{equation}
+\frac{d\Phi}{d\ln\Lambda}=\beta_\Phi(\Phi,S),\qquad
+\frac{dS}{d\ln\Lambda}=\beta_S(\Phi,S)
+\label{eq:flowplane}
+\end{equation}
+partitions the $(\Phi,S)$-plane into a coherence basin, a smoothing basin, and a critical ridge of self-organized transitions.
+
+\section{Bifurcations and stability}
+Linearizing near fixed points yields a stability matrix whose eigenvalues classify phases (nodes, saddles, foci).
+
+\section{Hysteresis and memory}
+Multiple minima of $\mathcal{F}$ generate hysteresis loops (memory) as systems traverse coherence/smoothing branches.
+
+% =========================================================
+% Chapter 9: Recursive Scaling and Fractal Coherence
+% =========================================================
+\chapter{Recursive Scaling and Fractal Coherence}
+\section{Scale covariance}
+Spherepop equations are scale-covariant:
+$(\Phi,S,\Lambda)\mapsto (\rho^\alpha \Phi,\rho^\sigma S,\rho\Lambda)$.
+Self-similar cascades follow.
+
+\section{Spectral laws}
+Eliminating $\Lambda$ in \eqref{eq:gradflow} and \eqref{eq:betaS} yields $d\ln S/d\ln \Phi=\kappa$, hence $S\propto \Phi^\kappa$, a cross-domain exponent linking galactic, neuronal, and linguistic scaling.
+
+\section{Fractal manifold and information geometry}
+The spherepop cascade defines a fractal manifold with Hausdorff dimension $D_H=d-\gamma_\Phi$ and a conformal information metric $g_{ij}(\rho\Lambda)=\rho^{2h}g_{ij}(\Lambda)$.
+
+% =========================================================
+% Chapter 11: Information Geometry and Cognitive Plenums
+% =========================================================
+\chapter{Information Geometry and Cognitive Plenums}
+\begin{center}\itshape
+Perception is the curvature of inference.
+\end{center}
+
+\section{Entropy as informational curvature}
+View the RSVP plenum as a statistical manifold with densities $p(x|\Phi,\vv,S)$.
+The Fisher–Rao metric
+\begin{equation}
+g_{ij}=\int p\,\partial_i\!\ln p\,\partial_j\!\ln p\,dx
+\label{eq:fisher}
+\end{equation}
+measures distinguishability between coherent states; regions of high scalar curvature $R(g)$ coincide with high surprise. This aligns with information geometry’s treatment of learning dynamics.
+
+\section{Bayesian pops and KL descent}
+A \emph{pop} implements a Bayesian update in curved information space. If $p_{\text{old}}\to p_{\text{new}}$, define
+\begin{equation}
+\dP \Phi \;=\; \ln\frac{p_{\text{new}}}{p_{\text{old}}},\qquad
+\mathrm{and}\qquad
+\KL(p_{\text{new}}\Vert p_{\text{old}})=\E_{p_{\text{new}}}\!\left[\ln\frac{p_{\text{new}}}{p_{\text{old}}}\right].
+\end{equation}
+Coherence formation corresponds to monotone descent of $\KL$, while merges implement composite updates respecting the DGA structure of Chapter~4.
+
+\section{Neural and semantic manifolds}
+Latent-variable embeddings for neural activity or language can be endowed with \eqref{eq:fisher}; coherence foams become semantic clusters; merges correspond to concept integration; the critical ridge of Chapter~8 is the zone of balanced exploration–exploitation.
+
+% =========================================================
+% Chapter 12: Ethical and Governance Manifolds
+% =========================================================
+\chapter{Ethical and Governance Manifolds}
+\begin{center}\itshape
+Every order that endures learns to lose gracefully.
+\end{center}
+
+\section{Entropy management as moral geometry}
+Let $S_{\mathrm{civ}}$ denote collective entropy production. Stability requires
+\begin{equation}
+\dP S_{\mathrm{civ}} \;=\; 0,
+\label{eq:civ-entropy}
+\end{equation}
+balancing negentropic creation with dissipation. Excess extraction ($\dP S_{\mathrm{civ}}<0$) collapses complexity; excess diffusion ($\dP S_{\mathrm{civ}}>0$) erases structure.
+
+\section{Steering fields and the corridor}
+Introduce a governance field $\vv_{\mathrm{gov}}$ shaping trajectories toward the critical ridge. Policies are local variations of $\mathcal{F}[\Phi,S]$ that preserve diversity of local minima while minimizing global tension. The \emph{corridor of reconstructive coherence} is defined by
+\begin{equation}
+\int_{\text{society}}\Phi\,dV \;=\; \mathrm{const},
+\end{equation}
+a conservation statement compatible with \eqref{eq:topo-relations}.
+
+% =========================================================
+% Chapter 13: Computational Implementation and Simulation Notes
+% =========================================================
+\chapter{Computational Implementation and Simulation Notes}
+\begin{center}\itshape
+To simulate is to remember what reality forgot to write.
+\end{center}
+
+\section{Discrete operators}
+On a cubic lattice $\{i,j,k\}$ with spacing $\Delta r$, approximate
+\begin{align}
+\dP \Phi_{ijk} &\approx
+  (\nabla\!\cdot\!\mathbf{n})_{ijk}\,
+  \frac{\Phi_{i+1,j,k}-\Phi_{i-1,j,k}}{2\Delta r}
+  + \vv_{ijk}\!\cdot\!\nabla\Phi_{ijk},
+\label{eq:disc-pop}\\[3pt]
+\Delta_P \Phi_{ijk} &\approx
+  \sum_{\text{n.n.}}
+  \frac{\Phi_{ijk}-\Phi_{\text{n.n.}}}{\Delta r^2}.
+\label{eq:disc-lap}
+\end{align}
+Iterating \eqref{eq:disc-pop} and \eqref{eq:disc-lap} with explicit or semi-implicit schemes produces numerical coherence foams.
+
+\section{Pop–merge cycle}
+A minimal update loop:
+\begin{enumerate}[label=\arabic*.]
+\item Detect curvature peaks with $\dP\Phi> \tau_{\mathrm{pop}}$.
+\item Spawn new pops $S_r$ and evaluate overlaps.
+\item If $\langle\nabla\Phi_1,\nabla\Phi_2\rangle>0$, apply $\muo$; else dissolve.
+\item Update $S\leftarrow S+\Delta S$ enforcing $\sum\Delta S=0$.
+\item Visualize $\Phi$ (opacity), $\vv$ (streamlines), $\beta_S$ (diverging colormap).
+\end{enumerate}
+
+% =========================================================
+% Chapter 14: Comparative Theories of Coherence
+% =========================================================
+\chapter{Comparative Theories of Coherence}
+\begin{center}\itshape
+Each theory is a mirror curved toward its own horizon.
+\end{center}
+
+\section{Holographic and emergent-gravity comparisons}
+Entropic and holographic accounts of gravity reinterpret curvature as information flow (Jacobson (1995); Verlinde (2011)). Spherepop’s novelty is locality of pops, an explicit merge product \eqref{eq:merge}, and a BV–AKSZ quantization with $(-1)$-shifted symplectic geometry (PTVV (2013); Alexandrov et al. (1997)).
+
+\section{Information-theoretic frameworks}
+Information geometry provides $g_{ij}$ in \eqref{eq:fisher}; factorization algebras (Costello and Gwilliam (2016–2021)) provide a local-to-global field-theoretic backbone; category theory supplies monoidal coherence (Mac~Lane (1978); Kelly (1982)). Spherepop integrates these as geometry $\to$ topology $\to$ homology $\to$ quantization $\to$ RG flow.
+
+% =========================================================
+% Chapter 15: Future Directions and Open Problems
+% =========================================================
+\chapter{Future Directions and Open Problems}
+\begin{center}\itshape
+What remains unsolved is what remains alive.
+\end{center}
+
+\section{Conjectures}
+\begin{itemize}
+\item \textbf{BV quantization of civic flows.} A BRST symmetry for governance fields $\vv_{\mathrm{gov}}$ consistent with \eqref{eq:civ-entropy}.
+\item \textbf{Higher-entropic gauge symmetries.} Cohomological classification of entropy-preserving deformations extending \eqref{eq:topo-relations}.
+\item \textbf{Fractal fixed points.} Rigorous existence of scale-invariant attractors for \eqref{eq:flowplane}.
+\end{itemize}
+
+\section{Computational milestones}
+\begin{itemize}
+\item Efficient solvers for \eqref{eq:disc-lap} on adaptive meshes.
+\item Derived graph samplers for Chapter~6 amplitudes.
+\item Inference-on-foams: learning latent $\Phi,\vv$ from spatiotemporal data.
+\end{itemize}
+
+% =========================================================
+% Chapter 16: Conclusion
+% =========================================================
+\chapter{Conclusion: The Plenum as Recursive Description}
+Spherepop Calculus frames the universe as a computation of curvature—a recursive geometry where every bubble of order is both a physical field and a logical operation. The same calculus explains cosmic structure, cognitive insight, and computational composition. In the oldest human game—popping bubbles, visually foraging for salient edges—we rediscover the primal act of the plenum: to distinguish, to merge, to dissolve, and to integrate. Coherence is conserved through transformation.
+
+% =========================================================
+% Appendices
+% =========================================================
+\appendix
+
+\chapter{Appendix A: Formal Definitions}
+We collect core definitions: the pop differential category $(\mathrm{Obj}=\{S_r\},\mathrm{Mor}=\{\text{pop, merge, dissolve}\},\muo,\dP)$; derived stacks $\mathcal{S}_r=\mathrm{Map}(\Sph_r,\Pl)$; homology $(C_\bullet^{\mathrm{pop}},\dP)$; cohomology $(C^\bullet_{\mathrm{pop}},\delta_P)$ and the DGA $(C^\bullet_{\mathrm{pop}},\smile_\circ,\delta_P)$.
+
+\chapter{Appendix B: Computational Notes}
+Discrete approximations of \eqref{eq:pop-derivative}, numerical Laplacian \eqref{eq:pop-laplacian}, and toy renormalization flows \eqref{eq:WP}. Coherence spectra extracted by eigen-solves of $\Delta_P$.
+
+\chapter{Appendix C: Historical Context}
+From thermodynamic gravity (Jacobson (1995); Verlinde (2011)) through derived symplectic geometry (PTVV (2013)) and factorization algebras (Costello and Gwilliam (2016–2021)) to higher-categorical and computational bridges (Baez and Dolan (1995); Baez and Stay (2011); Mac~Lane (1978); Kelly (1982)).
+
+% =========================================================
+% Bibliography (manual, unannotated; no Flyxion entries)
+% =========================================================
+\chapter*{Bibliography}
+\begin{itemize}[leftmargin=1.2em]
+
+\item Alexandrov, M., Kontsevich, M., Schwarz, A., \& Zaboronsky, O. (1997).
+The Geometry of the Master Equation and Topological Quantum Field Theory.
+\emph{International Journal of Modern Physics A}.
+
+\item Arnol'd, V. I. (1992).
+\emph{Catastrophe Theory}. Springer.
+
+\item Baez, J. C., \& Dolan, J. (1995).
+Higher-Dimensional Algebra and Topological Quantum Field Theory.
+\emph{Journal of Mathematical Physics}.
+
+\item Baez, J. C., \& Stay, M. (2011).
+Physics, Topology, Logic and Computation: A Rosetta Stone.
+In \emph{New Structures for Physics}. Springer.
+
+\item Bianconi, G. (2021).
+\emph{Higher-Order Networks: An Introduction to Simplicial Complexes}.
+Cambridge University Press.
+
+\item Costello, K., \& Gwilliam, O. (2016–2021).
+\emph{Factorization Algebras in Quantum Field Theory} (Vols.\ 1–2).
+
+\item Freed, D. S. (1992).
+Classical Chern–Simons Theory Part 1.
+\emph{Advances in Mathematics}.
+
+\item Gaitsgory, D., \& Rozenblyum, N. (2017).
+\emph{A Study in Derived Algebraic Geometry}. AMS.
+
+\item Hatcher, A. (2002).
+\emph{Algebraic Topology}. Cambridge University Press.
+
+\item Jacobson, T. (1995).
+Thermodynamics of Spacetime: The Einstein Equation of State.
+\emph{Physical Review Letters}.
+
+\item Joyce, D. (2012).
+On Manifolds with Corners.
+\emph{Advances in Mathematics}.
+
+\item Kelly, G. M. (1982).
+\emph{Basic Concepts of Enriched Category Theory}. Cambridge.
+
+\item Kontsevich, M., \& Soibelman, Y. (2006).
+Homological Mirror Symmetry and Torus Fibrations.
+
+\item Lurie, J. (2009).
+\emph{Higher Topos Theory}. Princeton University Press.
+
+\item Lurie, J. (2017).
+\emph{Spectral Algebraic Geometry}.
+
+\item Mac Lane, S. (1978).
+\emph{Categories for the Working Mathematician}. Springer.
+
+\item May, J. P. (1999).
+\emph{A Concise Course in Algebraic Topology}. University of Chicago Press.
+
+\item Nadzeya, H. (2024a).
+How Mathematicians Questioned the Possibility of Making Choices. Medium.
+
+\item Nadzeya, H. (2024b).
+The Beauty of Abstract Algebra: The Integers Modulo $n$. Medium.
+
+\item Pantev, T., Toën, B., Vaquié, M., \& Vezzosi, G. (2013).
+Shifted Symplectic Structures.
+\emph{Publications Mathématiques de l’IHÉS}.
+
+\item Schommer-Pries, C. J. (2011).
+The Classification of Two-Dimensional Extended Topological Field Theories.
+arXiv:1112.1000.
+
+\item Schreiber, U. (2023).
+Higher Structures and the Quantization of Fields. Lecture Notes.
+
+\item Verlinde, E. (2011).
+On the Origin of Gravity and the Laws of Newton.
+\emph{Journal of High Energy Physics}.
+\end{itemize}
+
+\end{document}
