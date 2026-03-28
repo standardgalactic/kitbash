@@ -4,7 +4,7 @@ Cosmological Observables Without Expansion:
 A Scalar-Vector-Entropy Field Theory of Redshift, 
 Luminosity Distance, and the Hubble Tension
 
-[Working Draft](https://standardgalactic.github.io/kitbash/cosmology/rsvp_cosmology_v2-1.pdf]
+[Working Draft](https://standardgalactic.github.io/kitbash/cosmology/rsvp_cosmology_v2-1.pdf)
 
 ---
 
