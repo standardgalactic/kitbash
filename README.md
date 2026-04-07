@@ -1,5 +1,12 @@
 # Self-Refactoring Crosslinking
 
+
+[Inference as Constraint Closure](https://standardgalactic.github.io/kitbash/thesis/constraint_closure.pdf)
+
+* [Audio Overview](https://standardgalactic.github.io/kitbash/thesis/)
+
+---
+
 Cosmological Observables Without Expansion: 
 A Scalar-Vector-Entropy Field Theory of Redshift, 
 Luminosity Distance, and the Hubble Tension
