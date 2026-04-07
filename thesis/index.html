@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inference as Constraint Closure</title>
+
+<style>
+html,body{
+margin:0;
+background:#000;
+overflow:hidden;
+font-family:monospace;
+}
+
+/* canvas */
+canvas{
+position:fixed;
+inset:0;
+}
+
+/* overlay play */
+#overlay{
+position:fixed;
+inset:0;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:4em;
+color:#7cff7c;
+background:rgba(0,0,0,0.9);
+transition:opacity 0.6s;
+z-index:10;
+cursor:pointer;
+}
+
+#overlay.hidden{
+opacity:0;
+pointer-events:none;
+}
+
+/* pause controls */
+#controls{
+position:fixed;
+bottom:70px;
+left:50%;
+transform:translateX(-50%);
+background:#001000cc;
+border:1px solid #00ff00;
+padding:10px 16px;
+color:#7cff7c;
+display:none;
+z-index:6;
+}
+
+#controls.visible{
+display:block;
+}
+
+/* description */
+.description{
+position:fixed;
+top:20px;
+left:50%;
+transform:translateX(-50%);
+max-width:800px;
+color:#aaffaa;
+background:#001000cc;
+border:1px solid #00ff0030;
+padding:12px;
+font-size:0.85em;
+line-height:1.4em;
+z-index:5;
+}
+
+/* essay link */
+#essay-link{
+position:fixed;
+bottom:20px;
+left:50%;
+transform:translateX(-50%);
+background:#001000cc;
+border:1px solid #00ff0030;
+padding:10px 14px;
+font-size:0.8em;
+z-index:6;
+}
+
+#essay-link a{
+color:#7cff7c;
+text-decoration:none;
+border-bottom:1px solid #00ff00;
+}
+
+#essay-link a:hover{
+color:#aaffaa;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="canvas"></canvas>
+
+<div id="overlay">▶</div>
+
+<div id="controls">Paused — tap anywhere to resume</div>
+
+<div class="description">
+Inference as entropy-respecting constraint closure: perception and computation emerge as physical processes that stabilize coherent structure by satisfying projection and dynamical constraints across a shared field manifold.
+</div>
+
+<div id="essay-link">
+<a href="https://standardgalactic.github.io/kitbash/thesis/constraint_closure.pdf" target="_blank">
+Inference as Constraint Closure — Full Essay
+</a>
+</div>
+
+<audio id="audio" src="Perception_as_physical_constraint_closure.mp3"></audio>
+
+<script>
+
+/* ===== audio setup ===== */
+
+const audio = document.getElementById("audio")
+
+let ctx, analyser, source, buffer
+
+function initAudio(){
+if(ctx) return
+
+ctx = new (window.AudioContext||window.webkitAudioContext)()
+
+source = ctx.createMediaElementSource(audio)
+analyser = ctx.createAnalyser()
+analyser.fftSize = 2048
+
+source.connect(analyser)
+analyser.connect(ctx.destination)
+
+buffer = new Uint8Array(analyser.fftSize)
+
+/* tuning */
+audio.playbackRate = 0.92
+audio.preservesPitch = false
+if(source.detune) source.detune.value = -300
+}
+
+/* ===== interaction ===== */
+
+let started=false, paused=true
+
+const overlay = document.getElementById("overlay")
+const controls = document.getElementById("controls")
+
+function toggle(){
+
+if(!started){
+initAudio()
+ctx.resume().then(()=>audio.play())
+overlay.classList.add("hidden")
+started=true
+paused=false
+return
+}
+
+if(paused){
+audio.play()
+controls.classList.remove("visible")
+paused=false
+}else{
+audio.pause()
+controls.classList.add("visible")
+paused=true
+}
+}
+
+document.body.addEventListener("click",toggle)
+
+/* ===== canvas ===== */
+
+const canvas = document.getElementById("canvas")
+const c = canvas.getContext("2d")
+
+let w,h
+
+function resize(){
+w = canvas.width = window.innerWidth
+h = canvas.height = window.innerHeight
+}
+resize()
+window.addEventListener("resize",resize)
+
+/* ===== energy + lookahead ===== */
+
+let energyHist = []
+const LOOK = 20
+
+function energy(buf){
+let sum=0
+for(let i=0;i<buf.length;i++){
+let v=(buf[i]-128)/128
+sum += v*v
+}
+return sum/buf.length
+}
+
+/* ===== shape ===== */
+
+let pts=[], vel=[]
+let pointCount = 6
+
+function initShape(n){
+pts=[]
+vel=[]
+pointCount=n
+
+for(let i=0;i<n;i++){
+pts.push({x:Math.random()*w,y:Math.random()*h})
+vel.push({
+x:(Math.random()*2-1)*2,
+y:(Math.random()*2-1)*2
+})
+}
+}
+
+initShape(pointCount)
+
+let scale=1
+
+/* ===== draw ===== */
+
+let hue=0
+
+function draw(){
+
+if(analyser){
+
+analyser.getByteTimeDomainData(buffer)
+
+let e = energy(buffer)
+
+/* smoothing */
+let smooth = e
+if(energyHist.length>0){
+smooth = energyHist[energyHist.length-1]*0.9 + e*0.1
+}
+
+energyHist.push(smooth)
+if(energyHist.length > LOOK) energyHist.shift()
+
+/* predictive peak */
+let peak = Math.max(...energyHist)
+
+/* scale toward peak */
+let targetScale = 1 + peak * 6
+scale += (targetScale - scale) * 0.08
+
+/* fade */
+c.fillStyle="rgba(0,0,0,0.12)"
+c.fillRect(0,0,w,h)
+
+/* center transform */
+let cx=w/2, cy=h/2
+
+c.beginPath()
+
+for(let i=0;i<pts.length;i++){
+
+let p=pts[i]
+
+let x = cx + (p.x - cx)*scale
+let y = cy + (p.y - cy)*scale
+
+if(i===0) c.moveTo(x,y)
+else c.lineTo(x,y)
+
+}
+
+c.closePath()
+
+/* styling */
+let glow = 10 + peak*40
+
+c.strokeStyle=`hsl(${hue},100%,60%)`
+c.lineWidth = 2 + peak*3
+c.shadowColor="#00ff88"
+c.shadowBlur=glow
+c.stroke()
+c.shadowBlur=0
+
+/* motion */
+
+for(let i=0;i<pts.length;i++){
+
+let p=pts[i]
+let v=vel[i]
+
+/* energy-driven perturbation */
+v.x += (Math.random()-0.5)*peak*0.8
+v.y += (Math.random()-0.5)*peak*0.8
+
+/* damping */
+v.x *= 0.98
+v.y *= 0.98
+
+p.x += v.x
+p.y += v.y
+
+if(p.x<0||p.x>w) v.x*=-1
+if(p.y<0||p.y>h) v.y*=-1
+}
+
+/* topology phase transition */
+if(peak > 0.15 && Math.random() < 0.02){
+let newCount = 4 + Math.floor(Math.random()*6)
+initShape(newCount)
+}
+
+/* color drift */
+hue += 0.5 + peak*2
+
+}
+
+requestAnimationFrame(draw)
+}
+
+draw()
+
+</script>
+
+</body>
+</html>
