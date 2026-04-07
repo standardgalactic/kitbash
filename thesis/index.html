@@ -18,6 +18,7 @@ position:fixed;
 inset:0;
 }
 
+/* overlay */
 #overlay{
 position:fixed;
 inset:0;
@@ -37,6 +38,7 @@ opacity:0;
 pointer-events:none;
 }
 
+/* controls */
 #controls{
 position:fixed;
 bottom:70px;
@@ -54,6 +56,7 @@ z-index:6;
 display:block;
 }
 
+/* description */
 .description{
 position:fixed;
 top:20px;
@@ -67,8 +70,15 @@ padding:12px;
 font-size:0.85em;
 line-height:1.4em;
 z-index:5;
+transition:opacity 2s ease;
 }
 
+.description.fade{
+opacity:0;
+pointer-events:none;
+}
+
+/* essay link */
 #essay-link{
 position:fixed;
 bottom:20px;
@@ -96,7 +106,7 @@ border-bottom:1px solid #00ff00;
 <div id="overlay">▶</div>
 <div id="controls">Paused — tap anywhere</div>
 
-<div class="description">
+<div id="desc" class="description">
 Inference as entropy-respecting constraint closure: structure emerges through continuous deformation and constraint stabilization across a dynamic field.
 </div>
 
@@ -109,6 +119,12 @@ Inference as Constraint Closure — Full Essay
 <audio id="audio" src="Perception_as_physical_constraint_closure.mp3"></audio>
 
 <script>
+
+/* ===== fade description ===== */
+
+setTimeout(()=>{
+document.getElementById("desc").classList.add("fade")
+},12000)
 
 /* ===== audio ===== */
 
@@ -155,6 +171,7 @@ controls.classList.add("visible")
 paused=true
 }
 }
+
 document.body.addEventListener("click",toggle)
 
 /* ===== canvas ===== */
@@ -247,15 +264,15 @@ for(let i=0;i<pts.length;i++){
 
 let r=rest[i]
 
-/* slow structural drift */
+/* slow drift */
 r.x += Math.sin(t*0.2 + i)*0.2
 r.y += Math.cos(t*0.15 + i)*0.2
 
-/* deform field */
+/* deformation field */
 let dx = Math.sin(t + i)*20
 let dy = Math.cos(t*1.2 + i)*20
 
-/* relax toward rest + deformation */
+/* relax */
 pts[i].x += (r.x + dx - pts[i].x)*0.02
 pts[i].y += (r.y + dy - pts[i].y)*0.02
 
@@ -269,11 +286,9 @@ vel[i].y *= 0.98
 pts[i].x += vel[i].x
 pts[i].y += vel[i].y
 
-/* boundary */
 if(pts[i].x<0||pts[i].x>w) vel[i].x*=-1
 if(pts[i].y<0||pts[i].y>h) vel[i].y*=-1
 
-/* draw scaled */
 let x=cx+(pts[i].x-cx)*scale
 let y=cy+(pts[i].y-cy)*scale
 
@@ -292,8 +307,8 @@ c.shadowBlur=15+peak*30
 c.stroke()
 c.shadowBlur=0
 
-/* slow topology drift */
-if(Math.random()<0.01){
+/* slower topology transitions */
+if(peak > 0.18 && Math.random() < 0.005){
 let n=4+Math.floor(Math.random()*6)
 initShape(n)
 }
