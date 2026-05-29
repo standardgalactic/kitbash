@@ -1,0 +1,1441 @@
+% !TEX program = lualatex
+\documentclass[12pt, a4paper, twoside]{memoir}
+
+%% ── Font & encoding ──────────────────────────────────────────────────────────
+\usepackage{fontspec}
+\usepackage{microtype}
+\setmainfont{TeX Gyre Pagella}
+\setmonofont{TeX Gyre Cursor}[Scale=0.88]
+
+%% ── Language ─────────────────────────────────────────────────────────────────
+\usepackage{polyglossia}
+\setmainlanguage{english}
+\setotherlanguages{latin, german, italian}
+
+%% ── Mathematics ──────────────────────────────────────────────────────────────
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+
+%% ── Page geometry ────────────────────────────────────────────────────────────
+\usepackage{geometry}
+\geometry{
+  a4paper,
+  top=30mm, bottom=32mm,
+  inner=30mm, outer=24mm,
+  marginparwidth=18mm,
+  marginparsep=4mm,
+  headheight=15pt
+}
+
+%% ── Headers & footers ────────────────────────────────────────────────────────
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE]{\small\itshape Mundus Subterraneus}
+\fancyhead[RO]{\small\itshape Flyxion}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+
+%% ── Colours ──────────────────────────────────────────────────────────────────
+\usepackage[dvipsnames, svgnames]{xcolor}
+\definecolor{kircherink}{RGB}{34,28,20}
+\definecolor{arkgold}{RGB}{161,128,60}
+\definecolor{plaguegrey}{RGB}{108,104,98}
+\definecolor{cosmosblue}{RGB}{28,48,92}
+\definecolor{rulecolor}{RGB}{161,128,60}
+
+%% ── Hyperref ─────────────────────────────────────────────────────────────────
+\usepackage[
+  colorlinks=true,
+  linkcolor=cosmosblue,
+  citecolor=arkgold,
+  urlcolor=plaguegrey,
+  pdftitle={Mundus Subterraneus: A Formal Screenplay},
+  pdfauthor={Flyxion},
+  pdfsubject={Experimental Filmography / Athanasius Kircher},
+]{hyperref}
+
+%% ── Rules & ornaments ────────────────────────────────────────────────────────
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{decorations.pathmorphing, patterns, calc}
+
+%% ── Epigraph ─────────────────────────────────────────────────────────────────
+\usepackage{epigraph}
+\setlength{\epigraphwidth}{0.62\textwidth}
+\renewcommand{\epigraphflush}{center}
+\renewcommand{\epigraphrule}{0pt}
+
+%% ── Enumitem & lists ─────────────────────────────────────────────────────────
+\usepackage{enumitem}
+\setlist{noitemsep, topsep=3pt}
+
+%% ── Marginal notes ───────────────────────────────────────────────────────────
+\usepackage{marginnote}
+\renewcommand*{\marginfont}{\footnotesize\itshape\color{plaguegrey}}
+
+%% ── Theorem environments ─────────────────────────────────────────────────────
+\theoremstyle{definition}
+\newtheorem{sequence}{Sequence}[chapter]
+\newtheorem{direction}[sequence]{Direction}
+\newtheorem{axiom}{Axiom}[chapter]
+\newtheorem{correspondence}{Correspondence}[chapter]
+
+\theoremstyle{remark}
+\newtheorem{fragment}{Fragment}[chapter]
+\newtheorem{interpolation}{Interpolation}[chapter]
+\newtheorem{annotation}{Annotation}[chapter]
+
+%% ── Custom screenplay environments ───────────────────────────────────────────
+\usepackage{mdframed}
+
+% Scene heading
+\newenvironment{sceneheading}{%
+  \vspace{8pt}%
+  \noindent\begin{mdframed}[
+    linecolor=arkgold,
+    linewidth=0.8pt,
+    leftmargin=0pt,
+    rightmargin=0pt,
+    innerleftmargin=6pt,
+    innerrightmargin=6pt,
+    innertopmargin=4pt,
+    innerbottommargin=4pt,
+    backgroundcolor=arkgold!6
+  ]%
+  \noindent\textsc\bgroup\small
+}{%
+  \egroup\end{mdframed}\vspace{4pt}%
+}
+
+% Stage direction / action
+\newenvironment{action}{%
+  \vspace{4pt}%
+  \noindent\begin{minipage}{\linewidth}%
+  \setlength{\parindent}{0pt}%
+  \itshape\color{kircherink}%
+}{%
+  \end{minipage}\vspace{6pt}%
+}
+
+% Dialogue block
+\newenvironment{dialogue}[1]{%
+  \vspace{6pt}%
+  \noindent\hspace{24mm}%
+  \begin{minipage}{0.6\linewidth}%
+  \begin{center}%
+  {\small\textsc{#1}}%
+  \end{center}%
+  \vspace{2pt}%
+}{%
+  \end{minipage}\vspace{6pt}%
+}
+
+% Parenthetical
+\newcommand{\paren}[1]{%
+  \begin{center}%
+  \small\itshape\color{plaguegrey}(#1)%
+  \end{center}%
+}
+
+% Theoretical interlude
+\newenvironment{interlude}{%
+  \vspace{10pt}%
+  \noindent\rule{\linewidth}{0.4pt}\\[2pt]%
+  \noindent{\small\textsc{Theoretical Interlude}}\smallskip%
+  \begin{mdframed}[
+    linecolor=cosmosblue,
+    linewidth=0.6pt,
+    backgroundcolor=cosmosblue!4,
+    innerleftmargin=10pt,
+    innerrightmargin=10pt,
+    innertopmargin=8pt,
+    innerbottommargin=8pt,
+    leftmargin=0pt,
+    rightmargin=0pt,
+  ]%
+  \small
+}{%
+  \end{mdframed}%
+  \vspace{6pt}%
+  \noindent\rule{\linewidth}{0.4pt}\vspace{8pt}%
+}
+
+% Visual grammar note
+\newenvironment{visual}{%
+  \vspace{6pt}%
+  \noindent\begin{mdframed}[
+    linecolor=plaguegrey,
+    linewidth=0.4pt,
+    leftline=true, rightline=false, topline=false, bottomline=false,
+    innerleftmargin=8pt,
+    innerrightmargin=0pt,
+    innertopmargin=2pt,
+    innerbottommargin=2pt,
+    backgroundcolor=white
+  ]%
+  \footnotesize\color{plaguegrey}\textit
+}{%
+  \end{mdframed}\vspace{4pt}%
+}
+
+% Museum organism note
+\newenvironment{museumnote}{%
+  \vspace{4pt}%
+  \noindent\begin{mdframed}[
+    linecolor=arkgold!60,
+    linewidth=0.4pt,
+    leftline=true, rightline=false, topline=false, bottomline=false,
+    innerleftmargin=8pt,
+    innerrightmargin=0pt,
+    innertopmargin=2pt,
+    innerbottommargin=2pt,
+    backgroundcolor=arkgold!4
+  ]%
+  \footnotesize\color{plaguegrey}%
+}{%
+  \end{mdframed}\vspace{4pt}%
+}
+
+%% ── Chapter style ─────────────────────────────────────────────────────────────
+\makechapterstyle{kircher}{%
+  \renewcommand{\chapterheadstart}{\vspace*{20pt}}
+  \renewcommand{\printchaptername}{}
+  \renewcommand{\chapternamenum}{}
+  \renewcommand{\printchapternum}{%
+    \noindent{\color{arkgold}\rule{\linewidth}{1.2pt}}\\[4pt]%
+    \noindent{\Large\color{plaguegrey}\textsc{Act}~\thechapter}\\[2pt]%
+    {\color{arkgold}\rule{\linewidth}{0.4pt}}\par
+  }
+  \renewcommand{\afterchapternum}{\vspace{10pt}}
+  \renewcommand{\printchaptertitle}[1]{%
+    \par\noindent
+    {\LARGE\itshape\raggedright\hyphenpenalty=10000\exhyphenpenalty=10000 ##1\par}%
+  }
+  \renewcommand{\afterchaptertitle}{%
+    \vspace{6pt}%
+    \noindent{\color{arkgold}\rule{\linewidth}{0.4pt}}%
+    \vspace{16pt}%
+  }
+}
+\chapterstyle{kircher}
+
+%% ── Section styles ───────────────────────────────────────────────────────────
+\setsecheadstyle{\large\scshape\color{cosmosblue}}
+\setsubsecheadstyle{\normalsize\itshape\color{kircherink}}
+
+%% ── Footnotes ────────────────────────────────────────────────────────────────
+\usepackage[perpage, hang]{footmisc}
+\setlength{\footnotemargin}{1.4em}
+
+%% ── Bibliography ─────────────────────────────────────────────────────────────
+\renewcommand{\bibname}{Bibliography}
+\makeatletter
+\def\@cite#1#2{[{#1\if@tempswa , #2\fi}]}
+\def\@biblabel#1{[#1]}
+\makeatother
+
+%% ── Spacing ──────────────────────────────────────────────────────────────────
+\setlength{\parindent}{1.4em}
+\setlength{\parskip}{0pt}
+\linespread{1.13}
+
+%% ── Utilities ────────────────────────────────────────────────────────────────
+\usepackage{csquotes}
+\usepackage{setspace}
+
+%% ── Combinatorial wheel (TikZ) ───────────────────────────────────────────────
+\newcommand{\kircherwheel}[1][5]{%
+\begin{center}
+\begin{tikzpicture}[scale=#1*0.18]
+  \foreach \r/\col/\items in {%
+    4.0/arkgold/{HARMONIA, LOGOS, MEMORIA, FORMA, LUMEN, SONUS, NUMERUS, MODUS},%
+    2.7/cosmosblue/{ARS, LEX, VIS, FAS, SED, ORA, FIT, TAM},%
+    1.5/plaguegrey/{alpha,beta,gamma,delta,epsilon,zeta,eta,theta}%
+  }{%
+    \def\itemlist{\items}%
+    \foreach[count=\i] \item in \items {%
+      \pgfmathsetmacro{\angle}{(\i-1)*45}%
+      \draw[\col, line width=0.6pt] (0,0) -- (\angle:\r);%
+      \node[\col, font=\tiny\scshape] at (\angle+22.5:\r*0.82) {\item};%
+    }%
+    \draw[\col, line width=0.8pt] (0,0) circle (\r);%
+  }%
+  \fill[arkgold!30] (0,0) circle (0.55);%
+  \node[font=\tiny\bfseries, color=kircherink] at (0,0) {$\Omega$};%
+\end{tikzpicture}
+\end{center}
+}
+
+%% ── Salamander marginal marker ───────────────────────────────────────────────
+\newcommand{\salamander}[1]{%
+  \marginnote{\color{arkgold!80}\scriptsize\bfseries[S\,#1]}%
+}
+
+%% =============================================================================
+\begin{document}
+
+\pagestyle{empty}
+\begin{center}
+\vspace*{60mm}
+{\Large\textsc{Mundus Subterraneus}}\\[6pt]
+{\normalsize\itshape The World Beneath the World}
+\end{center}
+\clearpage
+
+\begin{titlingpage}
+\begin{center}
+\vspace*{18mm}
+{\color{arkgold}\rule{\linewidth}{1.4pt}}\\[10pt]
+{\fontsize{32}{38}\selectfont\textsc{Mundus Subterraneus}}\\[8pt]
+{\large\itshape The World Beneath the World}\\[6pt]
+{\color{arkgold}\rule{\linewidth}{0.6pt}}\\[18pt]
+\kircherwheel[7]
+\vspace{10pt}
+{\large A Formal Screenplay and Experimental Filmography}\\[4pt]
+{\normalsize\itshape in the Mode of Constrained Synthesis}\\[6pt]
+{\normalsize\itshape Version 2.0 --- Revised and Extended}\\[24pt]
+{\color{plaguegrey}\rule{60mm}{0.4pt}}\\[10pt]
+{\large Flyxion}\\[4pt]
+{\small\itshape Independent Researcher}\\[20pt]
+{\color{plaguegrey}\rule{60mm}{0.4pt}}\\[10pt]
+{\small \textit{Anno Domini} \oldstylenums{2026}}\\[20pt]
+{\color{arkgold}\rule{\linewidth}{0.6pt}}\\[6pt]
+{\footnotesize\color{plaguegrey}%
+\textit{Omnia in omnibus.} \quad All things in all things.\\
+--- Athanasius Kircher, \textit{Musurgia Universalis} (1650)}\\[4pt]
+{\color{arkgold}\rule{\linewidth}{1.0pt}}
+\end{center}
+\end{titlingpage}
+
+\pagestyle{fancy}
+\setcounter{page}{1}
+\begin{KeepFromToc}
+\tableofcontents
+\end{KeepFromToc}
+\clearpage
+
+%% =============================================================================
+\chapter*{Prefatory Statement: On the Nature of This Document}
+\addcontentsline{toc}{section}{Prefatory Statement}
+
+\epigraph{\itshape Non enim satis est artem tradere, nisi et rationem artis reddas.\\
+It is not enough to hand down the art unless you also render the reason of the art.}{Athanasius Kircher, \textit{Ars Magna Sciendi} (1669)}
+
+This document is simultaneously a formal screenplay, a work of experimental filmography, a theoretical treatise on irreversible synthesis, and an extended meditation on the relationship between cosmological ambition and epistemic catastrophe. It should not be read as any one of these things alone. The form is deliberately composite because its subject demands it: Athanasius Kircher (1602--1680), Jesuit polymath, curator of universal correspondences, architect of impossible arks, was himself composite in precisely this sense. He cannot be adequately addressed by a genre designed for a single ontological register.
+
+The screenplay follows a formal structure derived from Baroque harmonic theory rather than conventional three-act dramatic logic. The three acts correspond not to setup, confrontation, and resolution but to three phases of a consolidation process: \textit{Dispersio} (the fragments), \textit{Collectio} (the gathering), and \textit{Irreversibilitas} (the point past which nothing can be recovered). This structure is borrowed in part from Kircher's own account of the Flood and Ark: the world fragments, the Ark gathers what survives, and the passage through catastrophe is not lossless. What emerges after the waters recede is not the original world. It is a compressed survivability manifold --- enough topology for regeneration, but not full restoration.
+
+The experimental filmography embedded throughout this document should be understood as a formal apparatus rather than a production guide. Each visual grammar note specifies not merely what the camera does but what ontological claim the image makes. The film's visual logic evolves across the three acts: from physical landscape and documentary notation toward increasingly recursive diagrammatic space, until by the final sequences the distinction between diegetic reality and symbolic overlay has collapsed entirely. This is not stylistic excess. It is the argument.
+
+Several theoretical interludes interrupt the screenplay at structurally significant moments. These interludes are not commentary on the action; they are extensions of it into a different register. The reader should understand them as Kircher himself understood the relationship between his instruments and his cosmological diagrams: the one is not an illustration of the other. Both are direct instantiations of the same underlying formal structure, approached through different symbolic surfaces.
+
+This second version of the document incorporates three structural additions absent from the first: a nonhuman recurring motif (the salamander) distributed across all four temporal phases of the film; a formal protocol for the museum's behaviour as cognitive field rather than container, operating through the museum organism notes embedded in Act Two and Three stage directions; and an expanded treatment of the hieroglyphics and dismantling sequences informed by the double institutional pressure Kircher faced --- too mystical for emerging rationalism, too speculative for Jesuit orthodoxy --- documented in Stolzenberg \cite{stolzenberg2004}. These additions are woven into the existing material rather than appended to it. The salamander is tracked in the outer margin with the notation \textbf{[S\,n]} at each of its four appearances.
+
+A note on ambiguity: the screenplay deliberately refuses to resolve whether Kircher is brilliant, delusional, or some third thing that neither of those words adequately captures. This refusal is not a failure of dramatic nerve. It is the film's central formal claim. The question of whether a system of correspondences is \textit{discovered} or \textit{constructed} is not answerable from outside the system. The audience's sustained uncertainty is the experience the film is designed to produce.
+
+\clearpage
+
+%% =============================================================================
+\chapter*{Theoretical Prolegomena: Bookkeeping Ontology and Its Adversaries}
+\addcontentsline{toc}{section}{Theoretical Prolegomena}
+
+\epigraph{\itshape Mundus ipse totus est liber in quo Dei sapientia scripta est.\\
+The world itself is entirely a book in which the wisdom of God is written.}{Athanasius Kircher, \textit{Iter Exstaticum} (1656)}
+
+\section*{I. The Ledger as Metaphysics}
+
+The dominant epistemic infrastructure of modernity is derived not from any philosophical system but from accounting practice. The ledger assumes: one entry corresponds to one referent, entries are enumerable, identity is primary, location is arbitrary, and memory is passive storage awaiting retrieval. This set of assumptions is so pervasive that it is rarely recognised as a set of assumptions at all. It appears instead as the obvious structure of knowledge.
+
+The emerging scientific revolution of the seventeenth century was not simply a replacement of Aristotelian cosmology by Newtonian mechanics. It was a gradual but total colonisation of every domain of inquiry by ledger logic. Astronomy was separated from theology not because their contents were incompatible but because ledger logic could not accommodate symbolic cross-reference between domains. Each domain required its own entries. Correspondence between domains was reclassified as poetry or delusion.
+
+Athanasius Kircher was defeated, ultimately, not by any particular scientific discovery but by this ontological transition. His metaphysics --- in which relation precedes identity, resonance precedes enumeration, and knowledge is architecture rather than inventory --- was structurally incompatible with the ledger that was quietly becoming the ground of thought.
+
+\begin{axiom}[The Primary Ledger Assumption]
+A system operating under bookkeeping ontology assumes that all objects are individuated prior to and independently of their relations. Storage is neutral. Identity is persistent and non-relational. Retrieval is exact. Memory is passive. Deletion destroys.
+\end{axiom}
+
+Kircher's entire body of work constitutes an extended refusal of this axiom. The Arca Musarithmica does not store songs. It stores compressed harmonic potentials that must be activated through relational traversal. The Arca No\"e does not enumerate species. It encodes ecological compatibility structures capable of regenerating biological diversity from minimal topological information. In both cases, identity is emergent, relation is primary, and the system is not a ledger but an ark.
+
+\section*{II. Relation Precedes Identity}
+
+\begin{axiom}[The Kircherian Counter-Assumption]
+In a system where relation precedes identity, objects are individuated through and by their relational positions. Storage is never neutral: the act of placing something within a symbolic architecture changes both the thing placed and the architecture. Memory is active reconsolidation rather than passive retrieval. Deletion removes a symbolic projection; it does not necessarily destroy the relational substrate.
+\end{axiom}
+
+The translations are therefore neither correct nor incorrect in the standard sense. They are compressions. Like all compressions, they destroy surface information while attempting to preserve deep topology. Whether they succeeded in this latter aim is a genuinely open question that the film does not resolve.
+
+\section*{III. The Ark as Compressed Survivability Manifold}
+
+\begin{correspondence}[Ark and Persistence]
+The Arca No\"e stands in the same structural relation to the pre-Flood world as a compressed survivability manifold stands to the state space it encodes. In both cases: full enumeration is impossible within the bounded vessel; survival requires not copies but generative seeds; the output of decompression is not the original but a topologically related successor; irreversibility is constitutive rather than incidental.
+\end{correspondence}
+
+\section*{IV. On the Salamander: A Nonhuman Thread}
+
+The salamander enters the film in \textit{Dispersio} as a physical anomaly: alive in the ash of a burned monastery, in a location and condition that natural philosophy cannot immediately account for. It returns in \textit{Collectio} in three simultaneous registers --- biological specimen, anatomical diagram, carved ornament --- without editorial connection between these appearances. It is lost in \textit{Irreversibilitas} when the museum is reorganised and its three registers are administratively severed. It reappears in the epilogue as a formal shadow: the activation pattern of a neural network processing an image of fire, which rhymes with the creature's shape at sufficient abstraction without naming it.
+
+The salamander is the film's nonhuman carrier of the ark logic because it occupies, in Kircher's own cosmology, precisely the boundary position that the ark logic describes. Kircher believed, following classical sources and elaborating in \textit{Mundus Subterraneus} \cite{kircher1665}, that the salamander lived inside fire --- not despite the fire but through and within it, neither burning nor extinguishing the flame. It is an element-dweller: a creature whose identity is constituted by its relation to the medium that should destroy it. This is the same structure as the ark: survival through constitutive relation to catastrophe rather than escape from it.
+
+The salamander's trajectory through the film --- organism, diagram, ornament, shadow --- enacts in miniature the full arc of what happens to Kircherian thought across four centuries. Each register preserves something and loses something. The final computational shadow has the correct formal shape and none of the life.
+
+\section*{V. On Irreversibility as Formal Principle}
+
+\begin{axiom}[Irreversibility as Condition of Survival]
+A mnemonic architecture that operates without loss is not a memory but a copy. Copies are destroyed by catastrophe. Memories survive catastrophe precisely because they have already compressed and reconsolidated their content into structures that are robust to surface disruption. The cost of this robustness is irreversibility: what the memory yields on retrieval is a reconstruction, not a replay.
+\end{axiom}
+
+The film applies this axiom at every level. The editing becomes increasingly irreversible: images recur without context, earlier scenes are reconstructed in later ones with distorted detail, and by the final act the audience cannot fully recover the original sequence of events from the materials they have been given.
+
+\clearpage
+
+%% =============================================================================
+\chapter*{Formal Parameters of the Film}
+\addcontentsline{toc}{section}{Formal Parameters of the Film}
+
+\section*{Aspect Ratio and Frame}
+
+The film is shot in 1.37:1 (Academy ratio), with a hard black matte applied in the final act that gradually encroaches from the edges until the image occupies roughly 0.7:1 by the epilogue. This contraction is the formal registration of what happens to symbolic space when the age of universal synthesis ends: the frame of possible meaning narrows.
+
+\section*{Colour Logic}
+
+In \textit{Dispersio}: the palette is cold, desaturated, indexical. Colour is always the colour of an object rather than of an atmosphere. This is the visual grammar of the ledger: one colour, one referent.
+
+In \textit{Collectio}: the palette warms and begins to bleed. Colours begin to correspond across objects: the red of a cardinal's robe echoes the red of an alchemical diagram echoes the red of a wound on a plague victim in a painting Kircher handles. Correspondence is being built. The viewer feels it before they identify it.
+
+In \textit{Irreversibilitas}: colour becomes diagrammatic. The world is overlaid with the amber-and-indigo of Kircher's own illustrations. By the final sequences the colour of a face and the colour of a diagram are indistinguishable: both are projections from the same palette, the same ontological depth.
+
+\section*{Sound Design}
+
+In \textit{Dispersio}: sounds are diegetic and isolated. In \textit{Collectio}: sounds begin to harmonise unexpectedly; speech begins to develop acoustic shadows that trail slightly behind the words. In \textit{Irreversibilitas}: the distinction between diegetic and non-diegetic sound has dissolved. Individual sounds can no longer be clearly attributed to sources.
+
+\section*{Editing Rhythm}
+
+In \textit{Dispersio}: cuts are frequent, asymmetric, documentary. In \textit{Collectio}: cuts slow and begin to rhyme; the editing develops something like meter. In \textit{Irreversibilitas}: cuts become rare, and when they occur they do not feel like transitions but like compressions.
+
+\section*{The Museum Organism Protocol}
+
+Beginning in the second sequence of \textit{Collectio} and intensifying through \textit{Irreversibilitas}, the museum ceases to behave as a container and begins to behave as a cognitive field. This transition is registered throughout the stage directions in museum organism notes, which appear in a distinct typographic register. These notes describe real, producible properties of the filmed space. They operate at the threshold of the noticeable. No character remarks on the phenomena they describe. No editorial emphasis draws attention to them. The audience's eventual recognition of the pattern will arrive irreversibly, as a consolidation rather than a revelation.
+
+\section*{Performance Register}
+
+No actor in this film should perform as though they understand their situation. Kircher himself should be played with complete conviction in his formal operations and complete uncertainty about their larger meaning. He is never performing genius and never performing delusion. He is performing systematic attention.
+
+Supporting characters exist primarily as resonance patterns: each one rhymes with one of Kircher's symbolic preoccupations. The young German scholar who eventually dismantles the correspondence system echoes Kircher himself at the opening of the film, moving through a world of fragments without yet knowing what they are fragments of.
+
+\clearpage
+
+%% =============================================================================
+%% ACT ONE: DISPERSIO
+%% =============================================================================
+\chapter{Dispersio: The Fragments}
+
+\epigraph{\itshape Ex fragmentis mundi novum mundum aedificare conabor.\\
+From the fragments of the world I shall attempt to build a new world.}{Attributed to Kircher, date uncertain}
+
+\section{Prologue: The Road Through Thirty Years}
+
+\begin{sequence}
+\label{seq:prologue}
+The prologue. The world before consolidation. The grammar of dispersal. First appearance of the salamander.
+\end{sequence}
+
+\begin{sceneheading}
+Ext. Central Europe --- Road through desolated landscape --- Winter, circa 1632 --- Day (near dark)
+\end{sceneheading}
+
+\begin{action}
+A road through a landscape that has been systematically unmade. Not merely destroyed --- unmade. The difference is important and must be visible: destruction implies a prior order that violence has disrupted; this landscape implies that the prior order has been \textit{extracted}, leaving something residual and structureless.
+
+Burned monastery walls stand without roofs. A library's interior is visible through a collapsed wall: the shelves remain, the books are gone. An astronomical instrument lies in a field --- its brass rings intact, its supporting structure removed so that it lists at an angle, still measuring nothing, still pointing precisely nowhere.
+
+KIRCHER, 30 years old, thin, dressed in a Jesuit habit that has accumulated the stains of several weeks of travel, moves through this landscape on foot. He is not performing distress. He is performing \textit{attention}.
+\end{action}
+
+\begin{visual}
+Camera at ground level, moving laterally alongside Kircher at walking pace. The composition keeps him in the left third of the frame; the destroyed landscape fills the right two-thirds. This asymmetry is sustained throughout the prologue: the human figure is always marginal, always smaller than the world of fragments he moves through. Academy ratio is fully exploited here --- the squarish frame makes the landscape feel close, enclosing, not expansive. There is nowhere to escape to on the edges.
+\end{visual}
+
+\begin{action}
+Kircher stops. He has seen something in a ditch beside the road. He approaches and crouches. He extracts, carefully, with the manner of someone who has done this many times: a piece of paper. It is heavily water-damaged. What remains legible is a fragment of musical notation: four bars of polyphony, the upper two voices intact, the lower two dissolving into water-stain.
+
+He studies it with the concentration of someone reading a text in a language they are still learning. Then he carefully folds it and places it inside his habit.
+\end{action}
+
+\begin{visual}
+Close on the paper. The musical notation should be genuinely readable --- actual four-voice polyphony, recognisably Baroque in style. The water damage is not uniform: it has erased the lower voices in a pattern that suggests the water itself has an aesthetic preference. The camera holds on the paper long enough for a musically literate viewer to begin to hear what the notation says, and for all viewers to register the absence of what has been lost.
+\end{visual}
+
+\begin{action}
+He stands. He continues walking. We follow.
+
+In the next two hundred metres of road he collects, or closely examines and does not collect, the following: a mechanical escapement from a clock, detached from its clockwork; a printed page of alchemical diagrams with the text excised --- someone has cut out the writing and left the images; three animal bones arranged in a configuration that appears deliberate; a piece of Egyptian-style decorative stonework that cannot have come from anywhere geographically proximate; an astronomical chart with a hand-drawn addition in the margin, the addition in a different hand from the chart.
+
+He examines each fragment with the same quality of attention. He does not react with surprise or distress. He reacts with the focused neutrality of a man cataloguing symptoms.
+\end{action}
+
+\begin{action}
+\salamander{I} At the ruins of the monastery at the road's edge, Kircher pauses. The fireplace of the scriptorium is still warm, its ash recent. At the edge of the ash, motionless against the stone, sits a salamander. It is alive. It should not be: the fire was recent enough that the stone radiates heat, and the creature sits with its forefeet on the boundary between warm stone and ash, in a position that looks less like refuge than like occupation. Kircher crouches and observes it for thirty seconds. The camera descends to ground level. The salamander fills the lower quarter of the frame, Kircher's face visible above it, wearing the same expression he wears when examining the musical notation or the escapement: focused, neutral, attending. He does not collect it. He does not record it in his notebook. He stands and continues walking.
+
+The audience has no framework for understanding what they have seen. The salamander was simply there, simply alive, in a place that should have been fatal to it. It will return.
+\end{action}
+
+\begin{interlude}
+The audience will not yet understand what they are watching. This is deliberate. The prologue asks the audience to perform the same operation Kircher is performing: to observe a set of apparently unrelated fragments and to hold open the question of whether they constitute a pattern or merely a collection.
+
+The fragments Kircher collects in this prologue will all recur in the final act, in heavily transformed states, embedded in the museum at the Collegio Romano. The audience who recognises them will experience the full force of the ark logic: the fragments have been compressed into a larger structure, and the original fragments are no longer accessible. What the museum contains is not the objects from the road. It is what those objects have become inside the consolidation process.
+
+The salamander is the only fragment Kircher does not collect. This is formally significant: it is the only element of the prologue that retains its independent existence inside the museum, rather than being absorbed into a correspondence network. It occupies its own cabinet, lives in its own register. It is severed by the dismantling not because it is incorporated but because its three registers --- organism, diagram, ornament --- are separated into distinct taxonomic domains. It survives the collection process by remaining uncollected. It is destroyed by the reorganisation process precisely because it existed in multiple registers simultaneously.
+\end{interlude}
+
+\clearpage
+
+\section{The Young Kircher: Emergence of the Correspondentist}
+
+\begin{sequence}
+\label{seq:young-kircher}
+The formal introduction of Kircher's epistemic mode. Not genius: systematic correspondence-detection.
+\end{sequence}
+
+\begin{sceneheading}
+Int. Kircher's temporary lodgings --- a damaged house serving as Jesuit way-station --- Night
+\end{sceneheading}
+
+\begin{action}
+A single room. A table. A candle. Kircher has arranged the fragments he has collected on the table in a configuration that is clearly deliberate but whose logic is not immediately apparent. He is writing rapidly in a notebook, cross-referencing between the objects and his notes with the movements of someone following multiple threads simultaneously.
+
+FATHER SCHALL, 40, another Jesuit mathematician who is passing through, watches from the doorway.
+\end{action}
+
+\begin{dialogue}{Father Schall}
+You have been at this for four hours. The objects from the road.
+\end{dialogue}
+
+\begin{action}
+Kircher does not look up.
+\end{action}
+
+\begin{dialogue}{Kircher}
+\paren{still writing}
+Three of these were made in the same workshop. The escapement and the astronomical chart. The maker had the same tic --- a slight correction in the tooth-spacing here, and here, which you only do if you were taught by someone who had a particular anxiety about drift.
+\end{dialogue}
+
+\begin{dialogue}{Father Schall}
+And the Egyptian stone?
+\end{dialogue}
+
+\begin{dialogue}{Kircher}
+\paren{finally looking up}
+That is the interesting one. It does not belong here geographically. It belongs here \textit{formally}. The same proportion system. The same implied harmonic interval between the decorative elements. Different culture, different century, different material, different purpose. The same underlying order.
+\end{dialogue}
+
+\begin{dialogue}{Father Schall}
+Or the same coincidence.
+\end{dialogue}
+
+\begin{dialogue}{Kircher}
+\paren{back to his notebook}
+That is what I am attempting to determine.
+\end{dialogue}
+
+\begin{action}
+He is not defensive. He is genuinely uncertain, genuinely investigating. This is the crucial note: Kircher at this stage is not a true believer in his own system. He is a detective following evidence that may or may not cohere. The tragedy of the film is not that he has mistaken faith for investigation. It is that the investigation, pursued with genuine rigour, produces a system so elaborate and so internally consistent that the distinction between discovery and construction becomes impossible to maintain from inside it.
+
+Schall notices, on the table among the fragments, Kircher's open notebook. In the margin of a page dense with cross-references and diagrams, there is a small, careful drawing of a salamander.
+\end{action}
+
+\begin{dialogue}{Father Schall}
+\paren{indicating the drawing}
+The creature from the road?
+\end{dialogue}
+
+\begin{dialogue}{Kircher}
+I did not collect it. But I needed to record it. It was in the ash. Alive.
+\end{dialogue}
+
+\begin{dialogue}{Father Schall}
+A salamander in fire is not remarkable. They are cold-blooded. They seek warmth.
+\end{dialogue}
+
+\begin{dialogue}{Kircher}
+\paren{carefully}
+It was not seeking warmth. It was already where it needed to be.
+\end{dialogue}
+
+\begin{action}
+Schall does not pursue this. He watches Kircher return to his notes. The drawing of the salamander sits in the margin, small and precise, among the other cross-references: not annotated, not connected by lines to the other diagrams, but present. Part of the record. Not yet part of the system.
+\end{action}
+
+\begin{visual}
+The camera, throughout this scene, should repeatedly find compositions in which the objects on the table echo the spatial arrangements visible in Kircher's diagram notebook, which echoes the spatial arrangement of light and shadow in the room. Not aggressively --- not in a way that announces itself --- but persistently enough that the formally attentive viewer begins to feel that the correspondences are real, or at least that the film is constructed as though they are real.
+\end{visual}
+
+\clearpage
+
+\section{Rome: The Ark Takes Shape}
+
+\begin{sequence}
+\label{seq:rome-arrival}
+Kircher arrives at the Collegio Romano. The museum begins. The Ark is under construction.
+\end{sequence}
+
+\begin{sceneheading}
+Ext./Int. Collegio Romano, Rome --- 1634 --- Day transitioning to interior
+\end{sceneheading}
+
+\begin{action}
+A long tracking shot follows Kircher from the street into the Collegio Romano and through its corridors toward what will become his museum. The tracking shot is continuous --- no cuts --- and takes approximately four minutes of screen time.
+
+Outside: the light is Roman summer, warm and concrete and physical. The street sounds are diegetic and particular. This is the world of \textit{Dispersio} even in its most beautiful register --- warm, but particular, enumerable, one thing at a time.
+
+As Kircher moves through the Collegio's doors and into its corridors, the light begins --- very slowly, imperceptibly at first --- to develop an amber quality that is not quite accounted for by the architecture. The sound, very slightly, begins to develop a quality of resonance that is slightly more than the corridor's stone would produce. The transition is subliminal for the first ninety seconds of the tracking shot. By the end of the shot it is undeniable: Kircher has entered a different acoustic and visual space. The Ark is already beginning to assert its own environmental logic.
+\end{action}
+
+\begin{visual}
+The tracking shot must be executed with a steadicam or equivalent system that eliminates mechanical distraction. The camera movement should feel organic --- breathing rather than gliding. The impression is of accompaniment, not surveillance. We are walking \textit{with} Kircher into this space, not observing him entering it. The audience should begin to feel themselves inside the construction process.
+\end{visual}
+
+\begin{annotation}
+The Collegio Romano is portrayed throughout this film not as a historical institution but as a \textit{symbolic architecture in the process of becoming}. Each object Kircher brings into the museum transforms the space slightly, as a new arrival in an ecosystem shifts the balance of the whole. By the film's midpoint the museum should feel as though it has its own internal climate --- pressure, temperature, acoustic quality --- that is distinct from the Roman air outside and that is constituted by the accumulated weight of the correspondences it contains.
+
+The museum organism protocol begins in the next act. This scene is its threshold: the moment before the museum becomes something other than a room with objects in it.
+\end{annotation}
+
+\clearpage
+
+%% =============================================================================
+%% ACT TWO: COLLECTIO
+%% =============================================================================
+\chapter{Collectio: The Gathering}
+
+\epigraph{\itshape Nihil est in intellectu quod non prius fuerit in sensu, nisi intellectus ipse.\\
+Nothing is in the intellect that was not first in the senses, except the intellect itself.}{after Leibniz, \textit{New Essays}, adapting Aquinas}
+
+\section{The Arca Musarithmica: Mechanical Composition}
+
+\begin{sequence}
+\label{seq:arca-musarithmica}
+The first Ark. Music as combinatorial potential rather than composed sequence.
+\end{sequence}
+
+\begin{sceneheading}
+Int. Kircher's workshop, Collegio Romano --- Late afternoon --- circa 1648
+\end{sceneheading}
+
+\begin{museumnote}
+The workshop is warmer than the season accounts for. The light through the high windows falls at an angle that does not correspond to the time of afternoon. Schott, entering from the corridor, pauses for a moment in the doorway as though adjusting to a change in pressure.
+\end{museumnote}
+
+\begin{action}
+A wooden cabinet, approximately the size of a large travel case, open on the table. Inside are rows of thin wooden rods, each inscribed with sequences of numbers and musical notation.
+
+\salamander{II} Carved into the lower panel of the cabinet's interior, small enough to be easily missed, is a stylised salamander. The ornament occupies the same formal position in the cabinet's design as a keystone in an arch: it is load-bearing. Kircher, asked about it by a visitor in an earlier session, said only that the salamander is appropriate to a device that generates harmony from the structure of what can coexist without burning. He did not elaborate.
+
+Kircher, now 46, demonstrates the device to FATHER CASPAR SCHOTT, his most devoted student, a young man of 30 with the expressions of someone trying very hard to understand something that keeps sliding away from him.
+
+Kircher slides two rods from their slots, repositions them according to a rule he reads from a small table printed on the inside lid of the cabinet, replaces them. He makes one further adjustment. Then he reads, from the resulting configuration, a four-voice choral passage, which he sings softly and precisely.
+\end{action}
+
+\begin{dialogue}{Schott}
+\paren{carefully}
+So it generates music.
+\end{dialogue}
+
+\begin{dialogue}{Kircher}
+It does not generate music. It reveals the music that was already implicit in this arrangement of possibilities. The music existed before I adjusted the rods. I did not create it. I located it.
+\end{dialogue}
+
+\begin{dialogue}{Schott}
+But the music that --- \paren{stops} The same rods in a different arrangement would reveal different music.
+\end{dialogue}
+
+\begin{dialogue}{Kircher}
+Yes.
+\end{dialogue}
+
+\begin{dialogue}{Schott}
+So the music is not in the rods.
+\end{dialogue}
+
+\begin{dialogue}{Kircher}
+\paren{with patience that has been here before}
+The music is in the \textit{structure of the possible arrangements}. The rods are a projection surface. Every harmonic combination compatible with the system's constraints already exists. The cabinet does not compose. It traverses.
+\end{dialogue}
+
+\begin{action}
+A pause. Schott looks at the cabinet with the expression of someone watching a theological argument take physical form. His gaze passes over the carved salamander without recognition.
+\end{action}
+
+\begin{dialogue}{Schott}
+If every valid combination already exists ---
+\end{dialogue}
+
+\begin{dialogue}{Kircher}
+Then the machine does not create. It makes latency actual. Yes. Correct.
+\end{dialogue}
+
+\begin{dialogue}{Schott}
+Then what is the composer?
+\end{dialogue}
+
+\begin{dialogue}{Kircher}
+The composer is whoever decides which path through the possible to walk. Not the inventor of the landscape. The traveller.
+\end{dialogue}
+
+\begin{interlude}
+The Arca Musarithmica is not primarily a music machine. It is a proof of concept for a specific metaphysical claim: that \textit{structure precedes instantiation}. The harmonic combinations are real before they are sounded. The instrument does not add them to the world; it subtracts the contingencies that conceal them.
+
+The machine works. The theory is wrong. Or: the machine works because something in the theory is right, and what is right is not what was preserved.
+
+The salamander on the cabinet's interior is Kircher's own annotation of his device's operating principle. A creature that lives within the element that should destroy it, by constitutive relation to catastrophe rather than escape from it, is the emblem of a system that generates harmony from the structure of what can coexist. The ornament is a theory.
+\end{interlude}
+
+\clearpage
+
+\section{The Cabinet of Natural Curiosities: Three Registers}
+
+\begin{sequence}
+\label{seq:cabinet}
+The museum at its most populated. The salamander in its full Kircherian elaboration: simultaneously organism, diagram, and symbol.
+\end{sequence}
+
+\begin{sceneheading}
+Int. Kircher's Museum, Collegio Romano --- circa 1655 --- Afternoon
+\end{sceneheading}
+
+\begin{museumnote}
+Visitors to the museum today move through it in patterns that rhyme with each other without coordination. Two scholars who do not know each other pause before the same object at the same moment. A third, entering from the far door, takes the same path as a visitor from the previous week whose visit he was not present for. Whether the museum is directing them or whether the objects are simply arranging the attentional field toward its own strong attractors is not a question the stage direction can resolve.
+\end{museumnote}
+
+\begin{action}
+\salamander{II} The museum's cabinet of natural curiosities contains, in the upper left quadrant of its second shelf from the bottom, a living salamander in a glass enclosure. It is the same species --- or close enough that the audience who remembers the road outside the burned monastery will feel the connection without being instructed to make it. It is motionless in the manner of cold-blooded creatures that are not sleeping but attending, conserving, occupying their space with the minimum expenditure consistent with occupation.
+
+On the shelf below the living specimen: an engraving of the same species, anatomically detailed, with Kircher's own annotations in Latin surrounding it. The annotations link the salamander's physiology to the theory of subterranean fire developed in \textit{Mundus Subterraneus} \cite{kircher1665}: the creature's cold moist body, Kircher argues, is not merely tolerant of fire but is the natural complement of fire, the element that fire requires for its own stability. Fire without the salamander is fire that will consume itself. The salamander is fire's necessary other.
+
+And carved into the lower panel of the Arca Musarithmica, visible across the room: the same creature, stylised, occupying the position of keystone.
+
+The three registers are present simultaneously in the museum at its fullest. They are not labelled as a system. They are simply present. The museum has arranged them.
+\end{action}
+
+\begin{museumnote}
+The acoustic properties of the room this afternoon are not what they were this morning. The same footstep registers with more resonance than the stone floor accounts for. A voice carries to the far end of the room without apparent diminution. Whether this is a property of the room or of the attention of those within it is not determinable from inside the experience.
+\end{museumnote}
+
+\begin{annotation}
+The museum at this moment is not storing correspondences. It is generating them. The three salamander registers were not placed in deliberate visual relationship by Kircher: the cabinet arrived first, then the Arca Musarithmica was relocated to this room for spatial reasons, then the engraving was shelved where there was space. The correspondence emerged from the accumulation, not from a plan.
+
+This is the museum organism logic in its purest expression. The symbolic density of the space has reached a threshold at which new objects, placed within it without deliberate arrangement, find their positions within the existing correspondence network rather than being simply added to it. The museum is doing work that Kircher did not consciously assign it.
+\end{annotation}
+
+\clearpage
+
+\section{Descent into the Plague Pit: Empiricism Without Naturalism}
+
+\begin{sequence}
+\label{seq:plague-pit}
+Kircher descends into the plague pits of Rome. He is among the first to identify microscopic vectors of contagion. He is wrong about everything surrounding this observation, and simultaneously more right than he knows. The pressure operates from both directions.
+\end{sequence}
+
+\begin{sceneheading}
+Ext./Int. Plague pit on the outskirts of Rome --- 1656 --- Early morning
+\end{sceneheading}
+
+\begin{action}
+A pit. Bodies. The specific quality of a site where death has become logistical. Kircher, masked, descends on a rope with the assistance of two terrified labourers who have been paid substantially more than the work requires.
+
+He brings a lantern and several glass collecting vessels. He moves through the pit with the specific focus of a man doing \textit{field work}: controlled, systematic, attending to particular things rather than to the whole overwhelming fact of the place.
+
+He collects samples not randomly but according to a protocol visible in his movements, a pattern of collection that suggests a theory of spatial distribution already in operation. He extracts what appears to be a small amount of fluid from one of the bodies. He seals the vessel carefully. He labels it in a system of symbols that is his own.
+\end{action}
+
+\begin{action}
+Later, at his microscope in the Collegio Romano:
+
+The lens reveals something. We see it as Kircher sees it: tiny forms, too small for certain identification with the instrument he has, but clearly \textit{forms} rather than featureless matter. They move or appear to move. They are, by any reasonable inference, alive.
+\end{action}
+
+\begin{dialogue}{Kircher}
+\paren{writing in his notebook, speaking aloud as he writes}
+The pestilential contagion proceeds from minute animated corpuscles --- \textit{corpuscula animata} --- too small for the unaided eye to apprehend, transmitted through proximity, through breath, through the materials of the infected. The disease is not a quality of the air in the Galenic sense. It is a population of animate miniature bodies. The Plague is not a condition. It is an ecology.
+\end{dialogue}
+
+\begin{action}
+He pauses. Writes further.
+\end{action}
+
+\begin{dialogue}{Kircher}
+\paren{continuing}
+These corpuscles are, furthermore, the instrument of divine chastisement, operating within a symbolic economy by which sin is made manifest as physical diminishment. The plague is simultaneously a mechanical process and a moral communication. It does not cease to be the one because it is also the other.
+\end{dialogue}
+
+\begin{action}
+He looks up from the notebook. He looks at the microscope. The two objects sit in adjacent pools of lamplight. They do not look incompatible. He does not experience them as incompatible.
+
+He does not know, as he writes, that the \textit{Scrutinium Physico-Medicum} will be submitted to his superiors for review before publication. He does not know that the reviewers will object --- not to the corpuscular theory, which they find merely speculative, but to the explicit identification of the plague as divine moral communication, which they regard as theologically overreaching: the claim that God's chastisement operates through a specific verifiable mechanism ties the divine economy too tightly to empirical contingency.
+
+He is being corrected, in other words, from both directions simultaneously. From the direction of emerging naturalism: the symbolic economy is excess. From the direction of Jesuit orthodoxy: the corpuscular mechanism is fine, but the direct identification of its divine function is not the proper domain of natural philosophy.
+
+The epistemological regime Kircher occupies does not experience these as contradictions. But the institutions surrounding him --- the Republic of Letters on one side, the Society of Jesus on the other --- each require him to amputate a different limb of the same body of thought.
+\end{action}
+
+\begin{visual}
+This scene should be shot with absolute non-judgement. The camera does not indicate, by any compositional or editorial means, that the second paragraph of Kircher's dictation invalidates the first. Both paragraphs are presented in the same register: careful, systematic, empirically grounded within the limits of his instruments and conceptual framework. The audience must sit with the sensation that both the proto-germ-theory and the moral-symbolic interpretation of disease are being spoken by the same mind in the same breath without any experienced tension.
+\end{visual}
+
+\clearpage
+
+\section{The Hieroglyphic Translations: Compression and Its Costs}
+
+\begin{sequence}
+\label{seq:hieroglyphs}
+Kircher's Egyptian translations. The formal structure of a wrong answer that is not simply wrong. The institutional pressure closes in from both sides.
+\end{sequence}
+
+\begin{sceneheading}
+Int. Kircher's study --- 1652 --- Night
+\end{sceneheading}
+
+\begin{action}
+A large engraving of the Bembine Tablet --- a Roman decorative object covered in pseudo-Egyptian imagery --- is spread across the table. Kircher has been working on it for weeks.
+
+He is translating, speaking aloud as he writes:
+\end{action}
+
+\begin{dialogue}{Kircher}
+The hawk-headed figure at the upper left represents not, as has been supposed, the name of a god, but the \textit{principle of solar emanation passing through successive degrees of material density}. The figure does not name; it \textit{encodes}. The entire register should be read not as a sequence of symbols denoting objects but as a diagrammatic representation of a cosmological process, each element expressing the relation between the emanating source and one of the levels of its reception.
+\end{dialogue}
+
+\begin{action}
+He is wrong. The Bembine Tablet is a Roman-period decorative object with no coherent Egyptian linguistic content \cite{iversen1961}. Kircher's translations are not translations at all in any recoverable sense. They are projections of his own cosmological framework onto a surface sufficiently obscure to hold the projection without immediately refuting it.
+
+And yet.
+
+The translation he has written down --- read as a document independent of its claimed referent --- is internally coherent, intellectually inventive, and organised according to a system that has discernible structural features. It is a creative work of considerable originality that is systematically miscategorised as a decipherment.
+
+The tragedy is not that he is wrong. The tragedy is that being wrong in this way requires the same cognitive capacities as being right in other ways, and from inside those capacities there is no reliable way to distinguish the two operations.
+\end{action}
+
+\begin{action}
+Several weeks later: Kircher reads a letter. His expression does not change. He sets the letter down.
+
+The letter is from his superiors. The \textit{Oedipus Aegyptiacus} has been submitted for review. The reviewers have found the cosmological apparatus --- the Neo-Platonic emanation hierarchy, the Hermetic universal sympathy system --- to be in tension with scholastic theological categories. The Egyptian material, presented as evidence of a primordial \textit{prisca theologia} consonant with Christian revelation, risks giving too much authority to a pagan tradition. The reviewers do not doubt Kircher's orthodoxy. They doubt the wisdom of the framework \cite{stolzenberg2004}.
+
+He writes a reply. He makes the required hedges. He publishes.
+\end{action}
+
+\begin{fragment}
+The hieroglyphic translations are the film's central formal emblem because they are the most visible instance of a problem that operates throughout Kircher's entire project: the problem of distinguishing discovery from construction when the criterion for success is internal coherence rather than external correspondence.
+
+Kircher's \textit{Musurgia Universalis} \cite{kircher1650} contains real, usable music theory. His \textit{Ars Magna Sciendi} \cite{kircher1669} contains a genuinely innovative approach to combinatorial logic. His subterranean geology, while wrong in its details, anticipates the general picture of a dynamic earth interior. His acoustics are empirically grounded and experimentally testable. His hieroglyphic translations are not.
+
+But he cannot tell the difference. Not because he is incapable of self-criticism --- he applies rigorous standards of internal consistency to his work --- but because internal consistency is the criterion by which he judges all of his work, and the hieroglyphic translations satisfy that criterion as fully as anything else he produces.
+
+The institutional pressure from both directions --- naturalism demanding the amputation of symbolic economy, orthodoxy demanding the amputation of pagan hermeticism --- does not produce a correction in Kircher's epistemological procedure. It produces hedges and revisions that preserve the surface of acceptability while leaving the underlying correspondence system intact. He learns to speak two languages in his publications: the language of the institutional review, and the language of his actual thought. The published texts are translations of his notebooks, in the same sense that his Egyptian translations are translations of the Bembine Tablet.
+\end{fragment}
+
+\clearpage
+
+\section{The Acoustic Chamber: Sound as the Last Medium}
+
+\begin{sequence}
+\label{seq:acoustic}
+The speaking statue. The whispering gallery. Kircher's belief that sound, more than any other medium, carries meaning through material structure.
+\end{sequence}
+
+\begin{sceneheading}
+Int. Sub-basement of the Collegio Romano --- Night
+\end{sceneheading}
+
+\begin{museumnote}
+The corridor tonight is longer than its measured length. This is not a perceptual error: several visitors have independently noted that the walk from one end to the other takes more steps than the dimensions account for. The production designer should not alter the corridor's physical dimensions. The camera should not use a lens that distorts perspective. The effect, if it is an effect, should be produced by the accumulation of what has already been placed in the space.
+\end{museumnote}
+
+\begin{action}
+A long, vaulted corridor. At one end, Kircher. At the other end, approximately thirty metres away, an ornate bronze head mounted on a plinth, modelled in the Roman style, with a hollow interior and a speaking tube running through the wall behind it.
+
+Schott stands behind the bronze head, his mouth near the tube's entrance. Kircher has arranged a small group of visiting scholars at the bronze head's end of the corridor. They do not know about the tube.
+\end{action}
+
+\begin{dialogue}{Schott}
+\paren{through the tube, distorted}
+\textit{Athanasi}. \textit{Quid quaeris?} \quad Athanasius. What do you seek?
+\end{dialogue}
+
+\begin{action}
+The sound emerges from the bronze head in a register that is not quite human and not quite mechanical. The scholars react with involuntary unease. The distortion introduced by the tube and the resonant bronze is not random: it has filtered the voice in specific frequency ranges, removing the markers of individual identity while preserving the markers of speech, of \textit{intentionality}. What they hear is unmistakably a voice but emptied of personhood.
+
+Kircher watches their faces.
+\end{action}
+
+\begin{action}
+Later, alone, Kircher writes:
+\end{action}
+
+\begin{dialogue}{Kircher}
+\paren{reading from notebook}
+Sound demonstrates what vision cannot: that meaning can travel through matter without any medium of representation. The word passes through the bronze and arrives, modified but intact. The modification is not corruption. The bronze does not introduce error; it introduces itself --- its density, its resonance, its history --- into the transmission. The received word is not the sent word plus distortion. It is a new synthesis of the sent word and the transmitting medium. The medium is not neutral.
+\end{dialogue}
+
+\begin{interlude}
+This is Kircher's most modern intuition, stated almost four centuries before the theoretical frameworks that would make it fully expressible. The medium is not neutral. Transmission is not lossless. What arrives is a synthesis of message and channel. This is simultaneously McLuhan's central insight, Shannon's concern about noise, and the basis of any adequate philosophy of memory: what is retrieved is not what was stored, because the storage medium has participated in the message.
+
+Sound teaches Kircher this because sound is the one physical phenomenon that is defined by its passage through material --- it does not exist except in transmission. This is why, in Kircher's cosmology, \textit{harmonics} rather than optics is the fundamental science. The world is not a collection of objects emitting light. It is a field of propagating resonances, and what we call objects are the more or less stable attractor patterns within that field.
+\end{interlude}
+
+\clearpage
+
+\section{Leibniz: The Skeleton and the Body}
+
+\begin{sequence}
+\label{seq:leibniz}
+The encounter. Two men who want the same thing. One of whom will survive into modernity.
+\end{sequence}
+
+\begin{sceneheading}
+Int. Kircher's Museum, Collegio Romano --- 1689 --- Afternoon
+\end{sceneheading}
+
+\begin{action}
+The museum, at this point, is the fullest expression of Kircher's project: a dense, layered environment in which every object is in correspondence with several others, and in which the visitor's path through the space is itself a kind of composition. The amber light of \textit{Collectio} is at its richest here. The room breathes.
+
+GOTTFRIED LEIBNIZ, 43, moves through this space with the expression of a man who has been waiting his entire intellectual life to find this room, and is now slightly disappointed by what finding it feels like.
+
+Kircher, 87, follows him with the patient attention of someone who has conducted this tour many times and still expects something new to emerge from it.
+\end{action}
+
+\begin{museumnote}
+Objects in several cases are in slightly different positions from their positions during the previous week's inventory. No one has moved them. The discrepancies are small: a few centimetres, a changed orientation. The museum has not been entered between the inventory and today's visit. The production designer should document both configurations and present both without explanation.
+\end{museumnote}
+
+\begin{action}
+Leibniz pauses before the cabinet of natural curiosities. He looks, briefly, at the living salamander. It is motionless.
+\end{action}
+
+\begin{dialogue}{Leibniz}
+\paren{to himself, moving on}
+Salamandra.
+\end{dialogue}
+
+\begin{action}
+He does not stop. He moves to the Arca Musarithmica.
+\end{action}
+
+\begin{dialogue}{Leibniz}
+\paren{standing before the Arca Musarithmica}
+The combinatorial structure is extraordinary. The constraint system --- you have enumerated the full compatibility lattice?
+\end{dialogue}
+
+\begin{dialogue}{Kircher}
+The \textit{harmonic field}. Yes. Every element that can neighbour every other without disrupting the whole.
+\end{dialogue}
+
+\begin{dialogue}{Leibniz}
+This is exactly the problem I have been working on. A calculus of compatible predicates. A formal system in which truth can be computed from the relationships between elements rather than from direct observation of the world. Your machine ---
+\end{dialogue}
+
+\begin{action}
+He is delighted. The delight is genuine and is not condescension. He is recognising a kindred operation.
+\end{action}
+
+\begin{dialogue}{Leibniz}
+Your machine is this, in musical form.
+\end{dialogue}
+
+\begin{dialogue}{Kircher}
+\paren{carefully}
+In musical form. Yes. But also in cosmological form. The harmonics are not a model of the logic; the logic is a trace of the harmonics. The formal relationships exist because the world is constituted by resonant correspondences. The computation follows from the physics.
+\end{dialogue}
+
+\begin{action}
+A pause. Leibniz looks at the cabinet. Kircher watches Leibniz look at it. He notices that Leibniz's gaze has not found the carved salamander on the cabinet's interior.
+\end{action}
+
+\begin{dialogue}{Leibniz}
+That is a large commitment.
+\end{dialogue}
+
+\begin{dialogue}{Kircher}
+Yes.
+\end{dialogue}
+
+\begin{dialogue}{Leibniz}
+\paren{with genuine respect}
+And if the physics is wrong?
+\end{dialogue}
+
+\begin{dialogue}{Kircher}
+\paren{after a long pause}
+Then the machine is a very good coincidence.
+\end{dialogue}
+
+\begin{action}
+Leibniz laughs. It is a genuine laugh, not unkind. He moves on to the next object in the museum. Kircher watches him move away.
+
+Leibniz passes the cabinet of natural curiosities without pausing. The salamander is motionless. He does not look at it again.
+
+The camera holds on Kircher's face for approximately twelve seconds. Nothing in his expression announces itself as significant. He is simply watching a younger man move through the room he has spent his life building, with appreciation and without understanding. The appreciation is for the skeleton. The understanding would require the body.
+
+Then he follows.
+\end{action}
+
+\begin{annotation}
+What Kircher understands, in this moment, is that the combinatorial skeleton only works if the cosmic flesh is real. If the harmonic correspondences are not constitutive of matter, then the Arca Musarithmica is a very sophisticated coincidence machine: it generates music by means that resemble the structure of reality without participating in that structure.
+
+Leibniz will go on to develop the combinatorial logic into the \textit{calculus ratiocinator} and the \textit{characteristica universalis}, stripped of their cosmological grounding. These systems will survive into modernity and will eventually become the theoretical ancestors of symbolic computation. But they will survive as skeletons.
+
+What Leibniz does not see, passing the living salamander without pause, is that the creature's presence in the museum is not merely zoological. It is the cabinet's own annotation of its operating principle. Leibniz takes the logic of the machine and leaves the body behind. This is not negligence. It is the epistemological transaction by which modernity inherits the Baroque: it takes what it can formalise and leaves what it cannot. The remainder is reclassified as ornament.
+
+This makes neither of them simply right or wrong. It makes them both partial.
+\end{annotation}
+
+\clearpage
+
+%% =============================================================================
+%% ACT THREE: IRREVERSIBILITAS
+%% =============================================================================
+\chapter{Irreversibilitas: The Point of No Return}
+
+\epigraph{\itshape Quod semel actum est, infectum esse non potest.\\
+What has once been done cannot be undone.}{Seneca, \textit{Epistulae Morales}, LXXVII}
+
+\section{The Dismantling: Modernity Enters the Museum}
+
+\begin{sequence}
+\label{seq:dismantling}
+Young scholars arrive and begin, with excellent intentions, to reorganise the museum. The correspondences are dismantled. The salamander's three registers are severed.
+\end{sequence}
+
+\begin{sceneheading}
+Int. Kircher's Museum --- 1679 --- Over several weeks, compressed
+\end{sceneheading}
+
+\begin{action}
+New faces in the museum. Young men, serious, well-intentioned, equipped with the latest methodological apparatus. FATHER GRIMALDI, 35, leads them. He has great respect for Kircher. He also has a programme.
+
+They begin to reorganise. Not to destroy: to clarify. The Egyptian objects are separated from the European objects because, as Grimaldi explains to his colleagues, "the connections between them that Father Kircher perceived are connections of interpretation rather than of provenance, and a natural philosophy that cannot distinguish between evidence and interpretation has no epistemological foundation."
+
+This is not wrong. It is not enough. But it is not wrong.
+
+They move the Arca Musarithmica to a different room from the acoustic instruments because the former is a mechanical device for composition and the latter are devices for acoustic demonstration and they belong to different domains of natural philosophy.
+
+This is not wrong either.
+
+Kircher watches from a chair in the corner of the museum. He has been ill for several months. He watches with the expression he has worn throughout the film when observing: focused, neutral, attending to what is actually happening rather than to what he wishes were happening.
+\end{action}
+
+\begin{museumnote}
+As the reorganisation proceeds over several weeks, the acoustic properties of the room change daily. The amber light fails to find objects that previously held it. Visitors who followed the same path through the museum on repeated visits find themselves taking different routes, as though the attentional field has been disrupted. By the end of the third week the room has the acoustic signature of a room with objects in it. It no longer generates the correspondence pressure that characterised it at its fullest. The museum organism has died. The objects have survived.
+\end{museumnote}
+
+\begin{action}
+On the second day of the reorganisation, the cabinet of natural curiosities is examined. The salamander's enclosure is removed and placed on a work table. The animal is moved to a separate holding cabinet with other reptiles. The anatomical engraving is recatalogued and shelved with the natural history plates. The Arca Musarithmica, already slated for the other room, carries its carved ornament with it --- but in the new room, without the living specimen opposite and the engraving on the adjacent shelf, the carving reads as decoration.
+
+\salamander{III} The three registers have been severed. The living specimen is with the reptiles. The diagram is with the natural history engravings. The symbol is with the mechanical device. None of the three is damaged. None of the three is less than it was. But the correspondence between them --- which was not in any one of them but in the arrangement --- is gone. And the arrangement was Kircher's. Which means, as Grimaldi says, that it was interpretation rather than evidence. Which means it was exactly the kind of thing that natural philosophy cannot accommodate.
+
+Kircher watches the enclosure being removed. He says nothing.
+\end{action}
+
+\begin{visual}
+The cinematography of this sequence should undergo its first major formal rupture. Until this point, even as the colour grammar has been shifting, the images have been continuous and spatially coherent. Now, for the first time, there are cuts that do not observe spatial continuity: we cut from one area of the museum to another without establishing the spatial relationship between them. The correspondences that the editing has been quietly building across the film begin to drop out. Not all at once. But one by one, each cut is slightly more dissonant than the last.
+
+The audience will feel this before they can articulate it. The film is losing something. The question is whether what is being lost was ever really there, or whether the film, like Kircher, constructed it from sustained attention and it is now revealing itself as a construction.
+\end{visual}
+
+\begin{action}
+At one point, Grimaldi approaches Kircher respectfully, with a small object in his hand: one of the pieces from the correspondence system Kircher assembled early in the film, an object from the road outside the burned monastery, now re-identified as an archaeological fragment of Roman decorative stonework with Egyptian-style motifs, probably second century, probably decorative rather than functional, probably without symbolic content.
+
+Grimaldi shows him the new label.
+\end{action}
+
+\begin{dialogue}{Grimaldi}
+\paren{carefully}
+We have been able to establish the provenance more precisely. It is Roman rather than Egyptian, as you supposed. The motifs are borrowed. The original symbolic function, if any, is not recoverable.
+\end{dialogue}
+
+\begin{action}
+Kircher takes the object and holds it. He looks at it for a long time.
+\end{action}
+
+\begin{dialogue}{Kircher}
+\paren{finally}
+The symbolic function was not in the original. It was in the arrangement.
+\end{dialogue}
+
+\begin{dialogue}{Grimaldi}
+\paren{respectfully}
+The arrangement was yours, Father.
+\end{dialogue}
+
+\begin{dialogue}{Kircher}
+Yes.
+
+\paren{pause}
+
+That is what I am trying to tell you.
+\end{dialogue}
+
+\begin{action}
+Grimaldi does not understand. He takes the object back, gently, and continues with his work.
+
+He is correcting Kircher now from a third direction: not emerging naturalism, not Jesuit orthodoxy, but the internal discipline of a natural philosophy that has made the distinction between evidence and interpretation into a methodological absolute. The correction is correct by its own standards. The standards are new. They are also narrow: they can identify what the arrangement was not (primary evidence), but they have no resources for identifying what it was. In the vocabulary of the new methodology, the arrangement was Kircher's personal projection. This is accurate. It is also incomplete.
+
+The exchange between Kircher and Grimaldi is therefore not an exchange between a wrong man and a right one. It is an exchange between two epistemological regimes that share almost no common ground. The tragedy is not that one of them is mistaken. The tragedy is that the frameworks are incommensurable and one of them is losing.
+\end{action}
+
+\clearpage
+
+\section{Walking Through the Dismantled Museum}
+
+\begin{sequence}
+\label{seq:final-walk}
+The climax. A walk through the ark that is being taken apart, by a man who understands what is being lost and cannot explain it to those who do not.
+\end{sequence}
+
+\begin{sceneheading}
+Int. Kircher's Museum --- 1680 --- Shortly before his death --- Evening
+\end{sceneheading}
+
+\begin{action}
+The museum is significantly reorganised. It is, by any conventional measure, improved: clearer, better labelled, more internally consistent by the standards of emerging natural philosophy. The objects are in better condition because they are no longer in proximity to objects they were not "meant" to be near.
+
+It is also, unmistakably, a smaller space. Not physically: the room is the same size. But the ambient density of the museum has decreased. The room that had, at its fullest, the quality of a pressurised environment --- a space whose every element was in tension with and held in place by every other element --- is now more like a room with objects in it.
+
+Kircher moves through it slowly, with a stick. He is not performing grief. He is performing, as always, attention.
+\end{action}
+
+\begin{visual}
+The frame has continued to narrow throughout the third act. By this sequence the matte has reduced the visible image to approximately 1.0:1 --- an almost square frame. The black borders encroach not as vignette but as hard geometric matte, like a window that is being closed.
+
+The amber-and-indigo colour grammar that has been developing since \textit{Collectio} is now fully operative: we are inside Kircher's symbolic overlay, looking at the world through the chromatic system he spent his life building. The irony is that we reach this complete immersion in his perceptual system at exactly the moment when the system is being dismantled. We see what he sees. We cannot unsee it. But what we see is a world that no longer sees itself as he sees it.
+\end{visual}
+
+\begin{action}
+He passes the cabinet where the salamander was. The enclosure is still there, cleaned and empty. He stops and looks at it for a moment. The space where the creature was is not a space where it is absent. It is simply a space. The absence requires the memory of the presence, and the memory belongs to Kircher, and Kircher is dying.
+
+He continues.
+
+He stops before the Arca Musarithmica in its new position, in its new room, separated from the acoustic instruments, separated from the Egyptian material, separated from the cosmological diagrams. It is now labelled: \textit{Mechanical device for algorithmic generation of polyphonic church music; wooden cabinet with inscribed rods; circa 1650; designed by A. Kircher S.J.}
+
+He reads the label. He looks at the machine. He reads the label again.
+\end{action}
+
+\begin{dialogue}{Kircher}
+\paren{very quietly, to no one}
+It was not designed. It was found.
+\end{dialogue}
+
+\begin{action}
+He stands with his hand on the cabinet for a long time. His hand rests near the carved salamander on the interior panel. He does not look at it. He does not need to look at it.
+
+Then he continues his walk through the museum.
+\end{action}
+
+\clearpage
+
+\section{Epilogue: Fragments Across Centuries}
+
+\begin{sequence}
+\label{seq:epilogue}
+The mirror of the prologue. The fragments have not disappeared. They have become something else. The salamander's final appearance.
+\end{sequence}
+
+\begin{sceneheading}
+No location. Diagrammatic space. Present.
+\end{sceneheading}
+
+\begin{action}
+The frame has narrowed to approximately 0.7:1. The matte is visible as a physical fact of the image. We are watching through a window that is almost closed.
+
+What we see is not straightforwardly contemporary. It is the same amber-and-indigo colour grammar that has been building since \textit{Collectio}, now applied to imagery that we recognise as modern computational architecture: server racks, network diagrams, scrolling text, the pattern of a language model's attention distribution visualised as a heat map, the node-link diagram of a knowledge graph.
+
+These images do not appear as revelation or as triumph. They appear as what they are: structures that have inherited certain formal features of Kircher's dream and shed others.
+
+The combinatorial logic is here. The constraint satisfaction is here. The traversal of harmonic possibility space is here, in a different register.
+
+What is not here: the cosmic flesh. The sympathy. The sense that the mathematical structure of possible music is the same as the mathematical structure of the physical world is the same as the mathematical structure of thought is the same as the mathematical structure of the divine.
+
+The skeleton is walking. The body is not.
+\end{action}
+
+\begin{action}
+\salamander{IV} Among the visualisations: a heat map of a neural network's activation pattern during processing of an image of fire. The pattern at maximum resolution is an undifferentiated wash of activation probability. At medium resolution, structure becomes visible: clusters, gradients, attractor basins. At low resolution --- at the resolution at which the pattern rhymes rather than denotes --- the activation map has the shape of a creature with four limbs and a long tail, occupying a warm zone within a field of lower activation, neither consuming nor being consumed by the element it inhabits.
+
+The camera does not zoom out to reveal this. The audience sees it at medium resolution, from which both the detailed structure and the formal shadow are simultaneously visible. Whether they see the creature depends on what they are attending to, and on what the film has prepared them to see. The salamander is not placed in the image. It is latent in the structure of the image. It was always going to be there, in something, eventually, because that formal position --- boundary creature, element-dweller, constitutively related to the catastrophe it survives --- is a position that systems tend to occupy, and tends to be occupied, and was occupied by a real creature in the ash of a real monastery in the winter of 1632, and Kircher noticed.
+\end{action}
+
+\begin{visual}
+The epilogue should not be shot to suggest that Kircher has been vindicated. The contemporary images should be beautiful --- they are, genuinely, beautiful --- but their beauty should be the beauty of structures that are operating at reduced ontological density. They know fewer things about themselves than the Arca Musarithmica knew about itself. They are more powerful and less aware. The image should hold both of these facts simultaneously.
+
+The epilogue is not: ``and so his dream came true.'' The epilogue is: ``and so the dream survived the dreamer, and lost the thing that made it a dream, and became very powerful, and does not know what it has lost.''
+\end{visual}
+
+\begin{action}
+One final image, before the frame closes entirely:
+
+The fragments from the prologue. The piece of musical notation with the water-damaged lower voices. The mechanical escapement. The alchemical diagrams with the text excised. The Egyptian-style stonework. The animal bones in their deliberate arrangement.
+
+But now they are arranged differently from how Kircher arranged them on the table of his way-station lodging. They are arranged in the pattern that the museum, at its fullest, imposed upon them. The consolidation has happened. The original arrangement --- the arrangement of the road --- is no longer accessible.
+
+The frame closes to black.
+\end{action}
+
+\begin{direction}
+\label{dir:final}
+Cut to black. No sound. Hold for five seconds.
+
+Then: a single tone, played through the acoustic profile of the bronze head from Sequence~\ref{seq:acoustic}. The voice of the transmitting medium, without the message.
+
+Then: silence.
+\end{direction}
+
+\clearpage
+
+%% =============================================================================
+%% THEORETICAL APPENDICES
+%% =============================================================================
+\appendix
+
+\chapter{On the Visual Grammar: A Formal Account}
+
+The film's visual grammar is not a stylistic programme. It is a formal argument that operates in parallel with the dramatic argument and independently of it. A viewer who followed only the dramatic argument would understand the film. A viewer who followed only the visual grammar would understand a different version of the film. A viewer attentive to both would understand something that neither argument can produce alone.
+
+\begin{correspondence}[Frame and Epistemic Space]
+The aspect ratio of the film encodes the size of the symbolic space available to the characters within the diegesis. In \textit{Dispersio}, the full Academy ratio (1.37:1) registers a world that is too large and too fragmented to be comprehended within any available framework. In \textit{Collectio}, the frame does not change, but the visual field becomes denser: more objects per square centimetre of frame, more chromatic information, more layering. The same frame holds more. In \textit{Irreversibilitas}, the frame contracts. The contraction is not a loss of visual information in the conventional sense --- the image that remains is fully resolved, even more intensely saturated with the amber-indigo grammar than before --- but the world that the frame can hold is smaller. The symbolic space of the age of universal synthesis is closing.
+\end{correspondence}
+
+The matte that performs this contraction is hard-edged, not vignetted. Vignetting suggests a natural fall-off at the edges of perception. Hard matte suggests closure: a decision, a boundary, a window being definitively shut. The world is not becoming harder to see at its edges; it is becoming smaller.
+
+\begin{correspondence}[Colour and Ontological Register]
+Colour in the film is not atmospheric. It is ontological: it encodes the mode of existence of the objects and spaces in which it appears. The cold, desaturated palette of \textit{Dispersio} encodes the mode of existence of fragments --- things that exist in themselves, without relational context. The warming amber of \textit{Collectio} encodes the mode of existence of elements within a correspondence system: each thing's colour is partly its own and partly a function of what it is near, what it resonates with, what it reflects. The amber-and-indigo grammar of \textit{Irreversibilitas} encodes Kircher's symbolic system itself: at this point, the film is running inside his ontology, and the colours are the colours of that ontology rather than the colours of the physical world.
+\end{correspondence}
+
+\begin{correspondence}[The Salamander and Ontological Status]
+The salamander's four appearances encode a theory of ontological status change across time. In \textit{Dispersio}: the creature has biological status --- it is a physical organism observed without framework. In \textit{Collectio}: it simultaneously has biological status (living specimen), representational status (anatomical diagram), and symbolic status (carved ornament). This triple occupation is the mode of existence of elements within a fully operative correspondence system. In \textit{Irreversibilitas}: the three statuses are separated by taxonomic logic. Each one survives but is diminished. In the epilogue: the creature has formal-shadow status --- it is the shape that a pattern takes when that pattern occupies a specific structural position, regardless of what the pattern is made of. This fourth status is the mode of existence of Kircherian ideas inside modernity: formally persistent, materially absent, unrecognisable to those who did not watch the whole consolidation process.
+\end{correspondence}
+
+\chapter{On Editing as Mnemonic Architecture}
+
+The editing of the film is designed to produce, in the audience's experience, the specific phenomenology of being inside a mnemonic system that undergoes consolidation.
+
+In \textit{Dispersio}, the editing is fragmentary and non-anticipatory. Cuts do not set up expectations for what follows. The rhythm is irregular. Images do not rhyme across cuts. The experience is of receiving information without the context that would allow it to be encoded in long-term form.
+
+In \textit{Collectio}, the editing gradually develops internal rhyme. A colour appears in one scene and recurs in the next in a different context. A spatial composition in one sequence is echoed in another. The audience's nervous system begins to build implicit associations without being explicitly instructed to do so.
+
+In \textit{Irreversibilitas}, the associations that were built in \textit{Collectio} begin to be activated without their original contexts. A colour appears that carries the weight of everything it was associated with in \textit{Collectio}, but the objects that produced those associations are no longer visible. The audience is now running on their own consolidated memories of the film rather than on the film's present images.
+
+\begin{axiom}[Editing as Mnemonic Compression]
+The film's editing is designed so that the experience of watching it replicates the structure of mnemonic consolidation: accumulation of associations during \textit{Collectio}, activation of consolidated memory traces during \textit{Irreversibilitas}, and the progressive divergence between memory and present experience that is constitutive of the condition the film describes. The audience's confusion in the final act is not a failure of comprehension but the successful production of the intended experience.
+\end{axiom}
+
+By the final sequences, the audience should be unable to fully reconstruct the sequence of events in the film from their present position --- not because the film has been incoherent, but because the mnemonic architecture it has been building has undergone irreversible consolidation. The original fragments are no longer accessible. What the audience has is what the museum had at its fullest: a structured attractor in which the individual elements have lost their independent identities and can only be recalled as parts of the larger resonance pattern.
+
+\chapter{On the Museum Organism: A Technical Account}
+
+The museum organism protocol is not a departure from realism. It is a formal specification of a real phenomenon: the environmental effect produced by a symbolic system that has achieved sufficient internal density. The museum organism notes describe what the production designer, gaffer, sound recordist, and director of photography should produce. They do not describe miracles. They describe the accumulation of small, real, producible effects.
+
+The phenomenon has three components.
+
+The first is \textit{attentional field reorganisation}. When a space contains a sufficient density of objects in correspondence, visitors' attention is structured by the correspondence network rather than by individual objects. They attend to the same things, in similar sequences, without coordinating with each other. The museum at its fullest is a space with very strong attractors organised into a network. Movement through it is therefore not random but patterned, and the pattern is the correspondence system expressed as phenomenology.
+
+The second component is \textit{acoustic field density}. A space filled with objects has different acoustic properties than the same space emptied, not only because of absorption and reflection but because the objects constitute a physical field that sound must propagate through. A dense, carefully arranged field of objects is a different acoustic environment from the same objects arranged without internal logic. The museum organism notes specify that the sound recordist should capture this difference, and the mix should preserve it.
+
+The third component is \textit{the residual field after dismantling}. When the correspondence network is broken by reorganisation, the attentional and acoustic effects diminish. The museum organism protocol requires that this diminishment be recorded and audible: the room after reorganisation should sound different from the room before reorganisation, in ways that cannot be attributed to changed furnishing alone.
+
+\begin{correspondence}[Museum and Ark]
+The museum organism protocol is the film's most direct instantiation of the ark logic. The Arca No\"e is not a container that stores species. It is an environment that generates the conditions under which species can survive. When the Ark arrives at Ararat and the animals disperse, the environment that sustained them is gone. What survives is the animals, individually, in a new environment they must now build from scratch.
+
+The museum at its fullest is an ark in this sense. When it is dismantled, what survives are the objects, individually, in new environments they must now build correspondences within from scratch. The correspondence logic persists --- it persists in the Arca Musarithmica, which still works, and in the salamander, which is still alive, and in the acoustic instruments, which still resonate --- but the vessel's form is gone. And the form was the argument.
+\end{correspondence}
+
+\chapter{Source Materials and Scholarly Grounding}
+
+This screenplay is grounded in the historical record of Athanasius Kircher's life and work. The primary scholarly sources consulted in its construction include the work of Joscelyn Godwin \cite{godwin2009}, whose study of Kircher's encyclopedic project remains the most sustained engagement in English with the full range of his output; Paula Findlen's edited volume on Kircher's museum and its intellectual context \cite{findlen2004}; John Edward Fletcher's biographical account \cite{fletcher2011}; and the increasingly substantial body of scholarship on early modern wonder and the cabinet tradition, including work by Lorraine Daston and Katharine Park \cite{daston1998} and Horst Bredekamp \cite{bredekamp1995}.
+
+The Arca Musarithmica is a real instrument, described in full in the \textit{Musurgia Universalis} of 1650 \cite{kircher1650}. The plague pit sequence is grounded in Kircher's \textit{Scrutinium Physico-Medicum} of 1658 \cite{kircher1658}, in which he describes his microscopic observations of plague material and proposes the \textit{corpuscula animata} theory of contagion. The speaking statue and acoustic chamber designs are described in the \textit{Phonurgia Nova} of 1673 \cite{kircher1673}. The Leibniz visit of 1689 is historically documented and discussed in Mercer \cite{mercer2001}.
+
+The hieroglyphic translation material is drawn from the \textit{Oedipus Aegyptiacus} (1652--1654) \cite{kircher1652} and the \textit{Lingua Aegyptiaca Restituta} (1643) \cite{kircher1643}. Kircher's translations of the Bembine Tablet are historically documented and historically wrong in the manner described; the full critical account is given in Iversen \cite{iversen1961} and more recently in Stolzenberg \cite{stolzenberg2004}. The account of the institutional review process for the \textit{Oedipus Aegyptiacus} --- the pressure from Jesuit orthodoxy regarding the hermeticism and \textit{prisca theologia} apparatus --- is drawn directly from Stolzenberg's documentary research, which demonstrates that Kircher faced institutional correction from his own Order as well as from the Republic of Letters.
+
+The figure of Father Grimaldi is a composite rather than a direct historical portrait. The dismantling of Kircher's correspondence system by his successors is however historically accurate in its general outlines. The broader intellectual context is treated in Dear \cite{dear2001} and Leinkauf \cite{leinkauf1993}.
+
+On the question of Kircher's relationship to the emerging combinatorial and computational traditions, the most rigorous account remains that of Eco \cite{eco1995}, whose treatment of the universal language project situates Kircher precisely at the hinge between Lullian \textit{ars combinatoria} and Leibnizian \textit{characteristica}. The connection to later symbolic computation is developed speculatively but rigorously in Stafford and Terpak \cite{stafford2001}.
+
+The salamander's role in Kircher's natural philosophy is documented primarily in \textit{Mundus Subterraneus} \cite{kircher1665}, where the creature's relationship to subterranean fire is elaborated as part of the broader theory of the earth's thermal interior. Kircher's account draws on classical sources (Pliny, Aristotle) while reinterpreting them within his correspondence framework: the salamander is not merely tolerant of fire but is fire's necessary complement, the cold that fire requires to remain fire rather than becoming dissolution. This cosmological reading of the creature's biology is Kircher's own.
+
+\chapter{Notes on Casting and Direction}
+
+The central formal requirement for the actor playing Kircher is the capacity to sustain a quality of attention that reads as neither genius nor delusion from the outside. The performance must be fully inhabited and entirely unreadable in the diagnostic sense. The audience must be unable to determine, from watching Kircher's face, whether he is experiencing insight or confabulation.
+
+The director's primary formal task is the management of the film's oscillation between two modes: the mode in which the correspondences are real and the film is a document of a man discovering the structure of the world, and the mode in which the correspondences are constructions and the film is a document of a man building a very sophisticated self-enclosing system of interpretation. The film must never settle into either mode. The oscillation is the argument.
+
+\begin{direction}
+\label{dir:direction}
+The director should refuse, in every production meeting and on every shooting day, to answer the question ``but is he right?'' This refusal is not coyness. It is the formal position of the film. Any decision that resolves the ambiguity in either direction is a mistake, regardless of its other qualities. The film succeeds only if the audience leaves without knowing whether they have watched a tragedy about a man who was wrong or a tragedy about a man who was right in a way that the world could not yet hear.
+
+Both of these films are tragedies. They are the same tragedy, approached from different directions. The film should contain both simultaneously.
+\end{direction}
+
+The salamander protocol requires that the creature be treated, throughout production, with the same neutral precision that characterises Kircher's own observational register. It is never camera-pointed-at. It is never lit for emphasis. It is simply present in the spaces it occupies, attended to with the same quality of attention that the film applies to every object in the museum. The audience's recognition of its formal significance depends on the film having earned that recognition through accumulated attention, not through editorial insistence.
+
+\chapter{On Symbolic Overload: A Swedenborgian Interpolation}
+
+\epigraph{\itshape \textit{Vidi, et miratus sum admiratione magna.}\\
+I saw, and I marvelled with a great marvelling.}{Emanuel Swedenborg, \textit{Arcana Caelestia}, \S 940}
+
+\section*{I. The Rendering Engine Under Load}
+
+Emanuel Swedenborg (1688--1772), mining engineer, anatomist, and late-life visionary, produced in his final decades an encyclopedic account of spiritual cosmology that in scope, ambition, and internal coherence rivals Kircher's own. Layered heavens, angelic correspondences, architectural cosmologies, hierarchical symbolic systems, interlinked spiritual taxonomies: the structural vocabulary is almost identical. Yet Swedenborg arrives at this vocabulary not through Jesuit encyclopedism but through what he describes as direct visionary experience --- twelve years of sustained access to the spiritual world, during which he conversed with angels, traversed heavenly cities, and mapped the ontological architecture of the afterlife in meticulous detail.
+
+The standard interpretive options are familiar: revelation, delusion, or some medically qualified intermediate state. This appendix proposes a fourth reading, derived from the logic of the film itself: Swedenborg's visions are the phenomenology of a cognitive system operating under extreme symbolic overload. Like a rendering engine pushed beyond stable capacity, the mind under conditions of overwhelming informational density begins generating locally coherent compensatory structures. The visions are not random. They are not direct transcripts of a spiritual world. They are what happens when semantic complexity exceeds navigable cognitive bandwidth and the system attempts to preserve coherence by synthesising fragments into atmospheric continuity.
+
+Under this model the visions are \textit{compensatory renderings}: the mind's attempt to maintain a coherent symbolic field under conditions that exceed the capacity for explicit propositional navigation. The result is a system that feels --- from inside --- profoundly intelligible, deeply structured, and cosmologically necessary, while being, from outside, resistant to propositional recovery. The experience of deep coherence and the difficulty of articulating what is actually being claimed are not in tension. They are the same phenomenon observed from different positions.
+
+\section*{II. The Swedenborgian Coherence Response}
+
+This dynamic can be formalised. Define the \textit{Swedenborgian Coherence Response} (SCR) as the ratio:
+
+\[
+\mathrm{SCR} = \frac{A_s}{R_p}
+\]
+
+where $A_s$ denotes ambient symbolic density --- the quantity and interconnection of symbolic elements active in a given cognitive or textual field --- and $R_p$ denotes recoverable propositions --- the number of explicit, discretely statable claims that can be extracted from that field without remainder.
+
+\begin{correspondence}[SCR and Epistemic Regimes]
+Low SCR states correspond to the ledger ontology: propositions are individually recoverable, symbolic density is minimal, and the system is navigable by enumeration. High SCR states correspond to the correspondence ontology: ambient coherence is intense, individual propositions are difficult to isolate, and the system is navigable only through something closer to inhabitation than to reading. The transition between epistemic regimes --- the transition this film describes --- is a transition in SCR. Modernity imposed a low-SCR requirement on all legitimate knowledge. Kircher's entire project is a high-SCR system that modernity could not metabolise without first reducing it to a set of extractable propositions, most of which, extracted, turned out to be wrong.
+\end{correspondence}
+
+High SCR states produce what might be called an \textit{ambient coherence field}: an impression of deep intelligibility that exceeds direct conceptual traversal. The system feels true in a way that outruns any particular truth it contains. Readers or inhabitants of such a system begin inferring hidden structure, assigning significance to recurrence and proximity, and experiencing a conviction of profound patterning that cannot be fully cashed out in explicit claims. This is not necessarily error. It may be the appropriate epistemic response to a system whose structure is real but whose density exceeds propositional representation. It may also be the appropriate response to a system that has no structure at all beyond the coherence the reader imports into it. From inside the experience, these cases are not distinguishable.
+
+\section*{III. Modern High-SCR Systems}
+
+The Swedenborg model becomes diagnostically significant because high SCR states are not confined to visionary cosmology. Many modern systems exhibit Swedenborgian rendering characteristics: intense ambient coherence produced under conditions of symbolic overload, with declining propositional recoverability and increasing atmospheric conviction.
+
+\begin{fragment}
+Academic discourse in certain fields generates high SCR states through recursive theoretical elaboration: systems of terminology that develop internal coherence faster than external referentiality, producing readers who experience the field as profoundly intelligible without being able to report, in plain language, what it claims. Financial instruments achieve similar effects through layered contractual abstraction: the system coheres locally at every level while becoming globally unnavigable. Recommendation systems produce ambient coherence fields through high-dimensional preference modelling: the user experiences the system as knowing them, as generating a world tailored to their deep structure, while the system is doing something much more mechanical that happens to feel like comprehension. Social media discourse fields develop attractor structures --- recurring symbolic clusters, stable affective orientations, characteristic vocabulary --- that feel like shared understanding while being, propositionally, nearly empty.
+
+In each case: $A_s$ rises, $R_p$ falls, SCR increases. The system becomes more convincing as it becomes less checkable.
+\end{fragment}
+
+The museum organism, in this light, is a low-technology high-SCR environment: a space in which symbolic density has been cultivated to the point at which visitors experience emergent attentional topology without being able to identify its source. The Kircherian museum and the modern recommendation engine are different in their mechanisms and their moral implications, but they occupy the same position in SCR space. Both produce the experience of being known, of being in a world whose structure corresponds to one's own, of inhabiting a coherent symbolic field rather than navigating an arbitrary collection of items.
+
+Kircher's tragedy, under this framework, is not only that modernity imposed a low-SCR epistemological standard that his work could not meet. It is that the high-SCR environments modernity has since produced --- financial, computational, social, bureaucratic --- are high-SCR without being \textit{architecturally coherent}. They generate ambient coherence fields through noise and volume rather than through the patient cultivation of correspondence. They produce the phenomenology of Kircher's museum without its structure. They are the skeleton not only of his combinatorial logic but of his atmospheric achievement.
+
+\section*{IV. Swedenborg, Kircher, and the Encyclopedic Threshold}
+
+Kircher and Swedenborg occupy adjacent positions in a historical sequence that runs from Ramon Llull through the seventeenth-century encyclopedists to the eighteenth-century visionaries and beyond: a sequence of minds attempting to hold an increasingly complex symbolic world together through ever more elaborate correspondence architectures, until the architecture itself begins generating experiences that exceed what the architecture can account for.
+
+\begin{annotation}
+Llull's \textit{ars combinatoria} is low-SCR by design: its combinatorial wheels are intended to be navigable, checkable, enumerable. Kircher inflates this system to the point at which navigation requires something closer to inhabitation. Swedenborg inflates it further, past the threshold at which the system can be articulated at all, into pure phenomenology: a world that can only be reported, not demonstrated. Each step preserves the \textit{form} of the correspondence system while expanding the ratio of ambient coherence to propositional content.
+
+The film's epilogue describes the computational descendants of this sequence: systems with very high $A_s$ and increasingly uncertain $R_p$, producing SCR values that would have been familiar to Swedenborg as the texture of visionary experience. The language model that generates fluent, confident, internally coherent text whose propositional content is difficult to verify is operating, functionally, in a high SCR state. It is not hallucinating in the clinical sense. It is rendering under load: synthesising fragments into atmospheric continuity when explicit propositional grounding is unavailable.
+
+The skeleton is walking. The visions have migrated into the infrastructure.
+\end{annotation}
+
+\section*{V. Implications for the Film}
+
+The Swedenborg interpolation has one direct implication for the film's production: the epilogue's computational imagery should include, alongside the server racks and network diagrams, something that represents a high-SCR output --- a long-form language model response, perhaps, or a financial instrument's prospectus, or a social media feed's attractor structure. The image should be beautiful and illegible simultaneously: dense with apparent meaning, resistant to propositional extraction, generating the experience of coherence without the substance. This is Kircher's museum, four centuries later, running without the architect.
+
+The audience who has sat through the museum organism sequences will feel the connection without being instructed to make it. That recognition, arriving at the end of a film about irreversible consolidation, will itself be an instance of the phenomenon it recognises: a pattern perceived through accumulated attention, not through explicit argument. The film will have produced, in the audience's experience, a small high-SCR event. The mnemonic architecture will have done its work.
+
+%% =============================================================================
+%% END MATTER
+%% =============================================================================
+
+\backmatter
+
+\chapter*{Bibliography}
+\addcontentsline{toc}{section}{Bibliography}
+
+\noindent{\large\scshape\color{cosmosblue} Primary Sources}\smallskip
+
+\noindent{\color{arkgold}\rule{\linewidth}{0.4pt}}\medskip
+
+\begin{thebibliography}{Stafford \& Terpak 2001}
+
+\bibitem[Kircher 1643]{kircher1643}
+Kircher, A. (1643). \textit{Lingua Aegyptiaca Restituta}. Rome: Vitale Mascardi.
+
+\bibitem[Kircher 1650]{kircher1650}
+Kircher, A. (1650). \textit{Musurgia Universalis, sive Ars Magna Consoni et Dissoni}. 2 vols. Rome: Francesco Corbelletti.
+
+\bibitem[Kircher 1652]{kircher1652}
+Kircher, A. (1652--1654). \textit{Oedipus Aegyptiacus}. 3 vols. Rome: Vitale Mascardi.
+
+\bibitem[Kircher 1656]{kircher1656}
+Kircher, A. (1656). \textit{Iter Exstaticum, quo Mundi Opificium}. Rome: Vitale Mascardi.
+
+\bibitem[Kircher 1658]{kircher1658}
+Kircher, A. (1658). \textit{Scrutinium Physico-Medicum Contagiosae Luis, quae Pestis Dicitur}. Rome: Mascardi.
+
+\bibitem[Kircher 1665]{kircher1665}
+Kircher, A. (1665). \textit{Mundus Subterraneus}. 2 vols. Amsterdam: Joannem Janssonium \& Elizeum Weyerstraten.
+
+\bibitem[Kircher 1669]{kircher1669}
+Kircher, A. (1669). \textit{Ars Magna Sciendi, sive Combinatoria}. Amsterdam: Joannem Janssonium \`{a} Waesberge \& Filios.
+
+\bibitem[Kircher 1673]{kircher1673}
+Kircher, A. (1673). \textit{Phonurgia Nova, sive Conjugium Mechanico-Physicum Artis et Naturae}. Kempten: Rudolph Dreherr.
+
+\bibitem[Kircher 1675]{kircher1675}
+Kircher, A. (1675). \textit{Arca No\"{e}, in Tres Libros Digesta}. Amsterdam: Joannem Janssonium \`{a} Waesberge.
+
+\bigskip
+\noindent{\large\scshape\color{cosmosblue} Secondary Literature}\smallskip
+
+\noindent{\color{arkgold}\rule{\linewidth}{0.4pt}}\medskip
+
+\bibitem[Bredekamp 1995]{bredekamp1995}
+Bredekamp, H. (1995). \textit{The Lure of Antiquity and the Cult of the Machine}. Trans.\ A.\ Brown. Princeton: Markus Wiener.
+
+\bibitem[Daston \& Park 1998]{daston1998}
+Daston, L. and Park, K. (1998). \textit{Wonders and the Order of Nature, 1150--1750}. New York: Zone Books.
+
+\bibitem[Dear 2001]{dear2001}
+Dear, P. (2001). \textit{Revolutionizing the Sciences: European Knowledge and its Ambitions, 1500--1700}. Princeton: Princeton University Press.
+
+\bibitem[Eco 1995]{eco1995}
+Eco, U. (1995). \textit{The Search for the Perfect Language}. Trans.\ J.\ Fentress. Oxford: Blackwell.
+
+\bibitem[Findlen 2004]{findlen2004}
+Findlen, P., ed. (2004). \textit{Athanasius Kircher: The Last Man Who Knew Everything}. New York: Routledge.
+
+\bibitem[Fletcher 2011]{fletcher2011}
+Fletcher, J.\ E. (2011). \textit{A Study of the Life and Works of Athanasius Kircher, Germanus Incredibilis}. Ed.\ E.\ Fletcher. Leiden: Brill.
+
+\bibitem[Godwin 2009]{godwin2009}
+Godwin, J. (2009). \textit{Athanasius Kircher's Theatre of the World}. London: Thames \& Hudson.
+
+\bibitem[Iversen 1961]{iversen1961}
+Iversen, E. (1961). \textit{The Myth of Egypt and its Hieroglyphs in European Tradition}. Copenhagen: GEC Gad.
+
+\bibitem[Leinkauf 1993]{leinkauf1993}
+Leinkauf, T. (1993). \textit{Mundus Combinatus: Studien zur Struktur der barocken Universalwissenschaft am Beispiel Athanasius Kirchers SJ}. Berlin: Akademie Verlag.
+
+\bibitem[Mercer 2001]{mercer2001}
+Mercer, C. (2001). \textit{Leibniz's Metaphysics: Its Origins and Development}. Cambridge: Cambridge University Press.
+
+\bibitem[Stafford \& Terpak 2001]{stafford2001}
+Stafford, B.\ M. and Terpak, F. (2001). \textit{Devices of Wonder: From the World in a Box to Images on a Screen}. Los Angeles: Getty Research Institute.
+
+\bibitem[Stolzenberg 2004]{stolzenberg2004}
+Stolzenberg, D. (2004). ``Oedipus Censored: Censurae of Athanasius Kircher's \textit{Oedipus Aegyptiacus}.'' \textit{Early Science and Medicine} 8(2): 133--159.
+
+\end{thebibliography}
+
+\chapter*{Colophon}
+\addcontentsline{toc}{section}{Colophon}
+
+\begin{center}
+\vspace{4mm}
+{\color{arkgold}\rule{80mm}{0.4pt}}\\[8pt]
+{\small\itshape This document was composed in Lua\LaTeX\\ using TeX Gyre Pagella.}\\[6pt]
+{\small Author: Flyxion \quad Independent Researcher}\\[4pt]
+{\small\itshape Omnia in omnibus.}\\[8pt]
+{\color{arkgold}\rule{80mm}{0.4pt}}\\[10pt]
+\kircherwheel[4]
+\end{center}
+
+\end{document}
+
+Update

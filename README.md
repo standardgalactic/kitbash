@@ -1,5 +1,6 @@
 # Self-Refactoring Crosslinking
 
+[Dynamic Readability](https://github.com/standardgalactic/kitbash/blob/main/processing/README.md)
 
 [Inference as Constraint Closure](https://standardgalactic.github.io/kitbash/thesis/constraint_closure.pdf)
 

@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stochastic Typography Engine — CNP Demo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@300;400;500&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap');
+
+  :root {
+    --bg: #f5f0e8;
+    --ink: #1a1510;
+    --accent: #7a3b1e;
+    --faint: #b8a99a;
+    --paper: #faf7f2;
+    --rule: #d4c9b8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'EB Garamond', Georgia, serif;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* CONTROL PANEL */
+  #controls {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: var(--ink);
+    color: var(--bg);
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    border-bottom: 2px solid var(--accent);
+  }
+
+  #controls .label {
+    color: var(--faint);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 9px;
+    margin-right: 2px;
+  }
+
+  #controls button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 6px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: background 0.15s;
+  }
+  #controls button:hover { background: #a04e2a; }
+
+  #seed-display {
+    color: #aaa;
+    font-size: 10px;
+    margin-left: auto;
+  }
+
+  #cnp-display {
+    font-size: 10px;
+    color: #ccc;
+  }
+
+  /* SCR METER */
+  #scr-meter {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  #scr-bar-outer {
+    width: 80px;
+    height: 6px;
+    background: #333;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  #scr-bar-inner {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+
+  /* DOCUMENT */
+  #document {
+    max-width: 760px;
+    margin: 70px auto 80px;
+    background: var(--paper);
+    padding: 60px 72px;
+    box-shadow: 0 4px 40px rgba(0,0,0,0.12);
+    position: relative;
+  }
+
+  /* PAPER TEXTURE */
+  #document::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    border-radius: 0;
+    opacity: 0.4;
+  }
+
+  .doc-title {
+    font-family: 'Playfair Display', serif;
+    text-align: center;
+    margin-bottom: 8px;
+    line-height: 1.15;
+    color: var(--ink);
+  }
+
+  .doc-subtitle {
+    font-family: 'EB Garamond', serif;
+    font-style: italic;
+    text-align: center;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+
+  .doc-author {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-align: center;
+    color: var(--faint);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+
+  .doc-rule {
+    border: none;
+    border-top: 1px solid var(--rule);
+    margin: 24px 0;
+  }
+
+  .abstract {
+    font-size: 0.9em;
+    font-style: italic;
+    padding: 0 20px;
+    color: #3a3028;
+    line-height: 1.7;
+    margin-bottom: 32px;
+  }
+
+  .section-heading {
+    font-family: 'Playfair Display', serif;
+    color: var(--ink);
+    margin-top: 36px;
+    margin-bottom: 12px;
+    line-height: 1.2;
+  }
+
+  .subsection-heading {
+    font-family: 'EB Garamond', serif;
+    font-weight: 600;
+    font-style: italic;
+    color: var(--accent);
+    margin-top: 24px;
+    margin-bottom: 8px;
+  }
+
+  .body-para {
+    line-height: 1.75;
+    margin-bottom: 14px;
+    text-align: justify;
+    hyphens: auto;
+  }
+
+  .definition-box {
+    border-left: 3px solid var(--accent);
+    padding: 10px 16px;
+    margin: 20px 0;
+    background: rgba(122, 59, 30, 0.04);
+    font-size: 0.92em;
+  }
+
+  .definition-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78em;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+
+  .equation {
+    text-align: center;
+    padding: 12px;
+    font-style: italic;
+    font-size: 1.05em;
+    color: #2a2018;
+    font-family: 'EB Garamond', serif;
+  }
+
+  .footnote-ref {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65em;
+    vertical-align: super;
+    color: var(--accent);
+  }
+
+  .footnote-block {
+    border-top: 1px solid var(--rule);
+    margin-top: 32px;
+    padding-top: 12px;
+    font-size: 0.82em;
+    color: #5a4a3a;
+    line-height: 1.6;
+  }
+
+  .metric-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75em;
+    color: var(--faint);
+    display: inline-block;
+    margin-left: 4px;
+  }
+
+  /* STOCHASTIC ELEMENT — all dynamic styles applied via JS */
+  .stochastic { transition: font-size 0.4s ease, letter-spacing 0.4s ease, opacity 0.4s ease, line-height 0.4s ease; }
+
+  /* TOOLTIP for SCR explanation */
+  #scr-tooltip {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--ink);
+    color: var(--bg);
+    padding: 10px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    max-width: 280px;
+    line-height: 1.5;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+  #scr-tooltip.visible { opacity: 1; }
+
+  /* COMPILATION COUNT */
+  #compile-count {
+    font-size: 10px;
+    color: #888;
+  }
+</style>
+</head>
+<body>
+
+<div id="controls">
+  <span class="label">CNP Engine</span>
+  <button id="recompile-btn">⟳ Recompile</button>
+  <button id="stable-btn">Stable</button>
+  <button id="mild-btn">Mild Drift</button>
+  <button id="severe-btn">Severe Overload</button>
+
+  <div id="scr-meter">
+    <span class="label">SCR</span>
+    <div id="scr-bar-outer"><div id="scr-bar-inner" style="width:20%"></div></div>
+    <span id="scr-value">0.18</span>
+  </div>
+
+  <span id="cnp-display">CNP: —</span>
+  <span id="compile-count">compilations: 0</span>
+  <span id="seed-display">seed: —</span>
+</div>
+
+<div id="document">
+
+  <div class="doc-title stochastic" id="el-title">The Unreadability of Dynamic Readability</div>
+  <div class="doc-subtitle stochastic" id="el-subtitle">An Explicit Specification of a Conceptualization</div>
+  <div class="doc-author stochastic" id="el-author">Flyxion &nbsp;·&nbsp; Independent Researcher</div>
+
+  <hr class="doc-rule">
+
+  <div class="abstract stochastic" id="el-abstract">
+    This paper investigates the phenomenon of dynamic unreadability as instantiated within and through academic discourse, attending particularly to the mechanisms by which communicative opacity is generated, sustained, and mistaken for intellectual depth. The argument proceeds from a simple premise&mdash;that clarity is not simplification, but navigability&mdash;and demonstrates this thesis by example, the example in question being the present paper itself.
+  </div>
+
+  <hr class="doc-rule">
+
+  <div class="section-heading stochastic" id="el-s1">1. Introduction: A Simple Problem, Simply Stated</div>
+
+  <div class="body-para stochastic" id="el-p1">
+    Have you ever begun the opening paragraph of a peer-reviewed paper and discovered, halfway through the page, that your cognitive faculties have staged a silent revolt?<span class="footnote-ref">1</span> You were reading words. The words were English. The sentences were grammatical. And yet something had gone wrong somewhere, in the way that a perfectly legal sequence of turns can leave you facing a wall in a parking garage with no obvious exit.
+  </div>
+
+  <div class="body-para stochastic" id="el-p2">
+    This is not a failure of intelligence. It is a failure of architecture. Academic writing, at its worst, is not merely complex. It is labyrinthine without being interesting, dense without being informative, authoritative without being grounded.
+  </div>
+
+  <div class="section-heading stochastic" id="el-s2">2. A Taxonomy of Difficulty</div>
+
+  <div class="body-para stochastic" id="el-p3">
+    Not all difficult writing is the same. A useful taxonomy distinguishes: productive density, where symbolic compression rewards interpretive effort; compressive shorthand, which is legitimate specialization; ritualized obscurity, where complexity functions socially rather than informationally; and adversarial opacity, the terminal form.
+  </div>
+
+  <div class="definition-box stochastic" id="el-def1">
+    <div class="definition-label">Definition 1 — Semantic Density Ratio (SDR)</div>
+    <div class="equation stochastic" id="el-eq1">SDR(T) = I(T) / L(T)</div>
+    <div>where I(T) denotes informational content and L(T) denotes lexical opacity. The pathological case is low SDR: informationally sparse but lexically dense.</div>
+  </div>
+
+  <div class="section-heading stochastic" id="el-s3">3. Citation-Topological Closure</div>
+
+  <div class="body-para stochastic" id="el-p4">
+    A discourse exhibits Citation-Topological Closure (CTC) when its propositions derive authority primarily from position within citation networks rather than from direct connection to empirical substrates. Papers cite papers which cite papers. Terminology stabilizes not by achieving precision but by circulating long enough to acquire the patina of established usage. The internal coherence of the network increases while its world-contact silently decays.<span class="footnote-ref">2</span>
+  </div>
+
+  <div class="definition-box stochastic" id="el-def2">
+    <div class="definition-label">Definition 2 — Swedenborgian Coherence Response (SCR)</div>
+    <div class="equation stochastic" id="el-eq2">SCR(T) = A<sub>s</sub>(T) / R<sub>p</sub>(T)</div>
+    <div>where A<sub>s</sub> is ambient symbolic density and R<sub>p</sub> is recoverable propositions. At high SCR, readers experience interpretive gravity despite declining semantic recoverability.<span class="footnote-ref">3</span></div>
+  </div>
+
+  <div class="section-heading stochastic" id="el-s4">4. The Kircherian Interlude: Density Without Fog</div>
+
+  <div class="body-para stochastic" id="el-p5">
+    Athanasius Kircher (1602–1680) produced some of the most informationally overloaded documents in European scholarship. And yet his diagrams remain legible, because they are organized architecturally rather than linearly. The reader's eye finds purchase in spatial structure before attempting to parse individual elements. We inherited the density. We lost the cathedral.
+  </div>
+
+  <div class="section-heading stochastic" id="el-s5">5. Extended Formal Apparatus</div>
+
+  <div class="body-para stochastic" id="el-p6">
+    Having established the foundational conceptual landscape through the preceding preliminary discussion, and having further motivated the analytical apparatus through the Kircherian detour (which will be retroactively understood as a methodological probe rather than a mere historical digression, as will be formalized in §5.3), we are now in a position to develop a more comprehensive and formally adequate specification of the Dynamic Readability Potential (DRP) framework and its associated sub-frameworks.<span class="footnote-ref">4</span>
+  </div>
+
+  <div class="definition-box stochastic" id="el-def3">
+    <div class="definition-label">Definition 3 — Dynamic Readability Potential (DRP)</div>
+    <div class="equation stochastic" id="el-eq3">DRP(T,𝒮,𝒞,t) = (S<sub>c</sub> · A<sub>i</sub> · Φ(𝒞)) / ((O<sub>r</sub> + J<sub>s</sub>²) · Λ(t))</div>
+    <div class="stochastic" id="el-eq-note" style="font-size:0.85em; margin-top:6px; color:#666;">For accessibility reasons, the full derivation of this expression is omitted.</div>
+  </div>
+
+  <div class="body-para stochastic" id="el-p7">
+    The contextual affordance tensor Φ(𝒞) reflects the non-commutativity of interpretive affordance dimensions. Encountering a text in institutional-evaluation mode and then in leisure mode does not produce the same aggregate interpretive outcome as encountering it in the reverse order. We note, without developing the point fully in the present paper (but see the forthcoming companion piece, provisionally titled <em>Toward a Sheaf-Theoretic Formulation of Reading Context as a Contravariant Functor from the Category of Institutional Positions to the Category of Interpretive Outcomes, with Applications to Peer Review</em>), that Φ(𝒞) is likely most naturally treated as a section of a suitable sheaf over the space of reading contexts.
+  </div>
+
+  <div class="section-heading stochastic" id="el-concl">Conclusion</div>
+
+  <div class="body-para stochastic" id="el-p8" style="text-align:center; font-style:italic; padding: 12px 0;">
+    At some point we stopped explaining the world to each other<br>and began explaining papers about papers.
+  </div>
+
+  <div class="body-para stochastic" id="el-p9">
+    Good writing constructs architectures through which difficult ideas can be traversed by finite minds. The goal is not to flatten complexity. It is to remain traversable. That is all we were ever trying to say.
+  </div>
+
+  <div class="footnote-block stochastic" id="el-footnotes">
+    <div><span class="footnote-ref" style="font-size:0.85em">1</span> This is not a rhetorical question. The experience it describes is real and underreported in the methodology literature.</div>
+    <div style="margin-top:6px"><span class="footnote-ref" style="font-size:0.85em">2</span> Semantic coherence no longer guarantees referential coherence. This is the hall-of-mirrors condition.</div>
+    <div style="margin-top:6px"><span class="footnote-ref" style="font-size:0.85em">3</span> The Swedenborg comparison should not be understood dismissively. His visions were dynamic compensatory renderings under conditions of conceptual oversaturation. So are some grant proposals.</div>
+    <div style="margin-top:6px"><span class="footnote-ref" style="font-size:0.85em">4</span> The term "framework" is used here in its technical sense, which is to say, somewhat loosely.</div>
+  </div>
+
+</div>
+
+<div id="scr-tooltip">SCR rising: ambient symbolic density now exceeds recoverable propositions. Interpretive gravity increasing. You may begin inferring structure from layout noise.</div>
+
+<script>
+// ============================================================
+// STOCHASTIC TYPOGRAPHY ENGINE
+// Cognitive Navigability Profile (CNP) Allocator
+// ============================================================
+
+const ELEMENTS = [
+  { id: 'el-title',     role: 'title',      baseSize: 28, baseLH: 1.15 },
+  { id: 'el-subtitle',  role: 'subtitle',   baseSize: 16, baseLH: 1.3  },
+  { id: 'el-author',    role: 'meta',       baseSize: 10, baseLH: 1.4  },
+  { id: 'el-abstract',  role: 'abstract',   baseSize: 14.5, baseLH: 1.7 },
+  { id: 'el-s1',        role: 'heading',    baseSize: 20, baseLH: 1.2  },
+  { id: 'el-p1',        role: 'body',       baseSize: 16.5, baseLH: 1.75 },
+  { id: 'el-p2',        role: 'body',       baseSize: 16.5, baseLH: 1.75 },
+  { id: 'el-s2',        role: 'heading',    baseSize: 20, baseLH: 1.2  },
+  { id: 'el-p3',        role: 'body',       baseSize: 16.5, baseLH: 1.75 },
+  { id: 'el-def1',      role: 'definition', baseSize: 14.5, baseLH: 1.5 },
+  { id: 'el-eq1',       role: 'equation',   baseSize: 17, baseLH: 1.4  },
+  { id: 'el-s3',        role: 'heading',    baseSize: 20, baseLH: 1.2  },
+  { id: 'el-p4',        role: 'body',       baseSize: 16.5, baseLH: 1.75 },
+  { id: 'el-def2',      role: 'definition', baseSize: 14.5, baseLH: 1.5 },
+  { id: 'el-eq2',       role: 'equation',   baseSize: 17, baseLH: 1.4  },
+  { id: 'el-s4',        role: 'heading',    baseSize: 20, baseLH: 1.2  },
+  { id: 'el-p5',        role: 'body',       baseSize: 16.5, baseLH: 1.75 },
+  { id: 'el-s5',        role: 'heading',    baseSize: 20, baseLH: 1.2  },
+  { id: 'el-p6',        role: 'body',       baseSize: 16.5, baseLH: 1.75 },
+  { id: 'el-def3',      role: 'definition', baseSize: 14.5, baseLH: 1.5 },
+  { id: 'el-eq3',       role: 'equation',   baseSize: 17, baseLH: 1.4  },
+  { id: 'el-eq-note',   role: 'caveat',     baseSize: 13, baseLH: 1.5  },
+  { id: 'el-p7',        role: 'body',       baseSize: 16.5, baseLH: 1.75 },
+  { id: 'el-concl',     role: 'heading',    baseSize: 20, baseLH: 1.2  },
+  { id: 'el-p8',        role: 'body',       baseSize: 16.5, baseLH: 1.75 },
+  { id: 'el-p9',        role: 'body',       baseSize: 16.5, baseLH: 1.75 },
+  { id: 'el-footnotes', role: 'footnote',   baseSize: 13, baseLH: 1.6  },
+];
+
+// Drift profiles
+const PROFILES = {
+  stable: { name: 'Stable', sizeJitter: 0, lhJitter: 0, opacityJitter: 0, spacingJitter: 0 },
+  mild:   { name: 'Mild Drift', sizeJitter: 0.18, lhJitter: 0.12, opacityJitter: 0.05, spacingJitter: 0.02 },
+  severe: { name: 'Severe Overload', sizeJitter: 0.55, lhJitter: 0.35, opacityJitter: 0.15, spacingJitter: 0.06 },
+};
+
+// Role-specific amplification: adversarial TSI rules
+// citations/footnotes inflate; body text deflates; caveats inflate; equations become ENORMOUS
+const ROLE_BIAS = {
+  stable:  { title:1, subtitle:1, meta:1, abstract:1, heading:1, body:1, definition:1, equation:1, caveat:1, footnote:1 },
+  mild:    { title:1.05, subtitle:0.95, meta:0.9, abstract:0.98, heading:1.1, body:0.96, definition:1.0, equation:1.15, caveat:1.12, footnote:1.08 },
+  severe:  { title:0.8, subtitle:1.4, meta:1.6, abstract:0.7, heading:0.75, body:0.78, definition:1.0, equation:1.8, caveat:2.2, footnote:1.9 },
+};
+
+let currentProfile = 'stable';
+let compilationCount = 0;
+let currentSCR = 0.18;
+
+// Seeded PRNG (mulberry32)
+function makeRng(seed) {
+  return function() {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function gaussianRng(rng) {
+  // Box-Muller
+  const u1 = rng(), u2 = rng();
+  return Math.sqrt(-2 * Math.log(Math.max(u1, 1e-10))) * Math.cos(2 * Math.PI * u2);
+}
+
+function compile(profile) {
+  currentProfile = profile;
+  compilationCount++;
+  const seed = Math.floor(Date.now() / 1000) ^ (compilationCount * 0x9e3779b9);
+  const rng = makeRng(seed);
+
+  const p = PROFILES[profile];
+  const bias = ROLE_BIAS[profile];
+
+  let totalDeviation = 0;
+  let recoverableCount = 0;
+
+  ELEMENTS.forEach(el => {
+    const domEl = document.getElementById(el.id);
+    if (!domEl) return;
+
+    const roleBias = bias[el.role] || 1;
+    const sizeNoise = gaussianRng(rng) * p.sizeJitter;
+    const lhNoise = gaussianRng(rng) * p.lhJitter;
+    const opNoise = gaussianRng(rng) * p.opacityJitter;
+    const lsNoise = gaussianRng(rng) * p.spacingJitter;
+
+    const newSize = Math.max(6, el.baseSize * roleBias * (1 + sizeNoise));
+    const newLH = Math.max(1.0, el.baseLH * (1 + lhNoise));
+    const newOp = Math.min(1, Math.max(0.4, 1 - Math.abs(opNoise)));
+    const newLS = lsNoise * 0.08;
+
+    domEl.style.fontSize = newSize.toFixed(2) + 'px';
+    domEl.style.lineHeight = newLH.toFixed(3);
+    domEl.style.opacity = newOp.toFixed(3);
+    domEl.style.letterSpacing = newLS.toFixed(4) + 'em';
+
+    totalDeviation += Math.abs(newSize - el.baseSize) / el.baseSize;
+    if (Math.abs(opNoise) < 0.1) recoverableCount++;
+  });
+
+  // Compute SCR: ambient symbolic density / recoverable propositions
+  const ambientDensity = 0.3 + totalDeviation * 1.2;
+  const recoverable = Math.max(0.1, recoverableCount / ELEMENTS.length);
+  currentSCR = Math.min(9.9, ambientDensity / recoverable);
+
+  // Update UI
+  document.getElementById('seed-display').textContent = 'seed: 0x' + (seed >>> 0).toString(16).padStart(8, '0');
+  document.getElementById('compile-count').textContent = 'compilations: ' + compilationCount;
+  document.getElementById('cnp-display').textContent = 'CNP: ' + profile + '-' + (seed & 0xFFFF).toString(16).padStart(4, '0');
+  document.getElementById('scr-value').textContent = currentSCR.toFixed(2);
+
+  const pct = Math.min(100, (currentSCR / 5) * 100);
+  document.getElementById('scr-bar-inner').style.width = pct + '%';
+  document.getElementById('scr-bar-inner').style.background = 
+    currentSCR < 1.5 ? '#5a8a5a' : currentSCR < 3 ? '#c8a040' : '#c84040';
+
+  // Show tooltip when SCR is high
+  const tooltip = document.getElementById('scr-tooltip');
+  if (currentSCR > 2.5) {
+    tooltip.classList.add('visible');
+    setTimeout(() => tooltip.classList.remove('visible'), 3500);
+  }
+}
+
+// Initialize controls
+document.getElementById('recompile-btn').addEventListener('click', () => compile(currentProfile));
+document.getElementById('stable-btn').addEventListener('click', () => compile('stable'));
+document.getElementById('mild-btn').addEventListener('click', () => compile('mild'));
+document.getElementById('severe-btn').addEventListener('click', () => compile('severe'));
+
+// First render: stable
+compile('stable');
+</script>
+</body>
+</html>
