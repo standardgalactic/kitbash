@@ -1,0 +1,835 @@
+CTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Athanasius Kircher and the Universal Ark</title>
+
+<style>
+
+:root{
+  --green:#00ff88;
+  --amber:#ffd27a;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#000;
+  color:#00ff88;
+  font-family:monospace;
+  touch-action:manipulation;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:500;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,.028) 0px,
+      rgba(255,255,255,.028) 1px,
+      transparent 2px,
+      transparent 4px
+    );
+  opacity:.14;
+}
+
+#bg{
+  position:fixed;
+  inset:0;
+  z-index:1;
+}
+
+.title{
+  position:fixed;
+  top:16px;
+  left:50%;
+  transform:translateX(-50%);
+  width:min(96vw,1100px);
+  text-align:center;
+  font-size:clamp(11px,1.9vw,18px);
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  color:#f4ffe8;
+  text-shadow:
+    0 0 14px #00ff88,
+    0 0 24px rgba(255,210,122,.3);
+  z-index:100;
+}
+
+.status{
+  position:fixed;
+  top:58px;
+  left:50%;
+  transform:translateX(-50%);
+  opacity:.5;
+  font-size:11px;
+  letter-spacing:.16em;
+  z-index:120;
+}
+
+.portal{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+#viz{
+  width:min(780px,96vw);
+  height:min(780px,96vw);
+  border-radius:50%;
+  background:
+    radial-gradient(circle at center,
+      rgba(18,36,12,.96),
+      rgba(0,0,0,1));
+  border:2px solid rgba(255,220,140,.28);
+  box-shadow:
+    inset 0 0 120px rgba(255,220,140,.04),
+    inset 0 0 40px rgba(0,255,120,.05),
+    0 0 40px rgba(0,255,120,.14);
+  z-index:40;
+}
+
+.subs{
+  position:fixed;
+  bottom:58px;
+  left:0;
+  right:0;
+  margin:auto;
+  width:min(920px,94vw);
+  padding:10px 16px;
+  min-height:3em;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  font-size:clamp(13px,3.4vw,17px);
+  line-height:1.5;
+  color:#f8ffe8;
+  text-shadow:
+    0 0 10px rgba(0,255,120,.7),
+    0 0 14px rgba(255,210,122,.3);
+  background:rgba(0,16,0,.34);
+  border:1px solid rgba(255,220,140,.18);
+  border-radius:8px;
+  pointer-events:none;
+  z-index:70;
+}
+
+.essay{
+  position:fixed;
+  bottom:14px;
+  left:50%;
+  transform:translateX(-50%);
+  color:#ffe4a0;
+  text-decoration:none;
+  letter-spacing:.10em;
+  font-size:11px;
+  opacity:.72;
+  z-index:90;
+}
+
+.essay:hover{
+  opacity:1;
+}
+
+.glitch{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:300;
+  opacity:0;
+}
+
+.glitch.active{
+  animation:glitch .18s linear;
+}
+
+@keyframes glitch{
+
+  0%{
+    opacity:0;
+    transform:translate(0,0);
+  }
+
+  20%{
+    opacity:.18;
+    transform:translate(-12px,4px);
+  }
+
+  50%{
+    opacity:.10;
+    transform:translate(8px,-3px);
+  }
+
+  100%{
+    opacity:0;
+    transform:translate(0,0);
+  }
+}
+
+@media(max-width:700px){
+
+  .subs{
+    bottom:54px;
+  }
+
+  .status{
+    font-size:9px;
+  }
+}
+
+</style>
+</head>
+
+<body>
+
+<canvas id="bg"></canvas>
+
+<div class="title">
+  ATHANASIUS KIRCHER AND THE UNIVERSAL ARK
+</div>
+
+<div class="status">
+  TOUCH / CLICK ANYWHERE TO PLAY OR PAUSE
+</div>
+
+<div class="portal">
+  <canvas id="viz"></canvas>
+</div>
+
+<div class="subs" id="subs"></div>
+
+<a class="essay"
+href="https://standardgalactic.github.io/kitbash/processing/mundus_subterraneus.pdf"
+target="_blank"
+onclick="event.stopPropagation()">
+THE WORLD BENEATH THE WORLD
+</a>
+
+<div class="glitch" id="glitch"></div>
+
+<audio id="audio" preload="auto">
+  <source src="Athanasius_Kircher_and_the_Universal_Ark.mp3">
+</audio>
+
+<script>
+
+const audio =
+  document.getElementById("audio")
+
+const subs =
+  document.getElementById("subs")
+
+const glitch =
+  document.getElementById("glitch")
+
+let audioCtx
+let analyser
+let data
+
+function initAudio(){
+
+  if(audioCtx) return
+
+  audioCtx =
+    new (
+      window.AudioContext ||
+      window.webkitAudioContext
+    )()
+
+  analyser =
+    audioCtx.createAnalyser()
+
+  analyser.fftSize = 2048
+  analyser.smoothingTimeConstant = 0.88
+
+  const src =
+    audioCtx.createMediaElementSource(audio)
+
+  src.connect(analyser)
+  analyser.connect(audioCtx.destination)
+
+  data =
+    new Uint8Array(
+      analyser.frequencyBinCount
+    )
+}
+
+document.body.onclick =
+  async ()=>{
+
+    initAudio()
+
+    if(audioCtx.state==="suspended")
+      await audioCtx.resume()
+
+    if(audio.paused){
+
+      audio.play()
+
+    }else{
+
+      audio.pause()
+    }
+  }
+
+/* subtitles */
+
+let cues = []
+
+async function loadVTT(){
+
+  try{
+
+    const r =
+      await fetch(
+        "Athanasius_Kircher_and_the_Universal_Ark.vtt"
+      )
+
+    if(!r.ok){
+      console.warn("Missing VTT")
+      return
+    }
+
+    const txt =
+      await r.text()
+
+    cues =
+      parseVTT(txt)
+
+  }catch(e){
+
+    console.warn(e)
+  }
+}
+
+function parseVTT(txt){
+
+  const lines =
+    txt.split("\n")
+
+  const out = []
+
+  let i = 0
+
+  while(i < lines.length){
+
+    const line =
+      lines[i].trim()
+
+    if(line.includes("-->")){
+
+      const [s,e] =
+        line.split("-->")
+            .map(v=>v.trim())
+
+      i++
+
+      const text = []
+
+      while(
+        i < lines.length &&
+        lines[i].trim()
+      ){
+
+        text.push(
+          lines[i].trim()
+        )
+
+        i++
+      }
+
+      out.push({
+
+        start:toSec(s),
+        end:toSec(e),
+        text:text.join(" ")
+
+      })
+
+    }else{
+
+      i++
+    }
+  }
+
+  return out
+}
+
+function toSec(t){
+
+  const p =
+    t.replace(",",".")
+     .split(":")
+
+  if(p.length===3){
+
+    return (
+      (+p[0])*3600 +
+      (+p[1])*60 +
+      (+p[2])
+    )
+  }
+
+  return (
+    (+p[0])*60 +
+    (+p[1])
+  )
+}
+
+audio.ontimeupdate = ()=>{
+
+  const t =
+    audio.currentTime
+
+  const cue =
+    cues.find(c=>
+      t >= c.start &&
+      t < c.end + .25
+    )
+
+  subs.textContent =
+    cue ? cue.text : ""
+}
+
+loadVTT()
+
+/* background */
+
+const bg =
+  document.getElementById("bg")
+
+const bgc =
+  bg.getContext("2d")
+
+let SW,SH
+
+function resizeBG(){
+
+  SW =
+    bg.width =
+      innerWidth
+
+  SH =
+    bg.height =
+      innerHeight
+}
+
+resizeBG()
+
+addEventListener(
+  "resize",
+  resizeBG
+)
+
+const particles = []
+
+for(
+  let i=0;
+  i<520;
+  i++
+){
+
+  particles.push({
+
+    x:Math.random()*SW,
+    y:Math.random()*SH,
+
+    vx:
+      (Math.random()-.5)*0.28,
+
+    vy:
+      (Math.random()-.5)*0.28,
+
+    z:
+      Math.random()*2
+  })
+}
+
+function drawBG(){
+
+  bgc.clearRect(
+    0,0,SW,SH
+  )
+
+  for(const p of particles){
+
+    p.x += p.vx
+    p.y += p.vy
+
+    if(p.x < 0) p.x = SW
+    if(p.x > SW) p.x = 0
+
+    if(p.y < 0) p.y = SH
+    if(p.y > SH) p.y = 0
+
+    bgc.fillStyle =
+      `rgba(255,220,140,${
+        .008 + p.z*.03
+      })`
+
+    bgc.fillRect(
+      p.x,
+      p.y,
+      p.z*1.4,
+      p.z*1.4
+    )
+  }
+}
+
+/* glitch */
+
+setInterval(()=>{
+
+  glitch.classList.add(
+    "active"
+  )
+
+  setTimeout(()=>{
+
+    glitch.classList.remove(
+      "active"
+    )
+
+  },180)
+
+},24000 + Math.random()*12000)
+
+/* visualizer */
+
+const canvas =
+  document.getElementById("viz")
+
+const ctx =
+  canvas.getContext("2d")
+
+const size = 940
+
+canvas.width  = size
+canvas.height = size
+
+const cx = size/2
+const cy = size/2
+
+let bassSmooth = 0
+let midSmooth  = 0
+let highSmooth = 0
+
+let phase = 0
+let frame = 0
+
+function drawArkField(){
+
+  if(analyser && data){
+
+    analyser.getByteFrequencyData(data)
+
+    let bass = 0
+    let mid  = 0
+    let high = 0
+
+    for(let i=0;i<50;i++)
+      bass += data[i]
+
+    for(let i=50;i<220;i++)
+      mid += data[i]
+
+    for(let i=220;i<720;i++)
+      high += data[i]
+
+    bass /= 50 * 255
+    mid  /= 170 * 255
+    high /= 500 * 255
+
+    bassSmooth +=
+      (bass - bassSmooth) * 0.08
+
+    midSmooth +=
+      (mid - midSmooth) * 0.06
+
+    highSmooth +=
+      (high - highSmooth) * 0.04
+  }
+
+  phase +=
+    0.012 +
+    bassSmooth * 0.03
+
+  ctx.save()
+
+  ctx.beginPath()
+
+  ctx.arc(
+    cx,
+    cy,
+    size*0.47,
+    0,
+    Math.PI*2
+  )
+
+  ctx.clip()
+
+  ctx.fillStyle =
+    `rgba(0,8,0,${
+      0.09 + bassSmooth*0.06
+    })`
+
+  ctx.fillRect(
+    0,
+    0,
+    size,
+    size
+  )
+
+  /* concentric cosmographic rings */
+
+  for(let ring=0; ring<26; ring++){
+
+    const radius =
+      size *
+      (0.05 + ring*0.016)
+
+    ctx.beginPath()
+
+    for(
+      let a=0;
+      a<=Math.PI*2+.02;
+      a+=0.03
+    ){
+
+      const turbulence =
+        Math.sin(
+          a *
+          (6 + ring*0.3) +
+          phase *
+          (0.6 + ring*0.02)
+        ) *
+        (5 + midSmooth*22)
+
+      const harmonic =
+        Math.cos(
+          a *
+          (14 + ring*0.5) -
+          phase *
+          (1.1 + ring*0.03)
+        ) *
+        (2 + highSmooth*18)
+
+      const x =
+        cx +
+        Math.cos(a) *
+        (radius + turbulence + harmonic)
+
+      const y =
+        cy +
+        Math.sin(a) *
+        (radius + turbulence - harmonic*.4)
+
+      if(a===0)
+        ctx.moveTo(x,y)
+      else
+        ctx.lineTo(x,y)
+    }
+
+    ctx.strokeStyle =
+      `rgba(255,220,140,${
+        0.004 + ring*0.006
+      })`
+
+    ctx.stroke()
+  }
+
+  /* subterranean radial flows */
+
+  for(let i=0;i<140;i++){
+
+    const theta =
+      i/140 * Math.PI*2 +
+      phase*0.1
+
+    const inner =
+      size*0.04
+
+    const outer =
+      size*(
+        0.34 +
+        bassSmooth*0.08
+      )
+
+    const deviation =
+      Math.sin(
+        theta *
+        (8 + highSmooth*20) +
+        phase*2
+      ) *
+      highSmooth *
+      32
+
+    ctx.beginPath()
+
+    ctx.moveTo(
+      cx + Math.cos(theta)*inner,
+      cy + Math.sin(theta)*inner
+    )
+
+    ctx.lineTo(
+      cx + Math.cos(theta)*(outer + deviation),
+      cy + Math.sin(theta)*(outer - deviation*.25)
+    )
+
+    ctx.strokeStyle =
+      `rgba(120,255,180,${
+        0.004 + highSmooth*0.03
+      })`
+
+    ctx.stroke()
+  }
+
+  /* universal ark trace */
+
+  ctx.save()
+
+  ctx.translate(cx,cy)
+
+  ctx.rotate(
+    Math.sin(frame*0.00018)*0.35
+  )
+
+  const scale =
+    size *
+    (0.12 + bassSmooth*0.09)
+
+  for(let pass=0; pass<5; pass++){
+
+    ctx.beginPath()
+
+    const alpha =
+      pass===0 ? 0.018 :
+      pass===1 ? 0.05 :
+      pass===2 ? 0.12 :
+      pass===3 ? 0.32 :
+      0.95
+
+    const spread =
+      1 + pass*0.05
+
+    for(let i=0;i<=3200;i++){
+
+      const p =
+        i / 3200
+
+      const theta =
+        phase +
+        p * Math.PI * 7
+
+      const fold =
+        Math.sin(
+          theta *
+          (22 + highSmooth*36)
+        ) *
+        highSmooth * 26
+
+      const x =
+        Math.sin(
+          theta *
+          (3 + bassSmooth*2)
+        ) *
+        scale *
+        spread +
+        fold
+
+      const y =
+        Math.sin(
+          theta *
+          (5 + midSmooth*2.5)
+        ) *
+        scale *
+        0.82 *
+        spread
+
+      if(i===0)
+        ctx.moveTo(x,y)
+      else
+        ctx.lineTo(x,y)
+    }
+
+    ctx.strokeStyle =
+      pass===4
+      ? `rgba(255,240,180,${alpha})`
+      : `rgba(120,255,180,${alpha})`
+
+    ctx.lineWidth =
+      pass===4
+        ? 2 + bassSmooth*4
+        : .8
+
+    ctx.shadowBlur =
+      pass===4
+        ? 28 + bassSmooth*38
+        : 0
+
+    ctx.shadowColor =
+      pass===4
+        ? "#ffd27a"
+        : "#00ff88"
+
+    ctx.stroke()
+  }
+
+  ctx.restore()
+
+  ctx.restore()
+}
+
+function loop(){
+
+  frame++
+
+  drawBG()
+
+  drawArkField()
+
+  if(bassSmooth > .7){
+
+    document.body.style.transform =
+
+      `translate(${
+        (Math.random()-.5)*4
+      }px,${
+        (Math.random()-.5)*4
+      }px)`
+
+  }else{
+
+    document.body.style.transform =
+      "translate(0,0)"
+  }
+
+  subs.style.transform =
+    `scaleY(${1 + bassSmooth*0.04})`
+
+  subs.style.opacity =
+    `${0.72 + bassSmooth*0.26}`
+
+  requestAnimationFrame(loop)
+}
+
+loop()
+
+</script>
+</body>
+</html>
+

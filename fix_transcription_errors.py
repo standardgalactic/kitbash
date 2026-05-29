@@ -45,7 +45,10 @@ KNOWN_VARIANTS = re.compile(
     r'Fleckession|Flickession|Fliccine|Felictian|Fleckstown|Lickshin|'
     r'Fluxium|Fleixing|Flixten|Flishan|Flinchin|Flickshin|Felixian|'
     r'Flick Sheehan|Folicurian|Flixium|Flickditschian|Flitschernard|'
-    r'Flixam|Flickstein|Flagellian|Flexivision'
+    r'Flixim|Flixen|Fletchion|Fletuchin|Flickenden|Flixman|Flexian|'
+    r'Flickshan|Flickson|Flixbyan|Flickshanth|Flection|Flixia|'
+    r'Floodioxin|Flixam|Flixuen|Flickstein|Flagellian|Flexivision|'
+    r'Flickishin|Flitscheon'
     r')(?![A-Za-z])'
 )
 
@@ -143,3 +146,4 @@ with open(LOG_FILE, "a", encoding="utf-8") as log:
 
     log.write("----------------------------------------\n")
     log.write("Done.\n")
+
