@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIGNAL VISUALIZER</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+html,body{
+  width:100%;height:100%;overflow:hidden;
+  background:#000;font-family:monospace;
+  touch-action:manipulation;
+}
+
+/* phosphor glow on everything */
+body{
+  color:#00ff41;
+  text-shadow:0 0 6px #00ff41;
+}
+
+/* CRT curvature overlay */
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:900;
+  background:
+    radial-gradient(ellipse at center,
+      transparent 60%,
+      rgba(0,0,0,.55) 100%);
+}
+
+/* scanlines */
+body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:901;
+  background:repeating-linear-gradient(
+    to bottom,
+    rgba(0,0,0,.22) 0px,
+    rgba(0,0,0,.22) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+#screen{
+  position:fixed;inset:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  /* glitch transform applied here */
+  will-change:transform;
+}
+
+#header{
+  position:fixed;top:0;left:0;right:0;
+  padding:10px 14px;
+  display:flex;justify-content:space-between;align-items:flex-start;
+  z-index:100;
+  font-size:9px;letter-spacing:.14em;
+  opacity:.7;
+}
+
+#track-title{
+  position:fixed;top:28px;left:0;right:0;
+  text-align:center;
+  font-size:11px;letter-spacing:.20em;text-transform:uppercase;
+  opacity:.85;
+  z-index:100;
+}
+
+#selector{
+  position:fixed;top:56px;left:0;right:0;
+  display:flex;gap:6px;justify-content:center;flex-wrap:wrap;
+  z-index:100;
+}
+
+#selector button{
+  background:none;
+  border:1px solid rgba(0,255,65,.35);
+  color:rgba(0,255,65,.6);
+  font-family:monospace;font-size:8px;
+  letter-spacing:.10em;padding:4px 8px;
+  cursor:pointer;
+  transition:all .15s;
+}
+
+#selector button:hover{
+  border-color:#00ff41;color:#00ff41;
+}
+
+#selector button.active{
+  border-color:#00ff41;color:#00ff41;
+  box-shadow:0 0 8px rgba(0,255,65,.4) inset,
+             0 0 4px rgba(0,255,65,.3);
+}
+
+canvas{
+  display:block;
+  /* slightly underscan like real CRT */
+  width:min(380px,82vw);
+  height:min(380px,82vw);
+  image-rendering:pixelated;
+}
+
+#status{
+  position:fixed;bottom:52px;left:0;right:0;
+  text-align:center;
+  font-size:8px;letter-spacing:.18em;
+  opacity:.35;z-index:100;
+}
+
+#subs{
+  position:fixed;bottom:14px;
+  left:50%;transform:translateX(-50%);
+  width:min(600px,88vw);
+  min-height:2em;
+  text-align:center;
+  font-size:11px;line-height:1.5;
+  letter-spacing:.04em;
+  opacity:.75;
+  z-index:100;
+}
+
+/* glitch scanline artifact — horizontal band that slides */
+#glitch-band{
+  position:fixed;left:0;right:0;
+  height:3px;
+  background:rgba(0,255,65,.6);
+  pointer-events:none;z-index:902;
+  display:none;
+  box-shadow:0 0 8px #00ff41;
+}
+
+@media(max-width:600px){
+  #header{font-size:8px}
+  #track-title{top:26px;font-size:9px}
+  #selector{top:50px}
+  #selector button{font-size:7px;padding:3px 6px}
+  #subs{font-size:10px}
+}
+</style>
+</head>
+<body>
+
+<div id="screen">
+
+  <div id="header">
+    <span>◈ SIGNAL/PROCESS</span>
+    <span id="clock">00:00</span>
+  </div>
+
+  <div id="track-title">—</div>
+  <div id="selector"></div>
+
+  <canvas id="viz"></canvas>
+
+  <div id="status">[ CLICK OR TOUCH TO PLAY / PAUSE ]</div>
+  <div id="subs"></div>
+
+</div>
+
+<div id="glitch-band"></div>
+
+<audio id="audio" preload="auto"></audio>
+
+<script>
+/* ── tracks ── */
+
+const tracks = [
+  {
+    file:"How_Paperbot_Parliament_saves_human_reasoning.mp3",
+    vtt:"How_Paperbot_Parliament_saves_human_reasoning.vtt",
+    label:"PARLIAMENT",
+    title:"HOW PAPERBOT PARLIAMENT SAVES HUMAN REASONING",
+    mode:"parliament"
+  },
+  {
+    file:"The_Geometry_of_History.mp3",
+    vtt:"The_Geometry_of_History.vtt",
+    label:"HISTORY",
+    title:"THE GEOMETRY OF HISTORY",
+    mode:"history"
+  },
+  {
+    file:"Why_production_outpaces_human_orientation.mp3",
+    vtt:"Why_production_outpaces_human_orientation.vtt",
+    label:"ORIENTATION",
+    title:"WHY PRODUCTION OUTPACES HUMAN ORIENTATION",
+    mode:"orientation"
+  },
+  {
+    file:"Shattering_the_State_Illusion.mp3",
+    vtt:"Shattering_the_State_Illusion.vtt",
+    label:"STATE",
+    title:"SHATTERING THE STATE ILLUSION",
+    mode:"state"
+  },
+  {
+    file:"Why_Information_Compression_Destroys_Intelligence.mp3",
+    vtt:"Why_Information_Compression_Destroys_Intelligence.vtt",
+    label:"COMPRESSION",
+    title:"WHY INFORMATION COMPRESSION DESTROYS INTELLIGENCE",
+    mode:"compression"
+  }
+];
+
+let trackIndex = 0;
+let mode       = tracks[0].mode;
+
+const audio    = document.getElementById("audio");
+const subsEl   = document.getElementById("subs");
+const titleEl  = document.getElementById("track-title");
+const selector = document.getElementById("selector");
+const clockEl  = document.getElementById("clock");
+const screen   = document.getElementById("screen");
+const glitchBand = document.getElementById("glitch-band");
+
+/* ── audio ── */
+
+let audioCtx, analyser, freqData, timeData;
+
+function initAudio(){
+  if(audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 2048;
+  analyser.smoothingTimeConstant = .82;
+  freqData = new Uint8Array(analyser.frequencyBinCount);
+  timeData = new Uint8Array(analyser.fftSize);
+  const src = audioCtx.createMediaElementSource(audio);
+  src.connect(analyser);
+  analyser.connect(audioCtx.destination);
+}
+
+function buildSelector(){
+  tracks.forEach((t,i)=>{
+    const btn=document.createElement("button");
+    btn.textContent=t.label;
+    btn.onclick=async e=>{
+      e.stopPropagation();
+      initAudio();
+      if(audioCtx.state==="suspended") await audioCtx.resume();
+      await loadTrack(i,true);
+    };
+    selector.appendChild(btn);
+  });
+}
+
+function updateButtons(){
+  [...selector.querySelectorAll("button")]
+    .forEach((b,i)=>b.classList.toggle("active",i===trackIndex));
+}
+
+async function loadTrack(i,autoplay=true){
+  trackIndex=((i%tracks.length)+tracks.length)%tracks.length;
+  const t=tracks[trackIndex];
+  mode=t.mode;
+  titleEl.textContent=t.title;
+  audio.src=t.file;
+  audio.load();
+  updateButtons();
+  await loadVTT(t.vtt);
+  if(autoplay){ try{ await audio.play(); }catch(e){} }
+}
+
+audio.addEventListener("ended",()=>loadTrack(trackIndex+1,true));
+
+document.body.addEventListener("click",async ()=>{
+  initAudio();
+  if(audioCtx.state==="suspended") await audioCtx.resume();
+  if(audio.paused) await audio.play();
+  else audio.pause();
+});
+
+/* clock */
+audio.ontimeupdate=()=>{
+  const t=audio.currentTime|0;
+  clockEl.textContent=`${String(t/60|0).padStart(2,"0")}:${String(t%60).padStart(2,"0")}`;
+  const c=cues.find(c=>audio.currentTime>=c.start&&audio.currentTime<c.end+.2);
+  subsEl.textContent=c?c.text:"";
+};
+
+/* ── subtitles ── */
+
+let cues=[];
+
+async function loadVTT(url){
+  cues=[];subsEl.textContent="";
+  try{
+    const r=await fetch(url);
+    if(!r.ok) return;
+    cues=parseVTT(await r.text());
+  }catch(e){}
+}
+
+function parseVTT(text){
+  const out=[];
+  for(const block of text.replace(/\r/g,"").split(/\n{2,}/)){
+    const lines=block.trim().split("\n");
+    const ts=lines.find(l=>l.includes("-->"));
+    if(!ts) continue;
+    const ti=lines.indexOf(ts);
+    const [s,e]=ts.split("-->").map(x=>x.trim());
+    out.push({start:parseTime(s),end:parseTime(e),
+              text:lines.slice(ti+1).join(" ")});
+  }
+  return out;
+}
+
+function parseTime(t){
+  t=t.split(" ")[0].replace(",",".");
+  const p=t.split(":");
+  if(p.length===3) return +p[0]*3600+ +p[1]*60+parseFloat(p[2]);
+  return +p[0]*60+parseFloat(p[1]);
+}
+
+/* ── canvas ── */
+
+const canvas=document.getElementById("viz");
+const ctx=canvas.getContext("2d");
+const W=512,H=512,cx=W/2,cy=H/2;
+canvas.width=W;canvas.height=H;
+
+let frame=0,bass=0,mid=0,high=0,vol=0,entropy=0;
+
+function updateEnergy(){
+  if(!analyser) return;
+  analyser.getByteFrequencyData(freqData);
+  analyser.getByteTimeDomainData(timeData);
+  let b=0,m=0,h=0,v=0;
+  for(let i=0;i<40;i++) b+=freqData[i];
+  for(let i=40;i<180;i++) m+=freqData[i];
+  for(let i=180;i<freqData.length;i++) h+=freqData[i];
+  for(let i=0;i<freqData.length;i++) v+=freqData[i];
+  bass+=(b/(40*255)-bass)*.08;
+  mid +=(m/(140*255)-mid )*.06;
+  high+=(h/((freqData.length-180)*255)-high)*.05;
+  vol +=(v/(freqData.length*255)-vol)*.07;
+
+  // spectral entropy — how spread is the energy?
+  let sum=0,ent=0;
+  for(let i=0;i<freqData.length;i++) sum+=freqData[i];
+  if(sum>0){
+    for(let i=0;i<freqData.length;i++){
+      const p=freqData[i]/sum;
+      if(p>0) ent-=p*Math.log2(p);
+    }
+    ent/=Math.log2(freqData.length); // normalise 0..1
+  }
+  entropy+=(ent-entropy)*.04;
+}
+
+/* ── glitch system ── */
+
+let glitchActive=false;
+let glitchTimer=0;
+let glitchType=0;    // 0=vibrate 1=skip 2=band
+let lastGlitch=0;
+
+function maybeGlitch(){
+  if(glitchActive) return;
+  // trigger on high entropy OR high volume, with cooldown
+  const threshold = entropy > .72 || vol > .55;
+  if(!threshold) return;
+  if(frame-lastGlitch < 90) return;   // min 1.5s between glitches
+  if(Math.random()>.018) return;       // stochastic — doesn't fire every frame
+
+  glitchActive=true;
+  glitchTimer=0;
+  glitchType=Math.random()<.5 ? 0 : (Math.random()<.5 ? 1 : 2);
+  lastGlitch=frame;
+}
+
+function applyGlitch(){
+  if(!glitchActive){ screen.style.transform=""; glitchBand.style.display="none"; return; }
+
+  glitchTimer++;
+  const dur = glitchType===1 ? 8 : 18;
+
+  if(glitchType===0){
+    // vibrate: rapid small horizontal jitter
+    const jx=(Math.random()-.5)*6*(1-glitchTimer/dur);
+    const jy=(Math.random()-.5)*2*(1-glitchTimer/dur);
+    screen.style.transform=`translate(${jx}px,${jy}px)`;
+
+  } else if(glitchType===1){
+    // page skip: sudden vertical offset then snap back
+    const skip = glitchTimer<4 ? 14*(glitchTimer/4) : 14*(1-(glitchTimer-4)/4);
+    screen.style.transform=`translateY(${skip}px)`;
+
+  } else {
+    // scanline band slides down
+    const pct = (glitchTimer/dur)*110-5;
+    glitchBand.style.display="block";
+    glitchBand.style.top=`${pct}%`;
+    glitchBand.style.opacity=`${1-glitchTimer/dur}`;
+    screen.style.transform="";
+  }
+
+  if(glitchTimer>=dur){
+    glitchActive=false;
+    screen.style.transform="";
+    glitchBand.style.display="none";
+  }
+}
+
+/* ── phosphor clear ── */
+
+function clearScreen(){
+  // slow phosphor persistence — trails linger
+  ctx.fillStyle="rgba(0,0,0,.18)";
+  ctx.fillRect(0,0,W,H);
+}
+
+/* ── lissajous core ── each mode has distinct ratio/lag/rotation ── */
+
+/*
+  parliament   — ratio 3:2, slow rotation, collective mesh feel
+  history      — ratio 5:4, layered, many past echoes
+  orientation  — ratio 2:1, fast, destabilising, overloaded
+  state        — ratio 1:1 → collapses to line when bass hits
+  compression  — ratio 4:3, tight, increasingly constrained
+*/
+
+function lissajous(ox,oy,rx,ry, freqX,freqY, phaseShift, alpha, lineW, color){
+  if(!analyser) return;
+  analyser.getByteTimeDomainData(timeData);
+  const N=timeData.length;
+  const lag=Math.floor(N*phaseShift)&~1;
+
+  ctx.beginPath();
+  for(let i=0;i<N;i+=2){
+    const a=(timeData[i]-128)/128;
+    const b=(timeData[(i+lag)%N]-128)/128;
+    // apply frequency ratios via independent modulation
+    const x=ox+a*rx;
+    const y=oy+b*ry;
+    if(i===0) ctx.moveTo(x,y);
+    else ctx.lineTo(x,y);
+  }
+  ctx.strokeStyle=color||`rgba(0,255,65,${alpha})`;
+  ctx.lineWidth=lineW||1.2;
+  ctx.lineCap="round";
+  ctx.shadowBlur=alpha>0.4?10:4;
+  ctx.shadowColor="#00ff41";
+  ctx.stroke();
+  ctx.shadowBlur=0;
+}
+
+// variant: ratio-based — map time to x/y through independent trig
+function lissajousRatio(ox,oy,R, nx,ny, phi, alpha, lineW){
+  if(!analyser) return;
+  analyser.getByteTimeDomainData(timeData);
+  const N=timeData.length;
+  const lag=Math.floor(N*phi)&~1;
+
+  ctx.beginPath();
+  for(let i=0;i<N;i+=2){
+    const ta=(timeData[i]-128)/128;
+    const tb=(timeData[(i+lag)%N]-128)/128;
+    // blend raw signal with ratio-driven component
+    const blend=.55;
+    const t=i/N*Math.PI*2;
+    const x=ox+(ta*blend + Math.sin(nx*t+frame*.003)*(1-blend))*R;
+    const y=oy+(tb*blend + Math.sin(ny*t+phi*Math.PI*2)*(1-blend))*R;
+    if(i===0) ctx.moveTo(x,y);
+    else ctx.lineTo(x,y);
+  }
+  ctx.strokeStyle=`rgba(0,255,65,${alpha})`;
+  ctx.lineWidth=lineW||1;
+  ctx.lineCap="round";
+  ctx.shadowBlur=6;
+  ctx.shadowColor="#00ff41";
+  ctx.stroke();
+  ctx.shadowBlur=0;
+}
+
+/* ── MODE: parliament ──
+   Collective mesh — multiple lissajous at offset phases,
+   each agent contributing a slightly different trace.
+   Together they form something no individual could. */
+
+function drawParliament(){
+  const agents=7;
+  for(let i=0;i<agents;i++){
+    const phi=i/agents*.5 + frame*.0004;
+    const r  =W*(.28+i*.018);
+    const a  =.04+i*.04 + (i===agents-1?.15:0); // last agent brighter = consensus
+    lissajousRatio(cx,cy,r, 3,2, phi, a, i===agents-1?1.8:.8);
+  }
+  // consensus highlight — the brightest central trace
+  lissajousRatio(cx,cy,W*.22, 3,2, frame*.0005, .55+mid*.3, 2.2);
+}
+
+/* ── MODE: history ──
+   Layered echoes — each layer is a slightly older snapshot.
+   The past accumulates as geometry, not as memory. */
+
+const historyBuffer=[];
+const HIST_LAYERS=10;
+const HIST_EVERY=3;
+const histScratch=new Uint8Array(2048);
+
+function seedHistory(){
+  historyBuffer.length=0;
+  for(let l=0;l<HIST_LAYERS;l++){
+    const buf=new Uint8Array(2048);
+    for(let i=0;i<2048;i++){
+      buf[i]=128+Math.sin(i*.04+l*.8)*18*(l/HIST_LAYERS);
+    }
+    historyBuffer.push(buf);
+  }
+}
+
+function captureHistory(){
+  if(frame%HIST_EVERY!==0) return;
+  if(!analyser){ return; }
+  analyser.getByteTimeDomainData(histScratch);
+  historyBuffer.push(new Uint8Array(histScratch));
+  if(historyBuffer.length>HIST_LAYERS) historyBuffer.shift();
+}
+
+function drawHistory(){
+  captureHistory();
+  const N=historyBuffer.length;
+  if(N===0) return;
+  historyBuffer.forEach((buf,li)=>{
+    const age =li/(N-1||1);
+    const alpha=.04+age*.42;
+    const r   =W*(.12+age*.20);
+    const lag =Math.floor(buf.length*(.18+li*.025))&~1;
+    ctx.beginPath();
+    for(let i=0;i<buf.length;i+=2){
+      const a=(buf[i]-128)/128;
+      const b=(buf[(i+lag)%buf.length]-128)/128;
+      const x=cx+a*r;
+      const y=cy+b*r*.90;
+      if(i===0) ctx.moveTo(x,y);
+      else ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle=`rgba(0,255,65,${alpha})`;
+    ctx.lineWidth=age<.35?.7:age<.7?1.1:1.8;
+    ctx.shadowBlur=age>.75?10:0;
+    ctx.shadowColor="#00ff41";
+    ctx.stroke();
+    ctx.shadowBlur=0;
+  });
+}
+
+/* ── MODE: orientation ──
+   Production overwhelms orientation.
+   Fast ratio (2:1) means the trace can't settle —
+   it keeps outrunning comprehension.
+   Secondary trace drifts out of sync, losing coherence. */
+
+function drawOrientation(){
+  // primary trace — fast, urgent
+  lissajousRatio(cx,cy,W*.30, 2,1, frame*.0012, .45+mid*.25, 1.4);
+  // secondary trace — slightly slower, can't keep up
+  lissajousRatio(cx,cy,W*.26, 2,1, frame*.0008+.18, .18+high*.1, .8);
+  // tertiary ghost — even further behind, barely visible
+  lissajousRatio(cx,cy,W*.22, 2,1, frame*.0005+.35, .07, .5);
+  // overload indicator: when vol is high, a clipping flat line appears
+  if(vol>.38){
+    const clip=W*(.32+vol*.08);
+    ctx.beginPath();
+    ctx.moveTo(cx-clip,cy);
+    ctx.lineTo(cx+clip,cy);
+    ctx.strokeStyle=`rgba(0,255,65,${(vol-.38)/.62*.6})`;
+    ctx.lineWidth=1;
+    ctx.stroke();
+  }
+}
+
+/* ── MODE: state ──
+   The 1:1 Lissajous is a diagonal line — a state.
+   As bass hits, the ratio shifts slightly, revealing
+   the underlying process. At rest it collapses back
+   to the illusion of a stable state. */
+
+function drawState(){
+  // near-1:1 ratio that drifts with bass
+  const drift=bass*.8;
+  lissajousRatio(cx,cy,W*.30, 1+drift,1, .25+mid*.1, .5+bass*.3, 1.8);
+  // the "true" underlying process — visible only briefly
+  if(bass>.12){
+    lissajousRatio(cx,cy,W*.28, 3,2, .18, (bass-.12)/.88*.55, 2.2);
+  }
+  // state illusion: when everything is quiet, just a line
+  if(bass<.06&&vol<.12){
+    ctx.beginPath();
+    ctx.moveTo(cx-W*.28,cy-W*.28);
+    ctx.lineTo(cx+W*.28,cy+W*.28);
+    ctx.strokeStyle=`rgba(0,255,65,${.25+mid*.15})`;
+    ctx.lineWidth=1.2;
+    ctx.shadowBlur=6;
+    ctx.shadowColor="#00ff41";
+    ctx.stroke();
+    ctx.shadowBlur=0;
+  }
+}
+
+/* ── MODE: compression ──
+   4:3 ratio — stable at rest.
+   As compression increases (high+mid), the trace
+   tightens inward, losing detail.
+   Easter egg: when entropy is very high, a
+   brief full-res "uncompressed" burst. */
+
+let compressionBurst=0;
+
+function drawCompression(){
+  // main compressed trace — shrinks with high frequency energy
+  const compress=Math.max(0,1-(high+mid)*.9);
+  const r=W*(.12+compress*.22);
+  lissajousRatio(cx,cy,r, 4,3, .33+frame*.0003, .55+compress*.25, 1.6);
+
+  // detail loss rings — outer structure that disappears under compression
+  for(let k=1;k<=3;k++){
+    const rk=W*(.28+k*.04);
+    const a=(.12-k*.03)*compress;
+    if(a>0.01) lissajousRatio(cx,cy,rk, 4,3, .33+k*.08+frame*.0002, a, .6);
+  }
+
+  // uncompressed burst — brief flash when entropy spikes
+  if(entropy>.78&&compressionBurst<=0&&Math.random()<.04){
+    compressionBurst=22;
+  }
+  if(compressionBurst>0){
+    const t=compressionBurst/22;
+    lissajousRatio(cx,cy,W*.34, 4,3, .33+frame*.0003, t*.7, 2.8);
+    compressionBurst--;
+  }
+}
+
+/* ── main loop ── */
+
+function draw(){
+  frame++;
+  updateEnergy();
+  maybeGlitch();
+  applyGlitch();
+  clearScreen();
+
+  ctx.save();
+  if(mode==="parliament")  drawParliament();
+  if(mode==="history")     drawHistory();
+  if(mode==="orientation") drawOrientation();
+  if(mode==="state")       drawState();
+  if(mode==="compression") drawCompression();
+  ctx.restore();
+
+  // very faint frame counter — CRT data readout feel
+  ctx.fillStyle="rgba(0,255,65,.09)";
+  ctx.font="7px monospace";
+  ctx.fillText(`F:${frame} E:${entropy.toFixed(2)} V:${vol.toFixed(2)}`,8,H-6);
+
+  requestAnimationFrame(draw);
+}
+
+seedHistory();
+buildSelector();
+loadTrack(0,false);
+draw();
+</script>
+</body>
+</html>
