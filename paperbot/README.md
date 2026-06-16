@@ -6,6 +6,8 @@
 
 [Paperbot Parliament](https://standardgalactic.github.io/kitbash/paperbot/paperbot-parliament.pdf)
 
+[Signal Visualizer](https://standardgalactic.github.io/kitbash/paperbot/) — *Audio Overviews*
+
 A Unix pipeline implementing a multi-office parliamentary review
 of academic text, based on the Distinction Economy framework.
 
