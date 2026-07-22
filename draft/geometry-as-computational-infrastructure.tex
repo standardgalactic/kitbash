@@ -1,0 +1,1761 @@
+\documentclass[11pt,fleqn]{book}
+
+% ============================================================
+% ORTHODROMIC INFRASTRUCTURE BLUEPRINT
+% A Long-Term Architectural Specification for Civil Convergence
+%
+% Compile with LuaLaTeX or XeLaTeX.
+% ============================================================
+
+\usepackage{fontspec}
+\setmainfont{TeX Gyre Pagella}
+
+\usepackage{unicode-math}
+\setmathfont{TeX Gyre Pagella Math}
+
+\usepackage[
+  letterpaper,
+  inner=1.20in,
+  outer=1.00in,
+  top=1.00in,
+  bottom=1.10in,
+  headheight=15pt
+]{geometry}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{amsthm}
+\usepackage{xcolor}
+\usepackage{mdframed}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{hyperref}
+\usepackage{cleveref}
+
+\usetikzlibrary{
+  arrows.meta,
+  calc,
+  intersections,
+  positioning,
+  decorations.pathreplacing,
+  patterns,
+  angles,
+  quotes
+}
+
+\pgfplotsset{compat=1.18}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=black,
+  urlcolor=black,
+  pdftitle={Geometry as Computational Infrastructure},
+  pdfauthor={Flyxion}
+}
+
+\setlength{\parindent}{1.4em}
+\setlength{\parskip}{0.25em}
+\setlength{\mathindent}{2em}
+
+\numberwithin{equation}{chapter}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE]{\small\thepage\qquad Geometry as Computational Infrastructure}
+\fancyhead[RO]{\small\leftmark\qquad\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries}
+  {\chaptername\ \thechapter}
+  {0.6em}
+  {\Huge}
+
+\titleformat{\section}
+  {\normalfont\Large\bfseries}
+  {\thesection}
+  {0.8em}
+  {}
+
+\titleformat{\subsection}
+  {\normalfont\large\bfseries}
+  {\thesubsection}
+  {0.8em}
+  {}
+
+% ============================================================
+% SEMANTIC ENVIRONMENTS
+% ============================================================
+
+\newmdenv[
+  topline=false,
+  bottomline=false,
+  rightline=false,
+  leftline=true,
+  linewidth=3pt,
+  linecolor=black,
+  innertopmargin=9pt,
+  innerbottommargin=9pt,
+  innerleftmargin=12pt,
+  innerrightmargin=12pt,
+  skipabove=10pt,
+  skipbelow=10pt,
+  backgroundcolor=gray!6
+]{definitionEnv}
+
+\newenvironment{definition}[1]
+  {\begin{definitionEnv}
+   \noindent\textbf{Definition: #1}\par\smallskip}
+  {\end{definitionEnv}}
+
+\newmdenv[
+  topline=false,
+  bottomline=false,
+  rightline=false,
+  leftline=true,
+  linewidth=3pt,
+  linecolor=gray!55,
+  innertopmargin=9pt,
+  innerbottommargin=9pt,
+  innerleftmargin=12pt,
+  innerrightmargin=12pt,
+  skipabove=10pt,
+  skipbelow=10pt,
+  backgroundcolor=gray!2
+]{principleEnv}
+
+\newenvironment{principle}[1]
+  {\begin{principleEnv}
+   \noindent\textbf{Design Principle: #1}\par\smallskip\itshape}
+  {\end{principleEnv}}
+
+\newmdenv[
+  topline=true,
+  bottomline=true,
+  rightline=true,
+  leftline=true,
+  linewidth=1pt,
+  linecolor=gray!65,
+  innertopmargin=9pt,
+  innerbottommargin=9pt,
+  innerleftmargin=12pt,
+  innerrightmargin=12pt,
+  skipabove=10pt,
+  skipbelow=10pt,
+  backgroundcolor=white
+]{specificationEnv}
+
+\newenvironment{specification}[1]
+  {\begin{specificationEnv}
+   \noindent\textbf{Specification: #1}\par\smallskip}
+  {\end{specificationEnv}}
+
+\newmdenv[
+  topline=false,
+  bottomline=false,
+  rightline=false,
+  leftline=true,
+  linewidth=2pt,
+  linecolor=black!80,
+  innertopmargin=9pt,
+  innerbottommargin=9pt,
+  innerleftmargin=12pt,
+  innerrightmargin=12pt,
+  skipabove=10pt,
+  skipbelow=10pt,
+  backgroundcolor=gray!4
+]{researchEnv}
+
+\newenvironment{research}[1]
+  {\begin{researchEnv}
+   \noindent\textbf{Research Question: #1}\par\smallskip}
+  {\end{researchEnv}}
+
+\newmdenv[
+  topline=true,
+  bottomline=true,
+  rightline=false,
+  leftline=false,
+  linewidth=0.6pt,
+  linecolor=gray!55,
+  innertopmargin=8pt,
+  innerbottommargin=8pt,
+  innerleftmargin=10pt,
+  innerrightmargin=10pt,
+  skipabove=10pt,
+  skipbelow=10pt,
+  backgroundcolor=gray!1
+]{derivationEnv}
+
+\newenvironment{derivation}[1]
+  {\begin{derivationEnv}
+   \noindent\textbf{Derivation: #1}\par\smallskip}
+  {\end{derivationEnv}}
+
+\newmdenv[
+  topline=true,
+  bottomline=true,
+  rightline=true,
+  leftline=true,
+  linewidth=1.2pt,
+  linecolor=black,
+  innertopmargin=8pt,
+  innerbottommargin=8pt,
+  innerleftmargin=10pt,
+  innerrightmargin=10pt,
+  skipabove=10pt,
+  skipbelow=10pt,
+  backgroundcolor=gray!3
+]{protocolEnv}
+
+\newenvironment{protocol}[1]
+  {\begin{protocolEnv}
+   \noindent\textbf{Protocol: #1}\par\smallskip}
+  {\end{protocolEnv}}
+
+% ============================================================
+% THEOREM ENVIRONMENTS
+% ============================================================
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{formaldefinition}[theorem]{Formal Definition}
+\newtheorem{construction}[theorem]{Construction}
+
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{example}[theorem]{Example}
+
+% ============================================================
+% MATHEMATICAL COMMANDS
+% ============================================================
+
+\newcommand{\Sphere}{\mathbb{S}^{2}}
+\newcommand{\Ball}{\mathbb{B}^{3}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Oset}{\mathcal{O}}
+\newcommand{\Nset}{\mathcal{N}}
+\newcommand{\Cset}{\mathcal{C}}
+\newcommand{\Vset}{\mathcal{V}}
+\newcommand{\Dset}{\mathcal{D}}
+\newcommand{\Gset}{\mathcal{G}}
+\newcommand{\Mset}{\mathcal{M}}
+\newcommand{\Pset}{\mathcal{P}}
+\newcommand{\Aset}{\mathcal{A}}
+\newcommand{\dist}{\operatorname{dist}}
+\newcommand{\argmin}{\operatorname*{arg\,min}}
+\newcommand{\argmax}{\operatorname*{arg\,max}}
+\newcommand{\Vor}{\operatorname{Vor}}
+\newcommand{\Del}{\operatorname{Del}}
+\newcommand{\conv}{\operatorname{conv}}
+\newcommand{\area}{\operatorname{area}}
+\newcommand{\length}{\operatorname{length}}
+\newcommand{\diam}{\operatorname{diam}}
+\newcommand{\sgn}{\operatorname{sgn}}
+\newcommand{\id}{\operatorname{id}}
+\newcommand{\Pareto}{\operatorname{Pareto}}
+\newcommand{\esssup}{\operatorname*{ess\,sup}}
+\newcommand{\suchthat}{\;\middle|\;}
+
+% ============================================================
+% DOCUMENT METADATA
+% ============================================================
+
+\title{
+  \textbf{Orthodromic Infrastructure Blueprint}\\[0.5em]
+  \Large A Long-Term Architectural Specification\\
+  for Civil Convergence
+}
+
+\author{
+  Flyxion\\
+  \small Independent Researcher
+}
+
+\date{July 2026}
+
+% ============================================================
+% Local macros required by individual chapters, not present in
+% the shared preamble above. Collected here once for the
+% assembled book rather than repeated per chapter.
+% ============================================================
+\providecommand{\enquote}[1]{``#1''}
+\providecommand{\scollapse}[1]{\operatorname{collapse}_{#1}}
+\providecommand{\spop}[1]{\operatorname{pop}(#1)}
+\providecommand{\srefuse}[1]{\operatorname{refuse}(#1)}
+\providecommand{\sbind}[2]{\operatorname{bind}(#1,#2)}
+\providecommand{\Pop}{\mathsf{Pop}}
+\providecommand{\Tset}{\mathcal{T}}
+
+\begin{document}
+
+\frontmatter
+
+
+\begin{titlepage}
+\centering
+\vspace*{2cm}
+{\Huge\bfseries Geometry as Computational Infrastructure\par}
+\vspace{0.8cm}
+{\Large A Study of Coordinate Systems, Admissibility,\\ and the Sphere as Recurring Chart\par}
+\vspace{2cm}
+{\Large Flyxion\par}
+{\large Independent Researcher\par}
+\vfill
+{\large An Undergraduate Textbook\par}
+\vspace{1cm}
+{\normalsize \today\par}
+\end{titlepage}
+
+% ============================================================
+% ABSTRACT
+% "Geometry as Computational Infrastructure"
+% Placed in \frontmatter, after the title page and before the
+% Preface.
+%
+% NOTE: the shared preamble (inherited from the Orthodromic
+% Infrastructure Blueprint) uses \begin{abstract}...\end{abstract}
+% but never defines that environment -- book.cls does not provide
+% one, and none of the loaded packages do either. This is a latent
+% bug in the source file, not something introduced here. The
+% environment is defined below (guarded, so it is a no-op if some
+% future preamble revision does provide one) rather than silently
+% worked around.
+% ============================================================
+
+\providecommand{\abstractname}{Abstract}
+\makeatletter
+\@ifundefined{abstract}{%
+  \newenvironment{abstract}%
+    {\section*{\abstractname}\addcontentsline{toc}{chapter}{\abstractname}}%
+    {}%
+}{}
+\makeatother
+
+\begin{abstract}
+\noindent
+Coordinate systems are usually presented as descriptions of space: convenient labels for points that already have a definite existence prior to any choice of chart. This monograph argues the reverse. A coordinate system is a computational interface between an observer and a space, selected because it makes some class of computations tractable rather than because it captures the space's intrinsic structure, and choosing among competing charts is a genuine optimization problem with a provable answer, not a matter of convention. The recurring case examined throughout is rotational symmetry about a point, for which the spherical chart is shown to be the unique maximal adaptation, and the book develops a single computational primitive built on that chart, the Laplace--Beltrami operator's decomposition of a field's local incompatibility into a radial and an angular part, that reappears with only superficial variation across otherwise unrelated domains: continuum field dynamics, admissibility-theoretic repair, a history-based computational calculus, planetary infrastructure geometry, and synchronization phenomena from spin systems to distributed computing. Two results elevate this recurrence from an organizing device to a proven structural claim. The Fisher-information geometry of categorical probability distributions is shown to be isometric, via a square-root embedding, to the round metric on a sphere, so that the chart used throughout the book is, for this class of observable space, the literal geometry distinguishability produces rather than a chosen convenience. An existing field-theoretic account of repair dynamics is separately shown to already contain, as a previously unremarked derived quantity, the same operator this book introduces on independent, coordinate-theoretic grounds. Throughout, proven claims, structural analogies between domains that remain genuinely distinct, and interpretive frameworks offered for their usefulness rather than defended as necessary are explicitly distinguished, so that a reader can extend to each claim exactly the confidence it has earned.
+\end{abstract}
+
+% ============================================================
+% PREFACE
+% "Geometry as Computational Infrastructure"
+% Placed in \frontmatter, before \mainmatter.
+% ============================================================
+
+\chapter*{Preface}
+\addcontentsline{toc}{chapter}{Preface}
+
+\section*{On Writing a Long and Technical Book}
+
+A book of this length and mathematical density invites a question its own thesis is well suited to answer, if turned back on itself: why organize the material this way at all?
+
+The argument developed across the following chapters is that a coordinate system is not a neutral or forced description of a space but a chosen interface, adapted to some computations at the cost of others, and justified by what it makes tractable rather than by any claim to be the space's true shape. The same is true of this book. A single mathematical operator, the Laplacian, together with a single recurring decomposition of a space into a radial and an angular part, could have been left as a scattered set of observations attached to several independent projects. It is instead presented here as one sustained argument, spanning coordinate theory, field dynamics, repair, computation, distinguishability, and planetary infrastructure, because writing it this way made a pattern visible that piecemeal treatment had left implicit: the same operator recurring, under different names and for different reasons, across work that was not originally written with any such recurrence in mind. The identification of the sphere with a statistical manifold, and the identification of a repair pressure already present in an existing field theory, both discussed later in this book, are the clearest instances. Neither was designed in advance. Both were found by asking the material to answer to a single organizing decomposition and seeing what held.
+
+That is the justification available to any book of this kind: not that the organization was inevitable, but that it was productive, and that a reader given the same material organized differently would have had to notice the recurrences for themselves, one at a time, without the connective tissue this volume tries to supply in advance. Whether the length and formality that organization requires are warranted is, finally, a judgment left to the reader rather than a fact the author is in a position to settle.
+
+\section*{On the Confidence Required to Publish}
+
+There is a narrower and more personal question a work like this also raises, and it is worth addressing directly rather than leaving it unstated.
+
+Any extended piece of independent scholarship, offered publicly and without the intermediating judgment of an institution or an editorial board, rests on a claim the author cannot fully justify in advance: that the effort of formalizing this material was worth another person's time to read. No amount of internal rigor discharges that claim, since rigor concerns whether the arguments are correct, not whether they were worth making at this length or in this form. The decision to publish is therefore always made before the only evidence that could fully vindicate it, namely the reader's judgment, is available.
+
+It is tempting to read that decision as a form of self-regard, and there is a sense in which it cannot be entirely otherwise: publishing anything requires believing, at least provisionally, that it deserves a share of someone else's attention. But it is worth distinguishing two claims that are easy to conflate. One is a claim about the author: that the work should be read because of who produced it. The other is a claim about the work: that the argument, independent of its author, is worth the time it asks for. This book is offered on the second claim rather than the first, and the distinction is not a rhetorical courtesy. A reader who finds a chapter's argument weak should discount that chapter, not the project; a reader who finds an argument strong owes the conclusion nothing on account of its source.
+
+There is also a more mundane pressure behind the decision to stop and publish rather than continue revising indefinitely. No sustained piece of technical writing is ever complete in the sense of admitting no further improvement; every choice to release a manuscript is a claim of sufficiency, not of perfection, and waiting for the latter guarantees that nothing is ever written down. The chapters that follow mark, at various points, where a claim is proven, where it is a structural analogy rather than an identity, and where it is an interpretive framework offered for its usefulness rather than defended as necessity. That labeling is offered so the reader can extend exactly as much trust as each claim has earned, and no more. It is the most honest form of confidence available to a book of this kind: not the certainty that everything in it is right, but the willingness to say plainly, chapter by chapter, how each part earns whatever confidence it asks for.
+
+\tableofcontents
+
+\mainmatter
+
+\part{Foundations: What a Coordinate System Is}
+
+% ============================================================
+% CHAPTER 1 — Why Coordinate Systems Exist
+% Part I of "Geometry as Computational Infrastructure"
+% Assumes the preamble, macros, and theorem/definition/principle/
+% specification/derivation/protocol environments shared with the
+% Orthodromic Infrastructure Blueprint.
+% ============================================================
+% Local macro, not defined in the shared preamble.
+\providecommand{\enquote}[1]{``#1''}
+
+\chapter{Why Coordinate Systems Exist}
+
+\section{A Question Almost Nobody Asks}
+
+A point on a circle has no coordinates. It has a location: a place on the circle, distinct from every other place on the circle, related to them by distance and by direction. It does not, by itself, have a number, a pair of numbers, or an angle attached to it. The number, the pair, the angle appear only once someone has chosen an origin, a direction to call zero, and a sense in which angles increase. Move the origin, and every coordinate on the circle changes. The circle does not.
+
+This is obvious enough to seem hardly worth stating, and its consequences are almost never worked out. If coordinates are not part of the circle, what are they part of? The answer this chapter defends is that a coordinate system is an interface: a device that lets a specific kind of computation be carried out on a space, at the cost of introducing structure (an origin, a set of reference directions, a labeling scheme) that belongs to the interface and not to the space. The remainder of this monograph is an extended argument that this is not a minor technical point about notation, but the single fact from which most of what follows can be derived.
+
+\section{Coordinates as Interfaces}
+
+\begin{definition}{Coordinate Chart}
+Let \(X\) be a set (a space, a manifold, a configuration space, or more generally any set whose elements are to be described). A \emph{coordinate chart} on \(X\) is an injective map \(\varphi: U \to \R^n\), where \(U\subseteq X\) is the region the chart covers. For \(x\in U\), the tuple \(\varphi(x)\in\R^n\) is the \emph{coordinate representation} of \(x\) under \(\varphi\).
+\end{definition}
+
+Nothing in this definition mentions distance, symmetry, or physical law. A chart is a labeling device, and the definition is deliberately weak: it says only that distinct points receive distinct labels, so that the labels can in principle be used to recover which point was meant. Everything else, which labels are convenient, which computations they make easy, which physical or geometric structure they happen to respect, is additional structure chosen on top of the bare requirement of injectivity.
+
+\begin{principle}{Coordinates Are an Interface, Not a Commitment}
+A coordinate chart is a computational interface between an observer and a space: it converts elements of the space into labels that can be recorded, compared, transmitted, and computed with. It is not a claim about what the space is made of, how many dimensions it \emph{really} has beyond the chart's target, or where its \emph{true} center lies. Two charts that assign different labels to the same point are not in disagreement about the point. They are different interfaces to the same underlying fact.
+\end{principle}
+
+This principle is the ontology/representation distinction stated as a working commitment rather than a philosophical aside, and it is worth being precise about what it does and does not claim. It does not claim that spaces have no structure independent of any chart: a circle has a well-defined circumference and a well-defined notion of which points are adjacent, and these survive every choice of chart. It claims specifically that the \emph{coordinates}, the numerical labels a chart assigns, are not among the space's invariant features. A coordinate value is always a joint fact about the point and the chart, never a fact about the point alone.
+
+\section{An Illustration: The Two Descriptions of a Circle}
+
+Let \(X\) be the unit circle in the plane. Two charts are in common use. The Cartesian chart assigns to a point its horizontal and vertical displacement from a chosen center, \(\varphi_{\mathrm{cart}}(x)=(x_1,x_2)\) with \(x_1^2+x_2^2=1\). The polar chart assigns to the same point a single angle, \(\varphi_{\mathrm{polar}}(x)=\theta\), measured from a chosen reference direction.
+
+Both charts are legitimate as coordinate charts: both are injective on the region where they are defined. But they make different things easy to compute. Under a rotation of the circle by angle \(\alpha\), the polar coordinate of every point updates by the same simple rule, \(\theta \mapsto \theta+\alpha\), while the Cartesian coordinates update by the less immediately legible rule \((x_1,x_2)\mapsto(x_1\cos\alpha - x_2\sin\alpha,\, x_1\sin\alpha+x_2\cos\alpha)\). Under a translation of the plane, the reverse is true: Cartesian coordinates update by simple addition, while polar coordinates in general have no simple update rule at all, because translation does not preserve distance from the circle's center and the very notion of \enquote{angle from center} is disturbed.
+
+\begin{remark}[Neither Chart Is Wrong]
+It is tempting, on seeing this asymmetry, to ask which chart is the \emph{correct} one for the circle. The question has no answer, because it presupposes that charts compete to represent the circle's true nature, when in fact they compete only to make specific computations convenient. A physicist studying rotational symmetry will reach for polar coordinates; a physicist studying how the circle sits inside a larger translating system will reach for Cartesian coordinates. Both are describing the same circle. Neither description is more true than the other. This is the first instance, in its simplest possible form, of a claim developed systematically in what follows: different charts privilege different computations, and the privilege is not a defect to be corrected but the entire reason charts exist.
+\end{remark}
+
+\section{Coordinate Artifacts and the Cost of Forgetting the Interface}
+
+The distinction between a space and its chart is not merely a matter of philosophical hygiene. Forgetting it produces a specific and recurring error: mistaking a feature of the chart for a feature of the space.
+
+\begin{example}[The Pole Is Not a Hole]
+The standard spherical chart on the sphere \(\Sphere\), assigning to each point a colatitude \(\theta\) and a longitude \(\varphi\), fails to be injective at the two poles: every value of \(\varphi\) describes the same point when \(\theta=0\) or \(\theta=\pi\). A calculation performed carelessly in this chart can produce singular, undefined, or infinite quantities at the poles, since the metric coefficient multiplying \(d\varphi^2\) vanishes there and any computation that divides by it will fail. This is a standard example in the classical differential geometry of surfaces~\cite{docarmo1976}. It is a standing temptation to read this failure as a discovery about the sphere: a puncture, a singularity, a place where the geometry breaks down. It is nothing of the kind. The sphere is smooth and perfectly ordinary at its poles; a different chart, centered on either pole rather than on the equator, exhibits no singularity there at all. The failure belongs entirely to the first chart's labeling scheme, which is unable to assign a single well-defined longitude to a point sitting exactly on the axis it uses to define longitude.
+\end{example}
+
+\begin{principle}{Diagnosing Coordinate Artifacts}
+A feature discovered in a coordinate representation is a genuine feature of the underlying space only if it persists under a change of chart. A feature that disappears under a well-chosen alternative chart was a property of the labeling scheme, not of what was labeled. This diagnostic, change the chart and see what survives, recurs throughout this monograph as the standing test for whether a striking result is physics, or geometry, or computation, and not merely an artifact of having described the problem in an inconvenient way.
+\end{principle}
+
+This is not a counsel of permanent suspicion toward coordinates; the remainder of this book makes extensive and unapologetic use of them. It is a discipline for using them correctly: results are trusted once they have been checked against the diagnostic above, and any argument that finds something surprising in one coordinate system owes the reader, at minimum, an account of why the surprise is not simply an accident of that chart's construction.
+
+\section{Summary and the Question Ahead}
+
+A coordinate chart is an interface, not a commitment: it converts points into labels for the sake of specific computations, and the labels it produces are facts about the interface as much as about the point. Two consequences follow immediately, and are developed at length starting next. First, because different interfaces make different computations convenient, the choice among them is not arbitrary; it can be evaluated, compared, and in principle optimized against whatever computation is actually wanted. Second, because a chart's failures (singularities, discontinuities, ill-defined regions) are properties of the interface rather than guaranteed properties of the space, a result obtained in one chart earns full trust only once it has survived translation into another. What follows takes up the first of these: given that coordinate systems differ in what they make easy, what does it mean, precisely, to choose well?
+
+
+% ============================================================
+% CHAPTER 2 — A Taxonomy of Coordinate Systems
+% Part I of "Geometry as Computational Infrastructure"
+% Assumes the preamble, macros, and theorem/definition/principle/
+% specification/derivation/protocol environments shared with the
+% Orthodromic Infrastructure Blueprint.
+% ============================================================
+% Local macro, not defined in the shared preamble.
+\providecommand{\enquote}[1]{``#1''}
+
+\chapter{A Taxonomy of Coordinate Systems}
+
+\section{What a Chart Is Adapted To}
+
+It was established at the outset that different charts make different computations convenient, using rotation and translation of a circle as an example. What follows generalizes that observation into a working method for classifying coordinate systems, and states precisely what it means to choose one well.
+
+The relevant computations, in every case of interest to this book, arise from a group of transformations acting on the underlying space: translations, rotations, reflections, rescalings, or more elaborate symmetries specific to a given problem. A coordinate system's usefulness is not a free-floating property; it is always usefulness \emph{relative to} some such group, because it is the group's action that a well-chosen chart is being asked to simplify.
+
+\begin{definition}{Adaptedness}
+Let \(G\) be a group acting on a space \(X\), and let \(\varphi:X\to\R^n\) be a coordinate chart. The chart is \emph{adapted} to \(G\) if the action of \(G\) on coordinate representations \(\varphi(x)\) is simple to state: in the strongest case, if \(G\) acts on some subset of the coordinates by simple addition or rotation while leaving the remaining coordinates fixed. A chart is \emph{maximally adapted} to \(G\) if the number of coordinates left fixed by every element of \(G\) is as large as possible among charts satisfying the injectivity requirement introduced at the outset.
+\end{definition}
+
+This definition is deliberately informal at the edges: \enquote{simple to state} is doing real work that could be sharpened case by case, but its content is exact enough to classify the standard coordinate systems without ambiguity, and sharpening it further is unnecessary for present purposes.
+
+\section{The Standard Charts and Their Groups}
+
+\begin{proposition}[Cartesian Coordinates Are Translation-Adapted]
+Let \(X=\R^n\) and let \(G\) be the group of translations, acting by \(x\mapsto x+a\) for \(a\in\R^n\). Under the Cartesian chart \(\varphi(x)=x\), the action of \(G\) on coordinates is \(\varphi(x)\mapsto \varphi(x)+a\): pure addition, uniform across every coordinate, independent of the base point. No other chart makes translation simpler than this; addition is already the simplest possible group action on \(\R^n\).
+\end{proposition}
+
+\begin{proposition}[Polar and Spherical Coordinates Are Rotation-Adapted]
+Let \(X=\R^2\setminus\{0\}\) and let \(G=SO(2)\) act by rotation about the origin. Under the polar chart \(\varphi(x)=(r,\theta)\), the action of \(G\) is \((r,\theta)\mapsto(r,\theta+\alpha)\): the radial coordinate \(r\) is left fixed by every rotation, and the entire action is absorbed into simple addition on the single angular coordinate \(\theta\). One coordinate out of two is fixed, the maximum possible, since a nontrivial rotation group cannot fix every coordinate without acting trivially. The three-dimensional case is identical in structure: under \(SO(3)\) acting on \(\R^3\setminus\{0\}\), the spherical chart \(\varphi(x)=(r,\theta,\varphi)\) fixes the radial coordinate under every rotation, leaving the group's action entirely on the two angular coordinates.
+\end{proposition}
+
+\begin{proposition}[Cylindrical Coordinates Are Adapted to a Mixed Group]
+Let \(X=\R^3\setminus\{z\text{-axis}\}\) and let \(G\) be the group generated by rotations about a fixed axis together with translations along that axis. Under the cylindrical chart \(\varphi(x)=(\rho,\theta,z)\), rotation acts only on \(\theta\) and axial translation acts only on \(z\); the radial coordinate \(\rho\) is fixed by the entire group. This is the coordinate system adapted to problems with axial symmetry: a charge distribution around a wire, flow through a pipe, or any configuration invariant under spinning and sliding along one axis but not under general translation or general rotation.
+\end{proposition}
+
+\begin{remark}[Orthodromic Coordinates as a Further Instance]
+The same classification extends to coordinate systems adapted to curved rather than flat spaces. On a sphere, the group of interest for a shortest-path problem is not a rotation group acting on the ambient space but the group of isometries of the sphere itself, and the coordinate system adapted to it is the one built from great circles: an orthodrome through two points is, by construction, the curve whose length is invariant under exactly the isometries that fix those two points. This case is developed on its own terms later in this book; it is mentioned here only to record that the classification above is not confined to coordinate systems on flat Euclidean space, and applies wherever a group of admissible motions picks out a preferred family of charts.
+\end{remark}
+
+\section{Choosing a Chart Is an Optimization Problem}
+
+The propositions above license a claim stronger than the observation that different charts are convenient for different purposes. They license the claim that selecting a coordinate system, for a given computational task, is a genuine optimization problem with a well-defined objective.
+
+\begin{principle}{The Optimization Statement}
+Given a space \(X\), a group \(G\) whose action is central to the computation at hand, and a family of admissible charts on \(X\), the coordinate system to prefer is the one maximally adapted to \(G\) in the sense just defined: the chart under which \(G\)'s action is simplest to state, and under which the largest possible number of coordinates are left invariant by every element of \(G\). Choosing a coordinate system is therefore not a matter of habit, pedagogical convention, or aesthetic preference. It is the selection, from a space of candidate interfaces, of the one that minimizes the work required to express a specific class of transformations.
+\end{principle}
+
+This statement should be read carefully for what it does not claim. It does not claim that one chart is optimal for every purpose simultaneously: Proposition~2.2 and Proposition~2.1 optimize for different groups, and a problem that involves both translation and rotation in comparable measure may have no chart that is maximally adapted to both at once. It does not claim that the optimum is unique: reflections, relabelings of which direction is \enquote{zero}, and rescalings of a chart typically produce other charts with identical adaptedness. And it does not yet claim anything about how to measure adaptedness when the relevant group's action cannot be split cleanly into fixed and non-fixed coordinates, a situation that arises whenever the symmetry of interest is not aligned with the symmetry the chart was built around. A quantitative realization of this principle, stating adaptedness as a genuine minimization over a precisely defined cost rather than the qualitative count of fixed coordinates used here, is given in Appendix~C. The qualitative version proved above is sufficient to establish the principle in the cases that matter for the chapters immediately ahead: translation, rotation, and the mixed axial symmetry of cylindrical coordinates are the three simplest possible group actions on Euclidean space, and Propositions~2.1 through~2.3 show that Cartesian, polar and spherical, and cylindrical coordinates are, respectively, exactly adapted to them.
+
+\section{Why Spherical Coordinates Recur}
+
+\begin{corollary}[Spherical Coordinates Are the Unique Maximal Adaptation to \(SO(3)\)]
+Among coordinate charts on \(\R^3\setminus\{0\}\) satisfying the injectivity requirement introduced at the outset, the spherical chart is the unique chart, up to the residual freedom noted above, that fixes the radial coordinate under the full rotation group \(SO(3)\) while absorbing the entire three-dimensional rotational freedom into two angular coordinates. No chart can do better: a nontrivial group action must move some coordinate, and \(SO(3)\) has too rich a structure to be represented on fewer than two coordinates without collapsing distinct rotations onto the same label.
+\end{corollary}
+
+This corollary is the reason a book organized around geometry as computational infrastructure returns so persistently to the sphere. It is not that spherical symmetry is more physically important than translational or axial symmetry: each symmetry governs different problems, and each has its own maximally adapted chart. It is that rotational symmetry about a point is an exceptionally common structural feature of the problems this book is concerned with, from fields with a natural center to state spaces with a natural notion of level and orientation within a level, and Corollary~2.4 guarantees that whenever such a symmetry is present, the spherical chart is not merely a convenient option among several comparably good ones. It is the option the adaptedness criterion above identifies as uniquely best.
+
+\section{Summary}
+
+Coordinate systems can be classified, not by tradition or by which textbook introduces them, but by the group of transformations they are built to simplify: Cartesian coordinates for translation, polar and spherical coordinates for rotation, cylindrical coordinates for the mixed symmetry of an axis. Choosing among them is an optimization problem with a definite objective, adaptedness to a specified group, made quantitative in Appendix~C. Together with the earlier separation of a chart from what it charts, this gives the book its working method: identify the symmetry a problem actually has, and let that symmetry select the coordinate system, rather than inheriting one by convention and discovering only afterward which of its features were real. What follows applies this method to a single case in sustained detail, rotational symmetry about a point and the spherical chart it uniquely selects, not because the case is the only one that matters, but because it is rich enough to carry the rest of the argument.
+
+
+\part{Spherical Geometry as Computation}
+
+% ============================================================
+% CHAPTER 3 — The Radial-Angular Decomposition
+% Part II of "Geometry as Computational Infrastructure"
+% Assumes the preamble, macros, and theorem/definition/principle/
+% specification/derivation/protocol environments shared with the
+% Orthodromic Infrastructure Blueprint.
+% ============================================================
+
+\chapter{The Radial--Angular Decomposition}
+
+\section{The Chart Selected Earlier}
+
+It was established earlier that a coordinate system is chosen by asking which group of transformations a problem's computation needs to be simple, and proved that when the relevant group is the full rotation group \(SO(3)\) about a point, the spherical chart is the unique maximal adaptation. What follows takes up that chart on its own terms, not as a curiosity to be admired for its symmetry properties but as a working decomposition of any quantity defined near a chosen center into two qualitatively different kinds of variation.
+
+The two kinds are not equally familiar. Radial variation, change as one moves toward or away from the center, is the kind ordinary intuition already expects: a temperature that falls off with distance, a density that thins out, a signal that weakens. Angular variation, change around a fixed distance from the center, is less naturally intuitive, because Cartesian habits of thought have no single word for \enquote{staying the same distance from the origin while changing something else.} Establishing a working vocabulary for this second kind of change, and for how the two kinds interact, is the task ahead.
+
+\section{Radius as Level, Angle as Organization Within a Level}
+
+\begin{definition}{Radial and Angular Coordinates}
+On \(\R^3\setminus\{0\}\), spherical coordinates \((r,\theta,\varphi)\) decompose a point into a radial coordinate \(r>0\), the distance from the chosen origin, and two angular coordinates \((\theta,\varphi)\), which together specify a direction from the origin independent of distance. A quantity's \emph{radial variation} is its dependence on \(r\) at fixed \((\theta,\varphi)\); its \emph{angular variation} is its dependence on \((\theta,\varphi)\) at fixed \(r\).
+\end{definition}
+
+\begin{principle}{Radius as Progression Across Levels}
+Throughout this monograph, the radial coordinate is read as indexing \emph{level}: concentration, expansion, collapse, realization, hierarchy, or whatever notion of depth, scale, or degree of commitment is relevant to the system under study. The two angular coordinates are read as indexing \emph{organization within a level}: circulation, patterning, redistribution, or reorganization that does not itself change which level the system occupies. Every application in this book, however different its subject matter, uses radius and angle in exactly these two roles, and the recurring question asked throughout is some version of: what changes radially here, and what changes angularly?
+\end{principle}
+
+This is a stronger commitment than it may first appear. It does not merely say that spherical coordinates happen to have a radial part and an angular part; every coordinate system with more than one coordinate has some partition of that kind. It says that, for the class of problems this book studies, the radial direction and the angular directions play qualitatively different roles that are worth tracking separately rather than treating as interchangeable components of a single vector of numbers. A quantity's radial behavior answers a different question than its angular behavior, and conflating the two, treating a change of level as though it were a reorganization within a level or vice versa, is a recurring category error this book returns to warning against.
+
+\begin{remark}[A Running Notation]
+For reference throughout the remainder of the book: \(r\) denotes the radial coordinate, \((\theta,\varphi)\) the angular coordinates, and a \emph{shell} denotes the locus of constant \(r\), a two-dimensional sphere of that radius. Variation \emph{across shells} (equivalently, \emph{shell-to-shell}) is radial; variation \emph{within a shell} (equivalently, \emph{within-shell}) is angular. This vocabulary is used throughout, in either phrasing, without redefining it.
+\end{remark}
+
+\section{A Fixed-Radius Shell Is Itself a Boundary}
+
+A shell at fixed radius separates the region interior to it from the region exterior to it, and separating an interior from an exterior is precisely what a boundary does. This observation seems almost too simple to be worth stating, but it raises a genuine question the rest of this section is devoted to answering: what, exactly, does a boundary of this kind \emph{do}? The question turns out not to have a single answer. There are at least three structurally different things a boundary can be, and a shell at fixed radius can instantiate any of them, with substantially different physical and computational consequences depending on which. The three-way comparison developed in this section follows the treatment in~\cite{boundaries}, which examines the same three mechanisms as competing accounts of what a boundary does, independent of any spherical or coordinate-theoretic setting.
+
+\subsection{The Synchronic Screen}
+
+The first kind of boundary is defined statistically, without reference to distance, geometry, or any spatial notion of inside and outside. Given a system partitioned into internal states, external states, and a set of blanket states mediating between them, the blanket is a \emph{Markov blanket} if the internal states are conditionally independent of the external states given the blanket states, that is, if every causal path from outside to inside passes through the blanket. Under this structure, an internal process cannot observe the exterior directly; it can only observe the blanket, and it must treat the blanket as evidence from which the state of the exterior is inferred.
+
+\begin{definition}{Synchronic Screen}
+A boundary is a \emph{synchronic screen} if it is defined by a conditional-independence relation evaluated on the current joint state of a system: what it screens depends only on the present configuration, not on any stored target and not on any historical record of prior exclusions. A process organized around such a boundary minimizes the discrepancy between its internal expectations and its blanket observations either by updating its internal state to fit the observations (\emph{perception}) or by acting to change the blanket so that it fits the internal state (\emph{action}).
+\end{definition}
+
+This is the boundary structure formalized, under the name Markov blanket, in Karl Friston's free-energy account of self-organizing systems~\cite{friston2019,kirchhoff2018}, and the remainder of this book refers to a boundary of this kind as \emph{Friston-style}.
+
+\begin{remark}[What a Synchronic Screen Does Not Do]
+A synchronic screen mediates and reweights; it does not delete. The process it organizes can find an external configuration highly unlikely and act to avoid it, but the configuration remains, formally, a possibility with reduced probability, not a possibility removed from consideration. This restraint is the feature that most sharply distinguishes the synchronic screen from the third boundary type below.
+\end{remark}
+
+\subsection{The Stored Target}
+
+The second kind of boundary is defined not by the system's current state but by a state it does not yet occupy. Developmental bioelectricity, studied extensively by the biologist Michael Levin~\cite{levin2021,levin2023}, supplies the clearest instance: slow voltage gradients across ordinary somatic cells, not fast neural signaling, form a pattern that functions as a stored target morphology, a large-scale anatomical configuration the collective behavior of the cells is organized to reach. The boundary of a regenerating structure, on this account, is not simply the place growth happened to stop; it is the visible trace of a shape being actively pursued.
+
+\begin{definition}{Stored-Target Boundary}
+A boundary is a \emph{stored-target boundary} if its present configuration is evaluated against a state the system does not currently occupy: a morphology, goal, or configuration the system's dynamics are organized to approach. Unlike the synchronic screen, this evaluation is essentially future-oriented and cannot be reduced to a fact about the system's present joint state alone.
+\end{definition}
+
+The remainder of this book refers to a boundary of this kind as \emph{Levin-style}.
+
+\begin{example}[Rewriting the Target Without Rewriting the Hardware]
+In experiments on regenerating flatworms, briefly altering the bioelectric gradient at a wound site, without any change to the genome, can rewrite the target morphology a healing tissue pursues: a worm induced in this way to grow a second head will, if injured again with its bioelectric state left alone, regenerate as a two-headed animal a second time, using entirely ordinary DNA. The genome supplies the components available to the tissue; the bioelectric boundary supplies the target those components are assembled toward. This is the sense in which a stored-target boundary is a genuinely distinct kind of object from a synchronic screen: nothing about the present distribution of cells at any single instant determines the target, and no amount of examining a single snapshot of the tissue would reveal it.
+\end{example}
+
+\subsection{The Diachronic Exclusion}
+
+The third kind of boundary is defined neither by a present-tense screen nor by a future-tense target, but by an accumulated historical record of what has been permanently removed from consideration. This is the boundary structure developed in the admissibility-theoretic account of irreversible computation this book refers to throughout as RSVP~\cite{holonomic}. At the coarsest scale, a system's admissibility structure can be described by an entropy field over its configuration space, and as the system makes irreversible commitments, it approaches regions of that space, structural plateaus, that act as hard barriers to further change. At a finer scale, a single irreversible decision eliminates an entire region of the option space at once, with the thermodynamic cost of that elimination concentrated sharply at the boundary of the eliminated region. At the finest scale, any two states can be assigned an exclusion distance, a minimum admissibility barrier separating them, and a system's identity across time can be characterized by which barriers are nonzero: what a system is, on this reading, is partly constituted by what it has become permanently obstructed from becoming.
+
+\begin{definition}{Diachronic Exclusion}
+A boundary is a \emph{diachronic exclusion} if it is defined by a historical record of trajectories whose probability has been set permanently to zero, rather than by a present-tense screen or a future-tense target. A diachronic exclusion is constitutive rather than merely predictive: it does not describe what the system currently expects or currently pursues, but what has been removed from what the system's future is permitted to be.
+\end{definition}
+
+The remainder of this book refers to a boundary of this kind as \emph{RSVP-style}.
+
+\begin{remark}[Refusal Is Not Low Preference]
+The sharpest instance of a diachronic exclusion is refusal. An agent who is simply indifferent to an option and an agent who has actively refused that option can be behaviorally indistinguishable under an ordinary utility-maximization account: both decline the option, and a bare record of the declined outcome cannot tell the two apart. What distinguishes them is that refusal deletes a class of future trajectories from the admissible set entirely, rather than merely assigning that class a low weight, and this deletion can only be represented by a formalism that tracks event history as a primitive, not by a formalism that tracks only a current-best-response over a fixed option space. A refused option does not become unlikely. It is removed.
+\end{remark}
+
+\section{Why the Three Types Cannot Be Collapsed Into One}
+
+It is tempting, having seen that all three boundary types share the qualitative description \enquote{a boundary that does computational work rather than sitting inertly in space,} to treat the distinction among them as a matter of emphasis rather than substance. This temptation should be resisted, and the reason is not merely definitional tidiness. The three types are evaluated along different temporal axes: the synchronic screen against the present joint state, the stored target against a future state, the diachronic exclusion against an accumulated past, and this difference in temporal structure has a real mathematical consequence: the three types can be formally incompatible when combined naively.
+
+\begin{theorem}[Incompatibility of Synchronic Minimization and Diachronic Exclusion]
+Let a system be organized, at a given instant, by a synchronic screen whose associated process minimizes a discrepancy functional over its blanket states, and suppose a specific trajectory currently carries low discrepancy under that functional, that is, the process would ordinarily select it. If a diachronic exclusion is then imposed that permanently removes this trajectory from the admissible set, the synchronic minimization problem as originally posed becomes infeasible at its previous optimum: the process cannot simultaneously honor the exclusion and continue minimizing discrepancy exactly as before, because its previously optimal choice no longer exists as an option. Restoring feasibility requires enlarging the state over which discrepancy is minimized to include a record of the exclusion itself, a diachronic quantity the synchronic formalism did not previously carry.
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+A synchronic screen's discrepancy functional is defined over the current joint state and makes no reference to a trajectory's history. Removing the previously optimal trajectory from the admissible set, without altering the functional or the state over which it is defined, leaves the minimization problem searching a domain from which its former solution has been deleted; nothing in the synchronic formalism as stated supplies a new optimum consistent with the exclusion, since the functional has no term sensitive to the fact that an exclusion has occurred. Consistency can be restored only by introducing new state variables, tracking which options have been excluded and why, that the synchronic formalism does not natively possess. These variables are exactly the diachronic structure of Section~3.3, imported into the synchronic account rather than derived from it.
+\end{proof}
+
+\begin{principle}{Non-Interchangeability in Practice}
+A system exhibiting one boundary type need not exhibit either of the others: a process can screen without pursuing a stored target, and a process can pursue a target without ever permanently excluding an alternative. When more than one type is present simultaneously, as Theorem~3.1 shows, they do not automatically compose; getting the combination right requires explicit bookkeeping, not the assumption that \enquote{boundary} is a single undifferentiated kind of object. Every later application in this book of a boundary (a corridor, a bubble's scope, a Voronoi cell, a fiber of a projection) is invoking one of these three types specifically, and identifying which one is not an optional refinement. It changes what the boundary does and what can go wrong if that is misjudged.
+\end{principle}
+
+\section{Summary}
+
+Spherical coordinates decompose variation into a radial part, read throughout this book as progression across levels, and an angular part, read as organization within a level. A shell of fixed radius, the natural object this decomposition produces, is a boundary in a stronger sense than mere geometric separation: it can be a synchronic screen, evaluated on the present state alone; a stored-target boundary, evaluated against a future state not yet occupied; or a diachronic exclusion, evaluated against an accumulated record of what has been permanently ruled out. These three types are not notational variants of one idea, and Theorem~3.1 shows precisely why: combining them naively produces a genuine inconsistency, not merely an inelegant description. What follows next turns from the boundary itself to the operator that governs how quantities vary across it and within it, the single computational primitive that the remainder of this book will use, in one specialization or another, in nearly every chapter that follows.
+
+
+% ============================================================
+% CHAPTER 4 — The Laplacian as a Universal Computational Primitive
+% Part II of "Geometry as Computational Infrastructure"
+% Assumes the preamble, macros, and theorem/definition/principle/
+% specification/derivation/protocol environments shared with the
+% Orthodromic Infrastructure Blueprint.
+% ============================================================
+
+\chapter{The Laplacian as a Universal Computational Primitive}
+
+\section{Recall}
+
+Variation near a chosen center was earlier split into a radial part, read as progression across levels, and an angular part, read as organization within a level, with a warning that a shell of fixed radius can be a boundary of three structurally different kinds. What follows introduces the single operator that will be used, in one specialization or another, to make both halves of that split computationally precise: the Laplacian, reframed here not primarily as a differential operator from classical analysis but as a decomposer of local incompatibility into a radial component and an angular component.
+
+The reframing matters because the Laplacian is ordinarily introduced as a tool for solving specific equations, heat flow, electrostatics, wave propagation, and its appearance in this book is not in that role. It appears here as a general-purpose primitive: a single computation, definable once, that later material will find itself needing again and again, in fields as different as thermodynamic entropy, evaluation histories, and planetary infrastructure. Stating it once, carefully, before any of its applications, is the point of what follows.
+
+\section{The Split, Made Precise}
+
+\begin{derivation}{The Radial--Angular Decomposition of the Laplacian}
+Let \(f:\R^3\setminus\{0\}\to\R\) be twice differentiable, expressed in spherical coordinates \((r,\theta,\varphi)\). The ordinary Laplacian of \(f\) is
+\[
+\nabla^2 f = \frac{1}{r^2\sin\theta}\frac{\partial}{\partial r}\!\left(r^2\sin\theta\,\frac{\partial f}{\partial r}\right)
++ \frac{1}{r^2\sin\theta}\frac{\partial}{\partial\theta}\!\left(\sin\theta\,\frac{\partial f}{\partial\theta}\right)
++ \frac{1}{r^2\sin^2\theta}\frac{\partial^2 f}{\partial\varphi^2}.
+\]
+The first term depends only on the radial dependence of \(f\) and simplifies to \(\frac{1}{r^2}\frac{\partial}{\partial r}\!\left(r^2\frac{\partial f}{\partial r}\right)\). The remaining two terms depend only on the angular dependence of \(f\) at fixed \(r\), and their sum, divided by the common factor \(1/r^2\), is by definition the \emph{Laplace--Beltrami operator on the unit sphere},
+\[
+\Delta_{\Sphere} f = \frac{1}{\sin\theta}\frac{\partial}{\partial\theta}\!\left(\sin\theta\,\frac{\partial f}{\partial\theta}\right) + \frac{1}{\sin^2\theta}\frac{\partial^2 f}{\partial\varphi^2}.
+\]
+Collecting terms,
+\begin{equation}
+\nabla^2 f = \frac{1}{r^2}\frac{\partial}{\partial r}\!\left(r^2\frac{\partial f}{\partial r}\right) + \frac{1}{r^2}\,\Delta_{\Sphere} f.
+\label{eq:split}
+\end{equation}
+\end{derivation}
+
+\begin{principle}{The Laplacian as an Incompatibility Detector}
+Equation~\eqref{eq:split} is stated here as an algebraic fact, but its use throughout this book is operational. At any point, \(\nabla^2 f\) measures the extent to which the value of \(f\) at that point disagrees with the average of its immediate surroundings: positive where \(f\) is a local trough relative to its neighbors, negative where \(f\) is a local peak, zero where \(f\) agrees with its neighborhood on average. Equation~\eqref{eq:split} says this disagreement decomposes cleanly into a part measured across shells, the radial term, and a part measured within a shell, the angular term \(\Delta_{\Sphere}f\). A field can therefore be locally incompatible with its neighbors in two qualitatively different ways at once, and the split tells them apart rather than reporting only their sum.
+\end{principle}
+
+\section{Restriction to a Fixed Shell}
+
+The construction introduced earlier, a boundary at fixed radius, is the case in which the radial term of Equation~\eqref{eq:split} is not merely small but entirely absent: there is no radial direction left to vary in, because \(r\) has been fixed.
+
+\begin{principle}{The Fixed-Radius Specialization}
+When a field, a constraint, or a design variable is restricted to a single shell \(r=R\), the operator available to describe its local incompatibility collapses from the full Laplacian to
+\[
+\Delta_{\Sphere_R} f = \frac{1}{R^2}\,\Delta_{\Sphere} f,
+\]
+the Laplace--Beltrami operator on the shell of radius \(R\). Every later use of this operator on a shell of fixed radius, whatever the physical or computational substrate, is an instance of this same restriction: the general operator of Equation~\eqref{eq:split} with its radial term suppressed by fiat rather than by approximation.
+\end{principle}
+
+\section{Diagonalization: The Operator's Own Preferred Basis}
+
+The Laplace--Beltrami operator on the sphere has a canonical eigenbasis, and identifying it is what turns the operator from a computational tool into a genuine hierarchy of structure. The construction is classical~\cite{muller1966}; it is restated here only to fix notation and to make the eigenvalue's role in what follows explicit, not as an independent contribution.
+
+\begin{theorem}[Spherical Harmonics Diagonalize \texorpdfstring{\(\Delta_{\Sphere}\)}{the angular Laplacian}]
+There exists, for each integer \(\ell\geq 0\) and each integer \(m\) with \(|m|\leq \ell\), a function \(Y_{\ell m}(\theta,\varphi)\), a spherical harmonic, such that
+\[
+\Delta_{\Sphere}\, Y_{\ell m} = -\ell(\ell+1)\, Y_{\ell m}.
+\]
+The collection \(\{Y_{\ell m}\}\) forms an orthonormal basis for square-integrable functions on the sphere, so that any sufficiently regular \(f(\theta,\varphi)\) admits an expansion
+\[
+f(\theta,\varphi) = \sum_{\ell=0}^{\infty}\sum_{m=-\ell}^{\ell} a_{\ell m}\, Y_{\ell m}(\theta,\varphi),
+\]
+and, correspondingly, on a shell of radius \(R\),
+\[
+\Delta_{\Sphere_R}\, Y_{\ell m} = -\frac{\ell(\ell+1)}{R^2}\, Y_{\ell m}.
+\]
+\end{theorem}
+
+\begin{remark}[What the Index \texorpdfstring{\(\ell\)}{ell} Means]
+The index \(\ell\) indexes angular frequency. The \(\ell=0\) mode is the uniform mode, constant over the entire shell; increasing \(\ell\) indexes progressively finer angular structure, more rapid variation packed into the same shell. Because the eigenvalue \(-\ell(\ell+1)/R^2\) grows without bound as \(\ell\) increases, the operator penalizes high-\(\ell\) structure more severely than low-\(\ell\) structure, in exact proportion to \(\ell(\ell+1)\). This single fact, that the operator introduced here treats fine angular structure as more costly than coarse angular structure, is the seed from which the entire later account of repair, distinguishability, and synchronization grows: each, in its own domain, is a story about what happens to a field's balance between low-\(\ell\) and high-\(\ell\) content under some dynamics governed by this same operator.
+\end{remark}
+
+\section{The Operator as a Recurring Primitive}
+
+What follows states, without proof, where each specialization of \(\Delta_{\Sphere}\) or \(\Delta_{\Sphere_R}\) will reappear later in this book. The point of listing these in advance is to make the throughline visible: this is one operator, stated once, not six unrelated ones that happen to share a name.
+
+In fields governed by continuum dynamics, the operator will appear as the mechanism by which a scalar or entropy field redistributes local disagreement between neighboring regions of a shell, with expansion, contraction, and transport read as the radial term of Equation~\eqref{eq:split} and circulation or pattern formation read as its angular term.
+
+In the theory of repair, the operator will appear as the formal detector of mismatch that a repair process acts to reduce: a region where \(\Delta_{\Sphere_R}f\) is large in magnitude is a candidate for repair, and the process of repair is, in the vocabulary introduced here, a dynamics that drives such regions toward zero.
+
+In the geometry of distinguishability, the same eigenbasis that diagonalizes the operator above will reappear as a hierarchy of distinguishable structure, with truncation at some finite \(\ell_{\max}\) read as a specific, quantifiable loss of angular distinguishing power rather than a costless simplification.
+
+In planetary infrastructure, the operator will appear discretized, as the graph Laplacian of a network of service nodes, governing the electrical and hydraulic potentials that flow across a fixed-radius shell, and this continuum operator will be shown to be its fine-node limit.
+
+In synchronization, the operator's diagonal action above will appear directly: a synchronizing process is, in the vocabulary set up here, precisely one whose dynamics suppress high-\(\ell\) modes relative to low-\(\ell\) modes, whatever the physical substrate carrying that dynamics.
+
+\begin{remark}[One Operator, Many Guises]
+None of the specializations above changes the operator. Each restricts it to a shell, discretizes it onto a graph, or asks a new question about its eigenbasis, but the object being restricted, discretized, or interrogated is always Equation~\eqref{eq:split} or its fixed-radius form. A reader who has followed this far has, in a precise sense, already seen the mathematical content of several later discussions; what remains is showing that content applied to unfamiliar material, not introducing new machinery to do it.
+\end{remark}
+
+\section{Summary}
+
+The Laplacian, reframed as a decomposer of local incompatibility rather than a tool for solving named equations, splits cleanly into a radial term and an angular term wherever a center has been chosen, and collapses to the Laplace--Beltrami operator on a shell of fixed radius when the radial direction is suppressed by fixing \(r=R\). Its eigenbasis, the spherical harmonics, gives the angular term a canonical decomposition into modes of increasing frequency, penalized by the operator in exact proportion to \(\ell(\ell+1)\). This is the single computational primitive the remainder of this book specializes, again and again, into fields, repair, distinguishability, infrastructure, and synchronization. Part~III now takes up the first of these specializations directly: what the radial--angular split and this operator say about a field with genuine physical dynamics, rather than the static shell considered in isolation here.
+
+
+\part{Applications I: Fields and Repair}
+
+% ============================================================
+% CHAPTER 5 — RSVP Through the Radial-Angular Lens
+% Part III of "Geometry as Computational Infrastructure"
+% Assumes the preamble, macros, and theorem/definition/principle/
+% specification/derivation/protocol environments shared with the
+% Orthodromic Infrastructure Blueprint.
+% ============================================================
+
+\chapter{RSVP Through the Radial--Angular Lens}
+
+\section{Scope}
+
+RSVP, the scalar--vector--entropy field theory developed at length in \emph{Holonomic Space}~\cite{holonomic}, has its own free-energy functional, its own proven boundedness and dissipation theorems, and its own well-posedness theory, none of which is re-derived here. Appendix~A collects the specific definitions and theorems this material and the next rely on, for a reader who prefers not to consult the source monograph directly. What follows is specific to the present book: the radial--angular decomposition introduced earlier, applied to RSVP's gradient-energy terms, which the source theory does not itself develop, since it was written without reference to a privileged center or to the coordinate machinery built up earlier. The result is a genuine extension, not a restatement, and it is kept deliberately narrow: what follows borrows the functional as given and asks only what the earlier operator reveals about it once a center is chosen.
+
+\section{The Functional, Recalled}
+
+RSVP is formulated over four fields on a domain \(\Omega\): a scalar field \(\Phi\), a lamphron field \(\ell\), an entropy field \(S\), and a vector transport field \(v\). Their joint dynamics are governed by a free-energy functional,
+\begin{equation}
+\mathcal F[\Phi,\ell,S,v] = \int_\Omega \frac{\alpha}{2}|\nabla\Phi|^2 + W(\Phi) + \frac{\beta}{2}|\nabla\ell|^2 + U(\ell) + \lambda W(\Phi)\ell^2\, dx + \int_\Omega \frac{\rho}{2}|v|^2 + \frac{\eta}{2}|\nabla\times v|^2\,dx + \int_\Omega \frac{\chi}{2}|\nabla S|^2 - TS\,dx,
+\end{equation}
+with \(W\) a double-well potential driving \(\Phi\) toward one of two preferred values, \(U\) a confining potential on the lamphron amplitude, and the remaining terms penalizing gradients, coupling \(\Phi\) to \(\ell\), and supplying kinetic and entropy-production structure. The source theory proves this functional is bounded below under mild sign conditions, derives all four variational derivatives in closed form, and shows that the associated gradient-flow system dissipates \(\mathcal F\) monotonically. All of that is taken as given here.
+
+\begin{principle}{What This Chapter Adds}
+Nothing in the functional above refers to a center, a radius, or an angular coordinate; RSVP is formulated for general domains \(\Omega\subseteq\R^d\), and its proofs do not depend on any particular geometry of \(\Omega\). The moment a center is chosen, however, whether because \(\Omega\) is itself a ball, because the problem under study has an approximate point of symmetry, or simply because a local analysis is being carried out around some point of interest, every gradient term in the functional above becomes eligible for the decomposition introduced earlier. What follows carries out that decomposition and reads off what it says about the functional's four gradient penalties.
+\end{principle}
+
+\section{Splitting the Gradient Energy}
+
+\begin{derivation}{The Radial--Angular Split of a Gradient-Squared Term}
+Let \(f:\Omega\to\R\) be a scalar field and let \(r\) denote distance from a chosen center. In spherical coordinates, the gradient decomposes into a radial part and a tangential part orthogonal to it,
+\[
+\nabla f = (\partial_r f)\,\hat r + \frac{1}{r}\nabla_{\Sphere} f,
+\]
+where \(\nabla_{\Sphere}\) is the gradient operator on the unit sphere, tangent to the shell of constant \(r\) and orthogonal to \(\hat r\) by construction. Because \(\hat r\) and the tangential directions are orthogonal,
+\begin{equation}
+|\nabla f|^2 = (\partial_r f)^2 + \frac{1}{r^2}\,|\nabla_{\Sphere} f|^2.
+\label{eq:gradsplit}
+\end{equation}
+The first term on the right is the radial contribution to the gradient energy, penalizing variation of \(f\) between shells; the second is the angular contribution, penalizing variation of \(f\) within a shell.
+\end{derivation}
+
+Equation~\eqref{eq:gradsplit} applies without modification to each of the scalar gradient terms in \(\mathcal F\). Writing \((\partial_r\Phi)\), \((\partial_r\ell)\), and \((\partial_rS)\) for the radial derivatives and \(\nabla_{\Sphere}\Phi\), \(\nabla_{\Sphere}\ell\), \(\nabla_{\Sphere}S\) for the corresponding tangential gradients, the scalar-gradient part of the functional splits as
+\begin{equation}
+\frac{\alpha}{2}|\nabla\Phi|^2 + \frac{\beta}{2}|\nabla\ell|^2 + \frac{\chi}{2}|\nabla S|^2
+=
+\underbrace{\frac{\alpha}{2}(\partial_r\Phi)^2 + \frac{\beta}{2}(\partial_r\ell)^2 + \frac{\chi}{2}(\partial_rS)^2}_{\text{radial gradient energy}}
++
+\underbrace{\frac{\alpha}{2r^2}|\nabla_{\Sphere}\Phi|^2 + \frac{\beta}{2r^2}|\nabla_{\Sphere}\ell|^2 + \frac{\chi}{2r^2}|\nabla_{\Sphere}S|^2}_{\text{angular gradient energy}}.
+\end{equation}
+
+\begin{principle}{Reading the Split Physically}
+The radial gradient energy penalizes each field for changing as one moves toward or away from the chosen center: a scalar field \(\Phi\) transitioning sharply from one well of \(W\) to the other as \(r\) increases, an entropy field \(S\) concentrating or thinning with depth, a lamphron amplitude \(\ell\) varying with scale. This is exactly the reading attached earlier to the radial coordinate: progression across levels. The angular gradient energy penalizes each field for varying within a single shell, at fixed distance from the center: circulation, patterning, or symmetry-breaking structure that does not correspond to any change of level at all. This is exactly the earlier reading of the angular coordinates: organization within a level. The RSVP functional does not distinguish these two costs; Equation~\eqref{eq:gradsplit} shows that, once a center is fixed, it always could have.
+\end{principle}
+
+\section{Vorticity as an Intrinsically Angular Penalty}
+
+The vector field \(v\) is treated differently by the functional than the three scalar fields, and the difference is itself geometrically meaningful once the radial--angular lens is applied.
+
+\begin{remark}[Curl and Rotation]
+The vorticity term \(\frac\eta2|\nabla\times v|^2\) penalizes rotational structure in the transport field directly, without needing the decomposition of Equation~\eqref{eq:gradsplit} to reveal an angular character: curl is, by construction, a measure of local rotation, and it was established earlier that rotation about a point is exactly the symmetry the spherical chart is built to make simple. A large vorticity at some point is a large amount of angular, within-shell circulation at that point; the term is, in this vocabulary, already an angular penalty before any coordinate split is applied to it, for the same structural reason that Proposition~2.2 identified rotation, rather than translation, as what the angular coordinates of a spherical chart are adapted to.
+\end{remark}
+
+This gives the transport field a cleaner reading than the three scalar fields require: kinetic energy \(\frac\rho2|v|^2\) is agnostic to radial or angular decomposition, since it penalizes the speed of transport regardless of direction, while vorticity is intrinsically angular, penalizing the specifically rotational component of that transport. Radial transport, movement of \(v\) directly toward or away from the center, is unpenalized by the vorticity term and appears in the functional only through the kinetic term; angular transport, circulation within a shell, is penalized twice, once through kinetic energy and again through vorticity.
+
+\section{The Entropy Field's Dual Role, Reread}
+
+The source theory assigns the entropy field a dual role: globally increasing, in accordance with the second law, while locally capable of decreasing in what it calls lamphron-dominated, coherence-building regions, compensated by faster increase elsewhere. The radial--angular split gives this duality a further layer of structure once a center is available to define it.
+
+\begin{remark}[Two Ways for Local Entropy Behavior to Diverge from Global Behavior]
+A region in which \(S\) locally decreases can do so through its radial behavior, its angular behavior, or both: a shell at some intermediate radius might be building coherence relative to shells further out while remaining angularly uniform, or a shell might be developing sharp angular structure, patches of low entropy alternating with patches of high entropy at the same radius, while its shell-averaged value tracks the global trend exactly. The functional's entropy-gradient term \(\frac\chi2|\nabla S|^2\), split by Equation~\eqref{eq:gradsplit}, does not distinguish these two cases, but the earlier vocabulary does: the first is a radial phenomenon, coherence organized by level, and the second is an angular phenomenon, coherence organized within a level. The next chapter returns to this distinction directly, since it is exactly the distinction a repair process needs to track in order to know what kind of local entropy behavior it is intervening on.
+\end{remark}
+
+\section{Summary}
+
+RSVP's free-energy functional is unchanged by anything here; every result borrowed from the source theory, boundedness, the variational derivatives, dissipation under gradient flow, holds exactly as proven there. What has been shown here is that, once a center is available, each of the functional's gradient-energy terms admits the split of Equation~\eqref{eq:gradsplit} into a radial cost and an angular cost, that this split gives the scalar, lamphron, and entropy fields a reading in exactly the vocabulary established earlier, and that the vector field's vorticity term is angular in an even stronger sense, penalizing rotation directly rather than only through a coordinate decomposition applied after the fact. The next chapter asks what a repair process, understood as the gradient flow the source theory already defines in general form, does with the mismatch this decomposition has now made legible.
+
+
+% ============================================================
+% CHAPTER 6 — Repair Theory, Reinterpreted Geometrically
+% Part III of "Geometry as Computational Infrastructure"
+% Assumes the preamble, macros, and theorem/definition/principle/
+% specification/derivation/protocol environments shared with the
+% Orthodromic Infrastructure Blueprint.
+% ============================================================
+
+\chapter{Repair Theory, Reinterpreted Geometrically}
+
+\section{Scope}
+
+The existing reconstruction and repair literature this book draws on develops repair as admissibility restoration in its own right, with its own machinery for diagnosing what has failed and what can be recovered. What follows does not restate that machinery. It asks a narrower question, made available only now that a general operator has been supplied and RSVP's own functional has been shown to split under it: what does repair look like once it is described as a gradient flow on a field already decomposed into radial and angular mismatch? The source theory's gradient-flow definition, dynamics that descend a functional by moving each field in the direction that most reduces it, is general enough to serve as repair's formal definition without alteration; the contribution here is to show what that flow does once the functional it descends has been split by the lens developed in the preceding chapter.
+
+\section{Repair as Gradient Descent on Local Mismatch}
+
+\begin{principle}{Repair, Defined}
+A repair process on a field \(f\) governed by a functional \(\mathcal F[f]\) is the gradient flow \(\partial_t f = -M\,\delta\mathcal F/\delta f\) for some positive mobility \(M\). This is not a new definition invented for this chapter; it is the general gradient-flow construction studied extensively in its own right~\cite{ambrosio2008}, applied to the specific reading given earlier of the Laplacian: wherever \(\mathcal F\) contains a gradient-energy term, the corresponding variational derivative contains a Laplacian, and the flow it generates moves \(f\) in exactly the direction that reduces the local mismatch the Laplacian was shown earlier to detect. Repair, in this vocabulary, is not a separate mechanism bolted onto a field theory. It is what gradient descent on a mismatch-penalizing functional already does, described in the language this book has been building from early on.
+\end{principle}
+
+\section{Lamphrodyne as the Repair Pressure, Made Explicit}
+
+RSVP supplies an unusually direct instance of this reading. The source theory~\cite{holonomic} defines two derived quantities from the free-energy functional introduced in the preceding chapter: the lamphron \(L=\ell^2\), a measure of localized, structure-stabilizing concentration, and the lamphrodyne \(D=-\delta\mathcal F/\delta S\), the negative variational derivative of the functional with respect to the entropy field. For the entropy-gradient and entropy-source terms of the functional, the source theory computes this explicitly as
+\begin{equation}
+D = \chi\Delta S + T,
+\end{equation}
+a Laplacian acting on the entropy field, offset by the source term \(T\).
+
+\begin{remark}[Lamphrodyne Is This Book's Operator, Not an Analogy to It]
+This is not a structural resemblance requiring interpretation. The lamphrodyne, as derived in the source theory from the entropy sector of the RSVP functional, literally is a Laplacian applied to a field, shifted by a constant. It is the incompatibility detector introduced earlier in this book, appearing under a name coined before this book's radial--angular vocabulary existed, in a source theory that did not use that vocabulary at all. The gradient-flow equation for the entropy field, \(\partial_t S = M_S(\chi\Delta S + T)+\sigma\) in the source theory's notation, is therefore repair exactly as Section~6.2 defined it: descent driven by the same operator introduced earlier, applied here to the specific case of an entropy field relaxing toward configurations where local disagreement with the surrounding shell has been reduced.
+\end{remark}
+
+Applying the split of Equation~\eqref{eq:gradsplit} to \(D\) directly separates the lamphrodyne into a radial repair pressure and an angular repair pressure,
+\begin{equation}
+D = \chi\left[\frac{1}{r^2}\partial_r\!\left(r^2\partial_rS\right) + \frac{1}{r^2}\Delta_{\Sphere}S\right] + T,
+\label{eq:lamphrodyne-split}
+\end{equation}
+and the two terms answer different questions about what the entropy field's relaxation is doing at a given point: the radial term drives \(S\) toward consistency with neighboring shells, redistributing entropy between levels; the angular term drives \(S\) toward consistency within its own shell, smoothing patchiness at fixed depth. A repair process governed by \(D\) alone cannot be assumed to be doing only one of these; both are always present, in proportions Equation~\eqref{eq:lamphrodyne-split} makes explicit rather than leaving implicit.
+
+\section{The Duality Between Repair and What Repair Acts Against}
+
+The source theory's own account of the lamphron/lamphrodyne pair is explicitly a duality: lamphron is the tendency that stabilizes structure, allowing coherent configurations to persist rather than dissolving into uniformity, while lamphrodyne is the tendency that relaxes structure, smoothing gradients and reducing differences. Neither is independent; both are aspects of the same underlying dynamics, and a system with too much of either becomes either rigid or structureless.
+
+\begin{remark}[Repair Needs Something to Act Against]
+This duality is a caution against reading repair, in the terms developed here, as an unqualified good to be maximized. A repair process that drove every local mismatch to zero everywhere, with no opposing tendency to stabilize structure, would not restore a system to admissibility; it would erase the distinguishing structure a later chapter insists is worth preserving. The lamphron term, entering the same functional that produces the lamphrodyne, is what keeps repair from over-smoothing: it is the structural counterpart, within RSVP's own formalism, to a caution this book has already entered in more general terms, that a shorter or more uniform description is not automatically a better one.
+\end{remark}
+
+\section{The Curvature Defect, Anticipated}
+
+The radial--angular split of repair pressure derived above has a consequence that becomes fully concrete only once this book reaches planetary infrastructure, but the shape of the argument can be stated now, in general terms, without needing that later material.
+
+\begin{principle}{Repair Redistributes; It Does Not Always Eliminate}
+Gradient flow driven by a Laplacian-type operator on a closed shell reduces local mismatch by moving it, not by making it vanish everywhere at once: a repair process can concentrate remaining disagreement into a small region while smoothing the rest, or spread it thinly and evenly, but if the shell's own geometry imposes a global constraint on the total angular structure the field must carry, repair cannot drive that total below what the constraint permits. Whether such a constraint exists, and how large it is, is a question about the specific shell's geometry, not about the repair dynamics themselves; the contribution here is only to note that the question is meaningful, and that a repair process's apparent failure to fully smooth a field is not necessarily evidence that the process is working badly. It may be evidence that the field lives on a shell where no process could have done better.
+\end{principle}
+
+\section{What Repair Does Not Explain}
+
+The gradient-flow description of repair developed here is a functional, computational account: it says how a field's mismatch changes under a specified dynamics, and the sections above have shown that account applied concretely to RSVP's own entropy sector. It does not, by itself, say that this description is the literal causal mechanism by which every repaired system, biological, computational, or infrastructural, actually recovers function.
+
+\begin{remark}[Functional Adequacy Without Architectural Transparency]
+A system can be restored to working order by a process the gradient-flow vocabulary here describes accurately at the level of outcome, correctly predicting that mismatch decreases and roughly how fast, without that vocabulary being a transparent account of the system's internal architecture. The two properties, getting the outcome right and exposing the mechanism, are logically independent: a repair can be functionally adequate, restoring the behavior that matters, while remaining architecturally opaque, resistant to any localized account of which specific component did the repairing. This caution matters here specifically because the radial--angular decomposition developed above is a computational tool for locating where and how strongly a repair pressure acts, not a metaphysical claim that repair, wherever it occurs in nature, is secretly organized around a center and a system of shells. The decomposition earns its keep by making certain questions answerable. It does not thereby become the true story of every process it is applied to.
+\end{remark}
+
+\section{Summary}
+
+Repair, defined as gradient descent on a mismatch-penalizing functional, is not a new mechanism introduced by this book; it is the general construction the source theory already supplies, read through the operator introduced earlier in this book. RSVP's own lamphrodyne, derived independently of this book's vocabulary as the negative variational derivative of the free-energy functional with respect to entropy, turns out to be exactly that operator applied to a physical field, and splits, by the lens of the preceding chapter, into a radial repair pressure and an angular repair pressure with distinct physical meanings. The lamphron/lamphrodyne duality supplies, from within RSVP's own formalism, the caution that unchecked repair would erase the structure worth preserving, and a closed shell's geometry can impose a floor beneath which no repair process, however well designed, can reduce total angular mismatch. None of this licenses treating the decomposition as the literal mechanism of every repaired system; it is a tool for locating where repair acts, not a claim about what repair, at bottom, is. Part~IV now turns from fields with genuine physical dynamics to state spaces, planetary infrastructure, distinguishability, and synchronization, each a further specialization of the same operator this Part has spent its length grounding in a concrete, previously-existing field theory.
+
+
+\part{Applications II: State Space and Planetary Space}
+
+% ============================================================
+% CHAPTER 7 — Spherepop as a Chart on Possibility Space
+% Part IV of "Geometry as Computational Infrastructure"
+% Assumes the preamble, macros, and theorem/definition/principle/
+% specification/derivation/protocol environments shared with the
+% Orthodromic Infrastructure Blueprint.
+% ============================================================
+% Local macros borrowed from the Spherepop source monographs;
+% provided here so this chapter compiles standalone against the
+% orthodromic blueprint's preamble, which does not define them.
+\providecommand{\scollapse}[1]{\operatorname{collapse}_{#1}}
+\providecommand{\spop}[1]{\operatorname{pop}(#1)}
+\providecommand{\srefuse}[1]{\operatorname{refuse}(#1)}
+\providecommand{\sbind}[2]{\operatorname{bind}(#1,#2)}
+\providecommand{\enquote}[1]{``#1''}
+\providecommand{\Pop}{\mathsf{Pop}}
+
+\chapter{Spherepop as a Chart on Possibility Space}
+
+\section{A Sphere Without a Planet}
+
+One of the two engineering chapters in this book examines a case in which the sphere is, to leading approximation, the literal shape of the domain under study: the planetary surface. This chapter examines the opposite case. Spherepop, the computational calculus developed independently across several monographs, uses no planet, no embedding in physical space, and no metric inherited from a surrounding \(\R^3\). It nonetheless organizes computation around bounded regions, boundaries, interiors, and histories, in a vocabulary that turns out to satisfy the radial--angular decomposition developed earlier almost without modification. The governing claim here is that the sphere is not indispensable because computation literally has a shape, but because a fixed-radius shell and a state space governed by irreversible commitment share enough structure that the same operator, the same boundary typology, and the same distinguishability machinery apply to both. Appendix~B collects the specific definitions and theorems this chapter relies on, for a reader who prefers not to consult the source monographs directly.
+
+Spherepop's own foundational commitments already anticipate this move. Its authors distinguish \emph{representational geometry}, the use of spatial pictures as an aid to intuition, from \emph{cognitive geometry}, the empirical claim that spatial structure is prior to symbolic structure in biological cognition, from \emph{physical geometry}, the claim that constraint structure is literally, not metaphorically, geometric. The argument here belongs to the third category rather than the first: it is not that Spherepop is helpfully pictured as spherical, but that its own conservation law, developed with no reference to this monograph, has the same mathematical shape as radial motion on a shell.
+
+\section{Bubbles as Regions, Not Notation}
+
+Where ordinary parentheses are erased once evaluation is complete, a Spherepop bubble is a bounded region \(B=(U,\partial U,\sigma,\tau)\) with an interior \(U\), a boundary \(\partial U\) encoding constraint conditions, a scope context \(\sigma\), and a history \(\tau\). The boundary is not a syntactic marker; it is, in the source monograph's own words~\cite{spherepop-geometry}, a physical limit on the propagation of evaluation effects. Nothing that happens inside a bubble can affect a sibling bubble directly. Its consequences propagate outward only through the single channel of the popped result.
+
+\begin{principle}{The Bubble as a Friston-Style Screen}
+Recall that a Friston-style boundary is a synchronic statistical screen: internal states are severed from external states except through a designated sensory--active layer, and the current joint configuration alone determines what is screened from what. A Spherepop bubble's scope satisfies this description exactly. The evaluation region's locality principle states that a bind event's constraint cannot be observed outside \(B\) except through \(B\)'s pop result, which reflects the constraint only insofar as it affected the produced value. This is conditional independence, stated in evaluation-theoretic rather than probabilistic vocabulary: the containing computation's future is conditionally independent of a nested bubble's internal history, given that bubble's popped result.
+\end{principle}
+
+The correspondence is not decorative. It licenses importing a specific consequence of that typology into computation: because the scope boundary is a synchronic screen rather than a stored target or a diachronic exclusion, sibling bubbles at the same nesting level may be evaluated in either order without changing the result, exactly as a Friston-style blanket makes no commitment about the sequence in which screened influences resolve. Spherepop's own confluence property, that evaluation order among siblings is semantically immaterial, is the operational payoff of the boundary being this particular kind and not one of the other two.
+
+\section{Pop as the Radial Coordinate}
+
+Radius was earlier introduced as the coordinate of progression across levels: concentration, expansion, collapse, and transport are radial phenomena, distinguished from the angular phenomena of circulation and reorganization within a level. Spherepop supplies a literal, non-metaphorical instance of this distinction in its conservation law.
+
+\begin{definition}{The Possibility Functional as Radial Depth}
+Let \((H,\Omega)\) be a Spherepop world, with \(H\) the event history and \(\Omega\) the current option space. The generalized possibility functional is
+\[
+\Pi(H,\Omega) = |\Omega| + \sum_{e\in H} w(e),
+\]
+where the commitment event \(\Pop(x)\) carries weight \(w=1\) and the remaining event kinds carry weight \(0\). The source monograph~\cite{spherepop-histories} proves \(\Pi\) is conserved at \(|\Omega_0|\) along any legal execution, so that \(|H_t|\) is strictly increasing exactly to the extent that \(|\Omega_t|\) is decreasing. Define the radial coordinate of a world at time \(t\) as
+\[
+r(t) \;=\; |\Omega_0| - |\Omega_t| \;=\; \sum_{e\in H_t} w(e),
+\]
+the total commitment weight accumulated so far. Radius, on this reading, is not a spatial distance but a monotone, irreversible measure of how much of the initial option space has been consumed by commitment.
+\end{definition}
+
+This is exactly the radial behavior attributed earlier to the general operator: \(r(t)\) increases under Pop and only under Pop, never decreases, and its accumulation is irreversible by Spherepop's own corollary that no legal execution can return to a prior world state. The blueprint's radius \(R\) was fixed by the planet's physical size; Spherepop's radius is not fixed in advance but grows, one unit at a time, as commitments are made: the difference between a static shell and a shell whose radius is itself the record of a computation's history.
+
+\begin{remark}[Realization, Restated]
+This monograph's outline anticipated, in general terms, that radial movement in a state-space chart would correspond to realization, activation, or confidence, context-dependently. Spherepop supplies the case in which this is not an interpretive gloss but a proven conservation identity: realization literally is the consumption of option space, and the identity \(|H_t|+|\Omega_t|=|\Omega_0|\) is the exact statement that nothing is created or destroyed by commitment, only converted from potential into recorded fact.
+\end{remark}
+
+\section{Refuse, Bind, and Collapse as the Angular Directions}
+
+If Pop is the operator that moves radially, the remaining three primitives, Refuse, Bind, and Collapse, are exactly the operators that leave \(\Omega\) unchanged and therefore leave \(r\) unchanged. They are, in the vocabulary of this monograph, angular: they reorganize structure within the current level rather than advancing to a new one. But they are not interchangeable, and the distinction among them recovers the full three-way boundary typology introduced earlier.
+
+Refuse records that a specific continuation was considered and found inadmissible, without foreclosing the option space itself: \(x\) remains available for future commitment, but this particular history now carries a permanent record that the path was rejected at this point, for a stated reason. This is diachronic and exclusionary in exactly RSVP's sense: a refusal, once recorded, does not disappear from the history, and the growing sequence of refusals is a record of what has been ruled out along this trajectory, distinct from what remains formally possible in \(\Omega\).
+
+Bind introduces a constraint coupling two elements of the interior without consuming either. Its effect is prospective: a bound constraint narrows which future evaluation steps within the bubble will be admissible, functioning as a target condition that subsequent pops inside the scope must satisfy. This is Levin's stored-morphology structure translated into constraint language: the bind does not describe the bubble's current state, it describes a relation the bubble's eventual resolution is required to respect.
+
+Collapse maps a history to an observable state under a chosen equivalence relation \(q\), so that \(\gamma_1\sim_q\gamma_2\) exactly when \(\scollapse{q}(\gamma_1)=\scollapse{q}(\gamma_2)\). Distinct collapse operators, the source monograph~\cite{spherepop-histories} is explicit, induce distinct equivalence relations and therefore distinct notions of what counts as the same computation.
+
+\begin{remark}[Collapse and the Ontological Triple]
+This is not merely analogous to the ontological-triple machinery introduced earlier; it is the same construction under a different name. A collapse operator \(\scollapse{q}\) fixes an indistinguishability relation over the space of histories exactly as a choice of coordinate ontology fixes which objects in a domain are treated as equivalent. The terminal-value collapse, the evaluation-chain collapse, and the full-provenance collapse are three different ontologies over the same domain of histories, each with its own coding deficit and its own distinguishability deficit. A system that reports only the terminal-value collapse of a computation is short, in the sense defined earlier, at the cost of exactly the distinguishing power the finer collapses retain, and the deficit proxy theorem's caution applies without modification: a shorter collapse is not thereby evidence of having captured what mattered.
+\end{remark}
+
+\section{Angular Harmonics as Collapse Granularity}
+
+Distinguishability was organized, later in this book, into a hierarchy from coarse, low-order angular structure to fine, high-order structure. Spherepop's family of collapse operators is the discrete, combinatorial version of the same hierarchy. The full-provenance collapse \(\scollapse{0}\), which identifies only identical histories with themselves, is the highest-order case: every distinction the history contains remains visible. The terminal-value collapse \(\scollapse{v}\), which identifies all histories sharing a final result, is the lowest-order case: only the coarsest invariant survives. The admissibility-profile and evaluation-chain collapses sit between these extremes, each preserving a different intermediate band of structure, exactly as a partial sum of spherical harmonics up to some cutoff \(\ell_{\max}\) preserves an intermediate band of angular detail.
+
+\begin{principle}{No Privileged Collapse}
+A later chapter argues at length that no coordinate origin is privileged independent of the observer or task that selects it. The same principle governs collapse operators here, and Spherepop's own axiom of contextual equivalence states it explicitly: there is no context-independent notion of semantic equivalence, only equivalence relative to a chosen collapse. Asking whether two computations are \enquote{really} the same, without specifying a collapse, is asking a question this formalism does not admit an answer to, for the same reason that asking for the \enquote{true} coordinate origin of a planetary shell is not a question the geometry of that later chapter admits an answer to.
+\end{principle}
+
+\section{Merge and the Angular Composition of Regions}
+
+Spherepop regions compose under a monoidal tensor product, \(A\otimes B\), modeling simultaneous or parallel computation, with idempotence \(A\otimes A\simeq A\) and commutativity \(A\otimes B\simeq B\otimes A\). Because tensoring two regions does not by itself commit either to a resolved value, it leaves \(r\) unchanged: merge is angular composition, combining structure within a level rather than advancing between levels. This is the state-space counterpart of the Voronoi tessellation discussed elsewhere in this book, which likewise organized coexisting regions at a fixed radius into a single combinatorial structure without any of the regions individually advancing in the radial direction. The parallel is not superficial: both are instances of angular composition operating on a shell whose radial coordinate is, for the duration of the composition, held fixed.
+
+\section{Summary: A Second Instance, Independently Derived}
+
+It has been shown elsewhere in this book that an existing planetary blueprint, developed without the radial--angular vocabulary of this monograph, turns out to instantiate that vocabulary once its fixed radius is made explicit. What follows shows the same thing for a state-space formalism with no planet, no metric, and no physical embedding at all: Spherepop's own conservation law supplies a rigorously defined radial coordinate, its scope boundary is a Friston-style screen in the precise sense introduced earlier, its Bind and Refuse operators are Levin-style and RSVP-style boundaries respectively, and its family of collapse operators is the discrete combinatorial analogue of the spherical-harmonic distinguishability hierarchy developed later. Two domains that share almost nothing at the level of subject matter, a planetary surface and an abstract calculus of commitment, share everything at the level of the operator governing them. What follows asks what this shared operator says about distinguishability as such, independent of either domain.
+
+
+% ============================================================
+% CHAPTER 8 — Distinguishability Geometry on the Sphere
+% Part IV of "Geometry as Computational Infrastructure"
+% Assumes the preamble, macros, and theorem/definition/principle/
+% specification/derivation/protocol environments shared with the
+% Orthodromic Infrastructure Blueprint.
+% ============================================================
+
+\chapter{Distinguishability Geometry on the Sphere}
+
+\section{What Was Promised}
+
+The gradient was introduced early on, informally, as the direction in which distinctions increase most rapidly, and the Laplacian as the operator that summarizes whether those distinctions reinforce or cancel around a point. Those promises have since been used freely: the twelve-unit curvature defect of a spherical Delaunay triangulation was read as an irreducible obstruction to uniform distinguishability, and Spherepop's family of collapse operators was read as different choices of which distinctions among histories to retain. Neither discussion, however, defined distinguishability itself. What follows discharges that debt, using the projection-theoretic \emph{Distinction Geometry}~\cite{distinction-geometry} developed independently of this monograph, and shows that the debt was owed to more than an analogy: for a specific and important class of observable spaces, the sphere this monograph has used throughout is not merely a useful chart for distinguishability, it is the literal geometric object distinguishability produces.
+
+\section{The Projection Setting, Recalled}
+
+A projection setting is a triple \((M,O,\Pi)\): a space of histories \(M\), an observable space \(O\), and a surjective, generally non-injective map \(\Pi:M\to O\). The fiber \(F_o=\Pi^{-1}(o)\) collects every history that produces the same observation. Two histories are observationally equivalent, \(h\sim h'\), exactly when \(\Pi(h)=\Pi(h')\).
+
+\begin{principle}{Fibers as Friston-Style Screens, Generalized}
+The Friston-style boundary was introduced earlier as a synchronic screen: internal states are conditionally independent of external states given the blanket, so influence must pass through a designated interface. The fiber structure of a projection setting is the general case of this idea, stated without reference to statistics or blankets at all. The admissibility predicate \(A_O\), by the Projection Sufficiency result of the source theory, need only be stated on \(O\); no admissibility condition on \(M\) can affect any prediction unless it changes \(\Pi(h)\). A coordinate pathology, a property of some \(h\in M\) with no bearing on \(\Pi(h)\), is invisible for exactly the reason a hidden direction inside a Friston blanket is invisible: it lies within a fiber, and fibers are this framework's most general notion of a synchronic screen.
+\end{principle}
+
+\section{The Gradient, Made Rigorous}
+
+The distinction functional between two observable interfaces \(P,Q\) on \(O\) is the Jensen--Shannon divergence,
+\begin{equation}
+\mathcal D(P,Q) = \operatorname{JSD}(P\Vert Q) = H(M_{PQ}) - \tfrac12\bigl(H(P)+H(Q)\bigr), \qquad M_{PQ}=\tfrac12(P+Q),
+\end{equation}
+with \(d_{\mathrm{int}}=\mathcal D^{1/2}\) a genuine metric on the space of interfaces. Given a smooth deformation \(h_\epsilon\) of a history with \(h_0=h\), the source theory defines the first-order observable variation
+\begin{equation}
+\delta_{\mathrm{obs}}(h,\dot h) = \left.\frac{d}{d\epsilon}\, d_{\mathrm{int}}\bigl(\Pi(h),\Pi(h_\epsilon)\bigr)\right|_{\epsilon=0}.
+\end{equation}
+
+\begin{remark}[This Is the Promised Gradient]
+The informal gradient introduced earlier, the direction in which distinctions increase fastest, is exactly \(\delta_{\mathrm{obs}}\): the directional derivative of interface distance along a deformation of the underlying history. A direction \(\dot h\) is hidden to first order precisely when \(\delta_{\mathrm{obs}}(h,\dot h)=0\), and fully hidden when the distinction functional vanishes identically along the deformation: a gauge direction, a ghost mode, or, in the cognitive reading the source theory also develops, a change in sub-threshold neural activity that has not yet reached behavioral expression. What was asserted informally earlier now has a proof.
+\end{remark}
+
+\section{Curvature as the Qualitative Laplacian}
+
+For a parametric family \(P_\lambda\), the Jensen--Shannon divergence expands, to leading order, as a quadratic form in the Fisher information metric,
+\begin{equation}
+\operatorname{JSD}(P_\lambda,P_{\lambda+\epsilon}) = \tfrac18\, g^F_{ij}(\lambda)\,\epsilon^i\epsilon^j + O(|\epsilon|^3),
+\end{equation}
+so that the space of interfaces is, locally, a statistical manifold with a genuine Riemannian curvature. This is the setting of information geometry~\cite{amari2000}, and the Fisher metric's status as the essentially unique Riemannian metric compatible with statistical sufficiency is a classical result~\cite{chentsov1982}, not a construction specific to this book. The source theory's operational reading of that curvature is precisely the qualitative content attached earlier to the Laplacian, restated with a sign.
+
+\begin{principle}{Curvature and Distinguishability}
+Positive sectional curvature at a theory \(P_\lambda\), in a given direction, means nearby theories are observationally more similar than their parameter-space separation suggests: many internal configurations collapse onto indistinguishable predictions. Negative sectional curvature means nearby theories diverge in their predictions faster than parameter distance suggests: small internal changes are highly distinguishable. Zero curvature is the locally Euclidean case, in which parameter distance and observable distance agree. This reading follows from the standard relationship between sectional curvature and geodesic deviation in Riemannian geometry; it is stated here as an operational gloss on that relationship, not as a result this book proves.
+\end{principle}
+
+\begin{remark}[The Curvature Defect, Reread]
+The earlier result that a spherical Delaunay triangulation carries an irreducible total curvature defect of twelve, distributed as a sum of degree deficits \(\sum_i(6-d_i)=12\), is now legible as a statement in exactly this vocabulary. A closed positively curved shell is, in the sense of the theorem above, a surface on which some quantity of angular distinguishing power is unavoidably lost to convergence: nearby configurations are pulled together rather than kept apart, everywhere the curvature is positive, and the sphere's topology forces that pulling-together to total a fixed nonzero amount. What could only be asserted earlier as a combinatorial fact about triangulations is now a special case of a general statement about curvature and distinguishability: positive curvature is the geometry of unavoidable overfitting, and a closed shell cannot avoid it everywhere at once.
+\end{remark}
+
+\section{The Isometry: When the Sphere Is Not a Metaphor}
+
+The material that precedes this section has used the sphere as a chart, a convenient and recurring geometry in which to express radial and angular structure. This section shows that, for one important class of observable spaces, the sphere is not a chosen chart at all: it is what the Fisher information geometry of the distinction functional literally is. The square-root embedding of the categorical simplex into a sphere given below is itself a known construction within information geometry~\cite{amari2000}, not a new discovery here. What is specific to this book is the connection it licenses: because the resulting sphere is the same object already used elsewhere in this book as a coordinate chart, every result proved there about that chart, the radial--angular decomposition, the Laplace--Beltrami operator, the curvature defect, applies to the Fisher-information geometry of a categorical outcome space without translation, since it is not merely analogous to it but identical to it.
+
+\begin{derivation}{The Statistical Manifold of a Finite Outcome Space Is a Sphere}
+Let \(O=\{1,\dots,n\}\) be a finite observable space and let \(P_\lambda=(p_1,\dots,p_n)\), \(\sum_i p_i=1\), \(p_i>0\), be the corresponding categorical distribution. Define the square-root coordinates
+\[
+q_i = \sqrt{p_i}, \qquad \sum_i q_i^2 = \sum_i p_i = 1,
+\]
+so that \((q_1,\dots,q_n)\) lies on the positive orthant of the unit sphere \(\mathbb{S}^{n-1}\subset\R^n\). Differentiating, \(dp_i = 2q_i\,dq_i\), so
+\[
+\frac{(dp_i)^2}{p_i} = \frac{4q_i^2\,(dq_i)^2}{q_i^2} = 4\,(dq_i)^2.
+\]
+The Fisher information metric on the simplex, \(g^F_{ij}\,d\lambda^i d\lambda^j = \sum_i (dp_i)^2/p_i\), therefore pulls back under \(p_i=q_i^2\) to
+\[
+g^F = 4\sum_i (dq_i)^2,
+\]
+which is four times the flat Euclidean metric of \(\R^n\) restricted to the unit sphere, that is, four times the round metric on \(\mathbb{S}^{n-1}\).
+\end{derivation}
+
+\begin{principle}{The Sphere as the Space of Categorical Distinctions}
+Under the map \(p_i\mapsto q_i=\sqrt{p_i}\), the space of categorical distributions on \(n\) outcomes is isometric, up to the constant factor four, to the positive orthant of \(\mathbb{S}^{n-1}\) with its ordinary round metric. This is not an analogy borrowed from physics or engineering, of the kind kept carefully at arm's length elsewhere in this book. It is the exact statement that the theory space introduced above, for the simplest and most common class of observable outcomes, \emph{is} a sphere, in the identical sense that the reference sphere \(\Sphere_R\) used elsewhere in this book is a sphere. Every result developed there, the radial--angular decomposition, the Laplace--Beltrami operator, the curvature defect, applies to the statistical manifold of a categorical outcome space without translation, because it is the same manifold.
+\end{principle}
+
+Under this identification, the Jensen--Shannon distance between two nearby categorical interfaces is, combining the Fisher expansion with the derivation above, proportional to the ordinary geodesic distance on \(\mathbb{S}^{n-1}\) between their square-root coordinates: \(d_{\mathrm{int}}(P,Q)\approx \tfrac{1}{\sqrt2}\,\|q_P - q_Q\|\) for nearby \(P,Q\). The geodesics of that theory space, the paths of minimal accumulated distinction that the source theory reads as an information-geometric statement of Occam's razor, are literally the great-circle arcs discussed elsewhere in this book, computed in square-root coordinates rather than raw probabilities.
+
+\section{Harmonic Truncation as Reconstruction Defect}
+
+It was warned earlier, using the deficit proxy theorem of \emph{The Compression Fallacy}~\cite{compression-fallacy}, that a shorter description is not thereby evidence of preserved distinguishing power. The present framework supplies the exact quantity that warning was gesturing at. Given a projection \(\Pi:M\to O\) and any reconstruction map \(R:O\to M\) attempting to recover a history from its observation, the reconstruction defect
+\begin{equation}
+\delta(\Pi) = \inf_R \sup_{h\in M} d\bigl(h, R(\Pi(h))\bigr)
+\end{equation}
+is bounded below by half the diameter of the largest fiber, and is strictly positive whenever \(\Pi\) is non-injective.
+
+\begin{remark}[Truncation as a Projection]
+Truncating a spherical harmonic expansion at order \(\ell_{\max}\), the operation flagged earlier as a coding-deficit reduction with no guaranteed distinguishability consequence, is itself a projection in exactly this sense: it maps the full field, an element of an infinite-dimensional \(M\), onto its low-order observable summary in a finite-dimensional \(O\). The fiber over a given truncated summary is the set of all high-\(\ell\) completions consistent with it, and the reconstruction defect \(\delta(\Pi)\) is the rigorous, non-negotiable lower bound on how much any attempt to reconstruct the full field from its truncation must fail by. The earlier caution that shortness is not evidence of preserved understanding is, in this vocabulary, the statement that a nonzero reconstruction defect can coexist with an arbitrarily short description, and the two quantities are simply not the same measurement.
+\end{remark}
+
+\section{Collapse Operators as Projections, Revisited}
+
+Spherepop's family of collapse operators \(\{\scollapse{q}\}\) was earlier read as different choices of which structural invariants of a history to preserve, and connected to the ontological triple introduced earlier still. That connection can now be stated in the vocabulary of this chapter without approximation: each collapse operator \(\scollapse{q}\) is a projection \(\Pi_q\) from the space of full histories to a coarser observable space, the terminal-value collapse and the full-provenance collapse sit at opposite ends of a spectrum of reconstruction defect, and the axiom of contextual equivalence, that semantic identity is always relative to a chosen collapse, is the projection-theoretic statement that there is no privileged \(O\), only a family of observable spaces indexed by which fiber structure one is willing to accept.
+
+\section{Summary: Part IV Closed}
+
+This closes Part~IV by discharging the debt the Part opened with. The gradient promised earlier is the first-order observable variation of the distinction functional; the Laplacian's qualitative behavior is the operational meaning of sectional curvature in the resulting statistical manifold; and, for the important special case of categorical observable spaces, the sphere used as a chart throughout this Part is not a chart at all but the literal geometry the distinction functional produces. Part~V now turns from what has been measured on the sphere to the question standing behind the choice of sphere in the first place: relative to what center was any of it measured, and what does it mean that the answer is never forced by the mathematics alone.
+
+
+% ============================================================
+% CHAPTER 9 — Orthodromic Infrastructure: The Engineering Demonstration
+% Part IV of "Geometry as Computational Infrastructure"
+% Assumes the preamble, macros, and theorem/definition/principle/
+% specification/derivation/protocol environments of the parent
+% monograph (shared with the Orthodromic Infrastructure Blueprint).
+% ============================================================
+\providecommand{\Tset}{\mathcal{T}}
+
+\chapter{Orthodromic Infrastructure: The Engineering Demonstration}
+
+\section{From Abstraction to Terrain}
+
+The preceding material established a vocabulary in the abstract: three mechanisms by which a boundary can perform computational work, a synchronic statistical screen, a future-oriented stored target, and a diachronic record of admissibility exclusion, and the Laplacian as a general computational primitive, one that decomposes local incompatibility into a component measured across shells and a component measured within a shell, with a standing promise that every later application would specialize this single operator rather than reintroduce it. That vocabulary has since been carried into fields, repair dynamics, state spaces, and distinguishability.
+
+What follows asks whether any of that vocabulary earns its keep outside of formalism. The answer is supplied by an existing body of work, the \emph{Orthodromic Infrastructure Blueprint}~\cite{orthodromic}, which specifies a planetary architecture built from nine great circles on the terrestrial sphere and the proximity geometry induced by a finite set of infrastructure nodes. That blueprint was developed independently of the radial--angular vocabulary of this monograph. What follows shows that its central results are, without exception, instances of angular geometry on a shell whose radius has already been fixed. The planet is not treated here as evidence \emph{for} the abstract framework; it is treated as the case in which the framework's abstraction disappears; only the angular structure is left to do any work.
+
+\section{The Fixed-Radius Shell}
+
+Let \(\Sphere_R\subset\R^3\) denote the sphere of radius \(R\) centered at the planetary center, the reference sphere against which the orthodromic arrangement, the Voronoi tessellation, and the Delaunay complex are all defined. In the general spherical decomposition developed earlier, a scalar or vector field on \(\R^3\) admits a joint dependence on the radial coordinate \(r\) and the angular coordinates \((\theta,\varphi)\), and the full Laplacian splits into a radial part and an angular part,
+
+\begin{equation}
+\nabla^2 f
+=
+\frac{1}{r^2}\frac{\partial}{\partial r}
+\left(r^2\frac{\partial f}{\partial r}\right)
++
+\frac{1}{r^2}\,\Delta_{\Sphere}f,
+\end{equation}
+
+where \(\Delta_{\Sphere}\) is the angular part, acting only on the dependence of \(f\) on \((\theta,\varphi)\) at fixed \(r\).
+
+\begin{principle}{The Planetary Shell as Radial Truncation}
+When a field, a constraint, or a design variable is restricted to a single reference shell \(r=R\), the radial derivative \(\partial f/\partial r\) is not merely small; it is not a degree of freedom at all. The operator available to the theory collapses from the full Laplacian to its angular restriction,
+\[
+\Delta_{\Sphere_R}f
+=
+\frac{1}{R^2}\Delta_{\Sphere}f,
+\]
+the Laplace--Beltrami operator on \(\Sphere_R\). Every subsequent construction below, great circles, Voronoi cells, Delaunay adjacency, curvature defect, is a statement about \(\Delta_{\Sphere_R}\), never about the suppressed radial term.
+\end{principle}
+
+This is not a simplifying assumption made for convenience. It is the condition under which the blueprint's founding thesis becomes true. The blueprint states that geometry can serve as a stable intergenerational interface precisely because the reference sphere, unlike any particular machine erected on it, does not change: a surveyed reserve, a pipeline, a railway, and an evacuated launch tube are different radial realizations occupying the same angular address. The invariant is angular; the radial direction is exactly where technological substitution is permitted to occur. The earlier remark that Spherepop's radius indexes realization while its angle indexes transformation within a level has a literal, load-bearing planetary counterpart here: a corridor's position on \(\Sphere_R\) is its identity, while what physically occupies the corridor at a given historical moment is a radial, substitutable choice, formalized in the blueprint as the distinction between a corridor \(\Gamma\) and protocol \(\Pi\) on one hand and the sequence of implementations \(I_{t_1}, I_{t_2}, \ldots\) that occupy it on the other, related by protocol compatibility \(\sim_\Pi\) rather than identity.
+
+\section{Which Boundary Is a Corridor?}
+
+Earlier material warned against collapsing every active boundary into a single undifferentiated idea. The planetary shell offers a clean test of that warning, because the blueprint contains boundaries of more than one of the three kinds distinguished there, and conflating them would obscure real differences in how each is specified and how each may fail.
+
+A Voronoi cell \(\Vor(p_i)\), defined as the set of points on \(\Sphere_R\) closer under geodesic distance to node \(p_i\) than to any other node, is evaluated synchronically: membership is decided entirely by the present configuration of node locations, with no reference to a stored target or to a history of prior exclusions. It is, in the vocabulary introduced earlier, closest to a Friston-style screen, although what it screens is not sensory evidence but service assignment, partitioning the sphere into regions of nearest administrative or logistical responsibility given the current node set.
+
+The reserved corridor \(\Gamma\), by contrast, is a Levin-style object. Its defining property is not a present-tense inequality but a target relation: the corridor is a declared admissible tube \(\Tset_\epsilon(O)\) around a reference orthodrome, and a realized route counts as compliant not because it currently occupies the centerline but because it remains inside the declared tube, or transitions through a registered bypass interface that preserves the corridor's identity. This is a stored morphology in exactly Levin's sense: the corridor persists as a target that construction is evaluated against, independent of what has or has not yet been built along it.
+
+The optimization constraints governing the placement of the four flexible inclined orthodromes are, finally, RSVP-style admissibility exclusions. A configuration that violates fault-line avoidance, ecological exclusion, or orbital-launch clearance is not merely penalized in a continuous cost functional; where those constraints are hard, the corresponding region of the parameter space \(\Theta\) is removed from the admissible set \(\Theta_{\mathrm{adm}}\) entirely, and the Pareto set \(\mathcal P=\{\theta\in\Theta_{\mathrm{adm}}\mid \nexists\,\theta'\in\Theta_{\mathrm{adm}}\text{ with }\mathbf C(\theta')<\mathbf C(\theta)\}\) is computed only over what remains. This is a diachronic record of what has been permanently excluded from consideration, not a live screen and not a pursued target.
+
+\begin{remark}[Non-Interchangeability in Practice]
+The blueprint's own design principle of Pareto transparency, that no weighted optimum should be presented as uniquely dictated by geometry when its location depends on political or ethical weights, depends on keeping these three boundary types distinct. A designer who treats the corridor's target morphology as though it were merely a Voronoi screen would conclude that any currently-nearest route is acceptable, defeating the intergenerational stability the corridor exists to provide. A designer who treats a hard exclusion as though it were a soft cost term would search inside a region the protocol has already declared inadmissible. The typology is not decorative; each boundary demands a different kind of engineering discipline.
+\end{remark}
+
+\section{Great Circles as Pure Angular Geodesics}
+
+With the radial direction suppressed, the shortest-path problem on \(\Sphere_R\) is a problem entirely internal to \(\Delta_{\Sphere_R}\)'s domain. An orthodrome is the intersection of \(\Sphere_R\) with a plane through the planetary center, represented up to orientation by a unit normal \(n\), and the geodesic distance between two points \(x,y\in\Sphere_R\) is
+\begin{equation}
+d_{\Sphere_R}(x,y)=R\arccos\!\left(\frac{x\cdot y}{R^2}\right),
+\end{equation}
+minimized along the shorter arc of the unique great circle through \(x\) and \(y\). Every quantity in this construction, the central angle, the arc, the normal vector defining the great-circle plane, is angular. The radius \(R\) enters only as an overall scale factor converting an angular measure into a length; it never reappears as an independent degree of freedom the way it would in the full three-dimensional decomposition.
+
+This is why the blueprint's separation of a reference orthodrome from a realized route is exactly the separation drawn earlier between a chart and the structure it is used to describe. The orthodrome supplies the angular target that minimizes a idealized cost; a realized corridor instead minimizes a physical cost density \(c(x,\dot x)\) incorporating slope, excavation, ecology, and legal access, deviating from the reference geodesic wherever the physical chart, terrain, disagrees with the mathematical one. The reference sphere is this book's observer-relative interface made concrete: nothing about the terrestrial crust obliges a pipeline to follow a great circle, but choosing the great circle as reference is what makes deviation, cost, and compliance computable at all.
+
+\section{Voronoi, Delaunay, and the Angular Distinguishability Hierarchy}
+
+The spherical Voronoi tessellation and its dual, the spherical Delaunay complex, are the clearest instance yet of the distinguishability geometry made operational rather than spectral, and both are classical objects of computational geometry~\cite{okabe2000}, not new constructions. Where distinguishability was earlier organized into a hierarchy of spherical harmonics, from coarse global modes to finely differentiated local ones, the Voronoi/Delaunay pair organizes the identical question, which regions of the shell remain distinguishable from one another under a chosen resolution, combinatorially rather than analytically. A node set \(\Nset=\{p_1,\dots,p_m\}\subset\Sphere_R\) induces a partition into nearest-service cells; two points on opposite sides of a bisector \(B_{ij}=\{x\in\Sphere_R\mid x\cdot(p_i-p_j)=0\}\) are, for logistical purposes, distinguishable precisely because they are served by different nodes, and indistinguishable to within the resolution of \(\Nset\) if they lie in the same cell.
+
+The blueprint's curvature-defect result gives this angular distinguishability structure a hard limit that has no counterpart in the flat-plane case. For a nondegenerate spherical Delaunay triangulation with \(m\) sites, Euler's relation together with the double-counting identity \(\sum_i d_i = 2e\) forces
+\begin{equation}
+\sum_{i=1}^m (6-d_i) = 12,
+\end{equation}
+so that the sum of degree deficits from the hexagonal average is always exactly twelve, regardless of how the nodes are placed. A perfectly uniform, everywhere-hexagonal tessellation is not merely difficult to achieve on \(\Sphere_R\); it is forbidden by the topology of the sphere itself.
+
+\begin{remark}[Curvature Defect as Irreducible Incompatibility]
+This is the sharpest illustration in the book of a claim that could only be stated in general terms earlier: the Laplacian-type operator on a curved shell does not merely detect local mismatch that repair dynamics can subsequently smooth away. On \(\Sphere_R\), a fixed quantity of angular incompatibility is topologically guaranteed to survive any redistribution. Repair, in the sense developed earlier, can move the twelve units of defect from one location to another, concentrating them at a small number of highly irregular vertices or spreading them thinly across many mildly irregular ones, but it cannot make the total vanish. The angular geometry of a closed shell places a floor under how much local incompatibility persistence-preserving reorganization can remove. This is exactly the caveat entered earlier: the decomposition is a computational tool for locating where repair is possible, and the curvature defect is a demonstration that the same tool also proves, in this case rigorously, where repair is not possible.
+\end{remark}
+
+\section{The Return of the Radial Direction, Reinterpreted}
+
+Radius has not vanished from the blueprint; it has changed referent. Once a corridor's angular address on \(\Sphere_R\) is fixed, the corridor acquires its own local cross-section, and within that cross-section a genuinely new radial coordinate is introduced, transverse to the planetary surface and unrelated to \(R\). The corridor's reserved volume is allocated among subsystems (hydraulic, electrical, transportation) as regions of this local cross-sectional geometry, and multi-commodity co-location is explicitly a statement about spatial proximity within this second, smaller radial structure rather than about the planetary radius at all: sharing the geometric real estate of the tube does not imply sharing a failure domain, and the design principle governing this separation is stated entirely in cross-sectional, not planetary, terms.
+
+\begin{principle}{Two Radii, Not One}
+The planetary radius \(R\) and a corridor's local cross-sectional radius are distinct objects that happen to share a name. The first is fixed by the reference sphere and defines which angular geometry (great circles, Voronoi cells, curvature defect) is available at all. The second is a design variable, allocable, weighted, and reserved, defining what commodities occupy which part of a corridor once its angular position is already settled. Confusing the two invites exactly the kind of category error warned against earlier for boundaries: a planning decision that is properly angular (where the corridor runs) should not be argued for using cross-sectional reasoning (what fits inside it), and vice versa.
+\end{principle}
+
+\section{Diffusion, Potential, and the Operator Made Concrete}
+
+The blueprint's later chapters on hydraulic head loss, electrical potential, and transportation flow each arrive, independently and for different physical reasons, at an equation of Laplace or Poisson type governing a scalar potential over the infrastructure graph. The electrical potential equation and the continuum limit of the multi-commodity conservation law both reduce, under steady-state assumptions, to the graph Laplacian acting on nodal quantities, the discrete, network-level specialization of the same operator introduced earlier in its continuum, angular form. The two are not merely analogous. Under a sufficiently fine node placement, the graph Laplacian of the Delaunay adjacency is expected to converge to the continuum Laplace--Beltrami operator on \(\Sphere_R\): this is a standard result in discrete differential geometry, established for point-cloud and mesh Laplacians under suitable regularity and sampling-density conditions~\cite{belkinniyogi2008}, not a claim this book proves for the specific case of Delaunay adjacency on a shell. Granting that convergence, the electrical and hydraulic potential equations of the blueprint's engineering chapters are discretizations of \(\Delta_{\Sphere_R}\) in the fine-mesh limit, not a separate operator borrowed from circuit theory. This is the concrete case promised earlier: an operator stated once, in general form, reappearing without modification wherever the shell's angular incompatibility needs to be measured, whether the field in question is a scalar potential, a service assignment, or a distinguishability hierarchy.
+
+\section{Summary: The Empirical Case}
+
+Every construction reviewed above, the reference sphere, the orthodromic arrangement, the Voronoi and Delaunay duals, the curvature defect, the corridor's internal allocation, the diffusion equations governing its subsystems, was developed in the original blueprint without appeal to the radial--angular vocabulary of this monograph. What has been shown here is that the vocabulary was already latent in the material: fixing the planetary radius is precisely the operation that turns the general three-dimensional theory developed earlier into the purely angular theory the blueprint actually uses, and the blueprint's hardest topological result, the fixed twelve-unit curvature defect, is a rigorous instance of a claim made only heuristically before, that a shell's angular incompatibility has an irreducible component no repair process can eliminate. What follows asks what happens when many such shells, or many such nodes, are driven toward mutual coherence, when the angular incompatibility shown here to be partly unavoidable is nonetheless suppressed as far as it can go.
+
+
+% ============================================================
+% CHAPTER 10 — Synchronization as a Geometric Process
+% Part IV of "Geometry as Computational Infrastructure"
+% Assumes the preamble, macros, and theorem/definition/principle/
+% specification/derivation/protocol environments shared with the
+% Orthodromic Infrastructure Blueprint.
+% ============================================================
+
+\chapter{Synchronization as a Geometric Process}
+
+\section{From Irreducible Defect to Suppressed Variation}
+
+The previous chapter closed on a deliberately unresolved tension. The curvature-defect result showed that a closed shell carries an irreducible quantity of angular incompatibility, twelve units, that no redistribution can remove. What follows asks the complementary question: given that some incompatibility cannot be eliminated, how much of the remainder can be suppressed, and what does the suppression look like when it is expressed in the radial--angular vocabulary this book has used throughout?
+
+The answer developed here is that synchronization, wherever it appears, is the same angular operation described at different scales and in different physical substrates: the progressive attenuation of high-order angular variation in favor of a small number of coherent, low-order modes, driven by exactly the operator introduced earlier as this book's central primitive. What follows surveys that operation across four settings, RSVP field dynamics, the Ising model, biological coordination, and distributed computation, and is explicit throughout about the difference between a structural analogy and an identity claim.
+
+\begin{principle}{Analogy, Not Identity}
+The systems reviewed here are not instances of one underlying mechanism. A Kuramoto oscillator array, a spin lattice, a population of cells, and a distributed protocol are governed by different equations of motion, different physical laws, and, in the biological and distributed cases, different notions of what counts as a state at all. What they share is a common mathematical signature: a monotone suppression of high-frequency angular structure, measurable by the same class of operator in every case. The claim here is about the signature, not about the substrate. Treating the analogy as an identity claim, asserting that a spin lattice literally is a distributed protocol, would repeat exactly the flattening error warned against earlier for boundaries, applied now to dynamics instead of geometry.
+\end{principle}
+
+\section{The General Signature}
+
+Let a field or state variable be expanded, on a fixed-radius shell \(\Sphere_R\), in the spherical harmonic basis introduced earlier,
+\begin{equation}
+f(\theta,\varphi,t) = \sum_{\ell=0}^{\infty}\sum_{m=-\ell}^{\ell} a_{\ell m}(t)\, Y_{\ell m}(\theta,\varphi),
+\end{equation}
+where \(\ell\) indexes angular frequency: \(\ell=0\) is the uniform mode, and increasing \(\ell\) indexes progressively finer angular structure. Recall that the Laplace--Beltrami operator acts diagonally on this basis,
+\begin{equation}
+\Delta_{\Sphere_R}\, Y_{\ell m} = -\frac{\ell(\ell+1)}{R^2}\, Y_{\ell m},
+\end{equation}
+so that the operator penalizes high-\(\ell\) modes more heavily than low-\(\ell\) modes, in direct proportion to \(\ell(\ell+1)\).
+
+\begin{definition}{Synchronization as Spectral Suppression}
+A dynamical process on \(\Sphere_R\) is synchronizing, in the sense used here, when its evolution monotonically decreases the relative weight carried by high-\(\ell\) coefficients \(a_{\ell m}(t)\) in favor of low-\(\ell\) coefficients, for \(\ell\) above some coherence scale set by the dynamics. A fully synchronized state is one in which only the \(\ell=0\) mode, or a small finite set of low-\(\ell\) modes, carries appreciable weight.
+\end{definition}
+
+Under any linear diffusive dynamics of the form \(\partial_t f = D\,\Delta_{\Sphere_R} f\), each mode decays as \(a_{\ell m}(t)=a_{\ell m}(0)\exp(-D\ell(\ell+1)t/R^2)\): high-\(\ell\) modes decay strictly faster than low-\(\ell\) modes, and the field converges toward its \(\ell=0\) average. This is the same operator, and the same mechanism, identified earlier as the mismatch detector underlying repair, and the same one shown underlying the electrical and hydraulic potential equations of the orthodromic blueprint. Synchronization, on this reading, is not a new primitive requiring separate machinery; it is what repeated, sustained repair looks like once it is tracked over time rather than evaluated at a single instant.
+
+\section{RSVP: Coherence in the Entropy Field}
+
+In RSVP, the entropy field \(S\) and the scalar field \(\Phi\) both admit the radial--angular decomposition established earlier. A state in which the angular part of \(S\) carries substantial high-\(\ell\) structure is one in which local regions of the shell disagree sharply with their neighbors about the field's value; this is precisely the condition flagged earlier as a candidate for repair. Synchronization in RSVP is the case in which repair dynamics are sustained rather than episodic: rather than smoothing an isolated mismatch and returning to a quiescent state, the field is driven, continuously, toward the low-\(\ell\) end of its own spectrum. Where repair was treated earlier as a local, event-level operation, synchronization is its long-run, aggregate behavior.
+
+\begin{remark}[Admissibility Under Sustained Coherence]
+A caution follows directly from the admissibility typology introduced earlier. Suppressing high-\(\ell\) angular variation is not cost-free: it is, in effect, the RSVP-style exclusion of the trajectories that would have preserved that variation, applied continuously rather than as a single discrete refusal. A fully synchronized field is one whose distinguishability has been substantially reduced along the angular direction. Whether that reduction is desirable is a separate question from whether it occurs; a system driven to \(\ell=0\) coherence has traded angular distinguishing power for global agreement, and the coding-deficit machinery introduced earlier applies here without modification: a coherent field is a short description of the shell, and its shortness is not on its own evidence that nothing of consequence was lost.
+\end{remark}
+
+\section{The Ising Model: Synchronization Without a Continuum}
+
+The Ising model offers the same signature in a setting with no continuum field and no manifold to expand a harmonic series on. Spins \(\sigma_i \in \{-1,+1\}\) sit on a lattice, coupled by an energy functional
+\begin{equation}
+E(\sigma) = -\sum_{\langle i,j\rangle} J_{ij}\,\sigma_i \sigma_j,
+\end{equation}
+and at low temperature the system is driven toward low-energy configurations in which neighboring spins agree. The graph Laplacian of the coupling network, introduced earlier as the discrete specialization of \(\Delta_{\Sphere_R}\), governs exactly this tendency: writing the configuration's disagreement energy in terms of the graph Laplacian \(L\) recovers, for ferromagnetic coupling, an expression minimized precisely when \(\sigma\) is smooth with respect to \(L\)'s low eigenmodes, the discrete analogue of low-\(\ell\) dominance. High-frequency configurations, in which \(\sigma\) changes sign between every pair of neighbors, correspond to the highest eigenmodes of \(L\) and carry the greatest energetic penalty.
+
+The Ising case is useful precisely because it has no radius to fix and no shell to restrict to: it demonstrates that the spectral signature of synchronization is a property of the graph Laplacian as such, not an artifact of the continuum spherical construction used to introduce it. The spherical case treated earlier is the version of this signature obtained when the underlying graph is replaced by its continuum limit on \(\Sphere_R\); the Ising case is the version obtained when it is not.
+
+\section{Biological Coordination}
+
+Multicellular synchronization, whether in bioelectric pattern formation of the kind discussed earlier in connection with Levin's work, in neural population coherence, or in collective cell migration, exhibits the same qualitative signature: local units initially update somewhat independently, and coordinated behavior emerges as high-frequency disagreement between neighboring units is suppressed in favor of large-scale, low-frequency coherent activity. The Kuramoto model~\cite{kuramoto1975,strogatz2000}, in which oscillator phases \(\phi_i(t)\) evolve as
+\begin{equation}
+\dot\phi_i = \omega_i + \frac{K}{N}\sum_{j=1}^N \sin(\phi_j - \phi_i),
+\end{equation}
+is the canonical instance: for coupling strength \(K\) above a critical threshold, the population's phase distribution collapses from a broad, high-entropy spread toward a narrow, low-\(\ell\)-like cluster, and the same graph-Laplacian linearization used for the Ising model governs the model's behavior near that transition.
+
+\begin{remark}[Where the Analogy Must Stop]
+The Levin-style boundary discussed earlier, a bioelectric shell defined by a stored target morphology rather than a present-tense screen, cautions against pushing this analogy further than it will bear. Bioelectric synchronization pursues a specific, biologically meaningful target shape; an RSVP field or a spin lattice being driven toward \(\ell=0\) has no comparable notion of a preferred final pattern beyond uniformity itself. The shared spectral signature says that both processes suppress high-frequency disagreement; it says nothing about why either process is doing so, and the respective boundary typologies discussed earlier exist specifically to keep that distinction visible.
+\end{remark}
+
+\section{Distributed Computation}
+
+Consensus protocols in distributed computing are the setting in which the graph-Laplacian signature is most explicitly engineered rather than merely observed~\cite{olfatisaber2004}. A standard linear consensus update,
+\begin{equation}
+x_i(t+1) = x_i(t) - \epsilon \sum_{j} L_{ij}\, x_j(t),
+\end{equation}
+is, by construction, gradient descent on the Laplacian quadratic form, and its convergence rate is governed by the second-smallest eigenvalue of \(L\), the spectral gap already introduced in the orthodromic blueprint's discussion of network connectivity. Distributed synchronization is therefore the case in which the mechanism traced above through fields, spins, and biological populations is adopted deliberately as an engineering tool, with the graph topology chosen specifically to control how quickly high-frequency disagreement among nodes decays.
+
+\section{Summary: One Operator, Four Substrates}
+
+The four cases surveyed here, RSVP's entropy field, the Ising lattice, biological oscillator populations, and distributed consensus, are governed by different physics and, in the biological case, by processes pursuing an explicit target rather than mere uniformity. What they share is not a common cause but a common operator: in each case, the dynamics can be written, exactly or in a suitable linearization, as decay driven by a Laplacian, continuum or discrete, and in each case the observable signature of synchronization is the same, a shift of weight from high-order to low-order angular or spectral structure. This is the concrete payoff of introducing the Laplacian once, in general form, before any of its applications: a single operator, tracked across four substrates that share almost nothing else, produces the same qualitative story in each. What follows turns from what the operator does to the question standing behind every occurrence of it in this book: relative to what center is any of this angular structure being measured in the first place.
+
+
+\part{Generalization and Philosophy}
+
+% ============================================================
+% CHAPTER 11 — Origins as Computational Indices
+% Part V of "Geometry as Computational Infrastructure"
+% Assumes the preamble, macros, and theorem/definition/principle/
+% specification/derivation/protocol environments shared with the
+% Orthodromic Infrastructure Blueprint.
+% ============================================================
+
+\chapter{Origins as Computational Indices}
+
+\section{A Question Deferred From the Start}
+
+It was established at the outset that a coordinate chart is an interface, not a commitment: the labels it assigns are facts about the chart as much as about the point being labeled. That argument was deliberately silent about one specific piece of structure every chart in this book has used without comment: an origin, the point every subsequent radial and angular measurement is taken relative to. The reference sphere's center was earlier called \enquote{an observer-relative interface made concrete} without pausing to justify the phrase. What follows is the justification.
+
+\section{The Origin Is Not Selected by the Mathematics}
+
+It was shown earlier that a symmetry group selects, among coordinate charts, the one maximally adapted to it: rotational symmetry about a point selects the spherical chart, uniquely, among all charts satisfying the injectivity requirement introduced at the outset. It is tempting to read this result as also selecting the point itself, the center about which the sphere is built. It does not.
+
+\begin{principle}{Symmetry Selects a Chart, Not a Center}
+Given a group \(G\) of rotations about a point \(c\), the earlier adaptedness argument identifies the spherical chart centered at \(c\) as the unique maximally adapted chart. It says nothing about why \(c\), rather than some other point, is the one about which the rotations in question act. If the physical or computational situation supplies a reason to prefer \(c\) (a center of mass, a fixed point of some other constraint, a node singled out by the task), that reason lies outside the coordinate theory developed earlier entirely. The mathematics optimizes the chart once a center is given; it never supplies the center.
+\end{principle}
+
+This is easy to overlook precisely because, in the running example of this book, a center often is available for other reasons. A planet has a well-defined center of mass, and the reference sphere discussed elsewhere in this book is built about it; the choice there is not arbitrary in the sense of being unmotivated, only arbitrary in the narrower and more important sense that the coordinate mathematics developed earlier played no role in motivating it. The physics of mass distribution supplied the center; geometry supplied only the chart that followed once the center was fixed.
+
+\begin{example}[When No Center Is Supplied]
+Not every application in this book has the planet's good fortune. Spherepop worlds, discussed elsewhere in this book, have a radial coordinate, the accumulated commitment weight \(r(t)=|\Omega_0|-|\Omega_t|\), but no analogue of a center of mass singles out where the corresponding \enquote{zero} should sit: it is fixed by convention, at the world's initial option space \(\Omega_0\), because that is the natural bookkeeping point for the task of tracking commitment, not because some deeper fact about possibility space requires it. A different bookkeeping convention, measuring commitment relative to some intermediate world state instead, would produce a different radial coordinate for the same history, related to the first by a constant shift, and nothing in that formalism adjudicates between them. The origin is wherever the accounting starts.
+\end{example}
+
+\section{Every Boundary Type Presupposes One}
+
+Three kinds of boundary were distinguished earlier, evaluated on three different temporal axes, and each of the three, on inspection, presupposes an origin choice of its own, though none of the three treats that choice as part of its formal content.
+
+A synchronic screen is defined by a partition of a system into internal, external, and blanket states. That partition is not derived from the system's dynamics; it is imposed by whoever is modeling the system, and a different choice of partition, drawing the line between internal and external elsewhere, produces a different blanket screening a different set of influences. The origin, here, is the choice of what counts as \enquote{inside.}
+
+A stored-target boundary is defined relative to a morphology the system has not yet reached. Which morphology counts as the relevant target, out of every configuration the system might in principle be evaluated against, is again not supplied by the system's present state; it is supplied by whichever developmental or computational process is doing the pursuing. The origin, here, is the choice of which future state is the target.
+
+A diachronic exclusion is defined relative to an accumulated history of what has been ruled out. A history is always a history relative to some starting point, some moment before which nothing is counted as having yet been excluded. The origin, here, is the choice of when the record begins.
+
+\begin{remark}[The Pattern]
+In each of the three cases, the boundary itself is a well-defined mathematical object once its origin, its partition, its target, or its starting point, has been fixed. In none of the three cases does the boundary's own machinery fix that choice. This is the general form of the claim this chapter is making: origins are not derived, anywhere in this book, from the structure they organize. They are supplied, by an observer, a task, or a modeling decision, and the structure is then built relative to what was supplied.
+\end{remark}
+
+\section{Task-Relative, Not Arbitrary}
+
+None of this should be mistaken for the claim that origins do not matter or that any choice is as good as any other for a given purpose. The earlier optimization framing survives fully intact once an origin has been fixed: given a center, some charts are better adapted to a given symmetry than others, and exactly which was proved earlier. What this discussion adds is that the prior step, fixing the center in the first place, is not itself an optimization the coordinate mathematics performs. It is an input supplied from outside the geometry, by whatever task the geometry has been recruited to serve.
+
+\begin{definition}{Task-Relative Origin}
+A choice of origin is \emph{task-relative} if its justification refers essentially to the computation, observation, or process for which the coordinate system is being built, rather than to a property of the coordinate system considered on its own. A center of mass, a partition into system and environment, a target morphology, and a bookkeeping start time are all task-relative origins in this sense: each is the correct choice for some specific purpose, and each would be a different, equally correct choice under a different purpose.
+\end{definition}
+
+This is not relativism about geometry. The geodesics, curvature, and distinguishability structure that follow, once an origin and a symmetry are fixed, are exactly as objective and exactly as provable as every theorem made earlier in this book. What is task-relative is only the choice of where to stand before any of that structure is computed, and treating that choice as though it were forced by the mathematics, rather than supplied to it, is the specific error this discussion has been concerned to head off.
+
+\section{Summary}
+
+An origin is never selected by the coordinate mathematics that is subsequently built around it. The earlier optimization argument identifies the best chart for a given symmetry and a given center; it does not identify the center. Every boundary type discussed earlier presupposes an origin of its own, a partition, a target, or a starting point, that its formal machinery takes as given rather than derives. None of this undermines the objectivity of what follows from a fixed origin; it only locates, precisely, the one step in the entire construction that is supplied by a task rather than proven by a theorem. What follows next asks what happens when a single task requires more than one origin, or more than one chart, at once.
+
+
+% ============================================================
+% CHAPTER 12 — Computational Atlases
+% Part V of "Geometry as Computational Infrastructure"
+% Assumes the preamble, macros, and theorem/definition/principle/
+% specification/derivation/protocol environments shared with the
+% Orthodromic Infrastructure Blueprint.
+% ============================================================
+
+\chapter{Computational Atlases}
+
+\section{When One Chart Is Not Enough}
+
+It was asked earlier which single chart is best adapted to a given symmetry group, and answered decisively: Cartesian coordinates for translation, spherical coordinates for rotation about a point, cylindrical coordinates for the mixed symmetry of an axis. What was left open there is what to do when a single task involves more than one of these symmetries at once, in different measure at different moments. This chapter shows that the question is not merely open but, in a precise sense, unanswerable by any single chart, and develops the natural response: a family of charts, each adapted to a different part of the task, together with a disciplined way of moving between them.
+
+\section{No Chart Serves Two Masters}
+
+\begin{theorem}[No Universal Adaptation]
+Let \(G_1\) be the group of translations of \(\R^3\) and \(G_2\) the group of rotations about a fixed point \(c\). No coordinate chart on \(\R^3\setminus\{c\}\) is simultaneously maximally adapted, in the sense of the earlier adaptedness criterion, to both \(G_1\) and \(G_2\).
+\end{theorem}
+
+\begin{proof}
+Suppose such a chart \(\varphi\) existed. Maximal adaptation to \(G_2\), by the earlier rotation-adaptedness proposition and its proof, requires that some coordinate be left invariant by every rotation about \(c\); the only quantity invariant under the full rotation group \(SO(3)\) about \(c\) is distance from \(c\), so any chart maximally adapted to \(G_2\) must carry a radial coordinate \(r=\|x-c\|\) as one of its coordinates, exactly as in the spherical chart. But \(r\) is not invariant under a nontrivial translation: for \(a\neq 0\), \(\|(x+a)-c\|\neq\|x-c\|\) in general, so translation does not act on \(r\) by the simple, uniform addition identified earlier as the signature of translation-adaptedness. A chart carrying \(r\) as a coordinate is therefore not maximally translation-adapted, and by symmetry of the argument, no chart lacking such a coordinate can be maximally rotation-adapted. No chart satisfies both conditions.
+\end{proof}
+
+\begin{remark}[The Theorem Is Not a Defect]
+This result should not be read as a shortcoming of coordinate geometry that a cleverer chart might eventually repair. It is a structural fact about the two groups themselves: translations have no fixed points, while rotations about \(c\) fix exactly \(c\) and preserve distance from it, and no single coordinate can simultaneously behave like an unconstrained additive quantity and like an invariant of a rotation centered somewhere translation itself is free to move away from. Whenever a task genuinely requires both symmetries, no amount of ingenuity in chart design will produce a single system serving both without residue.
+\end{remark}
+
+\section{Atlases}
+
+The response to Theorem~12.1, when it is understood as a structural fact rather than a solvable inconvenience, is not to search harder for a single chart but to use more than one and to specify how they relate. This is the ordinary language of manifold theory~\cite{lee2012}, adopted here without modification; the contribution here is not the notion of an atlas itself but the reading of Theorem~12.1 as forcing an atlas's use even in settings, such as Spherepop's collapse operators discussed elsewhere in this book, that carry no manifold structure in the usual sense.
+
+\begin{definition}{Atlas}
+An \emph{atlas} on a space \(X\) is a collection of charts \(\{(U_i,\varphi_i)\}_{i\in I}\), with each \(U_i\subseteq X\) and \(\varphi_i:U_i\to\R^n\) injective, such that \(\bigcup_i U_i = X\). Where two charts overlap, \(U_i\cap U_j\neq\varnothing\), the \emph{transition map} \(\varphi_j\circ\varphi_i^{-1}\), defined on \(\varphi_i(U_i\cap U_j)\), converts a point's \(\varphi_i\)-coordinates into its \(\varphi_j\)-coordinates.
+\end{definition}
+
+\begin{definition}{Admissible Atlas Relative to a Task Family}
+Let \(T\) be a family of computational tasks, each associated with a symmetry group acting on some region of \(X\). An atlas is \emph{admissible} relative to \(T\) if, for every task \(t\in T\), some chart in the atlas is maximally adapted, in the earlier sense of adaptedness, to \(t\)'s associated group on the region where \(t\) is performed.
+\end{definition}
+
+An admissible atlas is the formal answer to the situation Theorem~12.1 shows cannot be avoided by a single chart: rather than demanding one coordinate system serve every task in \(T\), an admissible atlas guarantees only that, for each task individually, some chart in the collection is the right one, and supplies the transition maps needed to move between charts as the task in hand changes.
+
+\section{An Instance Already Seen}
+
+\begin{example}[The Two Radii, Reread as an Atlas]
+The planetary radius \(R\) was distinguished elsewhere in this book, fixed by the reference sphere and governing which great circles and Voronoi cells are available, from a corridor's local cross-sectional radius, a design variable governing allocation once the corridor's angular position on \(\Sphere_R\) is already settled. That distinction is, in the vocabulary developed here, an atlas with exactly two charts. The spherical chart centered at the planetary center is maximally adapted to the rotational symmetry relevant to routing, service assignment, and the curvature-defect analysis discussed there; a locally Cartesian or cylindrical chart, centered on the corridor's own axis, is maximally adapted to the translational and axial symmetry relevant to what commodity occupies which part of the corridor's cross-section. Theorem~12.1 explains, retroactively, why both were needed: routing is a rotation-dominated task, cross-sectional allocation is a translation-and-axis-dominated task, and no single chart, spherical or otherwise, could have served both without the confusion the \enquote{Two Radii, Not One} principle was written specifically to prevent.
+\end{example}
+
+\begin{remark}[Collapse Operators as an Atlas on History Space]
+Spherepop's family of collapse operators, and their reading elsewhere in this book as projections \(\Pi_q\) with their own reconstruction defect, exhibits the same structure at one further remove. Each collapse operator is a chart on the space of histories, adapted to preserving a different invariant, terminal value, evaluation order, admissibility profile, full provenance, and the axiom of contextual equivalence, that semantic identity is always relative to a chosen collapse, is exactly the admissibility-relative-to-a-task-family condition defined above, stated for a domain with no spatial structure at all. An atlas, in the sense developed here, is not confined to charts on physical or planetary space; it is the general pattern of which this book's recurring sphere is one instance among several.
+\end{remark}
+
+\section{Transitions Are Where Admissibility Lives}
+
+A collection of charts, without a well-defined way to move between them, is not yet an atlas in any useful sense; it is only a pile of unrelated descriptions. The discipline an atlas adds is precisely in its transition maps, and the question of whether a given transition is well behaved, defined everywhere it is needed, invertible, free of the coordinate artifacts warned against at the outset, is where the real work of using more than one chart lies.
+
+\begin{principle}{The Transition as the Locus of Care}
+Moving a computation from one chart in an atlas to another is not a bookkeeping formality to be handled automatically. It is the point at which a result obtained under one adaptedness assumption is carried into a region governed by a different one, and the earlier diagnostic, that a genuine feature of the underlying space must survive a change of chart, applies with full force exactly here. A quantity that fails to transition cleanly between two charts in an admissible atlas has not revealed a fact about the space; it has revealed that the transition map was not doing the job an atlas requires of it, and the fix belongs to the atlas's construction, not to the space being charted.
+\end{principle}
+
+\section{Summary}
+
+No single coordinate system can be maximally adapted to two symmetry groups that do not share the relevant invariants, and this is a structural fact, proved in Theorem~12.1 for the simplest and most common case of translation against rotation, not a limitation to be engineered around. The response already implicit in the earlier handling of planetary and cross-sectional radius, and in Spherepop's family of collapse operators, is an atlas: a collection of charts, each admissible for the tasks it is built for, linked by transition maps whose good behavior is itself a nontrivial condition worth stating and checking. It was shown earlier that no origin is selected by the mathematics alone; this discussion has shown that, still more generally, no single chart is selected by the mathematics alone whenever a task's demands are themselves plural. What follows draws these threads together into a single closing statement of what this book has actually been arguing.
+
+
+% ============================================================
+% CHAPTER 13 — Conclusion: Geometry as Computational Infrastructure
+% Part V of "Geometry as Computational Infrastructure"
+% Assumes the preamble, macros, and theorem/definition/principle/
+% specification/derivation/protocol environments shared with the
+% Orthodromic Infrastructure Blueprint.
+% ============================================================
+
+\chapter{Conclusion: Geometry as Computational Infrastructure}
+
+\section{The Question This Book Opened With}
+
+This book opened with a question almost nobody asks: does a point on a circle have coordinates? The answer defended at the outset was that it does not, that coordinates are supplied by a chart rather than possessed by a point, and that a chart is an interface between an observer and a space rather than a claim about what the space fundamentally is. What follows restates that answer with the full weight of everything built on top of it, rather than as a bare assertion asking to be taken on faith.
+
+Coordinate systems actively determine which computations are simple. That was proved rather than merely asserted: Cartesian coordinates make translation simple by making it additive, spherical coordinates make rotation simple by making it a shift of a single angle while leaving distance untouched, and no chart can do both at once (Theorem~12.1). Coordinate systems determine which structures are visible. The coordinate singularity at the poles of the standard spherical chart is a failure of injectivity that belongs entirely to the chart and vanishes under a better one; the twelve-unit curvature defect of a spherical triangulation is the reverse, a structure that survives every choice of chart because it is a fact about the sphere's topology rather than about any particular labeling of it. Coordinate systems determine which repairs are local. The radial--angular split of the Laplacian, applied to repair dynamics, made precise what \enquote{local} means for a repair process: local to a shell, local within a shell, or some combination the split lets an analyst tell apart rather than conflate. Coordinate systems determine which synchronizations are natural. Whatever the physical substrate, an RSVP field, a spin lattice, an oscillator population, or a distributed protocol, synchronization is legible as the same spectral phenomenon only once the angular decomposition of that operator is available to describe it in. And coordinate systems determine which admissible transformations are expressible: an atlas exists because some transformations, tracked faithfully, require more than one chart to express without distortion.
+
+\section{What the July Trilogy Turned Out to Be}
+
+Three essays entered this book as source material for specific arguments: \emph{Boundaries Are Computational Objects}~\cite{boundaries} for the boundary typology, \emph{The Compression Fallacy}~\cite{compression-fallacy} for the chart-selection optimization argument and the caution about coding deficit, \emph{Restoration Before Explanation}~\cite{restoration} for the epistemic caveat about repair. Read individually, each contributed a specific tool to a specific place. Read together, from the vantage of a finished book rather than an outline, they turn out to have been supplying three orthogonal axes along which any chart, anywhere in this monograph, can be evaluated.
+
+\emph{Geometry} determines \textbf{where} computation is localized. This is the content of the boundary typology developed early in this book: a synchronic screen localizes computation at a present-tense partition, a stored-target boundary localizes it at a pursued future configuration, a diachronic exclusion localizes it in an accumulated historical record. Three different answers to where, none reducible to the others, and reading a corridor, a Voronoi cell, and a hard optimization constraint as three different boundary types made this axis concrete in a single planetary example.
+
+\emph{Representation} determines \textbf{what distinctions} computation can preserve. This is the content of the ontological triple and the deficit proxy theorem introduced early on: a chart's brevity is never, by itself, evidence of what it has retained. The isometry between categorical distinguishability and the round sphere is this axis's sharpest instance, a case where representation and geometry turned out not merely to be analogous but to be the same mathematical object under a change of coordinates.
+
+\emph{Restoration} determines \textbf{what computation must accomplish}, independent of whether the mechanism accomplishing it is ever made transparent. This is the content of the caveat entered around the radial--angular decomposition of repair: the decomposition is a tool that makes repair tractable, not a claim about repair's true underlying architecture, and a system, biological, computational, or infrastructural, can be reliably restored to function by a mechanism no chart in this book's atlas ever succeeds in making fully legible.
+
+\begin{principle}{The Three Axes, Stated Together}
+Every chart considered in this book can be evaluated along all three axes at once: what it localizes and where, what distinctions it preserves and at what cost, and what it accomplishes regardless of whether its own mechanism is exposed by the evaluation. No argument in this book depended on collapsing these three into one; several depended explicitly on keeping them apart, most visibly the insistence that a corridor, a service cell, and a hard constraint are boundaries of different kinds even though all three sit on the same reference sphere. This is the final, and strongest, sense in which the book's working method, stated first as a discipline for using coordinates correctly, turned out to generalize: not only must a chart be distinguished from what it charts, but the three different things a chart can be doing for a computation must be distinguished from one another as well.
+\end{principle}
+
+\section{What Was Not Claimed}
+
+It is worth being as precise about the limits of this book's argument as about its content. This book has not claimed that spherical symmetry is more fundamental than translational or axial symmetry; each symmetry has its own uniquely adapted chart, and the recurrence of the sphere reflects the prevalence of rotational structure in the specific problems examined, not a metaphysical priority of the sphere over other geometries. It has not claimed that every domain examined, RSVP fields, Spherepop histories, planetary infrastructure, synchronizing populations, is secretly the same system in disguise; the synchronization parallels drawn late in this book were explicitly labeled a structural analogy, not an identity claim. The book makes exactly two identity claims without that qualification: the isometry between categorical distinguishability and the round sphere, and the identification of RSVP's lamphrodyne with this book's own Laplacian, derived independently and found already present in an existing field theory. Both were flagged as such precisely because they are exceptions, mathematically demonstrable in each case, rather than instances of the looser rule that governs every other cross-domain connection this book draws; the synchronization parallels, by contrast, were built and labeled as analogy from the outset, and nothing in this book promotes them to more than that. And it has not claimed that making a system's computation transparent is either necessary or sufficient for that computation to be trustworthy; the restoration caveat entered around repair, and the third axis above, both insist on the opposite, that functional adequacy and architectural transparency are separate achievements, and a reader who has followed this book's arguments about repair and synchronization has been given tools for describing systems whose full mechanism may never be available for inspection at all.
+
+\section{The Working Method, Restated One Last Time}
+
+Identify the symmetry a problem actually has, and let that symmetry select the coordinate system, rather than inheriting one by convention and discovering only afterward which of its features were real. That was this book's working method from early on, and everything since has been an instance of following it: a boundary's type identified before its consequences are reasoned about, a radial and angular component separated before either is analyzed, an origin's task-relativity acknowledged before it is treated as given, an atlas built once a single chart has been shown, by proof rather than by inconvenience, to be insufficient.
+
+Coordinate systems, on the account developed here, are not passive descriptions of space, waiting to be read off a pre-existing geometry. They are computational infrastructure: chosen, not discovered; optimized against a task, not against an abstract notion of correctness; composed into atlases when a single chart cannot serve; and evaluated, always, along the three axes of where computation is localized, what distinctions it preserves, and what it must accomplish regardless of whether it can explain itself. The sphere recurs throughout this book not because it is geometry's true shape, but because rotational symmetry about a point is a genuinely common structural feature of the problems worth having a chart for, and because, in at least the one case this book was able to prove exactly, the sphere is not merely the chart chosen for such problems. It is what the problem's own geometry of distinction, examined closely enough, turns out to be.
+
+
+\appendix
+
+% ============================================================
+% APPENDIX A — RSVP in Brief
+% Referenced from Chapters 5 and 6. Summarizes, without proof
+% beyond a proof sketch, the RSVP apparatus those chapters build
+% on, so a reader unfamiliar with the source monograph can follow
+% Part III without treating it as a prerequisite.
+% ============================================================
+
+\chapter{RSVP in Brief}
+
+\section{Purpose of This Appendix}
+
+Chapters~5 and~6 use RSVP's free-energy functional and its derived quantities as given, citing the source monograph~\cite{holonomic} for results they do not re-derive. This appendix collects those results in one place: the four fields, the functional they minimize, its variational derivatives, and the two theorems (boundedness, dissipation) that make the gradient-flow reading of repair developed elsewhere in this book rigorous rather than merely suggestive. Nothing here is new; the appendix exists so that a reader can follow Part~III without first reading the source monograph in full.
+
+\section{The Four Fields}
+
+RSVP names four fields on a domain \(\Omega\):
+
+\begin{itemize}
+\item \(\Phi\), a scalar field, driven toward one of two preferred values by a double-well potential.
+\item \(\ell\), the lamphron field, whose square \(L=\ell^2\) measures localized, structure-stabilizing concentration.
+\item \(S\), an entropy field, subject to both smoothing (via a gradient penalty) and a source term driving it toward larger values.
+\item \(v\), a vector transport field, carrying kinetic energy and penalized for vorticity.
+\end{itemize}
+
+\section{The Free-Energy Functional}
+
+\begin{definition}[Complete RSVP Free-Energy Functional]
+\begin{multline}
+\mathcal F[\Phi,v,S,\ell] = \int_\Omega \frac{\alpha}{2}|\nabla\Phi|^2 + W(\Phi)\,dx + \int_\Omega \frac{\beta}{2}|\nabla\ell|^2 + U(\ell)\,dx \\
++ \int_\Omega \lambda W(\Phi)\ell^2\,dx + \int_\Omega \frac{\rho}{2}|v|^2 + \frac{\eta}{2}|\nabla\times v|^2\,dx + \int_\Omega \frac{\chi}{2}|\nabla S|^2 - TS\,dx,
+\end{multline}
+where \(W(\Phi)=\tfrac{a}{2}\Phi^2+\tfrac{b}{4}\Phi^4\) with \(a<0<b\) is a double-well potential driving \(\Phi\) toward \(\pm\Phi_0\), \(U(\ell)=\tfrac{c}{4}\ell^4\) confines the lamphron amplitude, and \(\lambda W(\Phi)\ell^2\) couples the scalar and lamphron sectors so that lamphron concentrates where \(\Phi\) is structured.
+\end{definition}
+
+Each term has a specific role: the two gradient terms penalize rapid spatial variation in \(\Phi\) and \(\ell\) respectively; the two potential terms shape each field's preferred values; the coupling term links the scalar and lamphron sectors; the kinetic and vorticity terms govern the transport field, with vorticity specifically penalizing rotational flow; and the entropy sector balances a smoothing gradient penalty against a source term driving \(S\) toward larger values at rate \(T\).
+
+\begin{theorem}[Functional Boundedness]
+Assume \(\alpha,\beta,\chi,\lambda\geq 0\) and that each of the three potential contributions, \(W(\Phi)\), \(U(\ell)\), and the entropy sector, is bounded below by \(-C\) for some finite \(C\geq 0\). Then \(\mathcal F[\Phi,v,S,\ell]\geq -3C|\Omega|\). In the stronger special case \(W(\Phi)\geq 0\) and \(U(\ell)\geq 0\) identically, together with \(T\leq 0\) or \(S\) bounded above, this sharpens to \(\mathcal F\geq 0\). Consequently, gradient-flow solutions satisfy \(\mathcal F(t)\geq -3C|\Omega|\) for all \(t\geq 0\): free-energy descent has a floor and cannot diverge to \(-\infty\).
+\end{theorem}
+
+\section{Variational Derivatives and the Gradient-Flow System}
+
+\begin{theorem}[Complete Variational Derivatives]
+Under periodic or no-flux boundary conditions,
+\begin{align}
+\frac{\delta\mathcal F}{\delta\Phi} &= -\alpha\Delta\Phi + W'(\Phi) + \lambda W'(\Phi)\ell^2, \\
+\frac{\delta\mathcal F}{\delta\ell} &= -\beta\Delta\ell + U'(\ell) + 2\lambda W(\Phi)\ell, \\
+\frac{\delta\mathcal F}{\delta S} &= -\chi\Delta S - T, \\
+\frac{\delta\mathcal F}{\delta v} &= \rho v + \eta\,\nabla\times(\nabla\times v).
+\end{align}
+\end{theorem}
+
+The associated gradient-flow system, with mobilities \(M_\Phi, M_\ell, M_S, M_v>0\), is
+\begin{align}
+\partial_t\Phi + v\cdot\nabla\Phi &= M_\Phi\bigl[\alpha\Delta\Phi - W'(\Phi) - \lambda W'(\Phi)\ell^2\bigr], \\
+\partial_t\ell + v\cdot\nabla\ell &= M_\ell\bigl[\beta\Delta\ell - U'(\ell) - 2\lambda W(\Phi)\ell\bigr], \\
+\partial_t S + v\cdot\nabla S &= M_S(\chi\Delta S + T) + \sigma, \\
+\rho(\partial_t v + v\cdot\nabla v) &= -M_v\bigl[\rho v + \eta\,\nabla\times(\nabla\times v)\bigr] - \nabla p + \nu\Delta v.
+\end{align}
+
+\begin{theorem}[Energy Dissipation]
+For the gradient-flow system with incompressible transport,
+\[
+\frac{d\mathcal F}{dt} \leq -M_\Phi\int_\Omega \left(\frac{\delta\mathcal F}{\delta\Phi}\right)^2 dx - M_\ell\int_\Omega |\nabla\mu_L|^2\,dx - \chi M_S \int_\Omega (\Delta S)^2\,dx \leq 0.
+\]
+Free energy is monotonically non-increasing along the flow.
+\end{theorem}
+
+\section{Lamphron and Lamphrodyne}
+
+\begin{definition}[Lamphron and Lamphrodyne]
+The \emph{lamphron} is \(L=\ell^2\geq 0\), a measure of localized structure. The \emph{lamphrodyne} is the negative variational derivative of \(\mathcal F\) with respect to the entropy field,
+\[
+D = -\frac{\delta\mathcal F}{\delta S} = \chi\Delta S + T.
+\]
+Both are derived quantities, functionals of the primary fields, not independent fields requiring their own equations of motion.
+\end{definition}
+
+The two are conjugate tendencies of a single relaxation process rather than independent substances: lamphron stabilizes structure, allowing coherent configurations to persist; lamphrodyne relaxes structure, smoothing gradients and reducing differences. Regions where \(L\gg D\) are lamphron-dominated (locally decreasing entropy, coherence-building); regions where \(D\gg L\) are lamphrodyne-dominated (entropy increasing toward its source-driven maximum). This is the derived quantity identified elsewhere in this book as literally an instance of its own Laplacian, \(D=\chi\Delta S+T\), rather than an independently motivated operator that merely resembles one.
+
+\begin{theorem}[Lamphrodyne as Entropy Descent Direction]
+For entropy evolution \(\partial_t S = M_S D\),
+\[
+\left.\frac{d\mathcal F}{dt}\right|_{S\text{-sector}} = -M_S\int_\Omega D^2\,dx \leq 0.
+\]
+Lamphrodyne is precisely the direction in which free-energy descent acts on the entropy sector, not merely a suggestively named quantity.
+\end{theorem}
+
+\section{Status of These Results}
+
+The source monograph is explicit about which of its claims are proven and which remain open: boundedness (Theorem~A.1), the variational derivatives (Theorem~A.2), and dissipation (Theorem~A.3) are proven results forming the variational foundation this book relies on; global existence of solutions to the full coupled system is flagged there as an open conjecture, and this book makes no claim about it one way or the other. Chapters~5 and~6 use only the proven results cited above.
+
+
+% ============================================================
+% APPENDIX B — Spherepop in Brief
+% Referenced from Chapter 7. Summarizes the bubble/scope
+% formalism and the four operators (Pop, Refuse, Bind, Collapse)
+% that chapter draws on, so a reader unfamiliar with the source
+% monographs can follow Chapter 7 without treating them as a
+% prerequisite.
+% ============================================================
+
+\chapter{Spherepop in Brief}
+
+\section{Purpose of This Appendix}
+
+Elsewhere in this book, Spherepop's own conservation law is read as supplying a literal radial coordinate and its four operators as instances of the boundary typology developed earlier, citing two source monographs~\cite{spherepop-geometry,spherepop-histories} for results it does not re-derive. This appendix collects those results in one place: the bubble as a geometric object, the locality principle that governs it, the four operators, and the conservation law that radial reading depends on.
+
+\section{Bubbles as Regions}
+
+Spherepop's primary ontological commitment is that a computation is a trajectory through a structured possibility space, not a value or an expression. A \emph{region} is the geometric object realizing this: a bounded portion of that possibility space defining which transformations are admissible within it.
+
+\begin{definition}[Evaluation Region]
+An \emph{evaluation region}, or \emph{bubble}, is \(B=(U,\partial U,\sigma,\tau)\): an interior \(U\), a boundary \(\partial U\) encoding constraint conditions, a scope context \(\sigma\), and a history \(\tau\).
+\end{definition}
+
+The boundary is not a syntactic marker but, in the source monograph's own terms, a physical limit on the propagation of evaluation effects. Nothing that happens inside a bubble affects a sibling bubble directly; consequences propagate outward only through the single channel of the popped result.
+
+\begin{proposition}[Scope-Locality Correspondence]
+The scope of a bind event applied to bubble \(B\) is precisely \(B\)'s interior \(U\). No operation outside \(B\) can observe the constraint a bind event introduces except through \(B\)'s pop result, and only to the extent that the constraint affected the value the interior's evaluation produced.
+\end{proposition}
+
+A consequence of this locality: sibling bubbles at the same nesting level may be evaluated in either order without changing the result, since neither's admissibility conditions depend on the other's interior. This is Spherepop's analogue of confluence, and it is the property the synchronic-screen boundary type licenses in general.
+
+\section{The Four Operators}
+
+Spherepop's dynamics are generated by four operators on a world \((H,\Omega)\), a history and a remaining option space.
+
+\begin{description}
+\item[Pop,] \(\Pop(x)\): resolves an innermost bubble to a value, removing \(x\) from the option space \(\Omega\) and recording the event in \(H\). This is the sole commitment event; it is the only operator that changes \(\Omega\).
+\item[Refuse,] \(\srefuse{x}\): records that a potential pop was considered and found locally inadmissible, without removing \(x\) from \(\Omega\). A refused option remains formally available; what is recorded is that this particular history rejected it at this point.
+\item[Bind,] \(\sbind{a}{b}\): introduces a constraint coupling two elements of a bubble's interior without consuming either. Its effect is prospective, narrowing which future evaluation steps within the bubble will be admissible.
+\item[Collapse,] \(\scollapse{q}\): maps a history to an observable state under a chosen equivalence relation \(q\), so that \(\gamma_1\sim_q\gamma_2\) exactly when \(\scollapse{q}(\gamma_1)=\scollapse{q}(\gamma_2)\). Distinct collapse operators induce distinct equivalence relations and therefore distinct notions of what counts as the same computation.
+\end{description}
+
+\begin{principle}{Contextual Equivalence}
+Semantic identity in Spherepop is always relative to a chosen collapse operator. There is no context-independent notion of semantic equivalence; the question is never whether two histories are the same, but whether they are the same under a specified collapse.
+\end{principle}
+
+\section{The Conservation Law}
+
+\begin{theorem}[Conservation of Possibility]
+For any legal execution sequence \(W_0\xrightarrow{e_1}W_1\xrightarrow{e_2}\cdots\xrightarrow{e_n}W_n\), where each step is one of the four operators:
+\begin{enumerate}
+\item \(|H_t|\) is strictly monotonically increasing: \(|H_{t+1}|=|H_t|+1\).
+\item \(|\Omega_t|\) is monotonically non-increasing, decreasing only under Pop.
+\item Under pure Pop dynamics, \(|H_t|+|\Omega_t|=|\Omega_0|\) for all \(t\).
+\end{enumerate}
+\end{theorem}
+
+\begin{definition}[Generalized Possibility Functional]
+Let the event weight \(w(\Pop(x))=1\) and \(w=0\) for Refuse, Bind, and Collapse. For a world \((H,\Omega)\), the generalized possibility functional is
+\[
+\Pi(H,\Omega) = |\Omega| + \sum_{e\in H} w(e).
+\]
+\end{definition}
+
+\begin{theorem}[Conservation of the Possibility Functional]
+For any legal execution sequence, \(\Pi(H_t,\Omega_t)=|\Omega_0|\) for all \(t\): at each step, Pop decreases \(|\Omega|\) by exactly the amount it adds to the weighted history, and the other three operators change neither term.
+\end{theorem}
+
+\begin{corollary}[Irreversibility of Execution]
+Since every operator appends exactly one event to \(H\), \(|H_{t+1}|>|H_t|\) for any non-empty step, and no legal execution can return to a prior world state.
+\end{corollary}
+
+This is the result read elsewhere as supplying a literal radial coordinate: \(r(t)=|\Omega_0|-|\Omega_t|=\sum_{e\in H_t}w(e)\) is exactly the accumulated commitment weight, monotone and irreversible by the corollary above, while Refuse, Bind, and Collapse, leaving \(\Omega\) and therefore \(r\) unchanged, are the operators read there as angular.
+
+\section{Status of These Results}
+
+Both theorems above, conservation of possibility and its generalized functional form, are proven directly from the four operators' definitions, by case analysis on which operator is applied at each step; the proofs are short enough that this appendix reproduces their structure rather than only citing them. The scope-locality correspondence and the confluence-like consequence of bubble locality are likewise proven results in the source monographs. Only these proven results are relied upon elsewhere in this book; no conjectural or open material from either source monograph is relied upon.
+
+
+% ============================================================
+% APPENDIX C — Quantifying Adapted Coordinate Systems
+% Referenced from Chapter 2. Promotes the qualitative
+% "adaptedness" principle of Chapter 2 to a genuine variational
+% object, without altering Chapter 2 itself. Deliberately kept
+% separate from the main argument: the book's claims do not
+% depend on any one realization of the functional defined here.
+% ============================================================
+
+\chapter{Quantifying Adapted Coordinate Systems}
+
+\section{What the Qualitative Count Left Open}
+
+Adaptedness was earlier measured, for a chart's relation to a group \(G\), by a single qualitative count: the number of coordinates \(G\) leaves fixed. That count is enough to prove Propositions~2.1 through~2.3 and Corollary~2.4, and the book's main argument never asks it to do more. But the count is visibly a coarse instrument. It cannot distinguish a chart that is somewhat better adapted to \(G\) from one that is much better adapted, and it says nothing about charts adapted to a symmetry that does not split cleanly into fixed and non-fixed coordinates at all. This appendix promotes the qualitative count to a genuine cost functional, examines several ways of making that functional precise, and shows that the book's substantive results do not depend on choosing among them.
+
+\section{The General Cost Functional}
+
+\begin{definition}[Adaptedness Cost]
+Let \(X\) be a space, \(C=(U,\varphi)\) a coordinate chart on \(X\), and \(T\) a computational task defined relative to a group \(G_T\) acting on \(X\). An \emph{adaptedness cost functional} is a map
+\[
+\mathcal A(C,T) \in [0,\infty)
+\]
+measuring the computational or descriptive resource required to carry out \(T\) using the coordinate representation \(\varphi\). Lower cost indicates a better-adapted chart for that task.
+\end{definition}
+
+This definition is deliberately a type rather than a single function: it specifies what an adaptedness cost must do, not which quantity computes it. The earlier count of non-fixed coordinates is one instance, obtained by setting \(\mathcal A_{\mathrm{sym}}(C,T)\) equal to that count. The remainder of this appendix develops three further instances, drawn from material already established elsewhere in this book, and examines how they relate to one another.
+
+\section{Four Realizations}
+
+\begin{definition}[Symmetry-Reduction Realization]
+\[
+\mathcal A_{\mathrm{sym}}(C,T) = n - \bigl|\{\text{coordinates of } C \text{ fixed by every element of } G_T\}\bigr|,
+\]
+where \(n\) is the dimension of \(C\)'s target space. This is exactly the earlier count of non-fixed coordinates (Definition~2.1), restated as a cost to be minimized rather than a quantity to be maximized.
+\end{definition}
+
+\begin{definition}[MDL Realization]
+Let \(x_T\) denote the \(G_T\)-invariant content of task \(T\)'s outcome, an element of the observable space \(O\) of the ontological triple introduced earlier. Then
+\[
+\mathcal A_{\mathrm{MDL}}(C,T) = \delta_T(x_T),
+\]
+the coding deficit of \(x_T\) under the ontology induced by \(C\): the excess length of \(C\)'s description of \(x_T\) over the Kolmogorov-optimal description length, in the sense made precise by \emph{The Compression Fallacy}~\cite{compression-fallacy}.
+\end{definition}
+
+\begin{definition}[Operator-Sparsity Realization]
+Let \(\mathcal O_T\) denote the operator central to task \(T\) (for the tasks this book studies, typically this book's own Laplacian). Then
+\[
+\mathcal A_{\mathrm{sparse}}(C,T) = \bigl|\{\text{nonzero coefficients required to express } \mathcal O_T \text{ in the basis natural to } C\}\bigr|.
+\]
+\end{definition}
+
+\begin{definition}[Information-Geometric Realization]
+Where \(T\) has an associated statistical or observational trajectory from an initial to a final configuration, \(\mathcal A_{\mathrm{IG}}(C,T)\) is the length of that trajectory in the Fisher-Rao metric induced on \(C\), in the sense developed earlier and in~\cite{amari2000}.
+\end{definition}
+
+\section{Two of These Are Not Independent}
+
+The four realizations above are not four unrelated proposals. Two of them are connected by a proposition already implicit in material this book has developed.
+
+\begin{proposition}[Symmetry Reduction Bounds MDL Cost]
+Under the faithful-encoding assumption introduced earlier, \(\mathcal A_{\mathrm{sym}}(C,T)\) is proportional to a lower bound on \(\mathcal A_{\mathrm{MDL}}(C,T)\): a chart that fixes more coordinates under \(G_T\) admits a description of \(x_T\) that is at least as short as one admitted by a chart that fixes fewer.
+\end{proposition}
+
+\begin{proof}[Proof sketch]
+A coordinate left fixed by every element of \(G_T\) contributes no information toward distinguishing configurations related by \(G_T\), since the coordinate's value is constant across the entire orbit; specifying \(x_T\), the \(G_T\)-invariant content of the outcome, therefore requires no bits allocated to that coordinate. A chart with more fixed coordinates has proportionally fewer coordinates that must be encoded to specify \(x_T\), and under faithful encoding each remaining coordinate contributes at least one bit. The bound follows by counting.
+\end{proof}
+
+The other two realizations are not shown here to reduce to the first. \(\mathcal A_{\mathrm{sparse}}\) measures a property of an operator rather than of a description, and \(\mathcal A_{\mathrm{IG}}\) measures a property of a trajectory rather than of either; The diagonalization of \(\Delta_{\Sphere}\) in the spherical-harmonic basis (Theorem~4.1) is what makes \(\mathcal A_{\mathrm{sparse}}\) small for the sphere on rotationally symmetric tasks, and the isometry established earlier is what makes \(\mathcal A_{\mathrm{IG}}\) coincide with ordinary geodesic distance for categorical observable spaces, but neither fact is derived from \(\mathcal A_{\mathrm{sym}}\) or from each other. The four realizations are related in the specific ways this section has stated and no further.
+
+\section{Agreement Without Uniqueness}
+
+\begin{principle}{No Canonical Functional Is Required}
+This book does not adopt any single realization of \(\mathcal A\) as canonical, and its arguments do not require one. What the four realizations above share is that, for every task examined in this book, all four agree on which chart is preferable, even though they would in general assign it different numerical costs. Cartesian coordinates minimize all four for translation-dominated tasks; spherical coordinates minimize all four for rotation-dominated tasks. The qualitative content of the earlier propositions is therefore robust across every precise realization this appendix has considered, and the book's reliance on the qualitative version was not a simplification purchased at the cost of rigor; it was a deliberate choice to state only what is common to every reasonable way of making the claim precise.
+\end{principle}
+
+\section{The Impossibility Result, Reconfirmed}
+
+Theorem~12.1 proved, for \(\mathcal A_{\mathrm{sym}}\) specifically, that no chart minimizes cost for both a translation-dominated and a rotation-dominated task simultaneously. The underlying obstruction, that the only quantity invariant under \(SO(3)\) is not invariant under translation, is algebraic rather than a fact about description length, sparsity, or information geometry specifically, and it constrains every realization considered here in the same way: any chart minimizing \(\mathcal A_{\mathrm{sym}}\), \(\mathcal A_{\mathrm{MDL}}\), \(\mathcal A_{\mathrm{sparse}}\), or \(\mathcal A_{\mathrm{IG}}\) for rotation must carry the radial coordinate that translation disturbs, so no chart can simultaneously minimize any of the four for both groups at once. The atlas construction developed later in this book is therefore not a response to a limitation specific to the coarse count introduced earlier; it is a response to a limitation of coordinate charts as such, visible under every precise cost this appendix has examined.
+
+\section{A Note on Scope}
+
+This appendix has stated four realizations of adaptedness cost and one proposition relating two of them, sufficient to confirm that the earlier qualitative claims survive precise formalization. It has not attempted a general theory of adaptedness functionals: existence and uniqueness conditions, a full account of when different realizations must agree rather than merely happening to agree on the cases examined here, and the relationship of \(\mathcal A_{\mathrm{sparse}}\) and \(\mathcal A_{\mathrm{IG}}\) to each other all remain open. A variational theory of representation along these lines is a substantial undertaking in its own right, better pursued as a standalone treatment than folded further into a book whose central argument does not depend on it.
+
+
+\backmatter
+
+% ============================================================
+% BIBLIOGRAPHY — "Geometry as Computational Infrastructure"
+% Uses \thebibliography rather than BibTeX for standalone
+% portability, consistent with the author's other monographs.
+% Place immediately before \end{document} in the assembled book.
+% ============================================================
+
+\begin{thebibliography}{99}
+
+% ------------------------------------------------------------
+% Primary source monographs and essays this book draws on
+% directly, cited by name throughout (Chapters 2, 3, 5, 6, 7,
+% 8, 9, 13). All are the author's own prior or concurrent work;
+% this book is explicitly a synthesis across them, so citing
+% them is not incidental but structural.
+% ------------------------------------------------------------
+
+\bibitem{holonomic}
+N.~L. Guimond, \emph{Holonomic Space: Field Theory, Mereology, and the Geometry of Admissibility}. Independent Researcher, draft, June 2026.
+
+\bibitem{orthodromic}
+Flyxion, \emph{Orthodromic Infrastructure Blueprint: A Long-Term Architectural Specification for Civil Convergence}. Independent Researcher, 2026.
+
+\bibitem{spherepop-histories}
+Flyxion, \emph{Spherepop: Histories, Continuations, and the Algebra of Reachable Computation}. Independent Researcher, 2026.
+
+\bibitem{spherepop-geometry}
+Flyxion, \emph{Spherepop: Geometry, Cognition, and the Transparency of Computation}. Independent Researcher, 2026.
+
+\bibitem{distinction-geometry}
+Flyxion, \emph{Distinction Geometry: Projection, Reconstruction Defect, and the Interface-Native Metric}. Independent Researcher, 2026.
+
+\bibitem{boundaries}
+Flyxion, \emph{Boundaries Are Computational Objects: Screening, Pursuit, and Refusal as Three Theories of What a Boundary Does}. Independent Researcher, July 2026.
+
+\bibitem{compression-fallacy}
+Flyxion, \emph{The Compression Fallacy: Why Shorter Is Not the Same as Better Understood}. Independent Researcher, July 2026.
+
+\bibitem{restoration}
+Flyxion, \emph{Restoration Before Explanation: Why Systems Can Be Repaired Before They Are Understood}. Independent Researcher, July 2026.
+
+% ------------------------------------------------------------
+% External literature. Cited at one remove: these are the
+% sources \bibitem{boundaries} itself draws on for the Friston
+% and Levin boundary mechanisms formalized in Chapter 3, listed
+% here directly since Chapter 3 names both authors explicitly.
+% ------------------------------------------------------------
+
+\bibitem{friston2019}
+K.~Friston, ``A Free Energy Principle for a Particular Physics,'' \emph{arXiv preprint}, 2019.
+
+\bibitem{kirchhoff2018}
+M.~D. Kirchhoff, T.~Parr, E.~Palacios, K.~Friston, and J.~Kiverstein, ``The Markov Blankets of Life: Autonomy, Active Inference and the Free Energy Principle,'' \emph{Journal of the Royal Society Interface}, vol.~15, no.~138, 2018.
+
+\bibitem{levin2021}
+M.~Levin, ``Bioelectric Signaling: Reprogrammable Circuits Underlying Embryogenesis, Regeneration, and Cancer,'' \emph{Cell}, vol.~184, no.~8, pp.~1971--1989, 2021.
+
+\bibitem{levin2023}
+M.~Levin, ``Bioelectric Networks: The Cognitive Glue Enabling Evolutionary Scaling from Physiology to Mind,'' \emph{Animal Cognition}, vol.~26, pp.~1865--1891, 2023.
+
+% ------------------------------------------------------------
+% Classical and standard literature, cited at the specific
+% points where this book leans on established apparatus
+% (information geometry, harmonic analysis, manifold theory,
+% synchronization, Voronoi geometry, gradient flows) without
+% rederiving it. These situate the book's independent results
+% relative to existing fields rather than presenting the
+% machinery as though it originated here.
+% ------------------------------------------------------------
+
+\bibitem{amari2000}
+S.~Amari and H.~Nagaoka, \emph{Methods of Information Geometry}. American Mathematical Society / Oxford University Press, 2000.
+
+\bibitem{chentsov1982}
+N.~N. Chentsov, \emph{Statistical Decision Rules and Optimal Inference}. American Mathematical Society, 1982.
+
+\bibitem{muller1966}
+C.~Müller, \emph{Spherical Harmonics}. Lecture Notes in Mathematics, vol.~17. Springer, 1966.
+
+\bibitem{lee2012}
+J.~M. Lee, \emph{Introduction to Smooth Manifolds}, 2nd~ed. Springer, 2012.
+
+\bibitem{docarmo1976}
+M.~P. do~Carmo, \emph{Differential Geometry of Curves and Surfaces}. Prentice-Hall, 1976.
+
+\bibitem{kuramoto1975}
+Y.~Kuramoto, ``Self-Entrainment of a Population of Coupled Non-Linear Oscillators,'' in \emph{International Symposium on Mathematical Problems in Theoretical Physics}, Lecture Notes in Physics, vol.~39, pp.~420--422. Springer, 1975.
+
+\bibitem{strogatz2000}
+S.~H. Strogatz, ``From Kuramoto to Crawford: Exploring the Onset of Synchronization in Populations of Coupled Oscillators,'' \emph{Physica D}, vol.~143, no.~1--4, pp.~1--20, 2000.
+
+\bibitem{olfatisaber2004}
+R.~Olfati-Saber and R.~M. Murray, ``Consensus Problems in Networks of Agents with Switching Topology and Time-Delays,'' \emph{IEEE Transactions on Automatic Control}, vol.~49, no.~9, pp.~1520--1533, 2004.
+
+\bibitem{okabe2000}
+A.~Okabe, B.~Boots, K.~Sugihara, and S.~N. Chiu, \emph{Spatial Tessellations: Concepts and Applications of Voronoi Diagrams}, 2nd~ed. Wiley, 2000.
+
+\bibitem{ambrosio2008}
+L.~Ambrosio, N.~Gigli, and G.~Savaré, \emph{Gradient Flows in Metric Spaces and in the Space of Probability Measures}, 2nd~ed. Birkhäuser, 2008.
+
+\bibitem{belkinniyogi2008}
+M.~Belkin and P.~Niyogi, ``Towards a Theoretical Foundation for Laplacian-Based Manifold Methods,'' \emph{Journal of Computer and System Sciences}, vol.~74, no.~8, pp.~1289--1308, 2008.
+
+\end{thebibliography}
+
+\end{document}
