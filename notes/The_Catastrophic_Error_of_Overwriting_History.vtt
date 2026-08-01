@@ -1,0 +1,1319 @@
+WEBVTT
+
+00:00.000 --> 00:08.660
+it is january 23rd 2026 and just yesterday a researcher or maybe a philosopher we don't really
+
+00:08.660 --> 00:16.840
+know who goes by the pseudonym fliction dropped two papers not one but two at the exact same time
+
+00:16.840 --> 00:21.540
+at the exact same time and if you're the kind of person who you know scrolls through pre-print
+
+00:21.540 --> 00:26.020
+servers on a thursday night for fun which let's be honest if you're listening to this show that's
+
+00:26.020 --> 00:30.520
+probably you that's probably you yeah you might have seen these pop up and thought your browser
+
+00:30.520 --> 00:34.480
+was glitching you'd think they came from two completely different people maybe even from
+
+00:34.480 --> 00:39.780
+two different centuries it's a really jarring juxtaposition on the one hand you have something
+
+00:39.780 --> 00:48.080
+that looks like it belongs in a a graduate level computer science textbook oh absolutely yeah the
+
+00:48.080 --> 00:54.820
+first one is called ichphoric synthesis and event historical algebra and i mean it is dense it's
+
+00:54.820 --> 01:00.980
+got appendices on non-euclidean geometry it's throwing around big o notation it's proposing a
+
+01:00.980 --> 01:08.320
+completely new fundamental architecture for how computers should store memory it's pure hardcore
+
+01:08.320 --> 01:14.460
+theory the kind of thing that you know most people would never ever see exactly and then right next to
+
+01:14.460 --> 01:22.780
+it in the upload queue same time stamp is persistence before efficiency and this this is something else
+
+01:22.780 --> 01:29.820
+entirely it's a manifesto it's this sweeping philosophical critique of modern civilization
+
+01:29.820 --> 01:36.280
+that's a warning it is it's about why supply chains are shattering why our institutions feel so brittle
+
+01:36.280 --> 01:42.200
+why we all kind of feel like we're losing our collective minds it reads less like code and more like
+
+01:42.200 --> 01:48.660
+i don't know a sermon from the wilderness a very well argued sermon but yeah a sermon so the mission for
+
+01:48.660 --> 01:53.760
+today's deep dive isn't just to summarize these two papers separately that's i think missing the point
+
+01:53.760 --> 01:59.800
+the real challenge the fun part is to find the invisible thread that connects them because
+
+01:59.800 --> 02:05.700
+fluxian isn't just moonlighting as a philosopher they're making a single unified argument right
+
+02:05.700 --> 02:10.820
+they're arguing that the reason your software crashes the the reason an ai can't count the sides
+
+02:10.820 --> 02:15.000
+of a triangle and the reason our economy feels like it's built on a house of cards
+
+02:15.000 --> 02:22.480
+are all symptoms of the exact same deep structural error and it's an error that's become so fundamental
+
+02:22.480 --> 02:28.200
+to how we think that we don't even see it it's like ah the water for the fish we're swimming in it
+
+02:28.200 --> 02:32.860
+it just feels like reality okay so let's start there let's pose the question to you listening
+
+02:32.860 --> 02:41.000
+why do we treat the current state of things your bank balance a law the location of a package
+
+02:41.000 --> 02:46.740
+as the only truth that matters well at the same time we treat the history of how things got that
+
+02:46.740 --> 02:55.600
+way as basically garbage as disposable data to be thrown away and that right there is the core idea
+
+02:55.600 --> 03:03.280
+connecting both works it's the danger of overwriting that's the word overwriting whether it's a database
+
+03:03.280 --> 03:09.220
+deleting an old record to save a few kilobytes or a supply chain manager getting rid of inefficient
+
+03:09.220 --> 03:13.980
+backup inventory they're optimizing for the immediate you're prioritizing the fast and the
+
+03:13.980 --> 03:19.660
+now over the slow and the persistent and that according to fliction is a recipe for collapse
+
+03:19.660 --> 03:24.120
+so to really get this we have to start with the machine we have to understand the technical argument
+
+03:24.120 --> 03:29.080
+first let's open up that first paper ek fork synthesis right we have to eat our vegetables
+
+03:29.080 --> 03:34.920
+before we get to the uh civilizational critique so the paper immediately goes on the attack it goes
+
+03:34.920 --> 03:40.680
+after the absolute bedrock of modern computing something called mutable state mutable state
+
+03:40.680 --> 03:46.560
+it sounds technical but the concept is actually pretty simple yeah help us unpack it i know mutate
+
+03:46.560 --> 03:54.840
+just means to change exactly so think about almost any program you use every day a word processor
+
+03:54.840 --> 04:01.580
+your contacts app your bank account online they are all built on this idea of variables okay like in
+
+04:01.580 --> 04:09.320
+algebra class x equals five precisely think of a variable as a tiny box in the computer's memory
+
+04:09.320 --> 04:16.800
+with a label on it so you have a box labeled current address and inside that box is the value 123 main
+
+04:16.800 --> 04:22.680
+street now you move you go online you update your profile to 456 oak lane what does the computer do
+
+04:22.680 --> 04:29.960
+it finds that specific physical box in its memory it takes the value 123 main street and it erases it
+
+04:29.960 --> 04:37.000
+it overwrites it with 456 oak lane the old address is just gosh it's gone as far as the system is
+
+04:37.000 --> 04:43.100
+concerned it never existed the state of your address has mutated it's been changed in place and this is
+
+04:43.100 --> 04:48.240
+how everything works almost everything and there's a good historical reason for it back in the you know
+
+04:48.240 --> 04:56.360
+the 70s and 80s memory and storage were astronomically expensive a single megabyte could cost thousands of
+
+04:56.360 --> 05:01.720
+dollars so you couldn't afford to keep a history of every little change you couldn't it was a massive
+
+05:01.720 --> 05:09.080
+waste of a precious resource so the whole paradigm was built around this idea out of keep only the
+
+05:09.080 --> 05:17.780
+most recent most correct value the current state is the only thing that matters optimize for space
+
+05:17.780 --> 05:24.760
+efficiency there's that word again there it is but flixion argues that this design choice which made
+
+05:24.760 --> 05:33.080
+sense in 1975 is now the source of two catastrophic problems in our modern complex systems okay which
+
+05:33.080 --> 05:38.600
+first one the first is what the paper calls loss of provenance provenance like for a piece of art where
+
+05:38.600 --> 05:45.240
+it came from exactly when you look at the value 456 oak lane in that memory box you know what it is
+
+05:45.240 --> 05:51.000
+but you have no idea how it got there you've lost the story i don't know who changed it or when or why
+
+05:51.000 --> 05:57.320
+did you type it in did a customer service rep do it did a buggy software update from another system
+
+05:57.320 --> 06:03.480
+accidentally override it was it a hacker you have no context and without context you can't establish
+
+06:03.480 --> 06:09.240
+trust and you can't debug the system when things go wrong you just have the answer with no way to
+
+06:09.240 --> 06:16.920
+check the work you got it and that leads to the second problem brittleness this is where systems shatter
+
+06:16.920 --> 06:23.400
+imagine you have two different programs or two different people trying to update your address
+
+06:23.400 --> 06:30.840
+at the exact same millisecond ah the classic race condition the classic race condition program a wants
+
+06:30.840 --> 06:38.360
+to change it to oak lane program b wants to change it to pine street in a mutable system they are literally
+
+06:38.360 --> 06:43.720
+racing to write to that one single box in memory one of them will get there a nanosecond later than the
+
+06:43.720 --> 06:48.520
+other and it wins it wins it overwrites the other change the system doesn't even know there was a
+
+06:48.520 --> 06:54.760
+conflict it just silently accepts the last right as the one and only truth the other change is completely
+
+06:54.760 --> 07:00.920
+lost poof gone and this is how you get packages sent to the wrong address or worse medical records
+
+07:00.920 --> 07:07.720
+getting scrambled or financial trades being executed based on stale data it makes the system fragile
+
+07:07.720 --> 07:15.160
+unpredictable and prone to these silent undetectable errors the paper has this great analogy for it
+
+07:15.160 --> 07:21.000
+it says modern computers are like the main character for the movie memento it's a perfect and frankly
+
+07:21.000 --> 07:26.920
+terrifying analogy for anyone who hasn't seen it the main character leonard has a condition where he
+
+07:26.920 --> 07:32.840
+can't form new long-term memories he forgets everything after a few minutes he's living in a permanent
+
+07:32.840 --> 07:38.520
+now exactly so to keep track of reality he has to tattoo important facts onto his body
+
+07:39.080 --> 07:47.640
+fine john g don't believe her lies these tattoos are his mutable state but here's a horrifying part
+
+07:47.640 --> 07:53.880
+he wakes up every morning looks at a tattoo and he has to trust it implicitly he has no memory of
+
+07:53.880 --> 08:00.040
+getting it he doesn't know the context was he lied to right before i got it did he get it right did he
+
+08:00.040 --> 08:05.480
+maybe cross out a previous tattoo that said the opposite he is a slave to the current state with
+
+08:05.480 --> 08:11.560
+no providence that is our software our databases are leonard every time they read a value from the
+
+08:11.560 --> 08:17.720
+disk they are like leonard waking up they have no memory of how that value came to be they are operating
+
+08:17.720 --> 08:25.320
+in a state of constant induced amnesia and we trust these amnesiac systems with i mean the entire global
+
+08:25.320 --> 08:31.880
+economy that's unsettling it is deeply unsettling infliction contrasts this with how biological
+
+08:31.880 --> 08:38.120
+memory works which thankfully is nothing like a computer hard drive right if my brain worked like
+
+08:38.120 --> 08:43.640
+that every time i learned your name i'd forget my own or learning calculus would overwrite your memory
+
+08:43.640 --> 08:51.560
+of how to ride a bike it would be chaotic biology doesn't overwrite the paper calls it an irreversible
+
+08:51.560 --> 08:57.000
+history meaning the old memories are still there somewhere the traces are physically encoded in
+
+08:57.000 --> 09:02.760
+your neural architecture you don't delete the child to become the adult the child is part of the adult
+
+09:02.760 --> 09:09.400
+the memories are layered integrated and that brings us to the very strange word in the title
+
+09:10.440 --> 09:15.480
+ekphory i had looked this one up i thought flixion just made it up because it sounds cool
+
+09:15.480 --> 09:22.520
+but it's a real term it's a real and very specific term from a german biologist named richard seaman
+
+09:22.520 --> 09:30.040
+from way back in the early 1900s and the distinction is critical so in computers we think of memory as
+
+09:30.760 --> 09:37.160
+retrieval yes like going into a library finding the right book on the shelf call number 7a and pulling
+
+09:37.160 --> 09:43.880
+it out the book is static it's exactly as it was when it was put there but ekphory is different ekphory is a
+
+09:43.880 --> 09:51.000
+process of reconstruction seaman's idea was that when you remember something say your childhood bedroom
+
+09:51.000 --> 09:56.120
+you're not playing back a video file from a folder in your brain it doesn't feel like that it feels
+
+09:57.000 --> 10:02.840
+easier it's because you are actively synthesizing that memory in the present moment you're pulling
+
+10:02.840 --> 10:08.120
+together millions of fragmented traces the way the light hit the wall the smell of the old wood the
+
+10:08.120 --> 10:13.400
+feeling of the carpet the emotional tone of that time in your life and you're weaving them together
+
+10:13.400 --> 10:19.320
+into a coherent image so remembering is an act of creation it's an act of synthesis you are
+
+10:19.320 --> 10:25.160
+reconstructing the past to serve the needs of the present and that is what flixion proposes we build
+
+10:25.160 --> 10:32.280
+computers to do okay so that's the diagnosis mutable state is amnesia the solution is this ekphoric
+
+10:32.280 --> 10:38.360
+reconstructive memory how on earth do you build that in silicon the paper lays out a new foundation it
+
+10:38.360 --> 10:45.080
+calls it an event historical substrate and the core rule is incredibly simple but it changes everything
+
+10:45.080 --> 10:51.960
+what's the rule the rule is append only you never change data you never delete data you only ever add
+
+10:51.960 --> 10:58.200
+new information never not even if it's wrong what if i make a typo especially if it's wrong the typo is
+
+10:58.200 --> 11:04.120
+part of the story in this new architecture we stop thinking about storing state we only store events
+
+11:04.120 --> 11:11.320
+an event so like something happened at this specific time exactly an event is an atomic immutable fact
+
+11:11.320 --> 11:20.440
+locked in time at 10.01.32 am user alice typed hello that fact is written to the record it is now there
+
+11:20.440 --> 11:26.120
+forever it cannot be changed okay so the typo is immortalized what happens when i fix it that's just
+
+11:26.120 --> 11:36.280
+two more events at 10.01.35 am user alice press the backspace key a new event is recorded at 10.01.36 am
+
+11:36.280 --> 11:43.400
+user alice type oh another new event so the record doesn't contain the word hello it contains the
+
+11:43.400 --> 11:50.520
+entire narrative of how the word hello came to be mistakes and all you've got it the history is the data
+
+11:50.520 --> 11:57.160
+this sounds huge i mean my hard drive would fill up in five minutes just from writing one email this
+
+11:57.160 --> 12:04.520
+is the first objection everyone has the thing about it storage capacity has been doubling every what 18
+
+12:04.520 --> 12:11.720
+months for 50 years storage is practically free today it's our most abundant resource in computing
+
+12:13.000 --> 12:19.560
+we are still operating under the mental constraints of 1975 when it was our most scarce resource
+
+12:19.560 --> 12:24.200
+we're solving for the wrong problem we're solving for the wrong problem we're trading away truth and
+
+12:24.200 --> 12:30.200
+context and safety just to save a few pennies on disk space we have an abundance okay so we're keeping
+
+12:30.200 --> 12:35.800
+every event but how does the system make sense of it this is where the algebra part comes in right with
+
+12:35.800 --> 12:43.240
+relations yes this is the real meat of the proposal in a normal database a relation is just a line
+
+12:43.240 --> 12:49.400
+it's a pointer this customer id is linked to this order id it's just a dumb link a line connecting
+
+12:49.400 --> 12:55.240
+two dots on a whiteboard right but infliction system a relation is what they call a first
+
+12:55.240 --> 13:02.440
+class entity it's not just a line it's a rich heavy object it has its own properties like what
+
+13:02.440 --> 13:10.680
+well a relation has an author who is making this claim it has a time stamp when was this claim made
+
+13:10.680 --> 13:16.200
+and critically it has a validity interval a validity interval so it knows when it's supposed to be true
+
+13:16.200 --> 13:21.480
+precisely so let's take a medical record in the old mutable world the database has a field
+
+13:21.480 --> 13:27.800
+patient diagnosis flu simple okay in the event historical system you'd have a rich relation
+
+13:27.800 --> 13:34.360
+object that says dr smith asserts a relationship between patient 123 and diagnosis influenza
+
+13:34.360 --> 13:41.880
+this assertion is valid starting from january 22nd at 10 a.m the evidence is lab result hashtag 405
+
+13:41.880 --> 13:48.920
+the confidence level is high wow so the link itself contains its own justification its own provenance
+
+13:48.920 --> 13:53.720
+the provenance is baked right into the structure of the data now here's the magic a week later new
+
+13:53.720 --> 14:00.360
+tests come in dr smith realizes he made a mistake it wasn't the flu it was a rare bacterial infection
+
+14:00.360 --> 14:06.840
+in the old system he just goes in deletes influenza and types in bacterial infection the original diagnosis
+
+14:06.840 --> 14:13.320
+vanishes and if the patient later has an adverse reaction to the flu medication he was given a future
+
+14:13.320 --> 14:19.320
+doctor looking at the record would be completely baffled why was he on this medicine the chart says he
+
+14:19.320 --> 14:26.840
+has a bacterial infection the history is gone and that loss of history creates danger so how does the new
+
+14:26.840 --> 14:34.280
+system handle it dr smith doesn't delete anything he can't instead he creates a new kind of relation
+
+14:34.280 --> 14:39.800
+a meta relation a relation that is about another relation okay my head's starting to spin a little
+
+14:39.800 --> 14:45.960
+bit it's like an editor's note this new meta relation says the relation asserting bacterial infection
+
+14:45.960 --> 14:54.200
+supersedes the relation asserting influenza this supersedence is effective as of january 29th at 3 pm
+
+14:54.200 --> 15:00.680
+ah so the old diagnosis is still there in the database it's just been flagged as outdated it's still there as
+
+15:00.680 --> 15:07.320
+a historical fact the fact is on january 22nd we believe the patient had the flu that is a true
+
+15:07.320 --> 15:13.400
+statement about the past and it's a critical piece of the patient's story you don't erase it you annotate
+
+15:13.400 --> 15:19.640
+it you add a new layer of knowledge this reminds me of how the law is supposed to work you don't just go
+
+15:19.640 --> 15:25.240
+into the original constitution with an eraser and start rubbing things out you can't you add an amendment
+
+15:25.240 --> 15:31.000
+the old text is still there the amendment acts as a meta relation it says from this day forward we
+
+15:31.000 --> 15:38.360
+will interpret that old text in this new way that's a perfect analogy law is an append only system or it's
+
+15:38.360 --> 15:44.920
+meant to be this brings up the big obvious question though right if my database is this enormous ever
+
+15:44.920 --> 15:53.640
+growing pile of events typos mistakes old addresses superseded diagnoses how do i get a simple answer to a
+
+15:53.640 --> 15:59.240
+simple question how do i find the now exactly if i ask the system what is this patient's current
+
+15:59.240 --> 16:05.800
+diagnosis i don't want a 50 page history lesson i want one answer and for that we need the synthesis
+
+16:05.800 --> 16:11.640
+operator in the paper it's represented by the greek letter sigma this is the engine that makes the whole
+
+16:11.640 --> 16:18.120
+thing usable this is the ekvary part the reconstruction this is it sigma is a function you give it two inputs
+
+16:18.120 --> 16:25.880
+the entire massive messy history of all events let's call it dollars and a specific point in time
+
+16:25.880 --> 16:33.080
+that you care about two dollars so now or last tuesday or ten years from now and it gives you back
+
+16:33.080 --> 16:39.400
+a clean view of the world at that moment a present view as the paper calls it it acts like a powerful
+
+16:39.400 --> 16:45.640
+intelligent lens it looks at the entire mountain of historical data and filters it according to a set of
+
+16:45.640 --> 16:53.800
+rules to construct a coherent consistent snapshot for that specific time two dollars what are the
+
+16:53.800 --> 17:00.600
+rules how does it know what to show me and what to hide it runs three main tests the first is simple
+
+17:00.600 --> 17:06.520
+temporal admissibility is this fact even valid at the time i'm asking about the relation for your
+
+17:06.520 --> 17:14.040
+address at 123 main street had a validity interval that ended in 2022 if i'm asking for your address today
+
+17:14.040 --> 17:19.000
+that fact is inadmissible it gets filtered out okay that makes sense it's like a time filter
+
+17:19.000 --> 17:25.080
+the second test is for meta-relational constraints it looks for those superseding relations we talked
+
+17:25.080 --> 17:32.600
+about it sees the relation for influenza but then it also sees the meta relation that says bacterial
+
+17:32.600 --> 17:40.840
+infection superseded it on january 29th if i'm asking for the diagnosis today the meta relation wins the
+
+17:40.840 --> 17:47.160
+old diagnosis gets filtered out of the view so it respects the chain of command the amendments exactly
+
+17:47.160 --> 17:53.560
+but the third one is the most powerful and the most radical departure from traditional computing it's
+
+17:53.560 --> 17:59.800
+contradiction resolution this is the big one because normally if a computer sees a is true
+
+17:59.800 --> 18:08.120
+and a is false in its database at the same time it well it breaks it panics it's a logical paradox it's a
+
+18:08.120 --> 18:14.040
+short circuit the whole foundation of classical logic that computing is built on just collapses
+
+18:14.040 --> 18:18.760
+if you can prove a contradiction you can prove anything and the system becomes useless the blue screen of
+
+18:18.760 --> 18:25.960
+death right but the synthesis operator is designed to handle contradictions gracefully it assumes the
+
+18:25.960 --> 18:34.440
+world is messy and that conflicting data is normal so when it finds two valid competing facts it doesn't
+
+18:34.440 --> 18:41.320
+crash it consults a set of explicit programmable rules to decide which one to prioritize for that
+
+18:41.320 --> 18:46.760
+specific view to a place judge the place judge and you the system designer get to write the law book for
+
+18:46.760 --> 18:53.160
+the judge the rule might be if two temperature sensors disagree trust the one that was more recently
+
+18:53.160 --> 19:00.440
+calibrated or if two editors submit a change trust the one from the senior editor so the conflicting
+
+19:00.440 --> 19:08.120
+data the wrong sensor reading is still saved in the history yes and this is so important it's preserved
+
+19:08.120 --> 19:13.800
+because maybe the recently calibrated sensor was actually faulty by keeping the conflict in the
+
+19:13.800 --> 19:19.720
+historical record you can go back later and rerun the synthesis with a different rule okay let's see
+
+19:19.720 --> 19:24.280
+what the world would have looked like if we trusted the other sensor you can ask what if questions
+
+19:24.280 --> 19:31.160
+about the past you can audit reality this flips the whole idea of correctness on its head in the old
+
+19:31.160 --> 19:37.880
+world correctness means the data stored on the disk is a perfect mirror of reality an impossible standard
+
+19:37.880 --> 19:44.360
+right in the new world correctness isn't a property of the stored data the stored data is just a messy
+
+19:44.360 --> 19:52.920
+contradictory history correctness is a property of the synthesis it's a view you construct on demand
+
+19:52.920 --> 19:59.560
+i love that it feels so much more honest about how knowledge actually works it's not a static thing
+
+19:59.560 --> 20:05.240
+it's a process of interpretation it's a derivation not an object and the paper is quick to point out this
+
+20:05.240 --> 20:11.480
+isn't pure science fiction there are systems that think this way already software developers who use
+
+20:11.480 --> 20:16.680
+version control systems like git live in this world every day and get you never really delete
+
+20:16.680 --> 20:22.840
+anything you just add new commits the change thing exactly it's an append only log of events and the
+
+20:22.840 --> 20:27.320
+paper gives a shout out to something called merge based systems and it mentions a project called
+
+20:27.320 --> 20:33.160
+sphere pop sphere pop yeah i admit i had to look that one up it seems pretty niche it's very niche
+
+20:33.160 --> 20:39.160
+but it's part of a broader family of ideas in distributed systems research things like crdts
+
+20:39.160 --> 20:45.720
+these conflict-free replicated data types the core problem they're trying to solve is what happens if
+
+20:45.720 --> 20:51.880
+you and i are both editing the same document on our laptops on an airplane with no internet we both have
+
+20:51.880 --> 20:57.960
+our own version of the truth our histories have diverged right when the plane lands and our laptops
+
+20:57.960 --> 21:05.000
+reconnect a normal system like say google docs would have a meltdown it would say conflict you have to
+
+21:05.000 --> 21:10.520
+manually resolve this it would force one version to overwrite the other and someone loses their work
+
+21:11.240 --> 21:16.920
+it's a pain but in emerge based system there's no conflict it just says great two new histories
+
+21:16.920 --> 21:23.880
+it unions all the events together into one big pool and lets the synthesis algebra figure out how to weave
+
+21:23.880 --> 21:30.520
+them together into a coherent view later it embraces divergence instead of fearing it it's a much more resilient
+
+21:30.520 --> 21:39.320
+more grain up way of dealing with information it accepts that there isn't one single divine timeline
+
+21:39.320 --> 21:44.360
+there are multiple perspectives and we need a system that can hold them all at once okay i think i'm
+
+21:44.360 --> 21:50.760
+starting to get the mechanics of this but let's make it concrete let's go to that appendix on ai and geometry
+
+21:51.880 --> 21:58.200
+this was the part that really made the whole ai hallucination problem click for me yeah this is a
+
+21:58.200 --> 22:03.560
+fantastic example it moves us out of the realm of databases and into computer vision
+
+22:03.560 --> 22:12.360
+but the core principle is identical so the paper poses this simple question why can't a multi-trillion
+
+22:12.360 --> 22:18.920
+parameter ai model an llm that's been trained on literally all the text and images on the internet
+
+22:19.720 --> 22:25.000
+reliably count the size of a polygon it's a famous and frankly embarrassing
+
+22:25.000 --> 22:30.680
+failure mode you show it a clear image of say a heptagon a seven-sided shape and it will confidently
+
+22:30.680 --> 22:35.960
+tell you that is a hexagon or an octagon it just guesses just doing a vibe check on the shape that's
+
+22:35.960 --> 22:41.640
+a great way to put it flixion's argument is that the ai fails because it is designed to see texture
+
+22:41.640 --> 22:47.000
+but it is blind to relations okay break that down for us what's the difference between texture and
+
+22:47.000 --> 22:53.880
+relations here when the ai looks at the image of the heptagon it doesn't see a shape it sees a grid of
+
+22:53.880 --> 23:01.160
+pixels a static two-dimensional array of color values it's all just texture to the model a blob a blob
+
+23:01.160 --> 23:06.600
+it then tries to match the statistical properties of that blob against all the blobs it saw during
+
+23:06.600 --> 23:13.240
+training it says well this blob is 83 percent similar to the cluster of blobs that humans labeled
+
+23:13.240 --> 23:19.080
+hexagon so it outputs hexagon it's just doing a massive sophisticated pattern matching job
+
+23:19.080 --> 23:25.160
+on a static state but that's not what a human does at all if i show you a weird complex shape and ask
+
+23:25.160 --> 23:30.520
+you to count the sides what's the first thing you do you don't just look at it as a whole you perform
+
+23:30.520 --> 23:36.200
+an action you trace it your eye or your finger starts at one vertex one corner and then it travels along an
+
+23:36.200 --> 23:41.800
+edge to the next vertex you count one it's a journey it's a journey you are generating a sequence of events
+
+23:41.800 --> 23:50.760
+in time i'm at vertex a now i am traversing edge one now i have arrived at vertex b a polygon to a human
+
+23:50.760 --> 23:57.720
+brain isn't a static image it's a history it's a closed loop of successor relations edge two comes
+
+23:57.720 --> 24:03.880
+after edge one edge three comes after edge two and so on it's an algorithm a procedure and the ai can't
+
+24:03.880 --> 24:10.200
+do that it can't because it's fundamental architecture the transformer is built to process a whole batch of
+
+24:10.200 --> 24:17.400
+data at once it's all about parallel processing of a static state it doesn't have innate concept of
+
+24:17.400 --> 24:23.960
+a sequential historical traversal so it can't derive the number seven it can only guess at the label
+
+24:23.960 --> 24:29.240
+seven-sided shape and a paper points out this fascinating trick if you want to help the ai
+
+24:29.240 --> 24:35.000
+you can draw little red dots on all the corners and suddenly it gets it right most of the time why
+
+24:35.000 --> 24:41.800
+because you have manually injected the events into the texture you've made the vertices the crucial
+
+24:41.800 --> 24:48.360
+historical moments visually salient you've done the first step of the traversal for the ai it's a
+
+24:48.360 --> 24:54.360
+damning critique we're building these incredible pattern matching machines that are fundamentally
+
+24:54.360 --> 25:01.240
+a historical they live in a flat timeless world of texture so they can write a sonnet in the style
+
+25:01.240 --> 25:06.200
+of shakespeare but they can't count to seven because the sonnet is about statistical texture
+
+25:06.200 --> 25:13.080
+but counting is about sequential history okay this is a huge idea and it scales up right this isn't just
+
+25:13.080 --> 25:20.520
+about ai how does this apply to human systems to a government or a hospital that's where the paper
+
+25:20.520 --> 25:27.160
+really broadens the scope let's go back to the medical records example a diagnosis is an event it's a
+
+25:27.160 --> 25:34.120
+snapshot of belief at a point in time if that diagnosis turns out to be wrong the mutable state
+
+25:34.120 --> 25:39.800
+approach deleting it is an act of historical vandalism you're destroying the clinical history
+
+25:39.800 --> 25:48.120
+you're destroying the story the append-only ephoric approach preserves that story the superseded diagnosis
+
+25:48.120 --> 25:53.240
+becomes part of the context explaining why certain treatments were tried it makes the entire system
+
+25:53.240 --> 25:59.800
+more transparent and more auditable and you can apply the same logic to law absolutely laws shouldn't
+
+25:59.800 --> 26:05.880
+be simple text replacements in a file they should be a clear unbroken chain of amendments and supersed
+
+26:05.880 --> 26:12.360
+jurors meta relations so you can trace exactly how a legal concept has evolved why a certain clause was
+
+26:12.360 --> 26:18.200
+added what it was intended to fix you preserve the legislative intent without that history you're just
+
+26:18.200 --> 26:22.600
+left with a bunch of rules you don't understand the origin of which is you know a pretty good
+
+26:22.600 --> 26:29.000
+description of many modern bureaucracies okay this feels like the perfect pivot point we've established
+
+26:29.000 --> 26:36.520
+the technical argument from the first paper overwriting history whether in a database or an ai's brain
+
+26:37.080 --> 26:45.800
+leads to brittle amnesiac and often dangerous systems the solution is to build systems that remember
+
+26:45.800 --> 26:51.640
+that treat history as a first-class citizen so now let's pick up that second paper persistence before
+
+26:51.640 --> 26:58.360
+efficiency because it feels like fliction takes this exact same logical razor and just applies it to
+
+26:58.360 --> 27:04.600
+everything else that's exactly what it is it's a fractal scaling of the same core argument the first paper
+
+27:04.600 --> 27:10.360
+says computers fail because they overwrite their own history the second paper says civilizations fail
+
+27:10.360 --> 27:16.200
+because they overwrite their own foundations the structural error is identical it's identical the paper
+
+27:16.200 --> 27:23.400
+frames it as a fundamental conflict between two opposing values persistence and efficiency and we need to be
+
+27:23.400 --> 27:29.400
+really clear on these definitions because our culture especially our business culture basis worships
+
+27:29.400 --> 27:35.240
+efficiency it's the highest possible good it is but fliction defines it very specifically
+
+27:35.960 --> 27:43.240
+efficiency in this context is about maximizing throughput or speed within a narrow local scope
+
+27:43.240 --> 27:50.120
+how many widgets can i produce per hour how quickly can i get this package from a to b how low can i get
+
+27:50.120 --> 27:57.880
+my cost per unit it's optimization it's local optimization yes now persistence is a different axis entirely
+
+27:58.520 --> 28:05.160
+persistence is the ability of a system to continue its essential functions over a long potentially infinite
+
+28:05.160 --> 28:11.880
+time frame especially in the face of shocks and surprises it's not about how fast it can go it's about whether
+
+28:11.880 --> 28:17.800
+you can keep going at all can it survive can it regenerate can it last for a hundred years or a
+
+28:17.800 --> 28:24.600
+thousand and the central brutal thesis of the paper is that for the last century we have been aggressively
+
+28:24.600 --> 28:30.280
+trading away persistence to buy little bits of efficiency there's a quote here that just floored me
+
+28:31.000 --> 28:36.840
+civilizations fail not by lacking efficiency but by allowing efficiency to destroy the conditions that
+
+28:36.840 --> 28:42.040
+make continued operation possible it's the whole essay in one sentence it's like we're sawing off the
+
+28:42.040 --> 28:47.320
+branch we're sitting on because it's a very efficient way to get firewood for tonight that's a great way to
+
+28:47.320 --> 28:55.480
+put it and to make this concrete the paper introduces a crucial vocabulary the distinction between fast
+
+28:55.480 --> 29:01.480
+variables and slow variables this was the framework that made it all click for me yeah fast variables are
+
+29:01.480 --> 29:06.600
+what you see on the dashboard of society right they're the things that change quickly the things that are
+
+29:06.600 --> 29:14.280
+easy to measure the things our systems are designed to see stock prices quarterly profits website
+
+29:14.280 --> 29:21.640
+engagement metrics delivery times crop yields for this season they are legible to use the term from
+
+29:21.640 --> 29:25.960
+political science you can put them on a chart and show them to your boss and because they're legible and
+
+29:25.960 --> 29:33.800
+fast our entire incentive structure bonuses promotions elections news cycles is built around optimizing them
+
+29:33.800 --> 29:39.480
+make the line go up but the paper argues these fast variables are totally dependent on a hidden
+
+29:39.480 --> 29:46.280
+foundation of slow variables yes the slow variables are the substrate the bedrock they regenerate or
+
+29:46.280 --> 29:53.720
+degenerate over very long time scales years decades centuries they are incredibly difficult to measure things like
+
+29:53.720 --> 29:59.720
+soil fertility the stability of the climate the level of trust in public institutions
+
+29:59.720 --> 30:07.000
+the biodiversity of an ecosystem the average attention span of a population the accumulated skill of a
+
+30:07.000 --> 30:13.960
+master craftsman you can't put societal trust on a stock ticker you can't and because you can't measure
+
+30:13.960 --> 30:20.120
+them easily you tend to ignore them you treat them as if they are constant as if they are free
+
+30:20.120 --> 30:25.560
+and that is where the architecture of failure comes in the failure mode is that we let the fast variables
+
+30:25.560 --> 30:33.800
+cannibalize the slow ones exactly we achieve an illusion of efficiency in the short term by secretly draining the
+
+30:33.800 --> 30:41.000
+long-term battery of the slow variables you can boost this quarter's profits a fast variable by dumping
+
+30:41.000 --> 30:49.160
+industrial waste into a river destroying the ecosystem a slow variable the profit is immediate and visible the cost is
+
+30:49.160 --> 30:55.400
+delayed and hidden the paper calls this cost displacement we're not actually becoming more efficient we're
+
+30:55.400 --> 31:00.840
+just shoving the bill onto future generations or other parts of the world we are let's look at the
+
+31:00.840 --> 31:06.920
+wooden chair example from the paper it is so simple and so completely absurd yeah walk us through the global
+
+31:06.920 --> 31:15.000
+journey of a simple wooden chair okay so we start by cutting down high quality timber in say the temperate
+
+31:15.000 --> 31:22.040
+rainforests of north america that timber is then loaded onto a massive cargo ship powered by the dirtiest
+
+31:22.040 --> 31:28.680
+bunker fuel imaginable and shipped 6 000 miles across the pacific ocean to a factory in southeast asia
+
+31:29.400 --> 31:35.880
+why to save money on labor costs exactly the fast variable of dollars per hour of labor is being
+
+31:35.880 --> 31:43.400
+aggressively optimized okay so in asia the wood is processed cut into parts for the chair then those parts
+
+31:43.400 --> 31:50.440
+are put back on another ship and sent 8 000 miles to a port in europe why europe for final assembly
+
+31:50.440 --> 31:57.000
+often to take advantage of some specific tax loophole or trade agreement it gets a made in the eu stamp
+
+31:57.880 --> 32:03.400
+then the fully assembled chair is put back on another ship and sent 4 000 miles back across
+
+32:03.400 --> 32:08.920
+the atlantic to a distribution center in north america where it's eventually sold in a big box store for
+
+32:08.920 --> 32:14.840
+49.99 and on the spreadsheet in the quarterly report this looks like a masterpiece of efficiency
+
+32:15.560 --> 32:23.640
+the cost per unit is as low as it can possibly be financially it's a triumph but physically energetically
+
+32:23.640 --> 32:31.800
+ecologically it is an act of profound insanity we have moved dead trees around the entire circumference of
+
+32:31.800 --> 32:38.840
+the planet to make a cheap chair the paper has this killer line distance has been misclassified as a
+
+32:38.840 --> 32:45.640
+cheap resource we treat it as if it's free we ignore the energetic cost the geopolitical risk the
+
+32:45.640 --> 32:52.760
+environmental cost we are burning the slow variable of a stable atmosphere and depending on the slow
+
+32:52.760 --> 32:59.240
+variable of peaceful global shipping lanes all to shave a few cents off the fast variable of production
+
+32:59.240 --> 33:05.000
+costs so it's not actually an efficient system it's an incredibly brittle one it's maximally efficient
+
+33:05.000 --> 33:11.240
+and minimally resilient the moment one of those slow variable snaps a pandemic shuts down a port a war
+
+33:11.240 --> 33:18.440
+closes a shipping lane fuel prices spike the entire chain doesn't just slow down it shatters instantly
+
+33:18.440 --> 33:24.600
+because there's no slack no redundancy there is no local capacity to build a chair anymore we have
+
+33:24.600 --> 33:29.640
+optimized it away in the name of efficiency this leads perfectly into the case studies in the second
+
+33:29.640 --> 33:37.400
+half of the paper the first one for me was the most chilling case study a authorization versus reality
+
+33:38.280 --> 33:43.560
+this one gets right to the heart of how our symbolic systems have detached from the physical world
+
+33:43.560 --> 33:50.040
+so the scenario affliction paints is a modern supermarket the shelves are overflowing with food there is a
+
+33:50.040 --> 33:56.600
+material abundance of calories a parent is at the checkout with a cart full of essentials milk bread
+
+33:56.600 --> 34:02.600
+vegetables they swipe their payment card and the machine says declined the machine says declined and
+
+34:02.600 --> 34:09.720
+the result is what the result is the parent cannot take the food a security guard might even step in to ensure
+
+34:09.720 --> 34:15.400
+the food remains on the premises the food is there the hunger is there but the transaction is forbidden
+
+34:15.400 --> 34:21.240
+we see this and we think well that's just how things work they didn't have the money but fliction forces
+
+34:21.240 --> 34:29.000
+us to see how profoundly bizarre this situation is it's an inversion of priorities the physical reality is
+
+34:29.000 --> 34:37.960
+abundance the symbolic reality the zero or one in a bank's database ledger is scarcity and we have built
+
+34:37.960 --> 34:45.240
+a society that has decided that the symbol is more real more primary than the physical object the paper
+
+34:45.240 --> 34:51.560
+calls this procedural scarcity we create scarcity not through a lack of stuff but through a failure
+
+34:51.560 --> 34:57.080
+of permission we've made the accounting layer the base layer of reality and the biological survival
+
+34:57.080 --> 35:03.160
+layer is secondary to it in any persistent sane system it would be the other way around and the
+
+35:03.160 --> 35:09.880
+connection to the first paper is so clear the mutable state of that bank account ledger is treated as more
+
+35:09.880 --> 35:16.040
+important than the irreversible historical event of a child needing to eat exactly and this creates a
+
+35:16.040 --> 35:22.360
+terrifyingly brittle system if the symbolic layer fails if there's a banking crisis a power outage that
+
+35:22.360 --> 35:27.880
+takes down the payment network a cyber attack the link between people and the resources they need to
+
+35:27.880 --> 35:34.040
+survive is severed instantly even if the food is sitting right there in front of them people can starve in the
+
+35:34.040 --> 35:40.760
+midst of plenty not because of a famine but because of a database error that is the ultimate fragility
+
+35:40.760 --> 35:45.560
+let's move to the next case study because this is one that affects every single person listening
+
+35:45.560 --> 35:53.560
+case study b the mining of attention yeah this one feels very personal the paper frames human attention
+
+35:53.560 --> 36:02.840
+deep focused attention as a critical slow variable it's the soil out of which all creativity all problem
+
+36:02.840 --> 36:09.400
+solving all skill development grows think about how you learn anything difficult a new language a
+
+36:09.400 --> 36:16.520
+musical instrument how to understand these papers it requires long uninterrupted blocks of slow attention
+
+36:16.520 --> 36:21.560
+that's how we build human capital that's how a society gets smarter and more competent but what are
+
+36:21.560 --> 36:29.000
+the fast variables that our modern digital economy is built to optimize engagement clicks likes shares
+
+36:29.000 --> 36:37.160
+swirl velocity time on site tiny measurable immediate bursts of interaction the entire multi-trillion dollar
+
+36:37.160 --> 36:43.560
+digital economy is a finely tuned engine designed to do one thing fracture your slow attention into the
+
+36:43.560 --> 36:50.440
+smallest possible monetizable units they are strip mining the slow resource of my cognitive capacity
+
+36:50.440 --> 36:57.160
+to boost the fast variable of their quarterly ad revenue they're extracting your attention at a rate far
+
+36:57.160 --> 37:04.520
+faster than it can naturally regenerate the paper calls this cognitive erosion and it leads to a very
+
+37:04.520 --> 37:10.200
+dangerous outcome that fliction calls the generality problem what's the generality problem as our
+
+37:10.200 --> 37:16.920
+collective attention becomes more fragmented our ability to think deeply to connect disparate ideas
+
+37:16.920 --> 37:25.640
+to solve complex novel problems our general intelligence decays we get really good at the specific narrow task
+
+37:25.640 --> 37:32.040
+of using the app we become expert level content consumers but we lose the ability to think outside
+
+37:32.040 --> 37:38.440
+the feed we become cognitively dependent on the very tools that are diminishing our capacity we're trading
+
+37:38.440 --> 37:46.120
+wisdom for information and information for raw data we are overwriting our own minds yeah we are becoming
+
+37:46.120 --> 37:51.880
+to use the language from the first paper state-based humans we just react to the current stimulus the latest
+
+37:51.880 --> 37:58.200
+notification with no deep historical context and no ability to project a long-term future we're becoming
+
+37:58.200 --> 38:05.560
+amnesiacs just like our databases okay there's one more case study we have to touch on case study c logistics
+
+38:05.560 --> 38:12.600
+and redundancy this brings us back to the wooden chair but it's more about the philosophy of waste it's
+
+38:12.600 --> 38:19.400
+the battle between two different ideologies just in time versus just in case i went to business school and
+
+38:19.400 --> 38:27.880
+just in time was the gospel the idea that inventory is waste a box sitting in a warehouse is liability
+
+38:27.880 --> 38:33.720
+it's capital that's not being productive that's the efficiency argument maximum capital efficiency
+
+38:34.280 --> 38:40.280
+zero slack in the system you want the component to arrive at the factory at the exact minute it's
+
+38:40.280 --> 38:45.960
+needed on the assembly line but fliction makes this incredible counter argument the paper just says it
+
+38:45.960 --> 38:54.040
+flatly slack is insurance i love that line it's so good that warehouse full of wasteful inventory is
+
+38:54.040 --> 38:59.800
+actually a buffer it's resilience if a blizzard shuts down the highway for three days or a supplier's
+
+38:59.800 --> 39:05.160
+factory has a fire you can keep operating you have persistence you paid a small price and efficiency
+
+39:05.160 --> 39:11.560
+to buy a large amount of robustness the slack is the system's immune system and the just-in-time system
+
+39:11.560 --> 39:18.760
+has no immune system it has a t-cell count of zero the tiniest disruption the smallest shock doesn't
+
+39:18.760 --> 39:25.800
+just cause a delay it causes an immediate cascading system-wide failure the whole thing grinds to a
+
+39:25.800 --> 39:32.760
+halt we've designed a world that is incredibly fine-tuned to operate perfectly in perfect conditions
+
+39:33.320 --> 39:39.880
+and catastrophically fails in any other condition we had stripped away all the fat but in biological
+
+39:39.880 --> 39:46.680
+systems fat is the energy reserve it's the survival mechanism for lean times we've optimized for the
+
+39:46.680 --> 39:54.200
+feast and in doing so we've guaranteed we won't survive the famine so this is a pretty bleak diagnosis
+
+39:54.200 --> 40:00.760
+of our current predicament computers with amnesia an economy that eats its own seed corn and a culture
+
+40:00.760 --> 40:07.080
+that's destroying its own ability to think does fliction offer any way out it does and this is really
+
+40:07.080 --> 40:12.760
+important the solution presented is not about degrowth or you know going back to being hunter
+
+40:12.760 --> 40:19.160
+gatherers it's not anti-technology or anti-progress it's about changing the rules of the game it's about
+
+40:19.160 --> 40:24.760
+fundamentally re-architecting the rules of our systems the paper calls this approach constraint
+
+40:24.760 --> 40:30.120
+first design constraint first design what does that mean it means that before you even start thinking
+
+40:30.120 --> 40:37.560
+about optimizing for speed or efficiency you first establish a set of hard non-negotiable constraints
+
+40:37.560 --> 40:44.120
+designed to protect the critical slow variables so you build the guardrails before you build the highway
+
+40:44.120 --> 40:51.880
+perfect analogy you define what you are not willing to sacrifice you protect the substrate first give me
+
+40:51.880 --> 40:56.920
+some examples from the text what would these constraints look like okay one of the most provocative
+
+40:56.920 --> 41:04.920
+is the idea of upper bounds on accumulation so a hard limit on how much wealth or resources one person
+
+41:04.920 --> 41:13.320
+or entity can hoard yes or more subtly the paper suggests building decay functions into our symbolic
+
+41:13.320 --> 41:21.400
+systems of value decay functions like how food rots exactly like how food rots nature has built in decay
+
+41:21.400 --> 41:27.880
+if you hoard a million apples they spoil the resource naturally recycles itself back into the system
+
+41:27.880 --> 41:35.240
+but our primary symbol of value money doesn't rot land titles don't expire this allows for effectively
+
+41:35.240 --> 41:41.800
+infinite accumulation which leads to extreme imbalances that destabilize the entire system so a decay
+
+41:41.800 --> 41:49.880
+function on say massive bank accounts would act like a tax that forces that capital to be reinvested
+
+41:49.880 --> 41:56.680
+or spent rather than just sitting there it forces circulation it mimics a natural healthy ecosystem
+
+41:56.680 --> 42:03.000
+it prevents the system from seizing up and on the other end the paper talks about lower bounds on access
+
+42:03.000 --> 42:09.720
+right this is the flip side this is the constraint that addresses the authorization versus reality problem
+
+42:10.440 --> 42:17.880
+it's a hard rule that says symbolic systems like payment networks cannot fully block a person's access to the
+
+42:17.880 --> 42:23.960
+basic physical requirements for survival so your bank account being zero can't stop you from getting
+
+42:23.960 --> 42:31.400
+a basic provision of water or food if it's physically available survival must precede accounting that is
+
+42:31.400 --> 42:37.080
+the constraint you simply cannot optimize your profit and loss statement in a way that violates this lower
+
+42:37.080 --> 42:45.720
+bound the system forbids it what about the problem of the wooden chair the insane global supply chains for that the paper
+
+42:45.720 --> 42:50.600
+proposes designing for local regeneration loops meaning you have to produce things closer to where
+
+42:50.600 --> 42:56.520
+you consume them close enough that the feedback loop between your actions and their consequences
+
+42:56.520 --> 43:03.720
+is short and unavoidable if you deplete your local soil to grow your food you are the one who goes hungry
+
+43:03.720 --> 43:11.240
+next season you can't just displace the cost to some other continent the feedback keeps the system honest it
+
+43:11.240 --> 43:18.600
+forces you to maintain the health of the slow variable the soil because your own persistence depends on it
+
+43:18.600 --> 43:25.720
+directly and what about for our world for software for institutions what's the takeaway for the people
+
+43:25.720 --> 43:32.360
+building these systems the paper suggests the idea of persistence contracts i love that phrase it sounds
+
+43:32.360 --> 43:38.200
+so solid it is it's a promise a commitment to stability it means you don't change your software's
+
+43:38.200 --> 43:43.320
+user interface every six months just because the design team has a new theory it means you prioritize
+
+43:43.320 --> 43:49.560
+backward compatibility because that allows people to build mastery yes if the tool is constantly
+
+43:49.560 --> 43:56.040
+changing under your feet you can never become a true master of it you remain a perpetual novice
+
+43:56.680 --> 44:02.920
+constantly relearning the basics a persistence contract is a promise from the builder to the user
+
+44:02.920 --> 44:09.400
+we will not overwrite your muscle memory we will not devalue the skills you have invested time in
+
+44:09.400 --> 44:15.720
+building that feels like a radical idea in today's tech climate it is it's a commitment to persistence
+
+44:15.720 --> 44:22.840
+over the efficiency of constant disruptive change there was one last little gem in the appendix of the
+
+44:22.840 --> 44:29.960
+second paper from the world of control theory it was called state aware control yeah that's the engineer's
+
+44:29.960 --> 44:35.880
+summary of the entire philosophy in a badly designed control system like say a simple thermostat you
+
+44:35.880 --> 44:41.640
+only look at the output is the room at the target temperature yes or no but a sophisticated system is
+
+44:41.640 --> 44:47.160
+state aware it looks at the internal state of the system itself it doesn't just ask about the output it
+
+44:47.160 --> 44:54.920
+asks how hard is the furnace working how much fuel is left is any component close to overheating and if the
+
+44:54.920 --> 45:02.600
+engine's about to explode you stop optimizing for the output you slow down you ease off you prioritize
+
+45:02.600 --> 45:09.080
+the long-term health of the machine over achieving the short-term goal and the argument is that our
+
+45:09.080 --> 45:15.960
+entire civilization is being run by a control system that is only looking at the speedometer of gdp growth
+
+45:15.960 --> 45:21.560
+while completely ignoring the flashing red lights on the engine temperature gauge okay so let's bring it
+
+45:21.560 --> 45:27.560
+all home we've been through two dense powerful papers one about database theory the other about
+
+45:27.560 --> 45:34.920
+the collapse of civilization what is the final grand synthesis what's the one big aha moment i think the
+
+45:34.920 --> 45:41.240
+aha moment is realizing it's all about one problem we have an erasure problem we are addicted to
+
+45:41.240 --> 45:47.960
+overwriting in computing we erase data we built our digital world on mutable state overwriting the past
+
+45:47.960 --> 45:54.200
+to save a little space and gain a little speed and the solution proposed is ekphoric synthesis an append
+
+45:54.200 --> 45:59.800
+only world where we preserve history and construct the present as an intelligent view of that past and
+
+45:59.800 --> 46:06.520
+in our civilization we erase our foundations we overwrite the slow regenerative variables of our planet
+
+46:06.520 --> 46:13.240
+and our own minds to maximize the fast variables of profit and efficiency and the solution there is
+
+46:13.240 --> 46:19.160
+constraint first design building systems that protect their own foundations that prioritize
+
+46:19.160 --> 46:24.760
+long-term survival over short-term optimization it's funny all our language is about speed
+
+46:25.400 --> 46:30.440
+we're always asking how can we make this faster how can we make this more efficient those are the
+
+46:30.440 --> 46:35.320
+questions of the fast variable world but what fliction is really telling us is that we've been asking the
+
+46:35.320 --> 46:42.280
+wrong question all along the question isn't how fast can the system go the question is how long can
+
+46:42.280 --> 46:47.880
+the system last and when you start asking that question about your software your company your
+
+46:47.880 --> 46:53.960
+economy your own life the answers you get are very very different if you're building something you
+
+46:53.960 --> 47:00.440
+want to endure how long is the only question that matters the conclusion the second paper leaves us with
+
+47:00.440 --> 47:08.760
+a truly chilling thought it says if we don't build systems that remember kphoric systems and systems that
+
+47:08.760 --> 47:16.520
+persist constraint first systems then we are by definition building engines of our own erasure we are
+
+47:16.520 --> 47:22.360
+building machines perfectly designed to delete ourselves from the record that is a heavy idea to end
+
+47:22.360 --> 47:29.320
+on but it's also a direct challenge to you listening look around at your own work at your own life
+
+47:30.120 --> 47:36.680
+where are you choosing the illusion of efficiency over the reality of persistence where are you overwriting your
+
+47:36.680 --> 47:43.880
+your own slow variables your health your focus your relationships for a short-term gain maybe it's
+
+47:43.880 --> 47:49.320
+time we all stopped overwriting and started appending thanks for joining us on the deep dive we'll see you next
+
+47:49.320 --> 47:53.960
+we'll see you next time
+
