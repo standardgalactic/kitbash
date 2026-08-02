@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Internal Geometry Oscilloscope</title>
+
+<style>
+*{
+  box-sizing:border-box;
+}
+
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#020503;
+  color:#86f7ad;
+  font-family:"Courier New",monospace;
+  touch-action:manipulation;
+}
+
+body{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:500;
+  opacity:.14;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,.035) 0,
+      rgba(255,255,255,.035) 1px,
+      transparent 2px,
+      transparent 5px
+    );
+}
+
+body::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:501;
+  background:
+    radial-gradient(
+      ellipse at center,
+      transparent 52%,
+      rgba(0,0,0,.38) 76%,
+      rgba(0,0,0,.84) 100%
+    );
+}
+
+#app{
+  width:100%;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+
+#title{
+  position:fixed;
+  top:17px;
+  left:50%;
+  transform:translateX(-50%);
+  width:min(94vw,900px);
+  text-align:center;
+  color:#a5ffc3;
+  font-size:13px;
+  letter-spacing:.17em;
+  text-transform:uppercase;
+  text-shadow:0 0 9px rgba(80,255,140,.72);
+  z-index:100;
+}
+
+#tracks{
+  position:fixed;
+  top:49px;
+  left:50%;
+  transform:translateX(-50%);
+  width:94vw;
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:9px;
+  z-index:110;
+  cursor:default;
+}
+
+#tracks button{
+  appearance:none;
+  border:1px solid rgba(100,245,150,.34);
+  background:rgba(0,20,8,.78);
+  color:rgba(145,245,180,.68);
+  padding:6px 10px;
+  font:9px "Courier New",monospace;
+  letter-spacing:.10em;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+
+#tracks button:hover,
+#tracks button.active{
+  color:#d9ffe4;
+  border-color:rgba(120,255,165,.75);
+  background:rgba(0,55,20,.68);
+  box-shadow:
+    inset 0 0 10px rgba(40,255,110,.12),
+    0 0 8px rgba(40,255,110,.10);
+}
+
+#status{
+  position:fixed;
+  top:88px;
+  left:0;
+  right:0;
+  text-align:center;
+  color:rgba(125,220,155,.42);
+  font-size:9px;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  z-index:100;
+}
+
+#scope-shell{
+  position:relative;
+  width:min(440px,82vw);
+  aspect-ratio:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:5px solid #101a13;
+  border-radius:26px;
+  background:#030604;
+  box-shadow:
+    0 0 0 1px rgba(130,220,155,.18),
+    inset 0 0 34px rgba(0,0,0,.95),
+    0 18px 45px rgba(0,0,0,.55);
+  z-index:30;
+}
+
+#scope-shell::before{
+  content:"";
+  position:absolute;
+  inset:14px;
+  border:1px solid rgba(100,230,145,.18);
+  border-radius:50%;
+  pointer-events:none;
+  box-shadow:
+    inset 0 0 28px rgba(40,255,110,.08),
+    0 0 12px rgba(40,255,110,.10);
+}
+
+#scope-shell::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:8px;
+  height:8px;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:rgba(150,255,185,.26);
+  box-shadow:0 0 10px rgba(80,255,135,.45);
+  pointer-events:none;
+}
+
+canvas{
+  display:block;
+  width:calc(100% - 28px);
+  height:calc(100% - 28px);
+  border-radius:50%;
+  background:#010302;
+}
+
+#readout{
+  position:fixed;
+  bottom:74px;
+  left:50%;
+  transform:translateX(-50%);
+  display:flex;
+  gap:18px;
+  width:min(90vw,500px);
+  justify-content:center;
+  color:rgba(125,225,160,.34);
+  font-size:8px;
+  letter-spacing:.10em;
+  text-transform:uppercase;
+  z-index:100;
+  pointer-events:none;
+}
+
+#subs{
+  position:fixed;
+  bottom:21px;
+  left:50%;
+  transform:translateX(-50%);
+  width:min(720px,92vw);
+  min-height:2.6em;
+  padding:8px 13px;
+  text-align:center;
+  color:#a7e9bb;
+  font-size:14px;
+  line-height:1.45;
+  font-style:italic;
+  text-shadow:0 0 5px rgba(25,150,70,.70);
+  background:rgba(0,13,5,.50);
+  border:1px solid rgba(90,220,135,.16);
+  border-radius:4px;
+  z-index:100;
+  pointer-events:none;
+}
+
+@media(max-width:700px){
+  #title{
+    top:12px;
+    font-size:10px;
+  }
+
+  #tracks{
+    top:39px;
+  }
+
+  #tracks button{
+    padding:5px 7px;
+    font-size:8px;
+  }
+
+  #status{
+    top:78px;
+    font-size:8px;
+  }
+
+  #scope-shell{
+    width:min(390px,84vw);
+  }
+
+  #readout{
+    bottom:72px;
+    gap:11px;
+    font-size:7px;
+  }
+
+  #subs{
+    bottom:15px;
+    font-size:12px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div id="app">
+  <div id="title">Internal Geometry Oscilloscope</div>
+  <div id="tracks"></div>
+  <div id="status">click or touch anywhere to play / pause</div>
+
+  <div id="scope-shell">
+    <canvas id="scope"></canvas>
+  </div>
+
+  <div id="readout">
+    <span id="timeReadout">00:00</span>
+    <span id="modeReadout">XY</span>
+    <span id="energyReadout">SIG 000</span>
+  </div>
+
+  <div id="subs"></div>
+</div>
+
+<audio id="audio" preload="auto"></audio>
+
+<script>
+const tracks = [
+  {
+    file:"The_internal_geometry_of_AI_understanding.mp3",
+    vtt:"The_internal_geometry_of_AI_understanding.vtt",
+    label:"AI Geometry",
+    title:"The Internal Geometry of AI Understanding",
+    mode:"geometry",
+    lag:.247
+  },
+  {
+    file:"Why_Rust_rules_are_physical_laws.mp3",
+    vtt:"Why_Rust_rules_are_physical_laws.vtt",
+    label:"Rust Laws",
+    title:"Why Rust Rules Are Physical Laws",
+    mode:"rust",
+    lag:.173
+  }
+];
+
+const audio = document.getElementById("audio");
+const titleEl = document.getElementById("title");
+const tracksEl = document.getElementById("tracks");
+const subsEl = document.getElementById("subs");
+const timeReadout = document.getElementById("timeReadout");
+const modeReadout = document.getElementById("modeReadout");
+const energyReadout = document.getElementById("energyReadout");
+
+const canvas = document.getElementById("scope");
+const ctx = canvas.getContext("2d");
+
+const SIZE = 640;
+const CX = SIZE / 2;
+const CY = SIZE / 2;
+const R = SIZE * .41;
+
+canvas.width = SIZE;
+canvas.height = SIZE;
+
+let trackIndex = 0;
+let mode = tracks[0].mode;
+let frame = 0;
+
+let audioCtx;
+let analyser;
+let sourceNode;
+
+let freqData = new Uint8Array(1024);
+let timeData = new Uint8Array(2048);
+timeData.fill(128);
+
+let bass = 0;
+let mid = 0;
+let high = 0;
+let volume = 0;
+
+let cues = [];
+
+function initAudio(){
+  if(audioCtx) return;
+
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 2048;
+  analyser.smoothingTimeConstant = .88;
+
+  freqData = new Uint8Array(analyser.frequencyBinCount);
+  timeData = new Uint8Array(analyser.fftSize);
+  timeData.fill(128);
+
+  sourceNode = audioCtx.createMediaElementSource(audio);
+  sourceNode.connect(analyser);
+  analyser.connect(audioCtx.destination);
+}
+
+function buildTrackButtons(){
+  tracksEl.innerHTML = "";
+
+  tracks.forEach((track,index)=>{
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = track.label;
+
+    button.addEventListener("click",async event=>{
+      event.stopPropagation();
+      initAudio();
+
+      if(audioCtx.state === "suspended"){
+        await audioCtx.resume();
+      }
+
+      await loadTrack(index,true);
+    });
+
+    tracksEl.appendChild(button);
+  });
+}
+
+function updateButtons(){
+  const buttons = [...tracksEl.querySelectorAll("button")];
+
+  buttons.forEach((button,index)=>{
+    button.classList.toggle("active",index === trackIndex);
+  });
+}
+
+async function loadTrack(index,autoplay=false){
+  trackIndex = ((index % tracks.length) + tracks.length) % tracks.length;
+
+  const track = tracks[trackIndex];
+
+  mode = track.mode;
+  titleEl.textContent = track.title;
+  modeReadout.textContent = mode === "geometry" ? "XY / LATENT" : "XY / BORROW";
+
+  audio.src = track.file;
+  audio.load();
+
+  updateButtons();
+  await loadVTT(track.vtt);
+
+  if(autoplay){
+    try{
+      await audio.play();
+    }catch(error){
+      console.warn("Playback could not begin:",error);
+    }
+  }
+}
+
+audio.addEventListener("ended",()=>{
+  loadTrack(trackIndex + 1,true);
+});
+
+document.body.addEventListener("click",async ()=>{
+  initAudio();
+
+  if(audioCtx.state === "suspended"){
+    await audioCtx.resume();
+  }
+
+  if(audio.paused){
+    try{
+      await audio.play();
+    }catch(error){
+      console.warn("Playback could not begin:",error);
+    }
+  }else{
+    audio.pause();
+  }
+});
+
+async function loadVTT(url){
+  cues = [];
+  subsEl.textContent = "";
+
+  try{
+    const response = await fetch(url);
+
+    if(!response.ok){
+      console.warn("Subtitle file not found:",url);
+      return;
+    }
+
+    cues = parseVTT(await response.text());
+  }catch(error){
+    console.warn("Subtitle loading failed:",error);
+  }
+}
+
+function parseVTT(text){
+  const output = [];
+  const blocks = text.replace(/\r/g,"").split(/\n{2,}/);
+
+  for(const block of blocks){
+    const lines = block.trim().split("\n");
+    const timing = lines.find(line=>line.includes("-->"));
+
+    if(!timing) continue;
+
+    const timingIndex = lines.indexOf(timing);
+    const [start,end] = timing.split("-->").map(value=>value.trim());
+
+    output.push({
+      start:parseTime(start),
+      end:parseTime(end),
+      text:lines.slice(timingIndex + 1).join(" ")
+    });
+  }
+
+  return output;
+}
+
+function parseTime(value){
+  value = value.split(" ")[0].replace(",",".");
+
+  const parts = value.split(":");
+
+  if(parts.length === 3){
+    return Number(parts[0]) * 3600 +
+           Number(parts[1]) * 60 +
+           parseFloat(parts[2]);
+  }
+
+  return Number(parts[0]) * 60 + parseFloat(parts[1]);
+}
+
+audio.addEventListener("timeupdate",()=>{
+  const current = audio.currentTime;
+  const seconds = Math.floor(current);
+
+  timeReadout.textContent =
+    `${String(Math.floor(seconds / 60)).padStart(2,"0")}:` +
+    `${String(seconds % 60).padStart(2,"0")}`;
+
+  const cue = cues.find(item=>
+    current >= item.start &&
+    current < item.end + .18
+  );
+
+  subsEl.textContent = cue ? cue.text : "";
+});
+
+function updateAudio(){
+  if(!analyser) return;
+
+  analyser.getByteFrequencyData(freqData);
+  analyser.getByteTimeDomainData(timeData);
+
+  let bassSum = 0;
+  let midSum = 0;
+  let highSum = 0;
+  let total = 0;
+
+  for(let i=0;i<42;i++) bassSum += freqData[i];
+  for(let i=42;i<190;i++) midSum += freqData[i];
+  for(let i=190;i<freqData.length;i++) highSum += freqData[i];
+  for(let i=0;i<freqData.length;i++) total += freqData[i];
+
+  const nextBass = bassSum / (42 * 255);
+  const nextMid = midSum / (148 * 255);
+  const nextHigh = highSum / ((freqData.length - 190) * 255);
+  const nextVolume = total / (freqData.length * 255);
+
+  bass += (nextBass - bass) * .08;
+  mid += (nextMid - mid) * .06;
+  high += (nextHigh - high) * .05;
+  volume += (nextVolume - volume) * .07;
+
+  energyReadout.textContent =
+    `SIG ${String(Math.round(volume * 999)).padStart(3,"0")}`;
+}
+
+function clearScope(){
+  ctx.fillStyle = "rgba(0,3,1,.16)";
+  ctx.fillRect(0,0,SIZE,SIZE);
+
+  const glow = ctx.createRadialGradient(CX,CY,0,CX,CY,R * 1.08);
+  glow.addColorStop(0,"rgba(0,24,8,.12)");
+  glow.addColorStop(.72,"rgba(0,8,2,.10)");
+  glow.addColorStop(1,"rgba(0,0,0,.72)");
+
+  ctx.fillStyle = glow;
+  ctx.fillRect(0,0,SIZE,SIZE);
+}
+
+function drawGraticule(){
+  ctx.save();
+
+  ctx.beginPath();
+  ctx.arc(CX,CY,R,0,Math.PI * 2);
+  ctx.clip();
+
+  ctx.strokeStyle = "rgba(95,220,135,.055)";
+  ctx.lineWidth = 1;
+
+  for(let i=-4;i<=4;i++){
+    const offset = i * R / 4;
+
+    ctx.beginPath();
+    ctx.moveTo(CX - R,CY + offset);
+    ctx.lineTo(CX + R,CY + offset);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(CX + offset,CY - R);
+    ctx.lineTo(CX + offset,CY + R);
+    ctx.stroke();
+  }
+
+  for(let ring=1;ring<=4;ring++){
+    ctx.beginPath();
+    ctx.arc(CX,CY,R * ring / 4,0,Math.PI * 2);
+    ctx.stroke();
+  }
+
+  ctx.strokeStyle = "rgba(125,240,155,.11)";
+
+  ctx.beginPath();
+  ctx.moveTo(CX - R,CY);
+  ctx.lineTo(CX + R,CY);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(CX,CY - R);
+  ctx.lineTo(CX,CY + R);
+  ctx.stroke();
+
+  ctx.restore();
+
+  ctx.beginPath();
+  ctx.arc(CX,CY,R,0,Math.PI * 2);
+  ctx.strokeStyle = "rgba(120,245,155,.20)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+function drawPersistenceTrace(lagFraction,scaleX,scaleY,alpha,lineWidth,rotation=0){
+  const count = timeData.length;
+  const lag = Math.floor(count * lagFraction);
+
+  ctx.save();
+  ctx.translate(CX,CY);
+  ctx.rotate(rotation);
+
+  ctx.beginPath();
+
+  for(let i=0;i<count;i+=2){
+    const xSignal = (timeData[i] - 128) / 128;
+    const ySignal = (timeData[(i + lag) % count] - 128) / 128;
+
+    const x = xSignal * scaleX;
+    const y = ySignal * scaleY;
+
+    if(i === 0){
+      ctx.moveTo(x,y);
+    }else{
+      ctx.lineTo(x,y);
+    }
+  }
+
+  ctx.strokeStyle = `rgba(105,255,155,${alpha})`;
+  ctx.lineWidth = lineWidth;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.shadowBlur = alpha > .25 ? 12 : 4;
+  ctx.shadowColor = "rgba(65,255,125,.85)";
+  ctx.stroke();
+
+  ctx.restore();
+  ctx.shadowBlur = 0;
+}
+
+function drawGeometryMode(){
+  const baseLag = tracks[trackIndex].lag + mid * .035;
+  const breathe = 1 + bass * .18;
+
+  drawPersistenceTrace(
+    baseLag,
+    R * .77 * breathe,
+    R * .72 * breathe,
+    .72,
+    2.1,
+    Math.sin(frame * .002) * .04
+  );
+
+  drawPersistenceTrace(
+    baseLag + .041,
+    R * .61,
+    R * .57,
+    .25,
+    1.1,
+    frame * .0018
+  );
+
+  drawPersistenceTrace(
+    baseLag + .083,
+    R * .45,
+    R * .42,
+    .13,
+    .8,
+    -frame * .0012
+  );
+
+  const layers = 7;
+
+  for(let layer=0;layer<layers;layer++){
+    const phase = frame * .006 + layer * .9;
+    const radius = R * (.13 + layer * .075);
+
+    ctx.beginPath();
+
+    for(let angle=0;angle<=Math.PI * 2 + .04;angle+=.045){
+      const warp =
+        Math.sin(angle * (3 + layer * .12) + phase) *
+        (2 + mid * 12);
+
+      const x = CX + Math.cos(angle) * (radius + warp);
+      const y = CY + Math.sin(angle) * (radius - warp * .32);
+
+      if(angle === 0){
+        ctx.moveTo(x,y);
+      }else{
+        ctx.lineTo(x,y);
+      }
+    }
+
+    ctx.strokeStyle =
+      `rgba(90,230,135,${.025 + layer * .012})`;
+
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+}
+
+function drawRustMode(){
+  const baseLag = tracks[trackIndex].lag + high * .025;
+  const pulse = 1 + bass * .10;
+
+  drawPersistenceTrace(
+    baseLag,
+    R * .76 * pulse,
+    R * .68 * pulse,
+    .70,
+    2.2
+  );
+
+  drawPersistenceTrace(
+    baseLag * .52,
+    R * .52,
+    R * .48,
+    .20,
+    1
+  );
+
+  const gates = 12;
+
+  for(let i=0;i<gates;i++){
+    const angle = i / gates * Math.PI * 2 + frame * .002;
+    const inner = R * .22;
+    const outer = R * (.60 + mid * .10);
+
+    const x1 = CX + Math.cos(angle) * inner;
+    const y1 = CY + Math.sin(angle) * inner;
+    const x2 = CX + Math.cos(angle) * outer;
+    const y2 = CY + Math.sin(angle) * outer;
+
+    ctx.beginPath();
+    ctx.moveTo(x1,y1);
+    ctx.lineTo(x2,y2);
+    ctx.strokeStyle = "rgba(110,240,150,.10)";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(x2,y2,5 + high * 8,0,Math.PI * 2);
+    ctx.fillStyle = "rgba(155,255,185,.40)";
+    ctx.fill();
+  }
+
+  const ringRadius = R * (.32 + Math.sin(frame * .009) * .015);
+
+  ctx.beginPath();
+  ctx.arc(CX,CY,ringRadius,0,Math.PI * 2);
+  ctx.setLineDash([7,9]);
+  ctx.strokeStyle = "rgba(150,255,180,.18)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function drawIdleTrace(){
+  const t = frame * .014;
+
+  ctx.beginPath();
+
+  for(let i=0;i<=500;i++){
+    const p = i / 500 * Math.PI * 2;
+    const x = CX + Math.sin(p * 3 + t) * R * .50;
+    const y = CY + Math.sin(p * 2) * R * .43;
+
+    if(i === 0){
+      ctx.moveTo(x,y);
+    }else{
+      ctx.lineTo(x,y);
+    }
+  }
+
+  ctx.strokeStyle = "rgba(100,235,145,.22)";
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+}
+
+function draw(){
+  frame++;
+  updateAudio();
+  clearScope();
+  drawGraticule();
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(CX,CY,R,0,Math.PI * 2);
+  ctx.clip();
+
+  if(!analyser){
+    drawIdleTrace();
+  }else if(mode === "geometry"){
+    drawGeometryMode();
+  }else{
+    drawRustMode();
+  }
+
+  ctx.restore();
+
+  requestAnimationFrame(draw);
+}
+
+buildTrackButtons();
+loadTrack(0,false);
+draw();
+</script>
+
+</body>
+</html>
