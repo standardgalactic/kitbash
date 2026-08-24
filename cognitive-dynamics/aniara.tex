@@ -1,0 +1,105 @@
+\documentclass[12pt]{article}
+
+% ---- Page geometry: industry-standard screenplay margins ----
+\usepackage[
+  paperwidth=8.5in, paperheight=11in,
+  left=1.5in, right=1in, top=1in, bottom=1in
+]{geometry}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{courier}          % Adobe Courier clone as default family
+\renewcommand{\familydefault}{\ttdefault}
+
+\usepackage{fancyhdr}
+\usepackage{setspace}
+\usepackage{needspace}
+\usepackage{ragged2e}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+\linespread{1.0}
+\tolerance=9999
+\emergencystretch=3em
+\hbadness=10000
+
+% ---- Header: page numbers, top right, screenplay convention ----
+\setlength{\headheight}{14.5pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[R]{\thepage.}
+\renewcommand{\headrulewidth}{0pt}
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyhead[R]{\thepage.}
+  \renewcommand{\headrulewidth}{0pt}
+}
+
+% ================= Screenplay element macros =================
+
+% Scene heading — bold caps, blank line before, small gap after
+\newcommand{\sceneheading}[1]{%
+  \needspace{4\baselineskip}%
+  \par\vspace{1.2\baselineskip}%
+  {\bfseries #1}\par
+  \vspace{0.6\baselineskip}%
+}
+
+% Action / description — full measure, ragged right
+\newcommand{\action}[1]{%
+  \par\RaggedRight #1\par
+  \vspace{0.6\baselineskip}%
+}
+
+% Character cue — centered over dialogue column
+\newcommand{\charcue}[1]{%
+  \needspace{3\baselineskip}%
+  \par\hspace*{2.2in}{#1}\par
+}
+
+% Parenthetical — narrower column, indented under cue
+\newcommand{\pparen}[1]{%
+  \par\hspace*{1.7in}%
+  \begin{minipage}[t]{2.1in}\RaggedRight (#1)\end{minipage}\par
+}
+
+% Dialogue — standard dialogue column width (~3.5in)
+\newcommand{\diag}[1]{%
+  \par\hspace*{1.0in}%
+  \begin{minipage}[t]{3.5in}\RaggedRight #1\end{minipage}\par
+  \vspace{0.6\baselineskip}%
+}
+
+% Transition — flush right, caps
+\newcommand{\trans}[1]{%
+  \par\hfill{#1}\par
+  \vspace{0.6\baselineskip}%
+}
+
+% Sequence title marker — used between scene files, centered, underlined-style
+\newcommand{\seqtitle}[1]{%
+  \needspace{5\baselineskip}%
+  \par\vspace{1.5\baselineskip}%
+  \begin{center}\bfseries #1\end{center}
+  \vspace{0.8\baselineskip}%
+}
+
+\begin{document}
+
+% ---------------- Title page ----------------
+\thispagestyle{empty}
+\begin{center}
+\vspace*{2.5in}
+{\LARGE \bfseries ANIARA}\\[0.4in]
+{\normalsize a screenplay}\\[1.8in]
+{\normalsize working draft --- not for distribution}\\[0.15in]
+{\normalsize written by Flyxion}
+\end{center}
+\newpage
+
+\setcounter{page}{1}
+
+% ---------------- Screenplay body ----------------
+\input{body.tex}
+
+\end{document}

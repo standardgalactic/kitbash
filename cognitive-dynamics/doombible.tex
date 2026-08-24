@@ -1,0 +1,559 @@
+\documentclass[11pt,openany]{book}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[margin=1.15in]{geometry}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{microtype}
+\usepackage{enumitem}
+\hypersetup{colorlinks=true,linkcolor=blue!35!black,urlcolor=blue!40!black,citecolor=blue!35!black,pdftitle={Doombible},pdfauthor={Flyxion}}
+\newtheorem{proposition}{Proposition}[chapter]
+\newtheorem{definition}[proposition]{Definition}
+\newtheorem{corollary}[proposition]{Corollary}
+\newcommand{\chapterprecis}[1]{\begin{quote}\itshape #1\end{quote}}
+\setlength{\parskip}{0.35em}
+\setlength{\parindent}{1.25em}
+\setlist{itemsep=0.25em}
+\lstdefinelanguage{RustLike}{morekeywords={struct,enum,fn,impl,pub,match,if,else,return,let,mut,trait,type,Option,Result},sensitive=true,morecomment=[l]{//}}
+\lstset{language=RustLike,basicstyle=\ttfamily\small,keywordstyle=\bfseries,columns=fullflexible,breaklines=true,frame=single,framesep=4pt,backgroundcolor=\color{black!3}}
+\title{\textbf{Doombible}\\[0.5em]\large Inference, Admissibility, Repair, and Distributed Judgment}
+\author{Flyxion\\\textit{Independent Researcher}}
+\date{August 2026}
+\begin{document}
+\frontmatter
+\maketitle
+\chapter*{Preface}
+Doombible is a textbook about a recurring architectural mistake: allowing one operation to inherit the standing of another merely because the two occur near each other. A record is allowed to masquerade as a decision; an admission becomes a commitment; a successful synchronization becomes a justification; an illuminating analogy becomes a proof. The six studies gathered here were originally written as separate interventions into that family of errors. Reorganized as a book, they describe a single discipline of non-collapse.
+
+The title is deliberately more severe than the contents. No doctrine here is presented as revelation or final authority. The book instead studies how claims acquire authority inside computational and epistemic systems, and how that acquisition can be delayed until the relevant warrant actually exists. Its governing maxim is simple: consequence may propagate only through a boundary whose scope is explicit, whose provenance is retained, and whose output does not claim more than the boundary tested.
+
+The chapters move from cognition to architecture and from architecture to deployment. Chapter 1 explains how analogies and ensemble syntheses generate hypotheses without validating them. Chapter 2 derives a typed state model in which history, memory, policy, warrant, and authority cannot silently substitute for one another. Chapters 3 and 4 examine admission and refusal in working pipelines. Chapter 5 studies what happens when disciplined boundaries are composed. Chapter 6 asks what distributed agreement positively establishes after every stronger interpretation of consensus has been withheld.
+
+\chapter*{How to read this book}
+The recurring symbols are intentionally reused across chapters. A candidate $c$ is something proposed but not yet admitted. A policy $\Pi_t$ is a versioned rule governing admission at time $t$. A custodian $K_{\Pi_t}$ applies that policy to a candidate, an operative state, and a warrant. A decision function $\sigma$ determines which consequence may propagate, while a rationale function $\rho$ preserves the reasoning in an audit channel. These symbols name roles rather than implementations. Their purpose is to prevent a local mechanism from acquiring global epistemic authority by terminological drift.
+
+Each chapter ends with reconstruction questions. They are not tests of recollection. They ask the reader to rebuild the chapter's central distinction and to identify what would fail if that distinction were collapsed.
+
+\tableofcontents
+\mainmatter
+\part{Inference without capture}
+
+
+\chapter{Strands of Inference}
+
+\chapterprecis{Conceptual blending, semiosis, and disciplined analogy}
+
+\section*{Chapter orientation}
+
+This chapter establishes the book's method. Analogy may generate a candidate relation, but it may not admit its own conclusion. The distinction between productive blending and blend capture will govern every later transition from metaphor to mechanism.
+
+\section{Introduction}
+
+Cross-domain analogies are a standing hazard in theoretical writing that draws on formal, embodied, and computational vocabularies at once. An analogy that is genuinely illuminating in its early use can, without any change in the writer's stated commitments, come to function as a substitute for argument: a structural resemblance noticed between two domains is treated, often silently, as though it licensed transferring a theorem, a guarantee, or a conclusion from one domain to the other. This essay is organized around a single extended analogy, between Celtic interlace weaving and computational machines, precisely in order to make its own discipline visible: every claim the analogy produces is treated as a hypothesis to be independently tested in its target domain, and the essay closes by naming, and explicitly guarding against, the specific failure mode in which this discipline lapses.
+
+The analogy is developed in three stages. Section~2 establishes the semiotic vocabulary needed to state precisely what kind of relation an analogy is, drawing on Charles Sanders Peirce's account of the sign as an irreducibly triadic relation among a sign vehicle, an object, and an interpretant. Section~3 introduces conceptual blending theory as the specific cognitive mechanism through which two structured domains are combined into an integrated space, and applies it formally to the weave and the machine. Sections~4 through~6 develop the consequences: emergent structure available only after blending, an application to an ensemble reasoning architecture called the Council of Teachers, and an account of how a compression procedure, KOMPRESS, relates to the blend it operates on. Section~7 returns to Peirce to show that blending is itself an operation of Thirdness. Section~8 states the essay's governing discipline directly, under the name blend capture.
+
+\section{Peircean Semiotics: From Dyad to Triad}
+
+Charles Sanders Peirce's semiotics begins from a deliberate rejection of the dyadic model of signification, in which a sign is simply a mark standing in a direct correspondence to an object, as a word might be thought to stand for a thing. Peirce argued that this model is structurally insufficient: it cannot explain how a sign comes to be interpreted, since a bare correspondence between mark and object specifies no particular respect in which the mark signifies, no rule for extending its use to new cases, and no account of how one interpretation gives rise to another. In its place Peirce proposed that every act of signification is irreducibly triadic, involving a sign vehicle, an object, and an interpretant, where the interpretant is not a further object but a mediating effect, itself capable of functioning as a new sign, that determines the specific respect in which the first sign stands for its object.
+
+This triadic structure has an immediate consequence that Peirce called unlimited semiosis. Because an interpretant can itself become a sign requiring its own interpretant, a single act of signification does not terminate in a final, self-sufficient meaning; it opens onto a chain of successive interpretations, each building on the last, in which meaning develops as an evolving network rather than as a fixed, one-time correspondence. Peirce's own primary concern was the interpretation of signs within an ongoing inquiry, but the structure he describes generalizes cleanly to any process in which an integrated interpretation, once produced, becomes available as raw material for a further, higher-order interpretation. Section~7 below argues that conceptual blending is precisely such a process, and that the emergent structure a blend produces is a Peircean interpretant in the full technical sense: not a third object simply added alongside two inputs, but a mediating structure that changes what those inputs are capable of signifying in relation to each other.
+
+\section{Conceptual Blending: Constructing the Shared Space}
+
+Conceptual blending, in the framework developed by Gilles Fauconnier and Mark Turner, formalizes how human cognition constructs partial mental spaces and selectively projects relations from them into an integrated blended space. A minimal blending network contains at least two input spaces, a generic space recording the abstract relational structure the inputs share, and a blend that inherits selected structure from each input and may additionally develop emergent structure present in neither:
+\[
+I_1, I_2 \;\longrightarrow\; G \;\longrightarrow\; B.
+\]
+Crucially, the input spaces retain their own internal organization throughout this process. Cross-space mappings identify selected counterparts between them, the generic space records only the relational pattern they share in the abstract, and the blend is built from a partial, selective projection of each input rather than from their union or their intersection.
+
+For the present essay, one input space is the Celtic weave,
+\[
+I_W = (\text{strands}, \text{crossings}, \text{alternation}, \text{boundary}, \text{closure}),
+\]
+and the other is the computational machine,
+\[
+I_M = (\text{state}, \text{instructions}, \text{dispatch}, \text{arena}, \text{termination}).
+\]
+Their generic space contains a still more abstract pattern common to both:
+\[
+G = (\text{persistent entities}, \text{local transformations}, \text{ordering rule}, \text{finite domain}, \text{global invariant}).
+\]
+The resulting blend supports specific correspondences: strand continuity with machine state, a crossing with an instruction, a braid word with a program, a weaving frame with an execution arena, and cycle decomposition with a global execution invariant. These correspondences are deliberately selective rather than exhaustive. A physical strand possesses material continuity, tension, and spatial extension that a machine state simply does not have; an opcode has formally specified, exceptionless semantics that a hand-drawn or hand-woven crossing need not exhibit. The blend earns its analytical usefulness precisely by preserving relational similarity while withholding any claim of literal identity between the domains it connects.
+
+Blending theory further distinguishes three operations relevant to what the weave-machine blend is used for in the sections that follow. Composition places selected elements from the two inputs into a shared relation, so that, for instance, a Boolean operation and a woven crossing become comparable because both describe a locally governed encounter between two incoming values. Completion recruits an established background pattern once the target domain is understood through the source domain's vocabulary: once a computational process is framed as weaving, familiar ideas belonging to weaving, such as a broken strand, a repeated crossing, closure, tangling, and reweaving, become available as a ready vocabulary for reasoning about the target domain's own analogues, namely provenance, contradiction, recursion, and repair. Elaboration runs the blend forward as a kind of mental simulation: one asks what happens when a crossing is reversed, a strand removed, a boundary altered, or several strands are discovered to secretly belong to the same underlying cycle, and each such question generates a corresponding question in the target domain, about a corrupted instruction, pruned evidence, an altered memory bound, or a set of correlated evaluators. The blend functions, in this sense, as a conceptual simulator: its principal value lies not in illustrating conclusions already independently established, but in generating new hypotheses that must subsequently be translated back into the formal vocabulary of each source domain and tested there on that domain's own terms.
+
+\section{Emergent Structure in the Knot-Machine Blend}
+
+Several ideas of genuine interest emerge only after the two input spaces above are actually blended, rather than being visible in either domain considered on its own, and it is worth stating them explicitly as the essay's first substantive output.
+
+The distinction between the number of apparent strands in a woven design and the number of its closed topological components suggests, once transferred, a distinction between the raw size of an ensemble of evaluators and their effective epistemic independence: many apparent strands may nonetheless close into few independent cycles, just as many nominally distinct evaluators may in fact share enough correlated structure to constitute far fewer independent sources of evidence than their count suggests. The possibility of a crossing that is locally plausible, meaning consistent with its immediate neighbors in the pattern, but globally inconsistent, meaning incompatible with the closure of the strand it belongs to once the entire design is traced, suggests a parallel distinction between a reasoning step that is locally fluent and a reasoning history that is globally coherent; the two properties can diverge, and a design, or an argument, can exhibit the first without the second. The necessity of turning a weave's strands back on themselves at the physical boundary of its frame suggests that a woven pattern's overall behavior is jointly determined by its local crossing rules and by its boundary conditions taken together, a claim whose computational analogue, that a machine's behavior is jointly determined by its local instruction semantics and the boundary conditions of its execution arena, is developed at length elsewhere in the present research program.
+
+None of these are theorems transferred from knot theory into machine learning; nothing in the mathematics of knots entails anything about ensembles of evaluators. They are hypotheses produced by the blend, stated here in their most compressed form:
+\[
+\text{topological cycle} \;\rightsquigarrow\; \text{provenance component}, \qquad
+\text{crossing error} \;\rightsquigarrow\; \text{locally plausible inconsistency},
+\]
+\[
+\text{closure condition} \;\rightsquigarrow\; \text{global validation}, \qquad
+\text{physical frame} \;\rightsquigarrow\; \text{bounded execution arena}.
+\]
+Each of these four correspondences must be operationalized independently of the blend that suggested it before it can be treated as established. The correspondence between a link's components and a set of independent evaluators, for instance, becomes technically meaningful only once evaluator dependence is actually represented, for example by an explicit provenance graph, and actually measured, for example through shared ancestry or correlated error rates, rather than merely asserted by analogy.
+
+\section{Blending and the Council of Teachers}
+
+An ensemble reasoning architecture referred to here as the Council of Teachers can itself be understood as a blending system, and this section states that reading formally rather than merely gesturing at it.
+
+Each teacher in the council constructs a partial mental space containing its own interpretation of the matter under consideration, together with the evidence it draws on, the assumptions it relies on, and whatever uncertainty it has not resolved. Formally, teacher $i$ contributes
+\[
+I_i = (Y_i, E_i, A_i, U_i),
+\]
+where $Y_i$ is its proposed judgment, $E_i$ its supporting evidence, $A_i$ its background assumptions, and $U_i$ its unresolved uncertainty. Council deliberation is the process of establishing cross-space correspondences among these several partial contributions, and its output is a blend
+\[
+B_C = \mathrm{Blend}(I_1, \ldots, I_m)
+\]
+constructed by identifying shared entities, compatible relations, outright contradictions, and complementary explanatory structure across the $m$ contributing spaces.
+
+The objective of this process is not to average the contributing spaces until their differences vanish. Productive blending specifically preserves selected incompatibilities among the inputs, because a genuine disagreement among teachers may reveal that they are reasoning from different assumptions or within different conceptual frames rather than merely reaching different numerical conclusions from a shared frame; a council that forces premature consensus produces a blend with false coherence, one that reads as unified while having discarded exactly the information that would have revealed its own limits. Accordingly the blend should retain explicit provenance maps
+\[
+p_i : B_C \rightharpoonup I_i
+\]
+identifying, for each element of the synthesized output, which teacher or teachers its content originates from. Without such maps an emergent synthesis may become rhetorically coherent, meaning fluent and internally consistent as a piece of prose, while making it impossible for anyone downstream to determine which teacher's evidence, or which teacher's assumption, actually supports any given component of it. This is the ensemble-level analogue of the strand-tracing problem from Section~4: coherence at the level of the finished pattern does not, by itself, disclose the path any individual thread took to get there.
+
+\section{KOMPRESS as Selective Projection from a Blend}
+
+A compression procedure referred to here as KOMPRESS can be situated after the blending step described in Section~5, rather than treated as identical to it, and the distinction matters for what each stage is responsible for.
+
+Blending expands and reorganizes meaning: it takes several partial, individually incomplete contributions and produces a single integrated but still internally structured and still inspectable space. Compression performs a different task on the result: it determines which parts of that already-integrated structure should be retained for reuse and which can be discarded. The overall transformation is therefore
+\[
+(I_1, \ldots, I_m) \;\xrightarrow{\ \text{blend}\ }\; B_C \;\xrightarrow{\ \text{KOMPRESS}\ }\; K.
+\]
+The compressed result $K$ should preserve whatever invariants the blend itself declared as load-bearing, potentially including its validated conclusions, its operative distinctions, its refusal boundaries where the council declined to reach a conclusion, its remaining uncertainty, and, critically, its provenance maps $p_i$. A compression that retains only the blend's final answer, discarding the relational structure through which that answer became defensible, destroys precisely the information Section~5 identified as necessary to prevent false coherence; the compressed artifact would then present as confidently as the original synthesis while having lost every means of checking it. Conceptual blending is, in this architecture, the intermediate process standing between raw ensemble deliberation and reusable compressed output: the council supplies plural, individually partial input spaces, blending produces an integrated and still-inspectable construction from them, and KOMPRESS transforms that construction into a smaller and more reusable, but not less accountable, habit.
+
+\section{Blending as an Operation of Thirdness}
+
+The semiotic vocabulary of Section~2 and the cognitive mechanism of Section~3 can now be joined directly, and doing so is what licenses treating conceptual blending as more than a useful metaphor for what the earlier sections were doing informally.
+
+A cross-space mapping, in Fauconnier and Turner's own terms, begins as a dyadic correspondence between an element of one input space and its counterpart in another. Considered in isolation, such a mapping is exactly the impoverished, non-mediated structure Peirce's semiotics was built to reject: a bare correspondence, with no stated rule for what licenses it or how it should be extended. The generic space and the blending process together supply what a bare cross-space mapping lacks, by determining which relation between the two elements is actually relevant and by what rule it may be integrated into the blend. The blend that results is therefore not merely a third object placed alongside its two inputs. It is a mediating structure, in precisely Peirce's sense of an interpretant, that changes what the inputs are capable of signifying in relation to one another once the blend exists; a crossing and an instruction did not signify each other before the blend supplied the relation that makes the comparison meaningful. Conceptual blending, read this way, is an operation of Peircean Thirdness: it converts an isolated, unmediated similarity into a governed interpretive relation, and a governed interpretive relation is precisely what is capable, in Peirce's account, of producing further signs.
+
+This is not a merely decorative correspondence between two independently developed theories. It has a direct structural consequence, since a blend's emergent structure can itself become an input to a later blend, giving a cognitive instance of Peirce's unlimited semiosis:
+\[
+B_1 \;\rightarrow\; I_{n+1} \;\rightarrow\; B_2 \;\rightarrow\; \cdots.
+\]
+An interpretive product, once produced, can enter another construction as raw material in exactly the way an output capsule from one round of council deliberation, or a compressed judgment from one application of KOMPRESS, can become an input to a later reasoning cycle. The chain does not terminate in a final, self-sufficient interpretation any more than Peircean semiosis does; each stage's output is available, and typically eventually used, as a later stage's input.
+
+\section{The Danger of Blend Capture}
+
+The preceding sections have used the weave-machine blend, and its extension to the Council of Teachers and to KOMPRESS, to generate a sequence of specific hypotheses. This final section states directly the discipline required to keep that practice legitimate, under a name worth having precisely because the failure it names is easy to fall into without noticing.
+
+Blend capture occurs when an illuminating correspondence, produced exactly as Sections~3 through~6 describe, is mistaken for an identity between the two domains it connects, and begins on that mistaken basis to dictate conclusions that neither source domain actually supports. The distinction is sharp once stated explicitly. The claim that a computational process can usefully be understood as a weave is a productive blend: it generates the hypotheses of Section~4, each of which remains answerable to independent verification in its own domain. The claim that every topological property of braids is therefore a property of computational programs is blend capture: it treats a generative correspondence as though it were a proof, silently converting Section~3's selective, partial cross-space mapping into an unqualified equivalence the mapping was never built to support. The same failure is available wherever a structural metaphor organizes a body of work; describing semantic inference through the geometry of a manifold, for instance, can genuinely organize thought about representation, without thereby proving that semantic states literally form a smooth manifold or that directions normal to some learned surface are statistically meaningless. The metaphor's usefulness as an organizing device carries no entailment about the literal geometric structure of what it organizes.
+
+A disciplined use of conceptual blending therefore moves through three distinguishable stages, and treats moving through all three, rather than stopping after the first, as the actual work of the method: construct the blend, extract a specific hypothesis from it, and test that hypothesis independently in its target domain. Conceptual blending explains, with genuine formal content rather than mere suggestiveness, how the present essay's apparently distant topics, weaving, semiosis, ensemble reasoning, and computation, can generate a coherent and mutually illuminating shared framework. Epistemic discipline requires the further and separate step of returning every insight the blend produces to its own originating domain, where it must be independently formalized, implemented, or falsified before it is entitled to stand as a conclusion rather than as a hypothesis the blend was merely capable of suggesting.
+
+\section*{Questions for reconstruction}
+
+\begin{enumerate}
+
+\item Why is a dyadic resemblance insufficient as an argument?
+
+\item What information must survive ensemble synthesis?
+
+\item When does compression destroy accountability?
+
+\end{enumerate}
+
+\part{Typed governance and operational boundaries}
+
+\chapter{Design Axioms from $\mathcal{X}_t$}
+
+\chapterprecis{A typed architecture for history, memory, warrant, policy, and authority}
+
+\section*{Bridge from the preceding chapter}
+
+The first chapter separated hypothesis generation from validation. We can now ask what a machine would have to represent if it were forbidden to let a generated representation silently acquire the authority to validate itself.
+
+\section*{Chapter orientation}
+
+This chapter turns the preceding methodological restraint into a data model. Its central device is the non-collapse of the objects in $\mathcal{X}_t$: records, states, memories, candidates, warrants, provenance, authority, and policy must remain separately representable.
+
+\section{Starting from the axioms instead of the audit}
+
+The eight-object tuple $\mathcal{X}_t = (H_t, \sigma_t, M_t, C_t, W_t, P_t, \mathcal{A}_t, \Pi_t)$ was introduced to separate responsibilities that a fast-moving memory architecture tends to blur under pressure: history from actuality, memory from history, representation from governance, rules from authority. Four inequalities carried the weight — $H_t \neq \sigma_t$, $H_t \neq M_t$, $M_t \neq \Pi_t$, $\Pi_t \neq \mathcal{A}_t$ — each one blocking a specific kind of institutional usurpation: a record standing in for the present state it merely describes, a memory standing in for the full history it was compressed from, a representation standing in for the rule that governs it, a rule standing in for the authority that could revise it.
+
+Those four inequalities were stated as diagnostic tools — ways of checking whether an existing system had let one object quietly absorb another's job. Read the other direction, they are typing constraints: if a system is going to satisfy all four, it needs eight separately representable objects, with eight separate types, and no code path in which one is silently substituted for another. That is a claim about a data model, not just about how to talk about one. This essay works out what that data model looks like, close enough to running Rust to be worth actually building.
+
+\section{What each object has to be, structurally}
+
+$H_t$ is the full history: an append-only sequence of everything that has happened, never summarized, never pruned. $\sigma_t$ is the operative state: what the system is actually doing right now, derivable from $H_t$ but never identical to it — a compression with information loss, and the loss has to be representable, not silently discarded. $M_t$ is memory: a further, separately-typed compression of $H_t$, distinct from $\sigma_t$ because memory and present operation answer different questions — memory answers what happened and mattered, $\sigma_t$ answers what is happening now — and distinct from $H_t$ itself because $M_t \neq H_t$ is exactly the inequality that keeps a compressed memory from silently claiming the completeness of the record it was built from.
+
+$C_t$ is the candidate set: proposed transitions, not yet admitted. $W_t$ is the warrant structure, itself compound rather than a single boolean — a conjunction of at least four typed components, $W_{\mathrm{exec}}$ (this candidate is executable), $W_{\mathrm{prov}}$ (its provenance is known), $W_{\mathrm{effect}}$ (its effects are bounded and predictable), and $W_{\mathrm{auth}}$ (whoever proposed it had standing to). $P_t$ is provenance, tracked as a first-class object in the state tuple rather than folded into $H_t$ or dropped once a candidate is admitted. $\mathcal{A}_t$ is scoped authority — not a single global permission bit but a mapping from roles or agents to the specific transitions they are entitled to propose or admit. $\Pi_t$ is policy: the admission rule itself, historical and versioned, $\Pi_n \in H_n$, with $\sigma_n = \Pi_n(H_n)$, and $\Pi_n \to \Pi_{n+1}$ itself requiring a warrant — policy changes are not exempt from the warrant structure that governs everything else.
+
+\section{The custodian, and why it sits above the warrant}
+
+A candidate satisfying $W_t$ is not automatically admitted. A custodian function
+\[
+K_{\Pi_t}(c, \sigma_t, W(c)) \in \{\mathrm{admit}, \mathrm{quarantine}, \mathrm{refuse}\}
+\]
+sits above the boolean conjunction, consulting $\Pi_t$ as well as $W(c)$, because $W(c) = 1$ — every component warrant satisfied — does not by itself entail admission. A candidate can be executable, provenanced, boundedly-effectful, and proposed by someone with standing, and still be one the current policy does not admit, because policy can encode constraints beyond what any single warrant component checks: rate limits, conflicts with other pending candidates, or a moratorium on a class of change the system has decided to hold off on. Collapsing $K_{\Pi_t}$ into $W(c) = 1 \Rightarrow \mathrm{admit}$ is precisely the move that turns a warrant check into a rubber stamp.
+
+\section{A structural sketch}
+
+None of this requires exotic machinery. It requires eight types kept apart, and functions between them typed strictly enough that nothing can be passed where a different object is expected.
+
+\begin{lstlisting}
+struct History { events: Vec<Event> }              // H_t: append-only, never pruned
+
+struct OperativeState { snapshot: StateSnapshot }   // sigma_t: derived from History,
+                                                     // never identical to it
+
+struct Memory { entries: Vec<MemoryEntry> }         // M_t: compressed from History,
+                                                     // distinct type from OperativeState
+
+struct Candidate { proposal: Transition, id: CandidateId }  // C_t
+
+struct Warrant {
+    exec: bool,        // W_exec
+    prov: ProvenanceRef, // W_prov, not just a bool -- a pointer into P_t
+    effect: EffectBound, // W_effect
+    auth: AuthorityRef,  // W_auth
+}
+
+struct Provenance { chain: Vec<ProvenanceEntry> }   // P_t, first-class, not folded into H_t
+
+struct Authority { grants: Vec<(AgentId, TransitionKind)> }  // A_t, scoped, not global
+
+struct Policy {
+    version: PolicyVersion,        // Pi_n
+    admit_rule: fn(&Candidate, &OperativeState, &Warrant) -> Decision,
+}
+
+enum Decision { Admit, Quarantine, Refuse }
+
+fn custodian(
+    c: &Candidate,
+    sigma: &OperativeState,
+    w: &Warrant,
+    pi: &Policy,
+) -> Decision {
+    if !(w.exec && w.effect.is_bounded() && w.auth.is_valid()) {
+        return Decision::Refuse;
+    }
+    (pi.admit_rule)(c, sigma, w)   // Pi_t consulted, not bypassed
+}
+\end{lstlisting}
+
+The types alone enforce most of the discipline. \texttt{Memory} and \texttt{OperativeState} cannot be substituted for each other because nothing in the system accepts one where the other is expected. \texttt{Provenance} is not a field buried inside \texttt{History}; it is tracked separately, which means a candidate's warrant can reference it directly rather than reconstructing it from the event log after the fact. \texttt{Policy} carries its own version, which means $\Pi_n \to \Pi_{n+1}$ is a tracked transition rather than an in-place mutation — a policy change becomes an event in \texttt{History} like any other candidate that was admitted, which is what makes $\Pi_t \in H_t$ true by construction rather than by convention.
+
+\section{Where Marine and compression actually fit}
+
+Read against this structure, the Marine Algorithm's salience computation is a way of ranking members of $C_t$ — it decides which candidates are worth the custodian's attention first, not which candidates get admitted. Salience is an input to prioritization, not a component of $W(c)$, and keeping it out of the warrant conjunction is what stops a high-salience candidate from being treated as pre-warranted. Compression, likewise, belongs entirely inside the transition from $H_t$ to $M_t$ — it is one way of computing that specific arrow, not a parallel theory of what memory is. Framed this way, both mechanisms get to keep doing real work — salience genuinely helps triage a large candidate set, compression genuinely produces a usable memory from an unusable-at-scale history — without either one being asked to also carry the admissibility judgment that only $K_{\Pi_t}$ is positioned to make.
+
+\section{Conclusion}
+
+This is offered as a starting data model, not a finished one — eight types, a handful of transition functions between them, and a custodian that consults policy rather than shortcutting to a warrant check. What it buys, if built this way from the start, is that the four non-collapse properties hold because the compiler refuses code where they wouldn't, not because everyone building on top of the system remembers to keep them apart by convention. Salience and compression both still have real, load-bearing jobs to do inside it — ranking candidates, computing the history-to-memory arrow — and neither one has to be stretched to also justify a decision it was never built to justify. That seems like a reasonable place to start building the next version of this together.
+
+\section*{Questions for reconstruction}
+
+\begin{enumerate}
+
+\item Which inequalities in $\mathcal{X}_t$ prevent institutional usurpation?
+
+\item Why is salience a ranking function rather than a warrant?
+
+\item Why must a custodian sit above component warrant checks?
+
+\end{enumerate}
+
+\chapter{The Reviewer Is the Boundary}
+
+\chapterprecis{Record, admit, and commit as distinct operations}
+
+\section*{Bridge from the preceding chapter}
+
+The tuple $\mathcal{X}_t$ is deliberately general. The next question is whether its separations can be observed in an actual workflow rather than only required in a type system.
+
+\section*{Chapter orientation}
+
+The abstract architecture now receives a concrete operational interpretation. A running editorial workflow shows that generating a candidate, admitting it, and causing an external consequence are different acts with different authorities.
+
+\section{Four roles, one boundary}
+
+A Wikipedia article is chunked into sections by an orchestrator, which also lays out how work will move between the agents that come after it. Several entropy-scanner agents then run in parallel over those sections, each looking for regions of text that read as awkward, unsupported, or plainly wrong — not fixing anything, only flagging where something might need fixing. A second wave of copyeditor agents proposes conservative corrections to the flagged regions: specific replacement text, scoped to the smallest span that addresses what was flagged. Only then does a single reviewer agent run, sequentially, over the proposed edits, and decide, edit by edit, whether each one is approved or rejected — with a rationale attached either way. Approved edits are not written back to Wikipedia automatically. They are returned as structured output: a set of admitted changes, a set of rejected ones, and reasons for both.
+
+Four roles, and a shape worth naming precisely. The orchestrator records the structure of the problem. The scanners record where something might be wrong. The copyeditors record a specific proposed fix. None of these three earlier roles decides anything about whether a change should happen — they only produce candidates and locations. The reviewer is the only role in the pipeline that decides. And even the reviewer's decision is not the same act as making the change: an approved edit is admitted into a returned result, not committed into the live article. Three distinct acts — record, admit, commit — sit at three distinct places in the pipeline, and nothing in the architecture lets any of them stand in for either of the other two.
+
+\section{Why the three acts have to stay apart}
+
+It is worth being precise about what goes wrong if they don't. Suppose recording and admitting were the same act — suppose a scanner's flag, or a copyeditor's proposal, counted as sufficient warrant on its own. Then the system's willingness to notice a possible problem would be indistinguishable from its judgment that the problem is real and the proposed fix is correct. A conservative copyeditor proposing an over-cautious change and an aggressive one proposing a reckless rewrite would carry equal weight, because nothing downstream would be checking which is which. The entire value of having a separate reviewer — the thing that actually reads a proposed edit against the article's existing meaning and decides whether it survives contact — would collapse into whatever the upstream agents happened to generate.
+
+Now suppose admitting and committing were the same act — suppose the reviewer's approval wrote directly to Wikipedia. Then every mistake the reviewer makes becomes public and live immediately, with no space between a judgment being formed and that judgment having consequences that other editors, readers, and downstream automated tools now have to contend with. The provenance record the pipeline keeps — a verifiable credential chain, queryable per workflow execution, showing what was proposed, what was approved, and why — would still exist, but it would be documenting a fait accompli rather than functioning as a gate anything had to pass through before becoming one.
+
+The pipeline, as built, does neither collapse. Flags are not treated as findings. Proposals are not treated as approvals. Approvals are not treated as commits. Each transition — flag to proposal, proposal to review, review to structured output — is a place where the next stage is free to disagree with, or simply ignore, everything the previous stage produced, and where a record of that disagreement is kept rather than discarded.
+
+\section{The reviewer as the admissibility function}
+
+Write a proposed edit as a candidate $c$, produced somewhere upstream with a rationale for why it might be needed. The reviewer implements a function
+\[
+\mathrm{Adm}(c) \in \{\text{approved}, \text{rejected}\},
+\]
+together with a rationale $\rho(c)$ attached regardless of outcome. What makes this function an admissibility boundary, in the sense the term carries elsewhere in the reconstruction and repair literature, is not that it filters — a spam filter filters too — but what it is checking $c$ against. The reviewer's stated criterion is whether $c$ changes the article's substantive meaning. A grammatical correction, a redundant clause removed, a citation format regularized: these leave the article's claims intact and are the kind of candidate the reviewer is built to approve. A rewording that shifts emphasis, drops a qualifier, or subtly changes what is being asserted is exactly the kind of candidate the reviewer exists to catch, however conservatively it was proposed upstream.
+
+This makes $\mathrm{Adm}$ a boundary on a specific quantity: not correctness in some absolute sense, and not stylistic quality, but preservation of substantive meaning across a proposed transformation. A candidate can be well-written, well-intentioned, and still rejected, if what it changes is what the article is claiming rather than how it says it. And a candidate can be clumsy in its proposed wording and still approved, if the meaning it leaves behind is unchanged. The reviewer is not a quality gate. It is a meaning-preservation gate, sitting at the one point in the pipeline where a transformation crosses from proposed to admitted.
+
+\section{What the provenance chain adds, and what it still withholds}
+
+Every workflow execution — orchestration, scanning, proposal, review — is recorded as a chain of verifiable credentials, structured so that the chain can be queried after the fact: which agent proposed which candidate, what the reviewer decided, and why. This is not merely a log. A log can be edited or discarded without anyone downstream knowing. A verifiable credential chain is built so that tampering with an entry is detectable by anyone who checks it, independent of trusting whoever is currently running the pipeline.
+
+What this buys is durable answers to a narrow set of questions: what was proposed, by which role, against which flagged region, and what the reviewer's rationale was for admitting or rejecting it. What it does not buy is any claim about the state of the live article. The chain records that a candidate was admitted; it does not assert that the candidate was ever applied. That gap is not a missing feature. It is the pipeline correctly refusing to conflate a decision with its execution — the same distinction, at a different layer, that keeps the reviewer's approval from being a commit. The next planned stage — fetching raw article markup directly and generating a patch file that could be applied back into the encyclopedia — would close part of this gap, but even then, applying the patch would be its own separate, later act, with its own separate record, rather than something the reviewer's approval silently entailed.
+
+\section{Conclusion}
+
+The interesting thing about this pipeline is not that it has a review stage — most editing systems have some kind of review stage. The interesting thing is that its review stage is the only place in the architecture where a decision is made, and that the architecture is built so that nothing upstream or downstream of that one stage is allowed to make a decision in its place. Scanning is not deciding. Proposing is not deciding. Approving is not applying. Each of these boundaries is enforced not by policy or convention but by the literal structure of what each agent role is and is not permitted to output. A boundary stated this precisely, and holding this consistently across four running roles and a queryable provenance chain, is not a description of what an admissibility boundary should look like. It is one.
+
+\section*{Questions for reconstruction}
+
+\begin{enumerate}
+
+\item What exactly does the reviewer preserve?
+
+\item Why is an approval not yet a commit?
+
+\item What does provenance establish, and what does it leave open?
+
+\end{enumerate}
+
+\chapter{Vertical Repair, Left Open}
+
+\chapterprecis{When refusal is complete rather than deficient}
+
+\section*{Bridge from the preceding chapter}
+
+A reviewer decides which candidates cross a boundary. A repair ledger confronts the complementary question: when should the system stop producing candidates at all?
+
+\section*{Chapter orientation}
+
+Admission is only half of governance; justified refusal is the other half. This chapter distinguishes a valid refusal inside a stable frame from cases in which the frame is empty or diagnostically inadequate, and explains why premature generalization can itself be a bad repair.
+
+\section{A ledger that only ever does one kind of thing}
+
+Somewhere inside an agentic coding pipeline sits a small Rust module whose job is to decide, after some number of attempts at a task, whether to keep trying. Call this module the ledger. Its interface is narrow on purpose: a running record of attempts, a scalar margin representing how much better the current best attempt is than the one before it, and a stopping decision drawn from exactly three reasons. An attempt budget has been exhausted. The margin between successive attempts has fallen to zero or below — trying again would not produce anything measurably better. Or a verifier meant to certify the attempt's adequacy is itself too weak to be trusted, so no further attempt could be validated even if it succeeded.
+
+Three reasons, one scalar margin, one counter. Nothing in the ledger asks whether the frame it is operating in is the right frame. Nothing in it asks whether the standard it is measuring attempts against is itself defensible, or whether that standard needs to change before further attempts could possibly help. It only ever asks: within the comparison I already have, is there anything left worth trying?
+
+That narrowness looks, from outside, like an obvious next thing to fix. A more complete repair system should surely also be able to notice when the comparison itself has run out, or when it can no longer tell whether the problem is with the attempt or with the standard being applied to it. This essay argues that the narrowness is not a defect to be corrected by hurrying the ledger toward a more general objective. It is the correct shape for a repair mechanism operating under a specific and identifiable condition, and the argument for that claim uses nothing beyond the ledger's own three reasons and a formal account of what repair is for.
+
+\section{Three ways a repair attempt can be refused}
+
+A repair intervention $a$, applied to some damaged or under-performing state $h$, is warranted only if it does better than doing nothing. Write the value of an intervention as
+\[
+J(a \mid h) \;=\; E(a \mid h) + \lambda R(a \mid h) + \mu\, \Delta_{\mathrm{dep}}(a \mid h, R(h)) - \nu\, M(a \mid h),
+\]
+a weighted balance of the intervention's direct effect $E$, its risk $R$, its marginal structural improvement $\Delta_{\mathrm{dep}}$ relative to a reference class $R(h)$ of admissible continuations, and its cost $M$. The null intervention always satisfies $J(\varnothing \mid h) = 0$, so an intervention is warranted only when some $a$ achieves $J(a\mid h) < 0$ under whatever sign convention makes lower better — improvement outweighing cost and risk.
+
+This objective presupposes that $R(h)$, the reference class an intervention is judged against, already exists and is well formed. $R(h)$ is not read off the damaged trajectory itself — a damaged state's own preserved futures cannot supply the standard for judging its repair, on pain of circularity — but is instead derived as $R_\Gamma(h) = \mathrm{Ext}_{\Gamma_h}(B(h))$: the extension, under a governing constraint structure $\Gamma_h$, of boundary data $B(h)$ that the repair is not entitled to rewrite. $\Gamma_h$ must have provenance independent of $h$; it is the standard, not a summary of what $h$ already tends to preserve.
+
+Three distinct things can go wrong with a repair attempt, and they are not the same failure:
+
+\begin{enumerate}
+\item[(1)] $R_\Gamma(h)$ exists and is well formed, but $J(a) \geq 0$ for every non-null $a$ under consideration. No candidate intervention beats refusal. This is an ordinary, well-grounded decision not to act.
+\item[(2)] $R_\Gamma(h) = \varnothing$. The present repair frame supplies no admissible comparison class at all — there is nothing for any candidate intervention to be judged against, so the question of whether to act cannot even be posed within the current frame.
+\item[(3)] It cannot be determined whether an obstruction belongs to the boundary data $B(h)$ or to the constraint structure $\Gamma_h$ itself. This is not a fact about either component being at fault; it is a deficiency in the diagnostic coordinates being used to locate the fault.
+\end{enumerate}
+
+Branch (1) is repair operating normally and declining to intervene. Branches (2) and (3) are repair discovering that its own frame is inadequate to the question being asked — what a companion analysis calls horizontal repair, because the move required is not to a better intervention within the frame but to a different frame.
+
+\section{The ledger lives entirely in branch (1)}
+
+Each of the ledger's three stopping reasons is a way of reaching $J(a) \geq 0$ for every remaining candidate attempt, without ever touching branches (2) or (3).
+
+An exhausted attempt budget says nothing about whether the reference class is well formed; it says only that the cost term $M(a\mid h)$ has grown too large relative to whatever gains remain plausible, so further attempts are refused on ordinary cost grounds. A margin that has fallen to zero says that $\Delta_{\mathrm{dep}}(a\mid h, R(h))$, the marginal structural improvement against the reference class, has itself gone to zero — attempts are still being judged against a working $R(h)$, they are simply no longer improving relative to it. A verifier too weak to trust is subtler: it does not claim the reference class is empty, only that the ledger's own certificate for \emph{knowing} whether an attempt reached the reference class has become unreliable. That is a statement about confidence in measurement, not about the existence of the standard being measured against.
+
+All three reasons, in other words, take $R_\Gamma(h)$ as given and well formed, and conclude $J(a) \geq 0$ for the attempts on offer by different routes — cost, marginal value, or measurement confidence. None of them asks whether $R_\Gamma(h) = \varnothing$. None of them asks whether an unresolved failure belongs to the boundary data or to the constraint structure. The ledger is not a partial implementation of the three-branch taxonomy with two branches missing. It is a complete implementation of branch (1), full stop, with no representation of the other two branches at all.
+
+\section{Why generalizing now would be the wrong repair}
+
+The natural next move is to say: widen the ledger. Give it a fourth and fifth stopping reason, one for $R_\Gamma(h) = \varnothing$ and one for the boundary-versus-structure ambiguity, and compute the full $J(a\mid h)$ rather than a single scalar margin. This is very nearly correct, and it is also premature, for a reason the framework itself supplies.
+
+$R_\Gamma(h)$ is defined relative to $\Gamma_h$, a governing constraint structure with provenance independent of the state being repaired. Representing branches (2) and (3) inside the ledger requires the ledger to be able to evaluate $\Gamma_h$ — to know, at minimum, what would count as $\Gamma_h$ being absent versus present, and what would count as an ambiguity between $\Gamma_h$ and $B(h)$ rather than a fault cleanly attributable to one or the other. But $\Gamma_h$ for this pipeline — the specification against which attempts are ultimately being judged — has not stabilized. It is still moving, revised in the course of the same conversations that are refining the taxonomy being used to reason about it.
+
+Widening the ledger against a $\Gamma_h$ that has not yet frozen means encoding, in the ledger's own stopping logic, a snapshot of a standard that is expected to keep changing. Every subsequent revision of $\Gamma_h$ would then require a corresponding revision of the ledger's branch-(2) and branch-(3) logic — not because the ledger's design was wrong, but because it was pinned to a moving target. Under the framework's own accounting, this is a recognizable failure mode: an intervention $a$ (widening the ledger) whose apparent $\Delta_{\mathrm{dep}}$ is measured against a reference class $R(h)$ that will not hold still, so that the improvement the intervention claims to buy cannot be distinguished from noise introduced by chasing a moving reference. A repair framework that argues elsewhere against exactly this kind of noisy chase cannot, without contradicting itself, recommend performing that chase on its own implementation.
+
+Holding the ledger at three reasons, then, is not inertia. It is $J(a) \geq 0$ applied reflexively: the candidate intervention of widening the ledger right now does not beat the null intervention of leaving it as it is, because its marginal value cannot yet be measured against a reference class stable enough to measure it against.
+
+\section{What would make branches (2) and (3) real}
+
+The horizon condition is specific, not vague. Branch (2) becomes representable in the ledger the moment $\Gamma_h$ is frozen enough that $R_\Gamma(h) = \varnothing$ becomes a decidable question rather than an open one — the moment there is a fact of the matter, checkable from the pipeline's own state, about whether an admissible comparison class exists for a given attempt at all. Concretely, this means the pipeline's specification layer needs to be expressive enough that \emph{no admissible continuation exists under the current spec} is a state distinguishable from \emph{admissible continuations exist but none of them are being reached}. The ledger cannot make this distinction with a single scalar margin; it would need, at minimum, a way to ask the specification layer whether the comparison class it is drawing from is empty by construction.
+
+Branch (3) becomes representable once there is a diagnostic layer capable of attributing a stalled attempt to one of two distinguishable sources: the boundary data the attempt was given (inputs, prior state, retained commitments) versus the constraint structure being used to judge it (the specification itself). This is a harder condition than branch (2), because it requires the pipeline to keep boundary data and governing structure as separately inspectable objects rather than a single blended state — closer to the split entheai's own \texttt{run\_fanout} verify seam already gestures at, where a decision's consequence is inherited without the decision itself being carried along. Extending that separation from the seam that already has it to the ledger that does not is a plausible first concrete step, and one that does not require $\Gamma_h$ to be frozen — only that boundary data and constraint structure be kept apart as they are produced, so that whenever $\Gamma_h$ does stabilize, the attribution question in branch (3) has something to be asked of.
+
+Neither of these is a call to add more stopping reasons to a switch statement. Both are calls to add structure the ledger does not currently have anywhere to attach to — a specification layer that can be empty, and a diagnostic layer that keeps two kinds of state apart. Until one or both exist, branches (2) and (3) are not missing cases. They are cases the ledger correctly has no way to represent, because the objects they are about do not yet exist in a form the ledger could consult.
+
+\section{Conclusion}
+
+A repair mechanism that only ever operates in branch (1) is not a repair mechanism with two-thirds of its taxonomy unimplemented. It is a repair mechanism correctly scoped to a condition — an ungrounded or unstabilized $\Gamma_h$ — under which the other two branches cannot yet be posed as decidable questions, only gestured at. The three stopping reasons already in place are not placeholders for a more complete objective function; they are complete answers to the only question the ledger currently has the standing to ask, arrived at by three different routes through the same reference class. What would justify moving beyond them is not more time spent generalizing the objective, but the arrival of a stable enough $\Gamma_h$ and a diagnostic layer capable of separating boundary data from governing structure — conditions external to the ledger, which the ledger's own restraint has, so far, correctly declined to anticipate.
+
+\section*{Questions for reconstruction}
+
+\begin{enumerate}
+
+\item What is presupposed by the reference class $R_\Gamma(h)$?
+
+\item Why do all three ledger outcomes remain inside branch (1)?
+
+\item What new objects are required before branches (2) and (3) become decidable?
+
+\end{enumerate}
+
+\part{Composition and distribution}
+
+\chapter{Two Verify Seams}
+
+\chapterprecis{How individually disciplined boundaries compose}
+
+\section*{Bridge from the preceding chapter}
+
+The previous two chapters studied boundaries one system at a time. Once their outputs are observed together, however, the observer can become a new decision-maker without recognizing itself as one.
+
+\section*{Chapter orientation}
+
+Boundaries that are safe in isolation need not remain safe when their audit records are combined. The chapter identifies the new admission point created whenever a downstream process turns several preserved rationales into an actionable judgment.
+
+\section{The shape shared by two different systems}
+
+Two systems, built independently, for different purposes, turn out to share a structural feature. In one, an agentic coding pipeline's fan-out call site has what has been called a verify seam: the site inherits only the consequence of a repair decision made elsewhere — keep this attempt, or discard it — without inheriting the decision itself, meaning the reasoning, the alternatives considered, or the confidence behind the choice. In the other, a four-agent Wikipedia copyediting pipeline's reviewer decides, edit by edit, whether a proposed change is admitted, and attaches a rationale to that decision — but the decision and its rationale are written to a queryable provenance record, not passed forward into whatever downstream process might act on the approved edit. The next stage of that pipeline receives only the fact of approval, exactly as the fan-out call site receives only the fact of keep-or-discard.
+
+Neither system was designed with the other in mind, and their reasons for this shape differ. The coding pipeline's seam exists so that a downstream consumer of a kept attempt cannot smuggle in dependence on \emph{why} it was kept — the attempt has to stand on its own once it's through. The Wikipedia pipeline's seam exists so that an approved edit's downstream application cannot claim the reviewer's rationale as its own justification — the rationale is preserved for audit, not treated as license. Different motivations, same architecture: a boundary across which \texttt{keep-or-discard} propagates and \texttt{reasoning} does not.
+
+\begin{definition}
+A \emph{verify seam} is a pair $(\sigma, \rho)$ where $\sigma: C \to \{\mathrm{keep}, \mathrm{discard}\}$ is a decision function over a space of candidates $C$, and $\rho: C \to \mathrm{Record}$ is a rationale function whose output is written to a store that downstream consumers of $\sigma$'s result are not given access to. What propagates forward through the pipeline is $\sigma(c)$ alone; $\rho(c)$ persists, but only in a side-channel that ordinary downstream computation does not read.
+\end{definition}
+
+Both systems instantiate this definition, with one difference worth marking precisely. The coding pipeline's $\mathrm{Record}$ is effectively empty — the single scalar margin and stop reason are consumed internally and nothing durable is written for later audit. The Wikipedia pipeline's $\mathrm{Record}$ is a verifiable credential, durable and independently checkable. Both, however, agree on the property that matters here: whatever $\mathrm{Record}$ contains, the next computational stage in the pipeline does not consume it. This is the property a composition claim has to be checked against.
+
+\section{What composing two seams could mean}
+
+Suppose the two systems, or systems shaped like them, are put next to each other — not merged, just adjacent. A concrete case: an audit dashboard, built later, that pulls from both the coding pipeline's internal state and the Wikipedia pipeline's provenance chain, in order to give someone a combined view of what each system has been doing. This is a natural, almost inevitable thing to want to build once both systems exist. It is also the point at which the composition question stops being hypothetical.
+
+Two ways of building that dashboard are available, and they are not equivalent.
+
+The first: the dashboard reads $\sigma_1(c)$ and $\sigma_2(c')$ — the keep/discard and approve/reject outcomes — and nothing else. It reports outcomes across both systems without touching either $\mathrm{Record}$. This composition is safe by construction, because it never crosses the boundary either seam was built to enforce. It is, in effect, a third seam of its own: its own $\sigma_3$, consuming only the propagated outputs of the first two, with no $\rho_3$ that depends on anything either seam withheld.
+
+The second: the dashboard reads $\rho_1(c)$ and $\rho_2(c')$ as well — the coding pipeline's internal margin history, if it were made durable, alongside the Wikipedia pipeline's reviewer rationale — in order to produce some further judgment. A plausible instance: flagging cases where a coding-pipeline attempt was kept despite a thin margin \emph{and} a Wikipedia edit was approved despite a borderline rationale, on the theory that both are signs of a system under strain. This is a real analytical move, and it is exactly where composition breaks.
+
+\begin{proposition}
+Let $\mathcal{D}$ be any downstream process that consumes $\rho_1(c)$ and $\rho_2(c')$ jointly to produce a further decision $\delta(c,c')$. If $\mathcal{D}$ is not itself structured as a verify seam — that is, if $\delta$ is acted on without a corresponding rationale $\rho_3$ that is in turn withheld from whatever consumes $\delta$ — then $\mathcal{D}$ is an unaudited admission point: a place where a decision is made and propagated without the record/admit/commit separation that both $(\sigma_1,\rho_1)$ and $(\sigma_2,\rho_2)$ were individually built to preserve.
+\end{proposition}
+
+The reasoning is direct. Each source seam was built so that its own downstream consumer receives consequence without reasoning, and so that the reasoning remains available for independent audit rather than becoming load-bearing for further automated decisions. The moment a new process reads both $\rho_1$ and $\rho_2$ and produces a $\delta$ that anything acts on, it has manufactured a new decision — one that draws on reasoning from two systems that were each individually careful to keep reasoning out of the causal chain — and unless that new decision gets its own seam, its own withheld rationale, and its own audit trail, the carefulness of both source systems has been silently spent. Neither system did anything wrong. The dashboard did.
+
+\begin{corollary}
+Verify seams compose safely under sequential or parallel combination of their $\sigma$ outputs alone. They do not compose safely under any combination of their $\rho$ outputs, unless the combining process is itself given a $\sigma_3/\rho_3$ structure — in which case what has actually happened is not composition of the original two seams but the construction of a third one, downstream of both.
+\end{corollary}
+
+\section{Why this could not be seen from either system alone}
+
+Neither the coding pipeline's fan-out seam nor the Wikipedia pipeline's reviewer seam has any way to represent this failure mode internally, because each system only has one seam, and a seam cannot observe its own composition with a seam that does not yet exist in its world. The failure is not a bug in either system's design. It is a property of the space \emph{between} two well-designed systems — the place a build decision gets made later, by someone who is not thinking of themselves as adding a seam at all, because from where they sit they are only building a dashboard, or a report, or a combined status page. That is precisely why the risk is real: it does not look like a decision point. It looks like reporting.
+
+This is also why the claim could not have appeared in either single-system essay. \emph{Vertical Repair, Left Open} argues that entheai's ledger is correctly scoped to one branch of a taxonomy; it has nothing to say about a second system's provenance chain, because none exists inside its frame. \emph{The Reviewer Is the Boundary} argues that wiki-stigmergy's reviewer correctly withholds commitment; it has nothing to say about what happens when that withheld rationale is read by a process outside the pipeline that produced it, because no such process is in view. The composition failure only becomes visible once both systems are on the table together, which is the sense in which this essay's contribution is not a synthesis of the other two but a genuinely third claim, resting on their conclusions rather than restating them.
+
+\section{Conclusion}
+
+Two systems, built for different reasons by the same person, arrived independently at the same architectural discipline: let consequence propagate, and keep reasoning available but out of the causal chain. That discipline holds up under composition exactly as far as composition respects it — combining outcomes is safe, combining rationales is not, unless the combination is itself disciplined the same way. The risk this essay identifies will not show up as a defect in either pipeline. It will show up, if it shows up at all, in whatever gets built next to look at both of them at once — a dashboard, an audit tool, a status report — built by someone who has every reason to think they are only observing two systems that already behave well, and no reason to notice that observing them together is itself an admission decision that has not yet been given a seam of its own.
+
+\section*{Questions for reconstruction}
+
+\begin{enumerate}
+
+\item Why may decisions compose more safely than rationales?
+
+\item Where is the new admission boundary in a combined dashboard?
+
+\item What structure must a rationale-consuming process acquire?
+
+\end{enumerate}
+
+\chapter{What Sync Admits}
+
+\chapterprecis{Execution uniformity without epistemic overreach}
+
+\section*{Bridge from the preceding chapter}
+
+Composition raises the scale of the problem from one boundary to several. Distribution raises it again: what, exactly, has been learned when several nodes reach the same decision?
+
+\section*{Chapter orientation}
+
+The final chapter carries the same discipline into a distributed setting. $\mathrm{Sync}=1$ receives a positive but sharply bounded interpretation: it certifies uniform execution of a declared policy, not the truth, coherence, or justification of the resulting state.
+
+\section{The safeguard, and the question behind it}
+
+$\mathrm{Sync}=1$ does not imply $\mathrm{Syn}=1$ — a system's nodes agreeing does not mean the state they agree on has decreasing internal contradiction. It does not imply $\mathrm{Preserve}_s=1$ — agreement does not certify that whatever was supposed to be preserved through the synchronization actually was. It does not imply $\mathrm{Justified}=1$ — nodes converging on a state is not, by itself, evidence that the state is warranted. That safeguard was necessary and correctly conservative: consensus was already established, in the same material, as rule-satisfaction rather than truth, and the safeguard exists precisely to stop sync from quietly reabsorbing the explanatory weight that rule-satisfaction-not-truth had just taken away from it.
+
+But rule-satisfaction is not nothing. If $\mathrm{Sync}=1$ certifies that some rule was satisfied, the natural next question is which rule, and what satisfying it actually tells you. That is a narrower question than asking whether sync produces truth, coherence, or preservation, and it has a specific answer.
+
+\section{What rule is actually being checked}
+
+Take a set of independently operating nodes $\{1, \dots, n\}$, each maintaining its own history $H_t^i$ and computing its own operative state $\sigma_t^i = \Pi_t(H_t^i)$ under a declared shared policy $\Pi_t$. A candidate transition $c$ is admitted at node $i$ when that node's custodian reaches $K_{\Pi_t}(c, \sigma_t^i, W(c)) = \mathrm{admit}$. Sync, in this setting, is the event that every node's custodian reaches the same admission decision on $c$:
+\[
+\mathrm{Sync}(c) = 1 \iff K_{\Pi_t}\big(c, \sigma_t^1, W(c)\big) = \cdots = K_{\Pi_t}\big(c, \sigma_t^n, W(c)\big).
+\]
+
+This is a claim about uniformity of rule application across independently maintained state, not a claim about the rule itself, and not a claim about any single node's history being accurate. Two nodes can each faithfully apply an identical, badly designed $\Pi_t$ to two histories that are both wrong in the same way, and still achieve $\mathrm{Sync}=1$ — the agreement would be real, and would still tell you nothing about whether $\Pi_t$ is good or whether either $H_t^i$ reflects what actually happened. This is exactly why $\mathrm{Sync}=1 \not\Rightarrow \mathrm{Justified}=1$: justification is a claim about the content being agreed on, and sync only ever certifies agreement about that content, never the content's standing.
+
+\section{The positive claim}
+
+\begin{proposition}
+$\mathrm{Sync}(c) = 1$ certifies that the admission decision for $c$ is a function of the shared policy $\Pi_t$ applied uniformly, and not an artifact of any single node's private history, private state, or local implementation quirks. It certifies execution uniformity, and nothing beyond it.
+\end{proposition}
+
+This is a genuinely positive claim, not a restatement of the safeguard's negatives. It says what agreement is evidence \emph{for}: that whatever produced this outcome was the declared, shared rule, running the same way everywhere it ran, rather than $n$ separate local judgments that happened to coincide by chance or by shared error. That is a meaningful thing to know, and it is a different thing from knowing the rule was a good one.
+
+\begin{corollary}
+$\mathrm{Sync}$ failure across nodes that are all supposed to be running the same declared $\Pi_t$ is a strong, specific signal: either $\Pi_t$ has silently diverged between nodes (an unversioned or unpropagated policy change), some node's $H_t^i$ has been corrupted or has drifted out of the class the policy was designed for, or the custodian implementation itself differs between nodes in a way that violates the shared-policy assumption. $\mathrm{Sync}$ success carries no comparably strong information in the other direction — it rules out these specific failure modes without ruling in the quality of the policy or the accuracy of the histories being agreed on.
+\end{corollary}
+
+The asymmetry is the useful part. A sync failure is diagnostic, because it isolates the problem to a small, specific set of causes: policy drift, history corruption, or implementation divergence, each independently checkable. A sync success is not diagnostic of anything beyond the absence of those three problems. Treating it as diagnostic of more — as evidence the state reached is trustworthy, coherent, or correct — is exactly the overreach the earlier safeguard was written to block, now visible as a specific and nameable mistake: mistaking the absence of an execution bug for the presence of a good outcome.
+
+\section{Forking is not a counterexample}
+
+Policy is itself historical and versioned: $\Pi_n \to \Pi_{n+1}$ is a tracked transition requiring its own warrant, not a silent overwrite. It follows directly from the proposition above that two clusters of nodes, each internally achieving $\mathrm{Sync}=1$ under two different versions $\Pi_n$ and $\Pi_{n+1}$, are not in tension with each other and are not evidence that sync is broken. Each cluster's $\mathrm{Sync}=1$ correctly certifies uniform execution of its own declared policy; the fact that the two policies disagree with each other is a fact about policy divergence, fully representable as a fork, and outside what either cluster's sync claim was ever asserting. Forking as representable disagreement and $\mathrm{Sync}$ as execution-uniformity are the same idea seen from two sides: sync tells you a group is faithfully running one thing, forking tells you which thing, and neither one is entitled to tell you the other's answer.
+
+\section{Conclusion}
+
+$\mathrm{Sync}=1$ was already known not to mean syntropy, preservation, or justification. What this leaves it meaning is execution uniformity: a specific, checkable claim about whether a declared shared rule was applied the same way everywhere it was applied, useful chiefly as a diagnostic against the narrow set of failures — drift, corruption, divergent implementation — that would break that uniformity. That is a smaller claim than consensus is often asked to carry, and a more defensible one. It gives sync a job it can actually do, and closes the safeguard with an answer instead of leaving it as a standing warning against a question nobody had yet tried to answer.
+
+\section*{Questions for reconstruction}
+
+\begin{enumerate}
+
+\item What does sync positively certify?
+
+\item Why is sync failure more diagnostic than sync success?
+
+\item How can policy forks coexist with local execution uniformity?
+
+\end{enumerate}
+
+\backmatter
+\chapter{Synthesis: The Discipline of Non-Collapse}
+The six chapters can be summarized as one architectural law: no artifact should inherit the epistemic or operational status of the process that produced it unless a separately represented boundary explicitly grants that status. A blend produces a hypothesis, not a theorem. A memory compresses history, but is not history. A warrant supplies typed evidence, but does not itself admit a candidate. A reviewer admits an edit, but does not commit it. A repair ledger refuses further attempts inside a frame, but does not thereby validate the frame. A pair of audit records may inform a new decision, but they do not exempt that decision from requiring its own boundary. Synchronization certifies uniform execution, but not the wisdom of the executed rule.
+
+This law is negative in form but constructive in effect. Keeping objects apart creates visible places where policy can be changed, authority can be scoped, provenance can be inspected, and uncertainty can remain unresolved without being erased. Non-collapse is therefore not bureaucratic delay. It is what makes revision possible without rewriting the past and what makes coordination possible without pretending that agreement is truth.
+
+The resulting architecture has four recurrent movements. A system first \emph{records} observations, candidates, and rationales without granting them consequence. It then \emph{evaluates} those candidates against an explicit and versioned reference structure. A custodian or reviewer may \emph{admit} a candidate within a defined scope. Only a later, separately authorized operation may \emph{commit} the admitted change to a consequential state. Compression and synchronization may occur throughout this sequence, but neither changes the standing of what it processes unless a boundary explicitly says so.
+
+The open research program is correspondingly concrete. Provenance must be measured rather than merely named; evaluator dependence must be represented rather than inferred from nominal plurality; policy and boundary data must remain separately inspectable; combined dashboards must be treated as possible admission points; and distributed agreement must be tested for implementation uniformity without being recruited as a surrogate for justification. These are engineering requirements generated by epistemic restraint.
+
+\chapter{Glossary of Core Distinctions}
+\begin{description}[style=nextline]
+\item[Record / admit / commit] To preserve a candidate, to authorize it within a scope, and to cause its external consequence. None entails the next.
+\item[History / operative state / memory] The append-only event sequence, the present state derived from it, and a purpose-specific compression of it.
+\item[Candidate / warrant / policy / authority] What is proposed, the typed support for considering it, the rule governing admission, and the scoped standing to propose or admit it.
+\item[Blend / validation] A structure that generates cross-domain hypotheses and the independent target-domain procedure required to establish them.
+\item[Decision / rationale] The consequence allowed to propagate and the reasoning preserved for audit without automatically entering the causal chain.
+\item[Vertical / horizontal repair] Intervention within a stable comparison frame and revision or diagnosis of the frame itself.
+\item[Sync / justification] Uniform execution of a declared policy and the stronger, separate claim that the resulting content is warranted.
+\item[Non-collapse] The design requirement that distinct epistemic or operational roles remain separately represented and cannot silently substitute for one another.
+\end{description}
+\end{document}
