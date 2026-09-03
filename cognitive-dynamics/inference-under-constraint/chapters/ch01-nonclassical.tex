@@ -1,0 +1,138 @@
+\chapter{Three-Valued and Paraconsistent Logic}
+\label{ch:nonclassical}
+
+Classical logic assumes every proposition is exactly one of true or
+false, and that a contradiction proves anything. Both assumptions
+can be dropped, separately or together, and dropping them yields
+logics that are still precise and still mechanically checkable —
+just not classical. This chapter works through the smallest cases:
+a third truth value standing for a gap in information, and a fourth
+standing for a genuine glut.
+
+\section{A Third Value: Kleene's Strong Logic}
+
+\begin{experiment}{Excluded middle fails with a gap value}
+Introduce a type with three values — true, false, and
+\emph{unknown} — and define conjunction, disjunction, and negation
+by Kleene's rule: an operation returns \texttt{unknown} whenever the
+classical truth table would need to consult an unknown input to
+decide the result, and returns a definite value whenever one input
+already settles the answer regardless of the other (for instance,
+\texttt{false and unknown} is \texttt{false}, since a false
+conjunct settles the conjunction no matter what the other conjunct
+is).
+\begin{lean}
+inductive K3 where
+  | tt | ff | unknown
+  deriving DecidableEq, Repr
+
+def K3.knot : K3 → K3
+  | tt => ff
+  | ff => tt
+  | unknown => unknown
+
+def K3.kor : K3 → K3 → K3
+  | tt, _ => tt
+  | _, tt => tt
+  | ff, ff => ff
+  | _, _ => unknown
+
+theorem excluded_middle_fails :
+    ∃ p : K3, K3.kor p p.knot ≠ K3.tt := by
+  exact ⟨K3.unknown, by
+    decide ⟩
+\end{lean}
+Unlike the classical case, $p \lor \lnot p$ is not a validity here:
+when $p$ is \texttt{unknown}, so is $\lnot p$, and the disjunction of
+two unknowns is itself unknown, never forced up to \texttt{tt}.
+\end{experiment}
+
+\section{A Fourth Value: Gluts and the Logic of Paradox}
+
+\texttt{K3}'s third value stood for a \emph{gap} — genuinely
+unknown, neither true nor false. The dual notion is a \emph{glut}: a
+proposition that is, in the sense a paraconsistent logic makes
+precise, both true and false at once. Priest's Logic of Paradox
+(LP) is built on exactly that idea. Rather than force gaps and
+gluts into one four-valued lattice — a genuine bilattice, whose
+connectives are easy to get subtly wrong without a way to check
+them interactively — LP is presented here as a clean, self-contained
+companion to \texttt{K3}, with its own three values and its own
+notion of which values count as ``holding.''
+
+\begin{experiment}{Excluded middle holds again, via a glut}
+\begin{lean}
+inductive LP where
+  | t | f | b
+  deriving DecidableEq, Repr
+
+def LP.lnot : LP → LP
+  | t => f
+  | f => t
+  | b => b
+
+def LP.lor : LP → LP → LP
+  | t, _ => t
+  | _, t => t
+  | b, b => b
+  | b, f => b
+  | f, b => b
+  | f, f => f
+
+def LP.designated : LP → Bool
+  | t => true
+  | b => true
+  | f => false
+
+theorem lp_excluded_middle :
+    ∀ p : LP, (LP.lor p p.lnot).designated = true := by decide
+\end{lean}
+\texttt{b} (``both'') and \texttt{t} count as \emph{designated} —
+holding, in the sense relevant to validity — while only \texttt{f}
+does not. Where \texttt{K3}'s gap value made $p \lor \lnot p$ fail
+(an unknown disjoined with an unknown stayed unknown), LP's glut
+value does not: $b \lor \lnot b = b \lor b = b$, and $b$ is
+designated. Excluded middle survives contact with a glut in exactly
+the way it did not survive contact with a gap.
+\end{experiment}
+
+\section{Why Explosion Fails: A Countermodel}
+
+\begin{countermodel}{Ex falso quodlibet is not valid in LP}
+\begin{lean}
+def LP.land : LP → LP → LP
+  | f, _ => f
+  | _, f => f
+  | b, b => b
+  | b, t => b
+  | t, b => b
+  | t, t => t
+
+example : (LP.land LP.b (LP.lnot LP.b)).designated = true := by decide
+example : LP.f.designated = false := by decide
+\end{lean}
+At $p = \texttt{b}$, $p \land \lnot p$ evaluates to \texttt{b} —
+designated, so the premise counts as holding — while $q := \texttt{f}$
+is not designated at all. Explosion, ``from a contradiction, anything
+follows,'' would require every $q$ to be forced designated once
+$p \land \lnot p$ is; this single witness is enough to show it is
+not. A contradiction can hold in LP without licensing everything.
+\end{countermodel}
+
+LP is not a detour from this book's larger concerns; it is the
+starting point for them. The constraint-regime logic developed at
+length in the Priest–Flyxion program builds on exactly this
+observation — that admitting some contradictions without admitting
+everything is a coherent, checkable stance, not a confusion to be
+regulated away — and \texttt{LP.designated} above is the simplest
+possible instance of a \emph{constraint} on which values count as
+holding, the same idea Chapter~\ref{ch:admissibility} develops in
+full.
+
+\section{Exercises}
+
+\begin{exercise}
+Define Kleene conjunction \texttt{K3.kand} and verify by
+\texttt{decide} that \texttt{K3.knot} distributes over it the way De
+Morgan's law requires.
+\end{exercise}

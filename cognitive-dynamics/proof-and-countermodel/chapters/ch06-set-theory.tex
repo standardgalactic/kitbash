@@ -1,0 +1,104 @@
+\chapter{Elementary Set Theory as Applied Logic}
+\label{ch:set-theory}
+
+This closing chapter treats membership, subset relations,
+comprehension over typed domains, unions, intersections, and
+complements as applied instances of the logic already developed,
+rather than as a separate subject. Russell's paradox is used to draw
+a sharp distinction between an inconsistent specification and a
+merely unproved proposition.
+
+\section{Membership and Comprehension}
+
+In Lean, \texttt{Set alpha} is not a new kind of object requiring
+new logic — it is literally \texttt{alpha → Prop}, a predicate on
+\texttt{alpha} wearing set-theoretic notation. Comprehension,
+\texttt{\{x | p x\}}, builds a set directly from a predicate
+\texttt{p}, and membership, $x \in s$, unfolds to nothing more
+than applying that predicate: \texttt{s x}. Every subset proof is
+therefore already a proof about an implication, provable with
+exactly the tactics Chapter~\ref{ch:natural-deduction} introduced.
+
+\begin{experiment}{A subset proof via \texttt{intro}/\texttt{exact}}
+\begin{lean}
+example : {x : Nat | x < 3} ⊆ {x : Nat | x < 5} := by
+  intro x hx
+  simp only [Set.mem_setOf_eq] at hx ⊢
+  omega
+\end{lean}
+Unfolding $\subseteq$ at the definitional level, the goal is exactly
+an implication — $x < 3 \to x < 5$ — and \texttt{intro x hx}
+discharges it the same way \texttt{intro} discharged any other
+implication in Chapter~\ref{ch:natural-deduction}. The set-theoretic
+vocabulary changed; the proof method did not.
+\end{experiment}
+
+\section{Unions, Intersections, Complements}
+
+De Morgan's laws hold for sets in exactly the shape they held for
+propositions in Chapter~\ref{ch:propositions}, because membership in
+a union, an intersection, or a complement is defined to unfold to
+$\lor$, $\land$, and $\lnot$ respectively — proving the set version
+is proving the propositional version, one membership check away.
+
+\begin{experiment}{De Morgan for sets, alongside De Morgan for propositions}
+\begin{lean}
+example {alpha : Type} (A B : Set alpha) :
+    (A ∪ B)ᶜ = Aᶜ ∩ Bᶜ := by
+  ext x
+  simp only [Set.mem_compl_iff, Set.mem_union, Set.mem_inter_iff]
+  exact Iff.intro
+    (fun h => And.intro (fun hA => h (Or.inl hA)) (fun hB => h (Or.inr hB)))
+    (fun h => fun hab => hab.elim h.1 h.2)
+\end{lean}
+Set this beside \texttt{demorgan\_or} from
+Chapter~\ref{ch:propositions}: after \texttt{ext x} reduces the
+set equation to a statement about the single element \texttt{x}, and
+the three \texttt{simp} lemmas unfold membership, the two proof terms
+are the identical shape — \texttt{And.intro} built from two
+functions composing with \texttt{Or.inl}/\texttt{Or.inr}, and
+\texttt{.elim} case-splitting an \texttt{Or} in the other direction.
+Nothing new was proved; the same fact was proved again in
+different notation, and the proof noticed.
+\end{experiment}
+
+\section{Russell's Paradox: An Inconsistency, Not an Open Question}
+
+\begin{experiment}{Why unrestricted comprehension fails}
+\begin{lean}
+-- This does NOT typecheck — Lean rejects it before there is any
+-- proposition left to ask "true or false" about:
+def russellSet {alpha : Type} : Set alpha := {s | s ∉ s}
+-- Elaboration fails: `s ∉ s` needs `s : alpha` (to be a candidate
+-- element of the set being built) and also `s : Set alpha` (to be
+-- one of the sets `s` itself ranges over) at once — that is, it
+-- needs `alpha = Set alpha`. No fixed Lean `Type` can equal the
+-- type of its own subsets; the universe hierarchy is stratified
+-- precisely to rule this out.
+\end{lean}
+Naive set theory's version of this — ``let $R$ be the set of all
+sets that do not contain themselves; is $R \in R$?'' — treats the
+attempted definition as though it succeeds, and only then discovers
+a contradiction from asking whether $R \in R$. Lean's type theory
+never reaches that question: the definition of \texttt{russellSet}
+fails to elaborate at all, because $s \notin s$ is not
+well-typed for an arbitrary \texttt{s : alpha} in the first place.
+The paradox is blocked structurally, one layer before it could ever
+become a true-or-false question.
+\end{experiment}
+
+\section{Closing the Introductory Sequence}
+
+This is the last chapter of the introductory sequence.
+\textit{Inference Under Constraint} continues from here into
+non-classical logic, modality, and a broader admissibility-theoretic
+program; nothing in this book depends on that continuation, and a
+reader who stops here has a complete, self-contained introduction to
+logic through Lean.
+
+\section{Exercises}
+
+\begin{exercise}
+Prove $A \cap (B \cup C) = (A \cap B) \cup (A \cap C)$ for sets over a
+common type.
+\end{exercise}

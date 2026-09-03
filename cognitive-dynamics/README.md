@@ -1,3 +1,7 @@
+[Safe Mode](https://standardgalactic.github.io/kitbash/cognitive-dynamics/safe-mode.pdf)
+
+[Vocabulary as Moat](https://standardgalactic.github.io/kitbash/cognitive-dynamics/msdos_monograph.pdf)
+
 [The Verification Boundary](https://standardgalactic.github.io/kitbash/cognitive-dynamics/verification-boundary.pdf)
 
 [The Etiology of Progress](https://standardgalactic.github.io/kitbash/cognitive-dynamics/etiology-of-progress.pdf)

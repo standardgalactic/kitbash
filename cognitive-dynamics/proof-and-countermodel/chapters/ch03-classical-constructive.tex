@@ -1,0 +1,86 @@
+\chapter{Classical and Constructive Logic}
+\label{ch:classical-constructive}
+
+This chapter makes the constructive/classical boundary a concrete,
+observable formal fact rather than historical or terminological
+background: one direction of double negation typechecks without
+qualification, and the other genuinely requires a classical
+principle to be invoked by name.
+
+\section{Double Negation Introduction}
+
+\begin{experiment}{$p \to \lnot\lnot p$}
+\begin{lean}
+theorem dn_intro (p : Prop) (hp : p) : ¬¬p :=
+  fun hnp => hnp hp
+\end{lean}
+This direction is constructively valid: it requires nothing beyond
+the definition of negation as $p \to \mathrm{False}$.
+\end{experiment}
+
+\section{Double Negation Elimination}
+
+Try to prove $\lnot\lnot p \to p$ with only the tactics from
+Chapter~\ref{ch:natural-deduction} and the attempt stalls
+immediately: \texttt{intro h} leaves a hypothesis
+$h : \lnot\lnot p$, but none of \texttt{exact}, \texttt{apply}, or
+\texttt{cases} can turn a doubly-negated hypothesis into a proof of
+$p$ itself — \texttt{cases} has nothing to split, since $\lnot\lnot p$
+is not built from a multi-constructor type the way $p \lor q$ or
+$\exists x, P\,x$ are. This is not a countermodel — the statement is
+true — but the gap is real: nothing introduced so far closes it.
+
+\begin{experiment}{Double negation elimination, classically}
+\begin{lean}
+theorem dn_elim (p : Prop) (h : ¬¬p) : p :=
+  Classical.byContradiction h
+\end{lean}
+This looks almost too easy, and that is the point: unfolding
+notation, $\lnot\lnot p$ \emph{is} $(\lnot p) \to \mathrm{False}$,
+and \texttt{Classical.byContradiction} has exactly that as its
+hypothesis type. The classical principle is not doing subtle work
+here — it is being invoked directly, by name, at precisely the one
+step Chapter~\ref{ch:natural-deduction}'s toolkit could not take.
+\end{experiment}
+
+\section{Excluded Middle}
+
+\texttt{Classical.em} states $p \lor \lnot p$ for every proposition
+$p$, and given the rest of classical logic it is interchangeable
+with double negation elimination — each is provable from the other.
+One direction was already used implicitly above; the other direction
+is worth deriving explicitly, since it reuses \texttt{cases} from
+Chapter~\ref{ch:natural-deduction} directly.
+
+\begin{experiment}{Double negation elimination from excluded middle}
+\begin{lean}
+theorem dn_elim_from_em (p : Prop) (h : ¬¬p) : p := by
+  cases Classical.em p with
+  | inl hp => exact hp
+  | inr hnp => exact absurd hnp h
+\end{lean}
+\texttt{Classical.em p} supplies $p \lor \lnot p$ directly; the
+first case closes immediately, and the second uses
+\texttt{absurd}\footnote{\texttt{absurd : a → ¬a → b}, valid for any
+target type \texttt{b} — from a proof of \texttt{a} and a proof of
+\texttt{¬a}, anything follows.} to extract a contradiction from
+$\lnot p$ together with $h : \lnot\lnot p$.
+\end{experiment}
+
+Constructive logic does not reject $p \lor \lnot p$ because it is
+false — under classical assumptions it plainly is not — but because
+treating it as a primitive would mean asserting, for
+\emph{every} proposition whatsoever, that one of its two sides is
+decidable in principle, with no general procedure supplied for
+determining which. A constructive proof of $p \lor \lnot p$ has to
+actually produce one side or the other; for a proposition about, say,
+an open mathematical question, no such construction is available. In
+Lean's classical fragment this worry is set aside by fiat, via the
+axiom underlying \texttt{Classical.em} itself.
+
+\section{Exercises}
+
+\begin{exercise}
+Prove Peirce's law, $((p \to q) \to p) \to p$, and identify exactly
+where a classical principle is required.
+\end{exercise}

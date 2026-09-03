@@ -1,0 +1,160 @@
+\chapter{Modal Logic}
+\label{ch:modal}
+
+Modal logic adds operators — canonically $\Box$ (necessity) and
+$\Diamond$ (possibility) — that make a statement's truth depend on
+which \emph{state} it is evaluated at, connected to other states by
+an accessibility relation. This chapter introduces the accessibility
+picture directly through a structure already familiar from outside
+logic proper: a fact moving from merely recorded, to admitted, to
+committed, to consequential, is a chain of states each reachable
+from the last, and modal vocabulary describes exactly that kind of
+movement.
+
+\section{States and Accessibility}
+
+Formally, $\Box p$ at a state $w$ means ``$p$ holds at every state
+accessible from $w$,'' and $\Diamond p$ means ``$p$ holds at some
+state accessible from $w$.'' The accessibility relation itself is
+nothing exotic — an ordinary relation on a type of states, exactly
+the kind of object Chapter~\ref{ch:admissibility} builds
+\texttt{Extends} out of.
+
+\begin{experiment}{A three-world Kripke frame, evaluated by hand}
+Three worlds, a chain of accessibility $w_0 \to w_1 \to w_2$, and a
+proposition $p$ true only at $w_1$.
+\begin{lean}
+inductive World where
+  | w0 | w1 | w2
+  deriving DecidableEq, Repr
+
+def accessible : World → World → Bool
+  | .w0, .w1 => true
+  | .w1, .w2 => true
+  | _, _ => false
+
+def val : World → Bool
+  | .w0 => false
+  | .w1 => true
+  | .w2 => false
+
+def worlds : List World := [World.w0, World.w1, World.w2]
+
+def diamondP (w : World) : Bool :=
+  worlds.any (fun v => accessible w v && val v)
+
+def boxP (w : World) : Bool :=
+  worlds.all (fun v => !accessible w v || val v)
+\end{lean}
+By hand, before automating: at $w_0$, the only accessible world is
+$w_1$, where $p$ holds — so both $\Diamond p$ and $\Box p$ hold at
+$w_0$ (there is nothing accessible for $\Box$ to fail on). At $w_2$,
+nothing is accessible at all, so $\Diamond p$ fails outright (there
+is no witness) while $\Box p$ holds \emph{vacuously} — a dead-end
+world satisfies every necessity claim for free.
+\begin{lean}
+example : diamondP World.w0 = true := by decide
+example : boxP World.w0 = true := by decide
+example : diamondP World.w2 = false := by decide
+example : boxP World.w2 = true := by decide
+\end{lean}
+\end{experiment}
+
+\section{A Worked Structure: Record, Admit, Commit}
+
+\begin{experiment}{The forward chain}
+A fact can be recorded without being admitted, admitted without
+being committed, and committed without being consequential — but
+never the reverse. State this as a chain of implications between
+four propositional fields of one structure.
+\begin{lean}
+structure State where
+  recorded : Prop
+  admitted : Prop
+  committed : Prop
+  consequential : Prop
+
+def valid (s : State) : Prop :=
+  (s.admitted → s.recorded) ∧
+  (s.committed → s.admitted) ∧
+  (s.consequential → s.committed)
+
+theorem consequence_requires_record
+    (s : State) (h : valid s) (hc : s.consequential) :
+    s.recorded :=
+  h.1 (h.2.1 (h.2.2 hc))
+\end{lean}
+Read modally: if ``consequential'' is accessible from
+``committed,'' ``committed'' from ``admitted,'' and ``admitted''
+from ``recorded,'' then $\Box$ at the recorded state reaches every
+later state in the chain — but nothing forces the reverse
+accessibility.
+\end{experiment}
+
+\begin{countermodel}{None of the converses hold}
+Recording does not imply admission; admission does not imply
+commitment.
+\begin{lean}
+def recordedOnly : State where
+  recorded := True
+  admitted := False
+  committed := False
+  consequential := False
+
+theorem record_does_not_imply_admit :
+    ¬ ∀ s : State, valid s → s.recorded → s.admitted := by
+  intro h
+  exact h recordedOnly (by simp [valid, recordedOnly]) (by simp [recordedOnly])
+\end{lean}
+\texttt{recordedOnly} is a single state satisfying \texttt{valid}
+in which every later stage of the chain is false — exactly the kind
+of witness a countermodel to a converse needs, and exactly the
+reason modal accessibility is not assumed symmetric by default.
+\end{countermodel}
+
+\section{Necessity, Possibility, and Frame Conditions}
+
+Standard modal axioms correspond exactly to conditions on the
+accessibility relation itself, a fact usually called
+\emph{correspondence theory}: axiom T ($\Box p \to p$) corresponds
+to \emph{reflexivity} (every world sees itself, so what necessarily
+holds already holds here); axiom 4 ($\Box p \to \Box\Box p$)
+corresponds to \emph{transitivity} (if every step-1-accessible world
+satisfies $p$, so does every step-2-accessible world, since step-2
+accessibility factors through step-1); axiom B ($p \to \Box\Diamond p$)
+corresponds to \emph{symmetry} (if $w$ sees $v$, $v$ sees $w$ back,
+so whatever holds at $w$ is reachable-back-to from anywhere $w$
+reaches). The three-world frame above is not transitive as drawn —
+$w_0$ reaches $w_2$ only through $w_1$, not directly — which is
+exactly why axiom 4 is not being claimed for it.
+
+The record/admit/commit chain, by contrast, \emph{is} transitive in
+exactly the relevant sense, and the composition already proved in
+\texttt{consequence\_requires\_record} is the modal axiom~4 pattern
+made concrete: reaching \texttt{recorded} from \texttt{consequential}
+factors through the intermediate states, the same way
+\texttt{extends\_trans} in Chapter~\ref{ch:admissibility} composes
+two one-step extensions into a two-step one.
+
+\begin{experiment}{Two-step accessibility, factored}
+\begin{lean}
+theorem committed_reaches_recorded (s : State) (h : valid s) :
+    s.committed → s.recorded :=
+  fun hc => h.1 (h.2.1 hc)
+\end{lean}
+Compare the shape directly to \texttt{extends\_trans}'s
+\texttt{fun x hx => h23 (h12 hx)}: both compose two one-step
+implications into one two-step implication by applying them in
+sequence. \texttt{h.2.1} is the one-step link
+\texttt{committed → admitted}; \texttt{h.1} is the next one-step
+link \texttt{admitted → recorded}; composing them is the entire
+proof, and it is the same composition — accessibility chaining
+through an intermediate state — in both settings.
+\end{experiment}
+
+\section{Exercises}
+
+\begin{exercise}
+Show that admission does not imply commitment, following the pattern
+of \texttt{record\_does\_not\_imply\_admit} above.
+\end{exercise}

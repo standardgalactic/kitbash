@@ -1,0 +1,245 @@
+\chapter{Propositions and Connectives}
+\label{ch:propositions}
+
+This chapter introduces the basic propositional connectives
+$\land$, $\lor$, $\lnot$, $\to$, and $\leftrightarrow$, together with
+Lean's \texttt{Bool}-valued truth-table decidability through the
+\texttt{decide} tactic. It establishes, in miniature, the pairing
+that organizes the whole book: a claim is proved where it holds, and
+a plausible-looking converse or strengthening is shown false by an
+explicit countermodel where it does not.
+
+\section{The Basic Connectives}
+
+Lean has two different homes for the five connectives, and keeping
+them straight matters more than it might first appear.
+
+At the level of \texttt{Prop}, each connective is a type whose
+inhabitants are proofs, not a computed value: $p \land q$ is the
+structure \texttt{And}, whose single constructor
+\texttt{And.intro} packages a proof of $p$ together with a proof of
+$q$; $p \lor q$ is the inductive type \texttt{Or}, with two
+constructors \texttt{Or.inl} and \texttt{Or.inr} for proving it from
+either side (already used in the worked example below); $\lnot p$ is
+literally notation for $p \to \mathrm{False}$, so a proof of
+$\lnot p$ is a function turning any proof of $p$ into a proof of
+\texttt{False}; $p \to q$ needs no special type at all, since a proof
+of an implication simply \emph{is} a function from proofs of $p$ to
+proofs of $q$; and $p \leftrightarrow q$ is the structure
+\texttt{Iff}, bundling a proof of $p \to q$ with a proof of
+$q \to p$.
+
+At the level of \texttt{Bool}, the same five symbols name ordinary
+total computable functions on the two-element type
+$\{\mathtt{true}, \mathtt{false}\}$: \texttt{\&\&}, \texttt{||},
+\texttt{!}, and Boolean implication all just look up an answer in a
+finite table. Because that table is finite, equality between two
+\texttt{Bool}-valued expressions is always decidable — which is
+exactly why \texttt{decide} can close the countermodel below by
+brute enumeration, with nothing constructive required.
+\begin{lean}
+-- Prop level: a proof is data, not a computed answer.
+example (p q : Prop) (hp : p) (hq : q) : p ∧ q := And.intro hp hq
+
+-- Bool level: a value is computed by table lookup.
+example : (true && false) = false := rfl
+\end{lean}
+The \texttt{decide} tactic is the bridge between the two registers:
+for a \texttt{Prop} that happens to be decidable, it computes the
+\texttt{Bool} answer and uses that computation directly as the
+proof. Every \texttt{decide} call in this book is doing exactly
+that, silently, underneath the enumeration it appears to perform.
+
+\section{A Worked Pair: Disjunction Introduction}
+
+The first genuine result of the book is small on purpose: it should
+be possible to state, prove, and understand the countermodel to its
+converse within a single sitting.
+
+\begin{experiment}{Disjunction introduction}
+For any propositions $p$ and $q$, $p \to p \lor q$.
+\begin{lean}
+theorem or_intro_left (p q : Prop) (hp : p) : p ∨ q :=
+  Or.inl hp
+\end{lean}
+The proof is definitional: \texttt{Or.inl} is literally the
+introduction rule for the left disjunct. Nothing about $q$ is used
+or needed.
+\end{experiment}
+
+\begin{countermodel}{The converse of disjunction introduction}
+The converse, $p \lor q \to p$, is not valid: it fails whenever $q$
+holds and $p$ does not.
+\begin{lean}
+example : ¬ (∀ p q : Bool, (p || q) = true → p = true) := by
+  decide
+\end{lean}
+Working at the level of \texttt{Bool} rather than \texttt{Prop}
+makes the countermodel a finite, decidable check: Lean simply
+enumerates the four truth-value combinations and exhibits
+$p = \mathrm{false}, q = \mathrm{true}$ as a witness where the
+premise holds and the conclusion fails.
+\end{countermodel}
+
+\section{De Morgan, Contraposition, Distributivity}
+
+Contraposition itself — $(p \to q) \to (\lnot q \to \lnot p)$ — is
+left as Exercise~2 below rather than worked here, since attempting
+it after this section's examples is a reasonable checkpoint. What
+follows instead are De Morgan's laws and distributivity, plus one
+plausible-looking strengthening of distributivity that is not valid.
+
+\begin{experiment}{De Morgan for $\lor$, both directions}
+Unlike some non-classical distinctions the book will return to in
+Chapter~\ref{ch:classical-constructive}, this particular law needs
+no classical principle in either direction.
+\begin{lean}
+theorem demorgan_or (p q : Prop) : ¬(p ∨ q) ↔ (¬p ∧ ¬q) :=
+  Iff.intro
+    (fun h => And.intro
+      (fun hp => h (Or.inl hp)) (fun hq => h (Or.inr hq)))
+    (fun h => fun hpq => hpq.elim h.1 h.2)
+\end{lean}
+Both halves of the \texttt{Iff} are ordinary functions built from
+the constructors already in hand — written here with
+\texttt{Iff.intro}/\texttt{And.intro} spelled out rather than the
+usual $\langle \cdot, \cdot \rangle$ shorthand, since nesting that
+shorthand two levels deep does not render reliably in this book's
+code-listing setup: the forward direction turns a disproof of the
+whole disjunction into two separate disproofs by composing with
+\texttt{Or.inl}/\texttt{Or.inr}; the backward direction uses
+\texttt{Or.elim} (written here via dot notation, \texttt{hpq.elim})
+to case on which disjunct held.
+\end{experiment}
+
+\begin{experiment}{De Morgan for $\land$, one direction}
+The direction from a disjunction of negations to a negated
+conjunction needs nothing beyond what is already available.
+\begin{lean}
+theorem demorgan_and_one_way (p q : Prop) (h : ¬p ∨ ¬q) :
+    ¬(p ∧ q) :=
+  fun hpq => h.elim (fun hnp => hnp hpq.1) (fun hnq => hnq hpq.2)
+\end{lean}
+The converse — from $\lnot(p \land q)$ to $\lnot p \lor \lnot q$ —
+is also true, but not by a proof this direct: it needs a classical
+principle unavailable at this point in the book, and is revisited
+once Chapter~\ref{ch:classical-constructive} has introduced one.
+\end{experiment}
+
+\begin{experiment}{Distributivity of $\land$ over $\lor$}
+\begin{lean}
+theorem and_distrib_or (p q r : Prop) :
+    p ∧ (q ∨ r) ↔ (p ∧ q) ∨ (p ∧ r) :=
+  Iff.intro
+    (fun h => h.2.elim
+      (fun hq => Or.inl (And.intro h.1 hq))
+      (fun hr => Or.inr (And.intro h.1 hr)))
+    (fun h => h.elim
+      (fun hpq => And.intro hpq.1 (Or.inl hpq.2))
+      (fun hpr => And.intro hpr.1 (Or.inr hpr.2)))
+\end{lean}
+\end{experiment}
+
+\begin{countermodel}{Distributivity does not extend to full separation}
+It is tempting to guess that $p \land (q \lor r)$ forces both
+$p \land q$ \emph{and} $p \land r$ separately, not merely one or the
+other. It does not.
+\begin{lean}
+example : ¬ (∀ p q r : Bool,
+    (p && (q || r)) = true → ((p && q) && (p && r)) = true) := by
+  decide
+\end{lean}
+Taking $p = \mathtt{true}$, $q = \mathtt{true}$, $r = \mathtt{false}$
+satisfies the premise ($p$ holds and at least one of $q, r$ does) but
+fails the conclusion ($p \land r$ is false), exactly the witness
+\texttt{decide} finds by exhaustive search over the eight cases.
+\end{countermodel}
+
+\section{Application: Digital Logic Circuits}
+
+Propositional logic is not only a tool for evaluating arguments; it
+is, quite literally, the specification language for digital
+hardware. An AND gate, an OR gate, and a NOT gate compute $\land$,
+$\lor$, and $\lnot$ on electrical signals instead of truth values,
+and a circuit built from them computes whatever Boolean expression
+its wiring diagram represents. This gives the truth tables and
+\texttt{decide} calls from earlier in the chapter a second life: two
+circuits that look completely different can be shown to compute the
+exact same function by checking that their Boolean expressions agree
+on every input — which is exactly what \texttt{decide} already does.
+
+\begin{experiment}{Reading a circuit off a truth table}
+Given a truth table, a Boolean expression that matches it can always
+be built directly: for each row where the output is true, form the
+conjunction of each input (negated if that input is false in that
+row), then join all such conjunctions with $\lor$. For the table
+\[
+\begin{array}{ccc|c}
+P & Q & R & S \\ \hline
+1 & 1 & 1 & 1 \\
+1 & 1 & 0 & 0 \\
+1 & 0 & 1 & 1 \\
+1 & 0 & 0 & 1 \\
+0 & 1 & 1 & 0 \\
+0 & 1 & 0 & 0 \\
+0 & 0 & 1 & 0 \\
+0 & 0 & 0 & 0
+\end{array}
+\]
+the three true rows give
+$S = (P \land Q \land R) \lor (P \land \lnot Q \land R) \lor (P \land \lnot Q \land \lnot R)$.
+Rather than trust that construction by eye, state the table directly
+as one function and the built expression as another, then let
+\texttt{decide} confirm they agree everywhere:
+\begin{lean}
+def sFromTable (p q r : Bool) : Bool :=
+  match p, q, r with
+  | true,  true,  true  => true
+  | true,  true,  false => false
+  | true,  false, true  => true
+  | true,  false, false => true
+  | false, true,  true  => false
+  | false, true,  false => false
+  | false, false, true  => false
+  | false, false, false => false
+
+def sFromDNF (p q r : Bool) : Bool :=
+  (p && q && r) || (p && !q && r) || (p && !q && !r)
+
+example : ∀ p q r : Bool, sFromTable p q r = sFromDNF p q r := by
+  decide
+\end{lean}
+\end{experiment}
+
+\begin{experiment}{Two circuits, one function}
+Circuits with visibly different wiring can compute identical
+functions — the point of a later stage in circuit design is finding
+the simpler one. A circuit built from an OR of two ANDs need be no
+more powerful than a single wire:
+\begin{lean}
+def circuitA (p q : Bool) : Bool := (p && q) || (p && !q)
+def circuitB (p q : Bool) : Bool := p
+
+example : ∀ p q : Bool, circuitA p q = circuitB p q := by decide
+\end{lean}
+\texttt{circuitA} and \texttt{circuitB} disagree on how many gates
+they use and agree on every output — the same distinction between
+syntactic form and semantic content that separates a Lean proof
+term from the proposition it proves.
+\end{experiment}
+
+\section{Exercises}
+
+\begin{exercise}
+Prove $q \to p \lor q$ (disjunction introduction, right).
+\end{exercise}
+
+\begin{exercise}
+State and prove, or refute by countermodel, the claim
+$(p \to q) \to (\lnot q \to \lnot p)$.
+\end{exercise}
+
+\begin{exercise}
+Using \texttt{decide} on \texttt{Bool}, determine whether
+$(p \land q) \lor r$ and $(p \lor r) \land (q \lor r)$ always agree.
+\end{exercise}
