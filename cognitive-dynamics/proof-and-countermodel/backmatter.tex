@@ -1,0 +1,96 @@
+\appendix
+\chapter{Lean Setup and Conventions}
+\label{app:lean-setup}
+
+\section{Minimal Project Setup}
+
+Every listing in this book is ordinary Lean~4, checked against
+\texttt{mathlib} for the handful of lemmas the later chapters borrow
+(\texttt{omega}, \texttt{Set.mem\_setOf\_eq}). A reader following
+along needs no more than the following two files in a fresh
+directory managed by \texttt{lake}, Lean's build tool.
+
+\texttt{lean-toolchain} pins the compiler version so that a project
+built today keeps working:
+\begin{lean}
+leanprover/lean4:v4.11.0
+\end{lean}
+
+\texttt{lakefile.toml} declares the project and its one dependency:
+\begin{lean}
+name = "proof_and_countermodel"
+defaultTargets = ["ProofAndCountermodel"]
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+
+[[lean_lib]]
+name = "ProofAndCountermodel"
+\end{lean}
+Running \texttt{lake update} once, followed by \texttt{lake build},
+fetches \texttt{mathlib} and compiles it; this is the slow step, and
+only needs to happen once per toolchain version. Every
+\texttt{example}/\texttt{theorem} block quoted in this book can then
+be pasted into a single \texttt{.lean} file under
+\texttt{ProofAndCountermodel/} and checked with
+\texttt{lake env lean ThatFile.lean}, or browsed interactively with
+any Lean-aware editor (VS Code with the \texttt{lean4} extension is
+the reference setup used while writing this book).
+
+\section{\texttt{Prop} versus \texttt{Bool}}
+
+Chapter~1 introduces two different Lean citizens that both claim to
+speak for the five familiar connectives, and the distinction is worth
+restating plainly here since every later chapter leans on it without
+re-explaining it.
+
+A term of type \texttt{Prop} is a \emph{proposition}: a statement
+that may or may not be true, whose type is inhabited exactly when it
+is provable. A proof of $p \land q$ is not a fact looked up
+somewhere — it is a concrete piece of data, an \texttt{And.intro}
+structure holding a proof of $p$ and a proof of $q$ side by side.
+Two different proofs of the same proposition need not be equal as
+terms; Lean does not ask them to be, since \texttt{Prop} is
+proof-irrelevant only up to definitional equality, and the book never
+needs anything stronger than that.
+
+A term of type \texttt{Bool}, by contrast, is a \emph{computed
+value}: exactly \texttt{true} or exactly \texttt{false}, produced by
+running a decidable total function. \texttt{decide} is the tactic
+that crosses from one register to the other: given a decidable
+\texttt{Prop}, it evaluates the corresponding \texttt{Bool}
+computation and, if that computation reduces to \texttt{true}, uses
+the reduction itself as the proof. This is why every
+\texttt{by decide} in this book is doing two things at once — settling
+a finite question by brute enumeration, and silently converting that
+enumeration into a \texttt{Prop}-level proof term.
+
+The practical rule of thumb used throughout: reach for \texttt{Bool}
+and \texttt{decide} whenever the domain is finite and the question is
+a concrete instance (a specific \texttt{Fin n}, a specific truth
+table); reach for \texttt{Prop} and an explicit proof term whenever
+the claim is about \emph{all} propositions, all naturals, or any
+other domain too large to enumerate. Chapters~1, 4, and 5 mix both
+registers side by side precisely to make that boundary visible rather
+than leaving it implicit.
+
+\begin{thebibliography}{9}
+
+\bibitem{avigad2021}
+J.~Avigad, L.~de~Moura, S.~Kong, and S.~Ebner,
+\emph{Theorem Proving in Lean 4},
+online textbook, 2021.
+Available online: \url{https://leanprover.github.io/theorem_proving_in_lean4/}.
+
+\bibitem{vandalen2013}
+D.~van Dalen,
+\emph{Logic and Structure}, 5th ed.,
+Universitext, Springer, 2013.
+
+\bibitem{priest2008}
+G.~Priest,
+\emph{An Introduction to Non-Classical Logic: From If to Is}, 2nd ed.,
+Cambridge University Press, 2008.
+
+\end{thebibliography}

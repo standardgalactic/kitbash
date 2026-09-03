@@ -1,0 +1,112 @@
+\chapter{Natural Deduction as Tactics}
+\label{ch:natural-deduction}
+
+This chapter reads Lean's core tactics directly as introduction and
+elimination rules, rather than as arbitrary programming instructions
+to be memorized separately from the logic they express. By the end
+of the chapter, the tactic script and the natural-deduction proof
+should be visibly the same object viewed two ways.
+
+\section{Introduction Rules: \texttt{intro} and \texttt{constructor}}
+
+Two tactics do almost all of the introduction work needed so far.
+\texttt{intro} discharges a goal whose type is an implication or a
+universal statement by naming its hypothesis or its bound variable
+and leaving the rest of the goal to be proved with that name in
+scope — this is $\to$-introduction and $\forall$-introduction,
+respectively, and it is the tactic-mode counterpart of the
+\texttt{fun h => \ldots} term-mode proofs used throughout
+Chapter~\ref{ch:propositions}. \texttt{constructor} discharges a
+goal by applying the head constructor of whatever inductive type the
+goal's type is built from, splitting into one new goal per
+constructor argument — for $p \land q$ that means two new goals, $p$
+and $q$ (\texttt{And}-introduction), and for $\exists x, P\,x$ it
+means supplying a witness and then a proof that the witness works
+($\exists$-introduction).
+
+\begin{experiment}{Building a conjunction with \texttt{constructor}}
+\begin{lean}
+theorem and_intro_tactic (p q : Prop) (hp : p) (hq : q) : p ∧ q := by
+  constructor
+  · exact hp
+  · exact hq
+\end{lean}
+The natural-deduction rule this tactic script enacts step by step is
+\[
+\dfrac{\Gamma \vdash p \qquad \Gamma \vdash q}{\Gamma \vdash p \land q}
+\ (\land\text{-intro}),
+\]
+and the correspondence is exact: \texttt{constructor} applies the
+rule, and the two \texttt{exact} calls discharge the rule's two
+premises — the same two goals the \texttt{·} bullets separate above.
+\end{experiment}
+
+\section{Elimination Rules: \texttt{apply}, \texttt{exact}, \texttt{cases}}
+
+\texttt{exact} closes a goal outright by supplying a term whose type
+matches it precisely — the tactic-mode spelling of simply writing
+the term, as every proof in Chapter~\ref{ch:propositions} did.
+\texttt{apply} is more interesting: given a hypothesis
+$h : p \to q$ and a goal $q$, \texttt{apply h} replaces the goal $q$
+with the new goal $p$, since producing a proof of $p$ is now
+sufficient (compose it with $h$) to produce the original proof of
+$q$. This is $\to$-elimination — modus ponens — read backwards, from
+conclusion to premise, which is exactly how a tactic proof is built:
+goals shrink toward hypotheses rather than hypotheses growing toward
+a conclusion. \texttt{cases} discharges a goal \emph{about} a
+hypothesis built from a multi-constructor type by splitting into one
+new goal per constructor, each carrying the data that constructor
+supplies — for $h : p \lor q$ this yields two goals, one assuming
+$p$ and one assuming $q$ ($\lor$-elimination); for $h : \exists x, P\,x$
+it yields one goal with a fresh witness variable and a proof that
+the witness satisfies $P$ ($\exists$-elimination, taken up properly
+once quantifiers themselves are, in Chapter~\ref{ch:quantifiers}).
+
+\begin{experiment}{Modus ponens as \texttt{apply}}
+\begin{lean}
+theorem chain (p q r : Prop)
+    (hpq : p → q) (hqr : q → r) (hp : p) : r := by
+  apply hqr
+  apply hpq
+  exact hp
+\end{lean}
+Read the goal state as it shrinks: the initial goal is $r$;
+\texttt{apply hqr} uses $\Gamma \vdash q \to r$ to reduce it to $q$;
+\texttt{apply hpq} uses $\Gamma \vdash p \to q$ to reduce that to
+$p$; \texttt{exact hp} closes it. Each \texttt{apply} is one instance
+of
+\[
+\dfrac{\Gamma \vdash p \to q \qquad \Gamma \vdash p}{\Gamma \vdash q}
+\ (\to\text{-elim})
+\]
+read from the conclusion side.
+\end{experiment}
+
+\begin{experiment}{Disjunction elimination via \texttt{cases}}
+\begin{lean}
+theorem or_idem (p : Prop) (h : p ∨ p) : p := by
+  cases h with
+  | inl hp => exact hp
+  | inr hp => exact hp
+\end{lean}
+The rule being enacted is
+\[
+\dfrac{\Gamma \vdash p \lor q \qquad \Gamma, p \vdash r
+  \qquad \Gamma, q \vdash r}{\Gamma \vdash r}
+\ (\lor\text{-elim}),
+\]
+here with $q$ and $r$ both instantiated to $p$ itself: whichever
+disjunct \texttt{cases} produces, the same proof \texttt{hp} closes
+the goal, which is exactly why $p \lor p$ collapses to $p$.
+\end{experiment}
+
+\section{Exercises}
+
+\begin{exercise}
+Prove $(p \land q) \to (q \land p)$ using \texttt{constructor} and
+\texttt{exact}.
+\end{exercise}
+
+\begin{exercise}
+Prove $(p \lor q) \to (q \lor p)$ using \texttt{cases}.
+\end{exercise}

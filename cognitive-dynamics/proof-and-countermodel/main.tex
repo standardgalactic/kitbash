@@ -1,0 +1,159 @@
+\documentclass[11pt]{book}
+
+% ============================================================================
+% Proof and Countermodel: An Introduction to Logic with Lean
+% Flyxion, Independent Researcher
+% ============================================================================
+% Engine: LuaLaTeX (primary); XeLaTeX as fallback if font-loading fails.
+% Self-contained: thebibliography (no BibTeX) for standalone portability.
+% ============================================================================
+
+\usepackage{fontspec}
+\setmainfont{TeX Gyre Pagella}
+% Latin Modern Mono (the NFSS \ttfamily default) lacks glyphs for ∨, ∀, ∃,
+% ⟨⟩, ⊆, etc., which real Lean source uses constantly. Rather than fight
+% `listings`' `literate` character-substitution mechanism (unreliable
+% under XeLaTeX in testing here), the Lean listing style below loads a
+% monospace font with broad Unicode math/logic coverage directly.
+\newfontfamily\leanfont{DejaVu Sans Mono}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage{geometry}
+\geometry{margin=1.15in}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=blue!50!black, citecolor=blue!50!black,
+  urlcolor=blue!50!black}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,breakable}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{tikz}
+
+% ----------------------------------------------------------------------------
+% Lean 4 listing style (listings-based, not minted: no shell-escape required,
+% keeps the document portable across machines with only a base LaTeX install).
+% ----------------------------------------------------------------------------
+\lstdefinelanguage{Lean}{
+  morekeywords={theorem,lemma,def,example,instance,structure,inductive,
+    namespace,end,import,open,variable,variables,by,intro,intros,apply,
+    exact,cases,constructor,rfl,simp,decide,rcases,obtain,funext,rw,rwa,
+    unfold,have,show,from,fun,match,with,where,section,abbrev,class,
+    deriving,noncomputable,private,protected,mutual},
+  morekeywords=[2]{Prop,Type,Set,Nat,Int,Bool,True,False,not,and,or},
+  sensitive=true,
+  morecomment=[l]{--},
+  morecomment=[s]{/-}{-/},
+  morestring=[b]",
+}
+\lstdefinestyle{leanstyle}{
+  language=Lean,
+  basicstyle=\leanfont\small,
+  keywordstyle=\color{blue!60!black}\bfseries,
+  keywordstyle=[2]\color{purple!60!black},
+  commentstyle=\color{gray!70!black}\itshape,
+  stringstyle=\color{orange!70!black},
+  showstringspaces=false,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{gray!50},
+  numbers=none,
+  columns=fullflexible,
+  keepspaces=true,
+  tabsize=2,
+}
+\lstnewenvironment{lean}{\lstset{style=leanstyle}}{}
+
+% ----------------------------------------------------------------------------
+% Pedagogical box types.
+%
+% `experiment` and `countermodel` are the central paired structure the whole
+% book is built on: a claim proved, then (where instructive) a plausible
+% converse or strengthening shown false by explicit countermodel. This is
+% the theory_tests discipline scaled up into textbook form.
+%
+% `fallacy` names a specific, recurring countermodel pattern that has its
+% own name in the literature (converse error, inverse error, ...) — the
+% same shape as `countermodel` but flagging that this particular invalid
+% inference is common enough to be worth recognizing on sight.
+%
+% `sidebar` and `historicalnote` are carried over from the trigonometry
+% book's conventions for consistency across the author's textbooks.
+% ----------------------------------------------------------------------------
+\newtcolorbox{experiment}[1]{
+  colback=blue!4!white, colframe=blue!40!black,
+  fonttitle=\bfseries,
+  title={Experiment: #1}
+}
+\newtcolorbox{countermodel}[1]{
+  colback=red!4!white, colframe=red!45!black,
+  fonttitle=\bfseries,
+  title={Countermodel: #1}
+}
+\newtcolorbox{fallacy}[1]{
+  colback=orange!5!white, colframe=orange!55!black,
+  fonttitle=\bfseries,
+  title={Fallacy: #1}
+}
+\newtcolorbox{sidebar}[1]{
+  colback=green!4!white, colframe=green!30!black,
+  fonttitle=\bfseries, breakable,
+  title={Comparative Note: #1}
+}
+\newtcolorbox{historicalnote}[1]{
+  colback=yellow!6!white, colframe=yellow!45!black,
+  fonttitle=\bfseries, breakable,
+  title={Historical Note: #1}
+}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{exercise}[theorem]{Exercise}
+
+% No bullet/itemize lists in body prose per house style; continuous
+% academic paragraphs throughout. `enumerate`/`itemize` remain available
+% for exercise lists and similar structural (non-prose) uses only.
+
+% `\texorpdfstring` gives hyperref a plain-text fallback for PDF
+% metadata/bookmarks; without it, the embedded \textbf/\large commands
+% in the display title can corrupt LuaLaTeX's font state for everything
+% typeset afterward (observed directly: it produced a `nullfont` with no
+% glyphs at all, silently dropping the bibliography and every code
+% listing later in the document).
+\title{\texorpdfstring{\textbf{Proof and Countermodel}\\[0.3em]
+  \large An Introduction to Logic with Lean}%
+  {Proof and Countermodel: An Introduction to Logic with Lean}}
+\author{Flyxion\\\textit{Independent Researcher}}
+\date{2026}
+% Month+year or bare year only on title pages, never an exact date —
+% avoids AI tools over-reading a precise recent date as "brand new."
+
+\begin{document}
+
+\frontmatter
+\maketitle
+\input{frontmatter}
+\tableofcontents
+
+\mainmatter
+
+\part{Foundations}
+\include{chapters/ch01-propositions}
+\include{chapters/ch02-natural-deduction}
+\include{chapters/ch03-classical-constructive}
+\include{chapters/ch04-quantifiers}
+
+\part{Structure}
+\include{chapters/ch05-relations-orders}
+\include{chapters/ch06-set-theory}
+
+\backmatter
+\input{backmatter}
+
+\end{document}

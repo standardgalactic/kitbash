@@ -1,0 +1,92 @@
+\appendix
+\chapter{Lean Setup and Conventions}
+\label{app:lean-setup}
+
+\section{Minimal Project Setup}
+
+The setup here is identical in shape to \textit{Proof and
+Countermodel}'s appendix, since both books target the same Lean~4
+toolchain and the same one \texttt{mathlib} dependency; only the
+project name differs.
+
+\texttt{lean-toolchain}:
+\begin{lean}
+leanprover/lean4:v4.11.0
+\end{lean}
+\texttt{lakefile.toml}:
+\begin{lean}
+name = "inference_under_constraint"
+defaultTargets = ["InferenceUnderConstraint"]
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+
+[[lean_lib]]
+name = "InferenceUnderConstraint"
+\end{lean}
+As before, \texttt{lake update} followed by \texttt{lake build}
+fetches and compiles \texttt{mathlib} once; every listing in this
+book can then be pasted into a \texttt{.lean} file under
+\texttt{InferenceUnderConstraint/} and checked directly.
+
+\section{Why \texttt{K3} Is an Inductive Type, Not \texttt{Bool}}
+
+\textit{Proof and Countermodel} builds almost everything on
+\texttt{Bool}, since a two-valued register is exactly what that
+book's classical material needs. This book cannot do the same: its
+first chapter needs a genuine \emph{third} value, and its second
+needs a small, named set of possible worlds. Both are the same kind
+of move, and it is worth naming the move once here rather than
+re-justifying it in each chapter.
+
+\begin{lean}
+inductive K3 where
+  | tt | ff | unknown
+  deriving DecidableEq, Repr
+\end{lean}
+An \texttt{inductive} type with explicitly named constructors gives
+\texttt{K3.tt}, \texttt{K3.ff}, and \texttt{K3.unknown} as three
+distinct, self-describing values, and the \texttt{deriving
+DecidableEq} clause is what lets \texttt{decide} enumerate over them
+exactly as it enumerates over \texttt{Bool} in the first book — the
+finiteness that makes \texttt{by decide} work is a property of
+\texttt{DecidableEq} plus a finite constructor list, not a property
+special to \texttt{Bool} itself.
+
+The alternative — encoding the three values as, say, \texttt{Fin 3}
+and matching on numeric literals (\texttt{0}, \texttt{1}, \texttt{2})
+— was deliberately avoided. Literal patterns over \texttt{Fin n} are
+sensitive to how the underlying numeral is elaborated and have been
+known to fail to match exhaustively across Lean/mathlib versions in
+ways that are silent until the version changes; named constructors
+sidestep this entirely, since \texttt{match} on an inductive type's
+own constructors is checked for exhaustiveness by the type itself,
+not by numeral coincidence. Chapter~2's Kripke frame
+(\texttt{World} with constructors \texttt{w0}, \texttt{w1},
+\texttt{w2}) uses the identical pattern for the same reason.
+
+\begin{thebibliography}{9}
+
+\bibitem{priest2008}
+G.~Priest,
+\emph{An Introduction to Non-Classical Logic: From If to Is}, 2nd ed.,
+Cambridge University Press, 2008.
+
+\bibitem{priest2006}
+G.~Priest,
+\emph{In Contradiction: A Study of the Transconsistent}, 2nd ed.,
+Oxford University Press, 2006.
+
+\bibitem{blackburn2001}
+P.~Blackburn, M.~de~Rijke, and Y.~Venema,
+\emph{Modal Logic},
+Cambridge Tracts in Theoretical Computer Science \textbf{53},
+Cambridge University Press, 2001.
+
+\bibitem{kleene1952}
+S.~C. Kleene,
+\emph{Introduction to Metamathematics},
+Van Nostrand, 1952.
+
+\end{thebibliography}

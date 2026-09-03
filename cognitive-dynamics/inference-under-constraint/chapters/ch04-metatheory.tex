@@ -1,0 +1,167 @@
+\chapter{Metatheory}
+\label{ch:metatheory}
+
+The preceding three chapters develop logics; this closing chapter
+asks questions \emph{about} them. Soundness, decidability, and the
+representability of syntax as an ordinary object are not full
+formal developments here — that would be its own book — but each
+gets a concrete, checkable instance rather than a purely expository
+treatment.
+
+\section{Soundness for the Propositional Fragment}
+
+A textbook soundness theorem usually relates two separately defined
+things: a syntactic proof system (axioms and inference rules) and a
+semantics (valuations, truth tables), showing that everything
+provable in the first is true in the second. This book has not built
+a separate proof system for \texttt{K3} — every claim in
+Chapter~\ref{ch:nonclassical} was proved directly in Lean's own type
+theory, with Lean's kernel as the arbiter. That changes what
+soundness needs to mean here, not whether it matters: the relevant
+question is not ``does provability track truth,'' but ``does the
+Lean encoding of Kleene's connectives actually compute what
+Kleene's own truth tables say it should.'' That is a real,
+checkable question, and getting it wrong would silently invalidate
+everything built on top of it.
+
+\begin{experiment}{Base cases: the encoding matches its own semantics}
+\begin{lean}
+theorem knot_involutive : ∀ p : K3, p.knot.knot = p := by decide
+
+theorem kor_comm : ∀ p q : K3, K3.kor p q = K3.kor q p := by decide
+\end{lean}
+Both are properties Kleene's informal truth tables guarantee — 
+negation should undo itself, disjunction should not care about
+argument order — checked here not by re-reading the definitions but
+by exhaustive computation over every case.
+\end{experiment}
+
+The sharper point is what \emph{not} to assume. A reader trained on
+classical logic might expect an ``unknown'' input to always leave
+\texttt{kor}'s result unknown — that intuition is exactly what
+Kleene's own semantics denies, and only Kleene's semantics, checked
+directly, can settle it:
+\begin{lean}
+example : K3.kor K3.unknown K3.tt = K3.tt := by decide
+\end{lean}
+An unknown left disjunct does not prevent a definite answer, because
+the right disjunct alone already settles the question — the same
+asymmetric rule stated informally back in
+Chapter~\ref{ch:nonclassical}, confirmed here rather than merely
+restated. Soundness, in a logic with more than two truth values,
+means checking claims like this one against the values that logic
+actually has, not against classical habits carried over by default.
+
+\section{Decidability}
+
+\begin{experiment}{Propositional validity over \texttt{K3} is decidable}
+\begin{lean}
+theorem kor_idempotent : ∀ p : K3, K3.kor p p = p := by decide
+\end{lean}
+\texttt{K3} has exactly three values, so any formula built from
+finitely many \texttt{K3}-valued variables using \texttt{knot} and
+\texttt{kor} ranges over a finite space of cases — the same
+principle that made every \texttt{decide} call in
+\textit{Proof and Countermodel} work for \texttt{Bool}, now applied
+to a strictly larger but still finite domain. Every genuinely
+propositional claim about \texttt{K3} made in this book —
+\texttt{excluded\_middle\_fails}, \texttt{knot\_involutive},
+\texttt{kor\_comm}, and this one — was already an instance of this
+same decidability fact, used silently each time.
+\end{experiment}
+
+\section{Syntax as an Object: A Small Gödel-Numbering Demonstration}
+
+The smallest nontrivial formula language — one atom, and negation as
+the only connective — already makes the point without needing
+anything as involved as Cantor pairing: a formula is either the
+atom or a negation of a smaller formula, so its natural number code
+can simply be how many negations it carries.
+
+\begin{experiment}{Formulas as numbers, and back again}
+\begin{lean}
+inductive Formula where
+  | atom
+  | neg (f : Formula)
+
+def encode : Formula → Nat
+  | .atom => 0
+  | .neg f => encode f + 1
+
+def decode : Nat → Formula
+  | 0 => .atom
+  | n + 1 => .neg (decode n)
+
+theorem encode_decode : ∀ n : Nat, encode (decode n) = n := by
+  intro n
+  induction n with
+  | zero => rfl
+  | succ k ih =>
+    show encode (decode k) + 1 = k + 1
+    rw [ih]
+\end{lean}
+Once \texttt{encode} and \texttt{decode} exist, a formula is no
+longer only something the system manipulates — it is data the
+system can compute with, store, and inspect, the same way any other
+number can be. \texttt{isWellFormed} below is deliberately trivial
+for this minimal language, and says so honestly rather than
+performing complexity it does not have:
+\begin{lean}
+def isWellFormed (n : Nat) : Bool := true
+
+theorem isWellFormed_always : ∀ n : Nat, isWellFormed n = true :=
+  fun _ => rfl
+\end{lean}
+Every natural number decodes to some formula here, because
+\texttt{atom}/\texttt{neg} is rich enough to demonstrate the
+encoding but not rich enough to produce any malformed codes. A
+richer language — a second connective taking two subformulas, coded
+by an actual pairing function — would make \texttt{isWellFormed}
+genuinely selective, rejecting numbers that do not decode to a
+matched pair of valid subformula codes. The encoding technique is
+the same either way; only the amount of structure being encoded
+changes.
+\end{experiment}
+
+\section{Where This Leaves the Admissibility Program}
+
+\texttt{Admissible} from Chapter~\ref{ch:admissibility} is decidable
+in any concrete instance the same way \texttt{K3} validity is —
+given an explicit history, an explicit constraint, and an explicit
+fact, checking membership is a finite computation. That is not the
+open question. What this book has not done, anywhere, is separate
+\emph{syntax} from \emph{semantics} for admissibility the way a
+soundness theorem needs: every claim about \texttt{Admissible} was
+proved directly against its Lean definition, never against an
+independently stated set of inference rules that could in principle
+diverge from it. Chapter~\ref{ch:admissibility}'s three structural
+facts — the assumption rule, persistence under extension, and the
+explicit failure of constraint-monotonicity — are exactly the
+shape of axioms a standalone proof system for $\vdash_{\!A}$ would
+need to start from. Writing that system down, independently of the
+Lean definition it is meant to describe, and then proving it sound
+and complete with respect to \texttt{Admissible} the way modal
+logics are proved sound and complete with respect to Kripke
+semantics, is the natural next step this book deliberately does not
+take. It would be a second book's worth of work, not a section's,
+and pretending otherwise here would cost more in false confidence
+than a frank ``not yet'' costs in incompleteness.
+
+\section{Exercises}
+
+\begin{exercise}
+Prove the other half of the encoding bijection,
+$\forall f, \mathtt{decode}\ (\mathtt{encode}\ f) = f$, by induction
+on \texttt{Formula}, and explain why both halves together are needed
+to call \texttt{encode}/\texttt{decode} a genuine bijection rather
+than a one-sided embedding.
+\end{exercise}
+
+\begin{exercise}
+Extend \texttt{Formula} with a binary connective,
+\texttt{conj (f g : Formula)}, taking two subformulas rather than
+one. Design a pairing-function-based \texttt{encode} for the
+extended language, then define \texttt{isWellFormed} so that it
+genuinely rejects some natural numbers — unlike the atom/neg-only
+version above, where every number was well-formed by construction.
+\end{exercise}

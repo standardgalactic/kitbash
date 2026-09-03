@@ -1,0 +1,155 @@
+\chapter{Relations and Orders}
+\label{ch:relations-orders}
+
+This chapter covers equivalence relations, partial orders,
+transitivity, monotonicity, and a light introduction to
+well-foundedness. It is also the first chapter that recasts
+definitions already used informally elsewhere — extension and
+constraint on a history of witnessed facts — as instances of
+ordinary relational and order-theoretic structure, rather than
+leaving them as isolated metaphors.
+
+\section{Equivalence Relations}
+
+An equivalence relation bundles three properties: reflexivity
+($x \sim x$ for every $x$), symmetry ($x \sim y \to y \sim x$), and
+transitivity ($x \sim y \to y \sim z \to x \sim z$). All three
+matter independently — the countermodel below exhibits a relation
+with the first two properties and not the third.
+
+\begin{experiment}{Same parity is an equivalence relation}
+\begin{lean}
+def SameParity (x y : Fin 4) : Bool := x.val % 2 == y.val % 2
+
+example : ∀ x : Fin 4, SameParity x x = true := by decide
+example : ∀ x y : Fin 4, SameParity x y = SameParity y x := by decide
+example : ∀ x y z : Fin 4,
+    SameParity x y = true → SameParity y z = true →
+    SameParity x z = true := by decide
+\end{lean}
+All three checks are finite and decidable over \texttt{Fin 4}, so
+each closes by exhaustive search rather than by a hand-written
+argument — reflexivity and symmetry are visibly built into the
+definition of \texttt{SameParity} itself, and transitivity, though
+less obvious by inspection, is confirmed the same mechanical way.
+\end{experiment}
+
+\begin{countermodel}{Reflexive and symmetric does not imply transitive}
+\begin{lean}
+def Close (x y : Fin 3) : Bool :=
+  x == y || (x == 0 && y == 1) || (x == 1 && y == 0) ||
+  (x == 1 && y == 2) || (x == 2 && y == 1)
+
+example : ∀ x : Fin 3, Close x x = true := by decide
+example : ∀ x y : Fin 3, Close x y = Close y x := by decide
+
+example : ¬ (∀ x y z : Fin 3,
+    Close x y = true → Close y z = true → Close x z = true) := by
+  decide
+\end{lean}
+\texttt{Close} relates $0$ to $1$ and $1$ to $2$, but not $0$ to
+$2$ — reflexive and symmetric by construction, and the failure of
+transitivity is exactly the familiar fact that ``close enough''
+relations need not chain: two short hops can add up to one that
+is not short.
+\end{countermodel}
+
+\section{Partial Orders and Monotonicity}
+
+\begin{experiment}{Extension as a partial order}
+A history's set of witnessed facts only grows: extension is
+reflexive and transitive.
+\begin{lean}
+structure History (alpha : Type) where
+  witnessed : Set alpha
+
+def Extends {alpha : Type} (earlier later : History alpha) : Prop :=
+  earlier.witnessed ⊆ later.witnessed
+
+theorem extends_refl {alpha : Type} (h : History alpha) :
+    Extends h h := fun x hx => hx
+
+theorem extends_trans {alpha : Type} {h1 h2 h3 : History alpha}
+    (h12 : Extends h1 h2) (h23 : Extends h2 h3) :
+    Extends h1 h3 := fun x hx => h23 (h12 hx)
+\end{lean}
+Reflexivity and transitivity together make \texttt{Extends} a
+preorder on histories.
+\end{experiment}
+
+For \texttt{History} exactly as defined here
+— a bare wrapper around one \texttt{Set} field — antisymmetry
+actually does hold: two histories extending each other have equal
+witnessed sets by set extensionality, and since \texttt{witnessed}
+is the only field, equal witnessed sets means equal histories. The
+weaker claim of ``preorder'' is stated deliberately anyway, because
+it is the property that survives a natural enrichment this bare
+structure invites — a \texttt{History} carrying additional fields
+(a timestamp, a provenance tag, a source identifier) could have two
+genuinely distinct instances with identical witnessed sets, which
+would extend each other in both directions without being equal.
+Stating only what is guaranteed to keep holding is worth the
+weaker-sounding claim.
+
+\begin{experiment}{Constraint narrows admissibility, never expands it}
+\begin{lean}
+def Constrain {alpha : Type} (admissible constraint : Set alpha) :
+    Set alpha := admissible ∩ constraint
+
+theorem constrain_subset {alpha : Type}
+    (admissible constraint : Set alpha) :
+    Constrain admissible constraint ⊆ admissible := fun x hx => hx.1
+\end{lean}
+This is almost too simple to look like a theorem, and that is
+exactly the point made concrete: ``a constraint can only narrow what
+is admissible, never expand it'' is not asserted anywhere in this
+framework as a slogan — it is this one line, checked the same way
+every other claim in this book has been.
+\end{experiment}
+
+\section{Well-Foundedness}
+
+A relation $\prec$ is \emph{well-founded} if there is no infinite
+descending chain $\cdots \prec x_2 \prec x_1 \prec x_0$ — every
+descent, however it is chosen, must eventually stop. This is the
+fact underneath two things already taken for granted in this book:
+structural recursion, and the assumption that a constraint process
+cannot run forever.
+
+Lean accepts a recursive definition without an explicit termination
+proof exactly when each recursive call is made on an argument
+strictly smaller under a well-founded relation, ordinarily
+\texttt{Nat}'s $<$ or a type's own notion of being a smaller
+subterm.
+\begin{lean}
+def countdown : Nat → Nat
+  | 0 => 0
+  | n + 1 => countdown n
+\end{lean}
+The recursive call \texttt{countdown n} is made on \texttt{n}, which
+is structurally smaller than \texttt{n + 1} — the termination
+checker verifies precisely this, silently, and the well-foundedness
+of $<$ on \texttt{Nat} is exactly what rules out an infinite chain
+of ever-smaller natural numbers that could make the check fail.
+
+The same fact underwrites constraint termination directly: if a
+process constrains its admissible set at every step and some
+$\texttt{Nat}$-valued measure (the size of a finite admissible set,
+say) strictly decreases at each constraining step, the process
+cannot continue indefinitely — an infinite run would be exactly the
+infinite descending chain well-foundedness rules out. Nothing about
+constraint or admissibility needs to be assumed further; termination
+follows from the well-foundedness already built into $<$ on the
+natural numbers.
+
+\section{Exercises}
+
+\begin{exercise}
+Prove that intersecting an admissible set with a constraint set never
+enlarges it: $\mathrm{Constrain}(A, C) \subseteq A$.
+\end{exercise}
+
+\begin{exercise}
+Prove that constraining twice by the same set changes nothing further:
+$\mathrm{Constrain}(\mathrm{Constrain}(A, C), C) = \mathrm{Constrain}(A, C)$.
+\end{exercise}

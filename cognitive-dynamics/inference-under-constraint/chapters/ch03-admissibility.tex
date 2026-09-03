@@ -1,0 +1,152 @@
+\chapter{Admissibility as a Logic}
+\label{ch:admissibility}
+
+The preceding two chapters relaxed classical logic in two directions
+independently: extra truth values, and truth relativized to a state.
+This chapter's claim is that a third, related idea — admissibility —
+is not a metaphor borrowed from those two but a logic in its own
+right, with its own notion of what follows from what. A history of
+witnessed facts only grows; a constraint can narrow which future
+continuations are admissible without rewriting anything already
+witnessed. Both are ordinary logical claims once stated precisely,
+and both are provable rather than merely evocative.
+
+\section{Histories and Extension}
+
+\begin{experiment}{Extension is a preorder}
+\begin{lean}
+structure History (alpha : Type) where
+  witnessed : Set alpha
+
+def Extends {alpha : Type} (earlier later : History alpha) : Prop :=
+  earlier.witnessed ⊆ later.witnessed
+
+theorem extends_refl {alpha : Type} (h : History alpha) :
+    Extends h h := fun x hx => hx
+
+theorem extends_trans {alpha : Type} {h1 h2 h3 : History alpha}
+    (h12 : Extends h1 h2) (h23 : Extends h2 h3) :
+    Extends h1 h3 := fun x hx => h23 (h12 hx)
+
+theorem witnessed_facts_persist {alpha : Type}
+    {earlier later : History alpha}
+    (h : Extends earlier later) {fact : alpha}
+    (w : fact ∈ earlier.witnessed) : fact ∈ later.witnessed :=
+  h w
+\end{lean}
+Reflexivity and transitivity make \texttt{Extends} a preorder on
+histories — the same structural fact that, read as an accessibility
+relation, would license the transitive modal reasoning flagged at
+the end of Chapter~\ref{ch:modal}.
+\end{experiment}
+
+\section{Constraint as Monotone Narrowing}
+
+\begin{experiment}{Constraining never enlarges what is admissible}
+\begin{lean}
+def Constrain {alpha : Type} (admissible constraint : Set alpha) : Set alpha :=
+  admissible ∩ constraint
+
+theorem constrain_subset {alpha : Type}
+    (admissible constraint : Set alpha) :
+    Constrain admissible constraint ⊆ admissible := fun x hx => hx.1
+\end{lean}
+This is deliberately almost too simple to call a theorem — the
+point is that it \emph{is} one: ``constraint can only narrow, never
+expand, what a process may still do'' is not asserted rhetorically
+anywhere in this framework, it is this one-line fact, checked the
+same way every other claim in this book has been checked.
+\end{experiment}
+
+\section{A Consequence Relation for Admissibility}
+
+A logic needs more than isolated facts about \texttt{Extends} and
+\texttt{Constrain}; it needs a notion of what follows from what. Say
+a fact $f$ is \emph{admissible} relative to a history $h$ and a
+constraint $C$ when $f$ is both witnessed and permitted — exactly
+the \texttt{Constrain} of Section~2, given a name.
+
+\begin{experiment}{Two structural facts, honestly named}
+\begin{lean}
+def Admissible {alpha : Type} (h : History alpha) (C : Set alpha)
+    (f : alpha) : Prop := f ∈ Constrain h.witnessed C
+
+theorem admissible_of_witnessed_and_permitted {alpha : Type}
+    (h : History alpha) (C : Set alpha) (f : alpha)
+    (hw : f ∈ h.witnessed) (hc : f ∈ C) : Admissible h C f :=
+  And.intro hw hc
+
+theorem admissible_persists_under_extension {alpha : Type}
+    {h h' : History alpha} (hext : Extends h h')
+    {C : Set alpha} {f : alpha} (ha : Admissible h C f) :
+    Admissible h' C f :=
+  And.intro (hext ha.1) ha.2
+\end{lean}
+The first is admissibility's version of a reflexivity/assumption
+rule: a fact that is directly witnessed and directly permitted is
+admissible with no further argument needed. The second is a
+persistence fact under history extension, built from exactly the
+same accessibility-composition idea as
+Chapter~\ref{ch:modal}'s \texttt{committed\_reaches\_recorded}: an
+admissible fact stays admissible as the history grows, because
+\texttt{hext} carries the witnessed half forward and the constraint
+half never changed.
+\end{experiment}
+
+Both facts hold with the constraint $C$ held fixed. What makes
+admissibility a genuinely different logic — not merely a restatement
+of the classical or modal machinery already built — is what happens
+when $C$ itself is allowed to change.
+
+\begin{countermodel}{Admissibility is not monotone in the constraint}
+\begin{lean}
+def sampleHistory : History Nat where
+  witnessed := {n | n = 7}
+
+def openConstraint : Set Nat := {n | True}
+def stricterConstraint : Set Nat := {n | n ≠ 7}
+
+example : Admissible sampleHistory openConstraint 7 :=
+  And.intro rfl trivial
+
+example :
+    ¬ Admissible sampleHistory (openConstraint ∩ stricterConstraint) 7 := by
+  intro h
+  exact h.2.2 rfl
+\end{lean}
+$7$ is admissible under the open constraint — it is witnessed, and
+the open constraint permits everything. Narrowing the constraint by
+intersecting in \texttt{stricterConstraint} does not add any new
+witnessed facts and does not touch \texttt{Extends} at all, yet it
+removes $7$'s admissibility outright. In classical logic, adding
+premises can only add consequences, never remove them — that is
+what monotonicity means. Here, adding a constraint can \emph{retract}
+a previously admissible conclusion. This is not a defect to be
+patched; it is the entire content of what ``constraint'' is supposed
+to mean, and it is the specific respect in which admissibility is a
+logic with its own structural profile rather than classical or
+modal logic wearing new vocabulary.
+\end{countermodel}
+
+\section{Exercises}
+
+\begin{exercise}
+Prove that \texttt{Extends} \emph{is} antisymmetric for
+\texttt{History} exactly as defined here: if two histories extend
+each other in both directions, their witnessed sets are equal by
+set extensionality, and since \texttt{witnessed} is the structure's
+only field, equal witnessed sets make the histories themselves
+equal.
+\end{exercise}
+
+\begin{exercise}
+Antisymmetry above relied on \texttt{witnessed} being
+\texttt{History}'s only field. Define an enriched structure,
+\texttt{RichHistory}, adding a second field (a provenance tag, say,
+of type \texttt{String}), with \texttt{Extends} defined to compare
+only the \texttt{witnessed} components as before. Exhibit two
+distinct \texttt{RichHistory} values — same witnessed set, different
+provenance tags — that extend each other in both directions without
+being equal, confirming that antisymmetry does not survive this
+natural enrichment.
+\end{exercise}
