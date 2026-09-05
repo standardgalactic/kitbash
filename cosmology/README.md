@@ -11,3 +11,9 @@
 [Constraint Geometry](https://standardgalactic.github.io/kitbash/cosmology/constraint_geometry.pdf)
 
 [Asymptotic Safety](https://standardgalactic.github.io/kitbash/cosmology/asymptotic_safety.pdf)
+
+---
+
+[Five-Dimensional Ising Synchronizer](https://standardgalactic.github.io/kitbash/cosmology/five-dimensional-ising-synchronizer.html)
+
+Interactive reduced model for the synchronization construction in *Cosmic Birefringence as RSVP Holonomy*. Five coupled Ising layers expose intralayer magnetization, global cross-layer synchronization, and empirically normalized structural complexity across a temperature sweep.
