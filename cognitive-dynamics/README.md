@@ -14,6 +14,8 @@
 
 [The Amplitwist](https://standardgalactic.github.io/kitbash/cognitive-dynamics/amplitwist-essay.pdf)
 
+* [Amplitwist under z²](https://standardgalactic.github.io/kitbash/cognitive-dynamics/amplitwist-cascades.html) — *Interactive Audited Core*
+
 [Fusion Without Recovery](https://standardgalactic.github.io/kitbash/cognitive-dynamics/fusion-without-recovery.pdf)
 
 [Proof and Countermodel](https://standardgalactic.github.io/kitbash/cognitive-dynamics/proof-and-countermodel.pdf) – *Incomplete*
