@@ -17,3 +17,8 @@
 [Five-Dimensional Ising Synchronizer](https://standardgalactic.github.io/kitbash/cosmology/five-dimensional-ising-synchronizer.html)
 
 Interactive reduced model for the synchronization construction in *Cosmic Birefringence as RSVP Holonomy*. Five coupled Ising layers expose intralayer magnetization, global cross-layer synchronization, and empirically normalized structural complexity across a temperature sweep.
+
+
+[Axial Holonomy](https://standardgalactic.github.io/kitbash/cosmology/Axial%20Holonomy%20-%20draft%2003.pdf)
+
+[Washout Corrections](https://standardgalactic.github.io/kitbash/cosmology/washout-corrections.pdf)

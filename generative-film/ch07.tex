@@ -1,0 +1,87 @@
+\chapter{Continuity as Cohomology}
+\label{ch:cohomology}
+
+When local data fail to assemble, one wants not merely to record the failure but to measure it. Cohomology does this: it assigns to each cover and each sheaf of abelian groups a sequence of groups whose nonzero elements are obstructions to global consistency. This chapter defines Cech cohomology in the lowest degrees, computes two examples that bear directly on film, and states the general principle.
+
+\section{Cech cochains in low degree}
+
+Let $A$ be a sheaf of abelian groups on $X$ and let $\mathcal{U}=(U_i)_{i\in I}$ be an open cover with $I$ totally ordered. Write $U_{ij}=U_i\cap U_j$ and $U_{ijk}=U_i\cap U_j\cap U_k$.
+
+\begin{definition}[Cech complex]
+Define
+\begin{align*}
+C^0(\mathcal{U};A)&=\prod_iA(U_i),\\
+C^1(\mathcal{U};A)&=\prod_{i<j}A(U_{ij}),\\
+C^2(\mathcal{U};A)&=\prod_{i<j<k}A(U_{ijk}),
+\end{align*}
+with differentials $d^0:C^0\to C^1$ and $d^1:C^1\to C^2$ given by
+\[
+(d^0a)_{ij}=\restr{a_j}{U_{ij}}-\restr{a_i}{U_{ij}},\qquad
+(d^1c)_{ijk}=\restr{c_{jk}}{U_{ijk}}-\restr{c_{ik}}{U_{ijk}}+\restr{c_{ij}}{U_{ijk}}.
+\]
+Then $d^1d^0=0$, and the \emph{first Cech cohomology} of the cover is $H^1(\mathcal{U};A)=\ker d^1/\operatorname{im}d^0$.
+\end{definition}
+
+The meaning is as follows. A 0-cochain is a choice of local datum on each piece. A 1-cochain is a choice of datum on each pairwise overlap, which one thinks of as a proposed correction relating the local pieces. A 1-cochain is a \emph{cocycle} if its corrections are consistent on triple overlaps, and it is a \emph{coboundary} if it arises as the difference of some choice of local data. The group $H^1$ therefore measures \emph{consistent systems of corrections that are not explained by any choice of local data}.
+
+When the cover is sufficiently fine, so that the sheaf has no higher cohomology on any finite intersection, the groups $H^p(\mathcal{U};A)$ agree with the sheaf cohomology $H^p(X;A)$ of the space, independently of the cover; this is Leray's theorem~\cite{bott1982}. We use it only as a guide to interpretation. All computations below are made directly in the Cech complex of a stated cover.
+
+\section{The time loop}
+
+A looping film, in which the end of the film returns to its beginning, has as time domain a circle $X=\R/T\Z$. Consider a viewer maintaining a \emph{world clock}: a quantity $w$ that increases at unit rate with film time, locally well defined but not obviously globally so. Locally one may take $w(t)=t$ with respect to a chart, and the question is whether a single-valued global $w$ with $w'=1$ exists.
+
+Cover $X$ by the two arcs $U_1=X\setminus\{0\}$ and $U_2=X\setminus\{T/2\}$, where $0$ and $T/2$ denote the classes of those numbers modulo $T$. The intersection $U_{12}=X\setminus\{0,T/2\}$ has two connected components $B=(0,T/2)$ and $B'=(T/2,T)$. Let $A=\underline{\R}$ be the constant sheaf, whose sections over an open set are the locally constant real functions.
+
+Define local world clocks $w_1:U_1\to\R$ by $w_1(t)=t$ for the representative $t\in(0,T)$, and $w_2:U_2\to\R$ by $w_2(t)=t$ for the representative $t\in(-T/2,T/2)$. On $B$ both representatives agree and $w_2-w_1=0$. On $B'$ the class of $t$ has representative $t\in(T/2,T)$ for $w_1$ and $t-T\in(-T/2,0)$ for $w_2$, so $w_2-w_1=-T$. The difference $c=w_2-w_1\in C^1(\mathcal{U};A)=A(U_{12})$ is the locally constant function that equals $0$ on $B$ and $-T$ on $B'$.
+
+\begin{proposition}\label{prop:loop}
+The cochain $c$ is a cocycle, and its class in $H^1(\mathcal{U};\underline{\R})\cong\R$ is $-T$. In particular no global single-valued world clock with unit rate exists on a loop of period $T>0$.
+\end{proposition}
+
+\begin{proof}
+Triple intersections are covered by only two sets, so $C^2=0$ and every 1-cochain is a cocycle. A coboundary has the form $(d^0a)_{12}=\restr{a_2}{U_{12}}-\restr{a_1}{U_{12}}$ with $a_i\in A(U_i)=\R$, since $U_1$ and $U_2$ are connected and locally constant functions on them are constants. Hence coboundaries are exactly the cochains that take the same value on $B$ and on $B'$, that is, the diagonal $\{(r,r)\}\subset\R^2=A(U_{12})$. The quotient $\R^2/\text{diagonal}$ is isomorphic to $\R$ via $(r_B,r_{B'})\mapsto r_{B'}-r_B$, and the class of $c$ maps to $-T-0=-T\neq0$. A global unit-rate world clock would give $w$ on $X$ whose restrictions $w|_{U_1}$ and $w|_{U_2}$ differ from $w_1,w_2$ by constants $a_1,a_2$, forcing $c=d^0(a)$, which contradicts the class being nonzero.
+\end{proof}
+
+Cinematically, the loop gives the following statement. In a film whose structure is cyclic, the viewer's local sense of progress cannot be integrated into a single consistent time. Something must be given up: either the clock is allowed to jump at the seam, or the world state accumulates a record, so that the state at the end differs from the state at the start although the images coincide. The second option is the one taken by films in which a day repeats but a character retains memory of earlier repetitions, and it is analyzed in Chapter~\ref{ch:layers}, where the record is placed in the \emph{history} while the image is placed in the \emph{appearance}.
+
+\section{Impossible figures}
+
+Penrose observed that the local geometry of certain impossible figures is consistent while the global geometry is not, and he recorded the obstruction as a cohomology class~\cite{penrose1992}. The same computation applies to any film that shows an impossible space by moving the camera around a closed route in which each local view is geometrically sound.
+
+\begin{proposition}[Tribar obstruction]\label{prop:tribar}
+Let $X$ be a circle covered by three arcs $U_1,U_2,U_3$ whose pairwise intersections are nonempty and connected and whose triple intersection is empty. Let $A=\underline{\R}$. Then $H^1(\mathcal{U};A)\cong\R$, with the isomorphism given by $c\mapsto c_{12}+c_{23}-c_{13}$.
+\end{proposition}
+
+\begin{proof}
+Since $U_{123}=\emptyset$ and $A(\emptyset)=0$, $C^2=0$ and every 1-cochain is a cocycle. Each $U_{ij}$ is connected so $A(U_{ij})=\R$ and $C^1=\R^3$ with coordinates $(c_{12},c_{13},c_{23})$. Each $U_i$ is connected, $C^0=\R^3$, and $d^0(a_1,a_2,a_3)=(a_2-a_1,\ a_3-a_1,\ a_3-a_2)$. The image of $d^0$ is the plane $\{c_{12}+c_{23}-c_{13}=0\}$, since the three coordinates satisfy that identity for every choice of $a$, and the image has dimension $2$ because the kernel of $d^0$ is the diagonal. The functional $c\mapsto c_{12}+c_{23}-c_{13}$ therefore vanishes exactly on the coboundaries and is surjective, giving $H^1\cong\R^3/\R^2\cong\R$.
+\end{proof}
+
+Interpret $c_{ij}$ as the depth offset required to reconcile the local depth assignments on the $i$th and $j$th arcs. Each pairwise offset can be absorbed locally, but their alternating sum around the loop is an invariant, and the figure is impossible exactly when it is nonzero. A film that moves the camera along the loop of a Penrose staircase and cuts so that each local view is realizable has the same structure.
+
+\section{The general principle}
+
+The two examples share a pattern, which can be stated as a principle of method.
+
+\begin{principle}[Obstruction principle]\label{pr:obstruction}
+Let a film be modeled by local sections of a sheaf over a time or space domain, and let the sections be compatible up to corrections drawn from a sheaf of abelian groups. The film is globally consistent if and only if the associated cohomology class vanishes. The class is invariant under any change of the local data that alters the corrections by coboundaries, which is the sheaf-theoretic form of the statement that re-editing local details cannot repair a global contradiction.
+\end{principle}
+
+This is a methodological hypothesis. Its mathematical content, the equivalence of global consistency with vanishing class, is a theorem once the corrections are placed in an abelian sheaf as above and the cover is fixed (it is the classification of torsors by \v{C}ech $H^1$), but its application to a particular film depends on whether the film's continuity constraints can be so modeled. Where they can, the principle yields a precise statement of what no amount of local fixing can achieve.
+
+\section*{Exercises}
+
+\begin{exercise}
+Repeat the loop computation with the cover $U_1=X\setminus\{0\}$, $U_2=X\setminus\{T/3\}$, and verify that the class is again $\pm T$.
+\end{exercise}
+
+\begin{exercise}
+Compute $H^1(\mathcal{U};\underline{\Z})$ for the two-arc cover of the circle and show that it is isomorphic to $\Z$. What does the generator represent for a looped film with a discrete state variable such as a counter?
+\end{exercise}
+
+\begin{exercise}
+Let $X$ be the figure-eight, two circles joined at a point. Choose a cover and compute $H^1(\mathcal{U};\underline{\R})$. Interpret the answer for a film whose camera path traverses two independent loops in a house.
+\end{exercise}
+
+\begin{exercise}
+Show that $H^1(\mathcal{U};A)=0$ for any sheaf $A$ whenever $\mathcal{U}$ consists of a single open set equal to $X$. What does this say about a film given as one uninterrupted take?
+\end{exercise}

@@ -1,0 +1,95 @@
+\chapter{Editing as Algebra}
+\label{ch:editing}
+
+An editor works with a stock of shots and a small repertoire of operations on them. This chapter isolates the operations and the algebraic structures they generate, and states precisely where the theory of films leaves the territory of ordinary algebra, which is where the first genuinely cinematic phenomena begin.
+
+\section{The free monoid of cuts}
+
+Let $\Sigma$ be a set of shots. A film assembled without further processing is a finite word over $\Sigma$, and the set of all such films is the free monoid $\Sigma^*$ under concatenation, with the empty film as unit. Duration is a monoid homomorphism
+\[
+\dur:\Sigma^*\to(\R_{\ge0},+),
+\]
+since the duration of a concatenation is the sum of durations. Every statement about timing that is independent of content, such as total running time or the position of a given shot on the timeline, factors through this homomorphism.
+
+Concatenation of arbitrary shots is always defined, and this reflects a basic fact about the medium: any two shots can be cut together. The theory of continuity concerns the special cases in which the cut is not seen, and those require the more refined structure of the next section.
+
+\section{Seamless films and the Moore path category}
+
+Let $\Sc$ be a scenario space. A \emph{Moore path} in $\Sc$ is a pair $(\tau,\gamma)$ with $\tau\ge0$ and $\gamma:[0,\tau]\to\Sc$ continuous. Two Moore paths $(\tau_1,\gamma_1)$ and $(\tau_2,\gamma_2)$ with $\gamma_1(\tau_1)=\gamma_2(0)$ have a concatenation $(\tau_1+\tau_2,\gamma_1\cdot\gamma_2)$ defined by running $\gamma_1$ and then $\gamma_2$.
+
+\begin{proposition}\label{prop:moore}
+There is a category $\Path(\Sc)$ whose objects are the points of $\Sc$ and whose morphisms $s\to s'$ are Moore paths from $s$ to $s'$, with composition given by concatenation and identities given by the constant paths of duration $0$. Composition is strictly associative and strictly unital.
+\end{proposition}
+
+\begin{proof}
+For composable $(\tau_1,\gamma_1),(\tau_2,\gamma_2),(\tau_3,\gamma_3)$, both bracketings of the triple concatenation have duration $\tau_1+\tau_2+\tau_3$ and agree pointwise: for $t\in[0,\tau_1]$ the value is $\gamma_1(t)$, for $t\in[\tau_1,\tau_1+\tau_2]$ it is $\gamma_2(t-\tau_1)$, and so on. This is where durations are essential: with paths on the fixed interval $[0,1]$, the two bracketings reparametrize differently and agree only up to reparametrization. The unit laws hold because a duration-$0$ path contributes nothing.
+\end{proof}
+
+A \emph{seamless film}, which is to say a single continuous take possibly composed of several recorded segments, is a morphism in $\Path(\Sc)$. The duration functor $\dur:\Path(\Sc)\to(\R_{\ge0},+)$, viewing the monoid as a one-object category, is a functor. The inclusion of seamless films into all films is not a functor into $\Sigma^*$ viewed as a category in the obvious way, because concatenation in $\Sigma^*$ is total while in $\Path(\Sc)$ it is partial. The relationship is that $\Path(\Sc)$ is the subcategory of continuity-respecting composition inside the totalizing structure of the monoid.
+
+Bazin's preference for the long take is thus a preference for staying inside $\Path(\Sc)$, in which every composite is again a path. A cut leaves that category and enters the larger monoid, and the cost of leaving is what later chapters will measure.
+
+\section{Parallel editing and the shuffle}
+
+Cross-cutting between two lines of action, as in a chase intercut with a rescue, produces a film that is an interleaving of two shot sequences. If $u=u_1\cdots u_m$ and $v=v_1\cdots v_n$ are words, an \emph{interleaving} is a word $w$ of length $m+n$ whose letters can be partitioned into two subsequences reading $u$ and $v$ respectively. The set of interleavings of $u$ and $v$ is the \emph{shuffle} $u\shuffle v$.
+
+\begin{proposition}\label{prop:shuffle-count}
+Counting interleavings by position of origin, $\lvert u\shuffle v\rvert\le\binom{m+n}{m}$, with equality when all letters of $u$ and $v$ are pairwise distinct. The shuffle is commutative and associative as an operation on finite sets of words: $u\shuffle v=v\shuffle u$ and $(u\shuffle v)\shuffle w=u\shuffle(v\shuffle w)$ in the sense that both equal the set of words that can be partitioned into three subsequences reading $u$, $v$, $w$.
+\end{proposition}
+
+\begin{proof}
+An interleaving is determined by choosing which $m$ of the $m+n$ positions are occupied by letters of $u$; the remaining positions carry $v$ in order. This gives at most $\binom{m+n}{m}$ words, with distinct choices giving distinct words when all letters are distinct. Commutativity is the symmetry of the definition in $u$ and $v$. For associativity, a word in either bracketing admits a partition of its positions into three subsequences reading $u$, $v$, $w$, and conversely such a partition determines a word in both bracketings.
+\end{proof}
+
+The count matters to the generative setting. For two storylines of ten shots each there are $\binom{20}{10}=184756$ distinct pure interleavings, so the editor of a cross-cut sequence is selecting from a large space. Almost all of it is ruled out by narrative constraints such as causal order and rhythm, which is the work of Part~IV.
+
+\section{Meaning is not a homomorphism}
+
+The central difficulty in film theory, from the Kuleshov experiments onward, is that the meaning of a concatenation is not determined by the meanings of its parts. Make this precise by letting $M$ be a set of meanings equipped with a way of combining them.
+
+Take $M$ to be a \emph{preordered monoid} $(M,\le,\otimes,1)$, so $\le$ is a preorder, $\otimes$ is associative with unit $1$, and $\otimes$ is monotone in each argument. A natural reading of $x\le y$ is that $y$ contains at least the information of $x$.
+
+\begin{definition}[Compositional and superadditive meaning]
+An \emph{interpretation} is a function $\mu:\Sigma^*\to M$. It is \emph{compositional} if $\mu(uv)=\mu(u)\otimes\mu(v)$ and $\mu(\varepsilon)=1$, so that $\mu$ is a monoid homomorphism. It is \emph{superadditive} if
+\[
+\mu(u)\otimes\mu(v)\le\mu(uv)\quad\text{and}\quad1\le\mu(\varepsilon).
+\]
+\end{definition}
+
+A superadditive interpretation is the same thing as a lax monoidal functor from the discrete monoidal category $\Sigma^*$ to the monoidal preorder $M$. The Kuleshov effect and Eisenstein's thesis that montage generates meaning not present in the parts are the claim that real viewer interpretations are superadditive and strictly so for suitable pairs. The \emph{montage surplus} of a pair is the failure of equality, which cannot be expressed as a number in general but is meaningful as the statement $\mu(u)\otimes\mu(v)<\mu(uv)$.
+
+If instead $M$ is an abelian group $(M,+)$, one can measure the surplus directly:
+\[
+\varepsilon(u,v)=\mu(uv)-\mu(u)-\mu(v).
+\]
+This function satisfies the cocycle identity $\varepsilon(u,v)+\varepsilon(uv,w)=\varepsilon(v,w)+\varepsilon(u,vw)$, because both sides equal $\mu(uvw)-\mu(u)-\mu(v)-\mu(w)$. It is thus a 2-cocycle on the monoid $\Sigma^*$ with values in $M$, and the identity exhibits it as the coboundary of $\mu$, viewed as a 1-cochain, up to the sign convention $\varepsilon=-\delta\mu$ (with $\mu(\varepsilon)=0$ if normalized cochains are used).
+
+\begin{proposition}\label{prop:no-higher}
+Every 2-cocycle on a free monoid with values in an abelian group $M$ (with trivial action) is a coboundary. Consequently, for abelian-group-valued meaning, the montage surplus carries no cohomological information beyond $\mu$ itself.
+\end{proposition}
+
+The proposition follows from the fact that the free monoid $\Sigma^*$ has cohomological dimension at most one. One way to see this is that the augmentation ideal of the monoid ring $\Z[\Sigma^*]$ is a free module on the generators, so that $0\to\Z[\Sigma^*]^{(\Sigma)}\to\Z[\Sigma^*]\to\Z\to0$ is a free resolution of length one, and cohomology in degrees above one therefore vanishes; the analogous statement for free groups is standard~\cite{brown1982}. A direct proof is also short: given a 2-cocycle $\varepsilon$, define $\mu$ on generators arbitrarily, put $\mu(\varepsilon_{\text{empty}})=0$, and extend recursively by $\mu(ua)=\mu(u)+\mu(a)+\varepsilon(u,a)$ for generators $a$; the cocycle identity then gives $\mu(uv)=\mu(u)+\mu(v)+\varepsilon(u,v)$ for all words, by induction on the length of $v$. We omit the details. Its message is methodological. Over the free monoid of films, montage effects are not an obstruction of the global kind that sheaf theory will detect in Part~III. They are a failure of $\mu$ to be a homomorphism, measured by a coboundary, and they live entirely in the choice of $\mu$. The nontrivial global phenomena in cinema, such as impossible spaces and time loops, arise when the base is not a free monoid of cuts but a space with topology, and that is why the next parts introduce sheaves.
+
+\section{Bridge: how many edits does one scene allow?}
+
+Suppose the forged-letter scene was covered by three cameras, and consider edits that cut at whole-second times. An edit with three cuts selects three of the $95$ interior grid points, which can be done in $\binom{95}{3}=138{,}415$ ways, and assigns one of three cameras to each of the four resulting segments with no camera repeated on adjacent segments, which can be done in $3\cdot2^3=24$ ways. The space of three-cut edits therefore has $138{,}415\times24=3{,}321{,}960$ elements, each a distinct word over the alphabet of segment-camera pairs. Almost all of them are ruled out by constraints that no editor states explicitly: a cut should not interrupt an utterance, the reveal line should be on a shot that shows $A$ or both characters, and the reaction shot should follow the reveal and not precede it. A practical editor navigates this space by such constraints, which are the subject of Parts~IV and~V.
+
+The two edits compared in the previous chapter, with fourteen and four cuts, are words of different lengths over the same alphabet, and the length of a word records only the density of cuts. Whether the reaction shot at $t=62$ follows the reveal at $t=58$ or precedes it is a difference in the order of letters, and changes the interpretation $\mu$ of the whole. If $\mu$ were compositional, the meaning of the pair would be the product $\mu(\text{reveal})\otimes\mu(\text{reaction})$ of the meanings of the parts, with nothing contributed by their adjacency. The reaction shot, however, is read as a response to what has just been said, a meaning present in neither part alone. This is superadditive behavior in the sense of the definition above, in concrete form.
+
+\section*{Exercises}
+
+\begin{exercise}
+Verify that $\Path(\Sc)$ fails to be a category if paths are taken on the fixed interval $[0,1]$ with concatenation by reparametrization, in the sense that associativity holds only up to a reparametrization. Which weaker structure results?
+\end{exercise}
+
+\begin{exercise}
+Compute $\lvert u\shuffle v\rvert$ when $u=ab$ and $v=ac$, and explain why the bound of \Cref{prop:shuffle-count} fails to be attained.
+\end{exercise}
+
+\begin{exercise}
+Let $M=([0,\infty),\le,+,0)$ with $\mu(w)$ the number of distinct emotional associations the audience forms from film $w$. Describe a hypothetical experiment, in the style of Kuleshov's, that would test superadditivity for a given pair of shots.
+\end{exercise}
+
+\begin{exercise}
+Prove that the set of interleavings of $u$ and $v$ is closed under taking prefixes of the interleaved words in the sense that every prefix of an interleaving of $u$ and $v$ is an interleaving of a prefix of $u$ and a prefix of $v$.
+\end{exercise}

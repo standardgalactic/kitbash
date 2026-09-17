@@ -1,0 +1,88 @@
+\chapter{Linear Types and Causal Resources}
+\label{ch:linear}
+
+Dependent types say what a past permits. They do not say what a past demands. In a well-made film, a setup is not merely licensed but obligatory to resolve, and the number of times a given setup may be used is limited. These are properties of \emph{resources}, and the type-theoretic apparatus for resources is linear logic~\cite{girard1987}.
+
+\section{Resources in a story}
+
+In ordinary logic a hypothesis may be used any number of times, or not at all. In linear logic, each hypothesis in the linear part of a context must be used \emph{exactly once}. A linear implication $A\multimap B$ is a procedure that consumes an $A$ and produces a $B$. A story fragment ``a loaded gun is fired'' consumes a loaded gun, and what it produces is a fired gun, a wound, an alarm, or whatever the dramatic situation supplies.
+
+The central object is a judgment of the form $\Gamma\mid\Delta\vdash e:B$, where $\Gamma$ is the unrestricted context of facts that persist and $\Delta$ the linear context of resources that must be consumed. A story starts with a linear context $\Delta_0$ of initial resources and ends with a linear context $\Delta_n$ of unconsumed resources. We call a story \emph{balanced} if $\Delta_n=\emptyset$.
+
+\begin{definition}[Resource signature]
+A \emph{resource signature} consists of a finite set $\mathsf{R}$ of resource types and a finite set of event rules, each of the form
+\[
+e:\ \rho_1,\dots,\rho_p\ \multimap\ \sigma_1,\dots,\sigma_q,
+\]
+with $\rho_i,\sigma_j\in\mathsf{R}$. The event $e$ requires a multiset of $p$ resources and replaces them with a multiset of $q$ resources.
+\end{definition}
+
+The state of a story is a finite multiset of resources, that is, a function $\Delta:\mathsf{R}\to\N$. An event rule applies to $\Delta$ if $\Delta\ge$ the multiset of its premises componentwise, and its application replaces premises by conclusions. This is exactly a Petri net: $\mathsf{R}$ is the set of places, events are transitions, and $\Delta$ is the marking.
+
+\section{Balance is decidable and efficient}
+
+\begin{proposition}[Balance check]\label{prop:balance}
+Given a resource signature and a finite sequence of events $e_1,\dots,e_n$, one can decide in time $O\bigl(n\cdot m+\lvert\mathsf{R}\rvert\bigr)$, where $m$ is the maximum number of resources in any rule, whether the sequence is a valid run from an initial multiset $\Delta_0$ and whether it ends balanced.
+\end{proposition}
+
+\begin{proof}
+Maintain the marking $\Delta$ as an array indexed by $\mathsf{R}$. At step $k$, check for each premise of $e_k$ that the count in $\Delta$ is at least its multiplicity in the rule, which takes $O(m)$ time. If the check fails the sequence is not a valid run. Otherwise subtract the premises and add the conclusions, again $O(m)$. After $n$ steps the sequence is a valid run, and it is balanced exactly if every entry of the final array is zero, which is checked by one pass over $\mathsf{R}$ in time independent of $n$.
+\end{proof}
+
+The proposition separates a decidable verification problem from the much harder \emph{existence} problem: whether a balanced run exists from a given $\Delta_0$ is the reachability problem for Petri nets, which is decidable but of high complexity, a result due to Mayr and Kosaraju, with later work establishing its precise difficulty. We do not use that result here; the point is that checking a proposed story is cheap, and that finding one is a separate matter to be solved by search.
+
+\begin{example}[Chekhov's gun, linear form]
+Take resources $\mathsf{Gun}$, $\mathsf{LoadedGun}$, $\mathsf{Spent}$ and rules
+\[
+\mathsf{intro}:\ \cdot\multimap\mathsf{Gun},\qquad
+\mathsf{load}:\ \mathsf{Gun}\multimap\mathsf{LoadedGun},\qquad
+\mathsf{fire}:\ \mathsf{LoadedGun}\multimap\mathsf{Spent}.
+\]
+The run $\mathsf{intro},\mathsf{load},\mathsf{fire}$ ends with the marking $\{\mathsf{Spent}:1\}$, which is non-empty. The balance requirement is therefore best phrased as ending in a marking contained in a set of \emph{acceptable terminal states}; here $\mathsf{Spent}$ is acceptable and $\mathsf{LoadedGun}$ is not. A story that introduces and loads a gun and never fires it ends with $\{\mathsf{LoadedGun}:1\}$, which is the type-theoretic statement of a gun left hanging on the wall.
+\end{example}
+
+The refinement to acceptable terminal markings is typical: the useful requirement is not that every resource be consumed but that the unconsumed ones be of a kind a story may leave behind.
+
+\section{Linearity and the shuffle}
+
+Chapter~\ref{ch:editing} counted interleavings of two storylines. With resources, the count refines to a count of \emph{valid} interleavings. Two storylines that draw on disjoint resources interleave freely, since no event in one affects the applicability of any event in the other. If they share a resource, interleavings that would consume it twice are invalid. This gives a precise form to the editor's rule that intercutting is free only when the lines of action do not interfere.
+
+\begin{proposition}\label{prop:commute}
+Let events $e$ and $e'$ have disjoint sets of premise and conclusion resources. Then they commute: for any marking $\Delta$ at which both are applicable in sequence in either order, the two orders reach the same marking.
+\end{proposition}
+
+\begin{proof}
+Applying $e$ subtracts its premises and adds its conclusions, and likewise for $e'$. Because the two changes act on disjoint coordinates of $\Delta$, the final marking is $\Delta$ plus the sum of the two changes in both orders. Applicability of the second event is unaffected by the first because it depends only on coordinates the first did not touch.
+\end{proof}
+
+Disjointness of resource usage is the type-theoretic form of independence, matching the interchange law of Chapter~\ref{ch:categories}. A story in which two events commute is one in which the editor may reorder them, and the conservation of resources is the quantity that determines which reorderings change the story.
+
+\section{Bridge: reusable, consumable, and transforming resources}
+
+A concrete narrative obligation illustrates the three behaviors of resources. A character receives a key, learns a fact, makes a promise, and spends a coin. A \emph{reusable} resource, such as the fact that the letter is forged, can be used any number of times and is copied freely: it belongs to the unrestricted context $\Gamma$ of Chapter~\ref{ch:types}. A \emph{consumable} resource, such as a single-use key or a coin, belongs to the linear context $\Delta$ and disappears when used. A \emph{transforming} resource changes kind when used, as when a key turns a locked door into an open door: the rule consumes $\mathsf{Key}$ and $\mathsf{LockedDoor}$ and produces $\mathsf{OpenDoor}$. The type-theoretic bookkeeping makes explicit which of these a story has in mind, and a promise is a consumable obligation: it is created by one event and must be discharged by another.
+
+Reverse parables are fiction whose developments remain constrained by a principle. Take as principle the one-shot prisoner's dilemma with payoffs $(3,3)$ for mutual cooperation, $(1,1)$ for mutual defection, and $(5,0)$ and $(0,5)$ when one defects against a cooperator. Defection is strictly dominant: against a cooperator it yields $5>3$ and against a defector $1>0$.
+
+\begin{proposition}\label{prop:parable}
+In a story whose characters $A$ and $B$ each make one choice, if each choice is the strictly dominant action for the stipulated payoffs, the story ends with mutual defection and payoffs $(1,1)$. Both characters would have received strictly more under mutual cooperation, $(3,3)$.
+\end{proposition}
+
+\begin{proof}
+Each character chooses defection by dominance, so the outcome is mutual defection with payoff $1$ each, and $3>1$ for each character.
+\end{proof}
+
+An unearned exception is a cooperative choice by a character without any earlier event that changes the payoffs. In the typed setting, a cooperative move is admitted only when the context contains a witness of a payoff-changing event, such as a binding promise, a repeated interaction, or a side payment. The check for evasion is thus a check on the typing of the story, and a story that lets its characters cooperate without such a witness is ill typed relative to its own principle. The distinction between satisfying the constraint and communicating it is separate. A story can satisfy the proposition and still fail to let an audience recover the payoff structure from what it shows, which is a question about what the audience has been given, and belongs to the layer of Chapter~\ref{ch:layers} that tracks the audience's knowledge.
+
+\section*{Exercises}
+
+\begin{exercise}
+Model a heist story as a resource signature with at least five rules and an acceptable terminal set. Find one balanced run and one run that is valid but ends in an unacceptable marking.
+\end{exercise}
+
+\begin{exercise}
+Show that if every rule has exactly as many conclusions as premises, then the total number of resources is conserved along every run. Give a filmic example of a story world with a conservation law of this kind.
+\end{exercise}
+
+\begin{exercise}
+Prove the converse partial result to \Cref{prop:commute}: if two events share a premise resource that has multiplicity one in the marking and neither event produces that resource, at most one of the two orders is applicable.
+\end{exercise}

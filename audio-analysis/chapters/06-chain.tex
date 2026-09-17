@@ -1,0 +1,58 @@
+\chapter{The Reproduction Chain}
+\label{ch:chain}
+
+A soundtrack file is not what a listener hears. Between the file and the ear lie a decoder, a downmix, a volume control, an amplifier, a loudspeaker, and a room. Film sound analysis usually treats this chain as transparent or as the listener's problem. This chapter treats it as part of the object of study, because in the case at hand it is likely to have made a difficult mix considerably worse, and because the same is probably true, in milder forms, of much ordinary home viewing.
+
+\section{The chain in the case}
+
+The film was played on a desktop computer. The computer's front-panel headphone output was connected by a 3.5~mm cable to a small solid-state bass practice amplifier, an Orange Crush 25BX, which has a single 8-inch driver and no separate high-frequency driver. The listener controlled level with the computer's volume control, which sits before the amplifier's input stage.
+
+Several properties of the chain are not known and are recorded as open variables:
+\begin{itemize}
+\item the media player, and therefore the downmix it applied to the 5.1 stream, including whether the LFE channel was included;
+\item which amplifier input received the signal (instrument input or an auxiliary input, if present), and therefore whether both channels of the headphone output were summed or only one was used;
+\item the amplifier's gain, equaliser, and master settings;
+\item the listening distance and room.
+\end{itemize}
+
+\section{Four transformations}
+
+\subsection{Channel reduction}
+
+Six channels become one loudspeaker. A player downmixing to stereo typically places the centre channel in both left and right at reduced level, together with the corresponding surrounds. If the stereo output then feeds a mono instrument input through a standard two-conductor plug, only the left channel reaches the amplifier and the right output is shorted to ground. In that case content panned to the right is lost, and dialogue is heard only through its share of the left channel. If the input sums both channels, material that is out of phase between left and right partially cancels. Either way the spatial separation that a multichannel mix uses to keep dialogue distinct from effects is removed. Separation by direction, one of the means by which a mix keeps several layers intelligible at once, is unavailable.
+
+\subsection{Band limitation}
+
+A single 8-inch driver in a small cabinet reproduces little of the lowest octave and has limited high-frequency extension. The important consequence is not the missing sub-bass but the relative treatment of the speech-importance band. The Speech Intelligibility Index weights most heavily the region from roughly one to four kilohertz \citep{ansi1997}. A bass instrument amplifier is voiced for the range where bass guitar fundamentals and low harmonics lie and is not designed to reproduce consonant cues clearly. Effects and music with substantial energy between 100~Hz and 1~kHz (impacts, engines, drums, low brass) are reproduced strongly. The effect is to lower dialogue intelligibility at a given level while leaving much of the energy of action material intact.
+
+\subsection{Level-dependent distortion}
+
+An instrument input is designed for the output of a passive bass pickup. A computer headphone output at a high volume setting can exceed that input's clean range, and the loudest passages of a film mix are exactly the ones that will do so. The amplifier's preamplifier then clips on transients, adding harmonic distortion products that are not in the file. The loudspeaker can also reach its excursion limit on strong low-frequency content. Both effects scale with level, so they concentrate where exceedance is already largest. Part of what a listener hears as harshness in such passages may be produced by the chain.\footnote{This is a mechanism, graded as hypothesised. It predicts that measured distortion in the chain's output rises sharply above a particular input level, and that recordings of the chain playing the film's loudest passages contain harmonic content absent from the source. Both predictions can be tested without rewatching the film.}
+
+\subsection{Coupling of volume and distortion}
+
+Because the listener's volume control precedes the amplifier, turning the volume down reduces both reproduced level and preamplifier drive. A reduction therefore relieves two problems at once. This is relevant to Chapter~\ref{ch:response}: in this chain, a logged volume reduction is a response to the combined effect of level and distortion, and the two cannot be separated behaviourally without the measurements below.
+
+\section{How the chain enlarges exceedance}
+
+Combining these transformations with the listener model of Chapter~\ref{ch:framework} gives a specific prediction. Let $D_{\text{file}}$ be the dialogue reference measured on the file and $D_{\text{heard}}$ the level at which the listener must set the chain for dialogue to be intelligible through it. Band limitation and channel reduction make intelligibility harder, so $D_{\text{heard}}$ is set higher relative to the file than it would be on a neutral system. Action material, reproduced strongly and with added distortion, then exceeds that higher setting by at least as much as before, and the effective exceedance
+\begin{equation}
+E_{\text{heard}}(t) = L_{\text{heard}}(t) - D_{\text{heard}}
+\end{equation}
+is at least as large as the file-level $E(t)$ and plausibly larger. The chain does not create the gap between dialogue and action, which is a property of the mix. It widens the gap and adds distortion to the loud side of it. This is the precise content of the observation that the amplifier ``exaggerated the bad mix''.
+
+\section{Measuring the chain}
+
+The chain can be characterised without watching the film again.
+
+\begin{enumerate}
+\item \textbf{Record the configuration.} Player and its audio output settings, the amplifier input used, all amplifier control positions, the computer volume setting, the cable, and the listening position.
+\item \textbf{Frequency and impulse response.} Play an exponential sine sweep through the chain and record it at the listening position. Deconvolution yields the linear impulse response and separates harmonic distortion products in time \citep{farina2000}. A measurement microphone is preferable; a phone gives an approximate curve.
+\item \textbf{Clipping onset.} Repeat the sweep at stepped computer volume settings and find the setting at which distortion products rise sharply.
+\item \textbf{Absolute calibration.} Play a reference tone at a known digital level and read the sound pressure level at the seat with a meter. This converts dBFS in the file to dB SPL at the listener, and allows recovery windows and tolerances to be expressed in absolute rather than film-relative terms.
+\item \textbf{Excerpt recordings.} Record the chain playing the audition clips (Chapter~\ref{ch:pipeline}) at the volume setting normally used, and compare each recording with its source.
+\end{enumerate}
+
+\section{Simulating the chain}
+
+With an impulse response and a clipping model, the heard signal can be approximated from the file: apply the player's downmix, apply the listener's gain, apply a static nonlinearity with the measured onset, and convolve with the measured impulse response (\texttt{ffmpeg}'s \texttt{afir} filter performs the convolution). Running the pipeline of Chapter~\ref{ch:pipeline} on the simulated signal and on the file gives two sets of occupation measures for the same film. Their difference is a measurement of what the chain adds. Until that is done, statements about the chain in this book are graded as hypothesised.

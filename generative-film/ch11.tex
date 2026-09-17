@@ -1,0 +1,83 @@
+\chapter{History, State, and Appearance}
+\label{ch:layers}
+
+A system that generates a persistent world must keep track of three different things, which are easy to conflate: what has \emph{happened}, what is the case \emph{now}, and what is \emph{shown}. This chapter separates them, proves that they cannot in general be recovered from one another, and states the design consequence for generative film.
+
+\section{Three layers}
+
+Let $E$ be a set of \emph{events}, the atoms of what can happen in the world: an actor enters, a door opens, a line is spoken. A \emph{history} is a finite word $h\in E^*$, and the set of histories that are admissible, that is, that respect the constraints of the story world, is a prefix-closed set $\Adm\subseteq E^*$ in the sense of \Cref{prop:prefix}.
+
+Three maps organize the layers.
+
+\begin{definition}[Layers]
+A \emph{layered world} consists of the following data.
+\begin{description}
+\item[History.] A prefix-closed set $\Adm\subseteq E^*$ of admissible histories.
+\item[State.] A set $Q$ and a function $M:\Adm\to Q$, the \emph{fold}, assigning to each admissible history the current state of the world.
+\item[Appearance.] A function $\Ren:Q\to\Img$ assigning to each state the image shown.
+\end{description}
+\end{definition}
+
+The three layers are thus related by $\Adm\xrightarrow{M}Q\xrightarrow{\Ren}\Img$. The composite $\Ren\circ M$ is what a spectator receives from a history, and the intermediate $M$ is what the world remembers of it. We call $M$ a fold because in practice $M(he)$ is computed from $M(h)$ and $e$ by a transition function, as in a computation that reads events left to right.
+
+The history is the layer that is \emph{authoritative at commit}: when an event is recorded, it is a fact about what happened and is not later reinterpreted. The state is authoritative \emph{between} events and is derived from the history. The appearance is derived from the state and is disposable: it can be recomputed, re-rendered, or replaced by an alternative rendering without changing anything that happened.
+
+\section{State does not determine the future}
+
+The point at issue is whether the state suffices to determine what may happen next. The following result, a version of the Myhill--Nerode theorem~\cite{hopcroft2006}, gives a precise answer.
+
+For $h,h'\in\Adm$ define $h\sim h'$ if for all words $w\in E^*$ we have $hw\in\Adm\iff h'w\in\Adm$. This is an equivalence relation, the \emph{future equivalence}: two histories are equivalent if they permit exactly the same admissible continuations.
+
+\begin{proposition}[Fold sufficiency]\label{prop:nerode}
+Let $M:\Adm\to Q$ be a fold. The admissible continuations of a history $h$ are determined by $M(h)$, in the sense that $M(h)=M(h')$ implies $h\sim h'$, if and only if $\ker M\subseteq{\sim}$, where $\ker M=\{(h,h'):M(h)=M(h')\}$. The quotient map $q:\Adm\to\Adm/{\sim}$ is such a fold, and every fold with this property determines $q$: there is a function $g:M(\Adm)\to\Adm/{\sim}$ with $q=g\circ M$. In particular $\Adm/{\sim}$ is the coarsest state space that determines admissible futures.
+\end{proposition}
+
+\begin{proof}
+The first equivalence is a restatement of the definition of $\ker M\subseteq{\sim}$. The map $q$ has kernel exactly $\sim$, so it determines futures. Now let $M$ determine futures. Define $g(M(h))=q(h)$. This is well defined: if $M(h)=M(h')$ then $h\sim h'$, so $q(h)=q(h')$. By construction $q=g\circ M$, and since $g$ is defined on the image of $M$, the image of $M$ has at least as many elements as $\Adm/{\sim}$. Hence no fold that determines futures can identify more histories than $q$ does.
+\end{proof}
+
+The proposition holds for any prefix-closed language. In computational mechanics the classes of $\sim$ are the \emph{causal states}, and the minimal sufficient statistic of the past for the future is the quotient by $\sim$~\cite{shalizi2001}.
+
+Now compare with the appearance. Because $\Ren$ is generally not injective, the composite $\Ren\circ M$ is coarser than $M$, and may be coarser than $\sim$.
+
+\begin{proposition}[Appearance does not determine the future]\label{prop:appearance}
+Suppose there exist admissible histories $h,h'$ with $\Ren M(h)=\Ren M(h')$ and $h\not\sim h'$. Then no function of the image of $h$ alone determines the admissible continuations of $h$. Equivalently, if $\Ren\circ M$ determines futures then no such pair $h,h'$ exists; we say the world has a \emph{hidden state} when such a pair does.
+\end{proposition}
+
+\begin{proof}
+If a function $\Phi$ of the image existed with $\Phi(\Ren M(h))=\{w:hw\in\Adm\}$, then $h$ and $h'$ would have the same image and hence the same set of continuations, which says $h\sim h'$ and contradicts the hypothesis. The equivalent form is the contrapositive of the same argument.
+\end{proof}
+
+\begin{example}[Identical images, different pasts]\label{ex:groundhog}
+A film in which a day repeats while one character retains memory of earlier repetitions, as in \emph{Groundhog Day} (1993), has appearance that returns to a given image at the start of each day. The histories ending at the start of day one and at the start of day ten share an image but are not future-equivalent, since after day ten the character possesses knowledge that makes different continuations admissible. Here the loop of Chapter~\ref{ch:cohomology} is repaired by the history: the world clock obstruction disappears once the state space is enlarged to $Q=\R/T\Z\times K$ with $K$ a record of accumulated knowledge, because the map $\Adm\to Q$ no longer has to be periodic.
+\end{example}
+
+\section{One history, several folds}
+
+The preceding results suggest a design in which \emph{one} history supports \emph{several} folds, each computing a different projection for a different purpose. A \emph{physical fold} $M^{\mathrm{phys}}$ tracks where objects are and how they move. A \emph{semantic fold} $M^{\mathrm{sem}}$ tracks what has been established for the audience: which facts are known, which promises are open. A \emph{provenance fold} tracks which events were attested by observation and which merely inferred. All are computed from $h\in\Adm$, and each is sufficient for its own purposes without being sufficient for the others.
+
+The appearance is then a function of the folds, $x=\Ren(M^{\mathrm{phys}}(h),M^{\mathrm{sem}}(h),\omega)$, where $\omega$ is a source of randomness for rendering. Replaying the same history with the same $\omega$ gives the same frames. Replaying with different $\omega$ gives different frames that depict the same events. This is the property that makes the layered design useful: appearance may be regenerated, but the history is what the world is committed to.
+
+\begin{principle}[Authority principle]\label{pr:authority}
+In a persistent generative world, the history is authoritative at the moment of commitment, the state is authoritative between commitments, and the appearance is never authoritative. A system violating this order, for instance by deriving state from rendered frames, will accumulate inconsistencies that cannot be repaired by improving the renderer.
+\end{principle}
+
+The principle is a design hypothesis consistent with the failure modes reported for systems that predict frames from frames without an explicit state: such systems tend to forget off-screen objects and to lose consistency when the camera returns to a previously seen place~\cite{bruce2024genie,valevski2024gamengen}. Whether those failures are fully explained by the absence of a history layer is an empirical question. The model states precisely what a remedy would have to supply.
+
+\section{Distributed worlds}
+
+When several processes, such as many players or many rendering nodes, contribute events, there is no single global order. The result of \Cref{prop:nerode} extends if the history is taken to be a partially ordered set of events whose linear extensions are all admissible and give the same state, which is the condition of \emph{commutation} for independent events established in \Cref{prop:commute}. The relevant machinery is the theory of consistent cuts in distributed systems~\cite{lamport1978,chandy1985}: a snapshot of a world is meaningful only relative to a cut of the event structure, and two nodes can agree on a state precisely when their cuts have a common refinement.
+
+\section*{Exercises}
+
+\begin{exercise}
+Let $E=\{a,b\}$ and $\Adm=\{\text{words with no two consecutive }b\}$. Compute the future-equivalence classes and the minimal state space. Draw the transition graph.
+\end{exercise}
+
+\begin{exercise}
+Show that the future equivalence $\sim$ is a right congruence: if $h\sim h'$ then $he\sim h'e$ for every event $e$ with $he\in\Adm$. Conclude that the minimal state space carries a well-defined transition function.
+\end{exercise}
+
+\begin{exercise}
+In \Cref{ex:groundhog}, give an explicit set $K$ and transition function on $Q=\R/T\Z\times K$ for which the fold is not periodic although the appearance is.
+\end{exercise}

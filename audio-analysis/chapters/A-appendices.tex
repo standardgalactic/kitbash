@@ -1,0 +1,93 @@
+\chapter{Reproducing the Results}
+\label{app:repro}
+
+The numerical results of Chapter~\ref{ch:case} are produced in two steps from the film file. The first step decodes the film and takes the longest; the second runs in seconds.
+
+\begin{lstlisting}[language=bash,numbers=none]
+# 1. Frame features, detector events, audition clips
+python3 code/analyze-soundtrack-v3.1.py drive-through-fire-2026.mkv \
+    --title "Drive Through Fire" --out sound-analysis-v3.1
+
+#    (or, reusing an existing version 3 frame table)
+python3 code/analyze-soundtrack-v3.1.py drive-through-fire-2026.mkv \
+    --from-frames sound-analysis-v3/frames.csv --out sound-analysis-v3.1
+
+# 2. Dialogue-referenced measures, figures, and LaTeX macros
+python3 code/occupation.py \
+    --frames sound-analysis-v3.1/frames.csv \
+    --events sound-analysis-v3.1/events.csv \
+    --film drive-through-fire-2026.mkv \
+    --subtitles drive-through-fire-2026.srt \
+    --out results
+
+#    supplementary statistics and the segment figure
+python3 code/occupation-extras.py --results results
+
+# 3. Blinded annotation set with random controls (Chapter 9)
+python3 code/blind-audition.py drive-through-fire-2026.mkv \
+    --audition sound-analysis-v3.1/audition \
+    --frames sound-analysis-v3.1/frames.csv --out blind --controls 40
+
+# 4. Build the manuscript
+pdflatex main.tex && pdflatex main.tex
+\end{lstlisting}
+
+Step~2 decodes the film once more to measure BS.1770 loudness (cached in \texttt{results/loudness.csv} for later runs), estimates the subtitle offset, and writes \texttt{results/results.tex}, which the manuscript reads at compile time, together with \texttt{fig-occupation.png}, \texttt{fig-exceedance.png}, \texttt{fig-blocks.png}, a per-second table \texttt{seconds.csv}, and \texttt{occupation.json}. If \texttt{results/results.tex} is absent, every dependent value prints as \pending.
+
+Dependencies are \texttt{ffmpeg}, Python~3 with \texttt{numpy}, \texttt{scipy}, \texttt{pandas}, \texttt{matplotlib}, \texttt{soundfile}, and \texttt{librosa}, and a standard \LaTeX{} installation.
+
+\chapter{Annotation Instrument}
+\label{app:instrument}
+
+\section{Label vocabulary}
+
+Source labels, of which one or more may be assigned to a clip, joined with \texttt{+}:
+
+\begin{center}\small
+\begin{tabular}{llll}
+DRUM & MUSIC\_SWELL & MUSIC\_OTHER & SIREN \\
+ALARM & GUNSHOT & EXPLOSION & PUNCH \\
+CRASH & GLASS & ENGINE & TIRES \\
+YELLING & SCREAM & CROWD & DIALOGUE \\
+FALSE\_POSITIVE & UNSURE & & \\
+\end{tabular}
+\end{center}
+
+\section{Fields}
+
+\begin{center}\small
+\begin{tabularx}{\linewidth}{lX}
+\toprule
+Field & Content \\
+\midrule
+\texttt{clip} & Random identifier assigned at blinding \\
+\texttt{label} & Source labels from the vocabulary \\
+\texttt{role} & voice, music, effect, ambience, or mixed \\
+\texttt{intensity} & 1 (barely noticeable) to 5 (overwhelming) \\
+\texttt{would\_reduce} & yes or no: would the listener reduce the volume \\
+\texttt{notes} & Free text \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+Detector category, score, film time, and whether the clip is a random control are held in a separate key file (\texttt{key.csv}, written by \texttt{blind-audition.py}) and joined to the labelled sheet on the \texttt{clip} column only after labelling is complete. Random control clips appear in the key with category \texttt{RANDOM\_CONTROL}.
+
+\chapter{Code}
+\label{app:code}
+
+The four programs used in this study are reproduced in full. All are released into the public domain.
+
+\section{Feature extraction and detection}
+\lstinputlisting[language=Python]{code/analyze-soundtrack-v3.1.py}
+
+\section{Dialogue-referenced occupation analysis}
+\lstinputlisting[language=Python]{code/occupation.py}
+
+\section{Supplementary statistics}
+\lstinputlisting[language=Python]{code/occupation-extras.py}
+
+\section{Blinded annotation set}
+\lstinputlisting[language=Python]{code/blind-audition.py}
+
+\section{Volume behaviour logger for \texttt{mpv}}
+\lstinputlisting{code/throttle-log.lua}

@@ -1,0 +1,74 @@
+\chapter{Dependent Types for Narrative}
+\label{ch:types}
+
+Sheaves answer the question of whether local pieces fit together. A different question is whether a piece is \emph{allowed to occur} given what came before. A gun may fire only if it has been introduced; a character may recognize another only if they have met. Such conditions make the legality of an event depend on the history, and the mathematics of dependency is type theory. This chapter introduces the fragment of dependent type theory needed for narrative; Appendix~\ref{app:types} gives the formal rules.
+
+\section{Types, terms, and contexts}
+
+In type theory, a judgment $a:A$ says that $a$ is a term of type $A$. A \emph{context} $\Gamma$ is a list of declarations $x_1:A_1,\,x_2:A_2(x_1),\dots$ in which later types may depend on earlier terms~\cite{martinlof1984}. A judgment $\Gamma\vdash a:A$ says that $a$ has type $A$ in context $\Gamma$.
+
+For narrative, a context is a \emph{story state}: a record of which characters, objects, and facts have been established. A type is a \emph{kind of fact} and a term of that type is a \emph{particular witness} to it. The word witness is used here in its type-theoretic sense, a value that certifies a proposition.
+
+\begin{example}[A minimal story language]\label{ex:chekhov}
+Let $\mathsf{Obj}$ be a type of objects, and for each $o:\mathsf{Obj}$ let $\mathsf{Introduced}(o)$ and $\mathsf{Loaded}(o)$ be types of facts about $o$. A story in which a gun is introduced and then fired has the context
+\[
+g:\mathsf{Obj},\quad i:\mathsf{Introduced}(g),\quad l:\mathsf{Loaded}(g),
+\]
+and the event $\mathsf{fire}(g)$ is licensed by a rule
+\[
+\frac{\Gamma\vdash g:\mathsf{Obj}\qquad\Gamma\vdash i:\mathsf{Introduced}(g)\qquad\Gamma\vdash l:\mathsf{Loaded}(g)}{\Gamma\vdash\mathsf{fire}(g,i,l):\mathsf{Fired}(g)}.
+\]
+The rule demands witnesses of introduction and loading as arguments, so that an attempt to fire a gun that has not been introduced is not an ill-formed story in the sense of poor taste, but an ill-typed one in the sense that the term cannot be constructed.
+\end{example}
+
+This is the formal content of what writers call Chekhov's gun, in its permissive direction: what may happen is limited by what has been set up. The converse direction, that what has been set up must be used, is addressed by linear types in the next chapter.
+
+\section{Dependent products and sums}
+
+Two constructors give dependent types their expressive power.
+
+The \emph{dependent sum} $\Sigma_{x:A}B(x)$ is the type of pairs $(a,b)$ with $a:A$ and $b:B(a)$. A character together with a motive is a term of $\Sigma_{c:\mathsf{Character}}\mathsf{Motive}(c)$, where the type of the motive depends on which character it is. The projection to the first component forgets the motive and is the formal version of the observation that a viewer sees the character before understanding the reason for the act.
+
+The \emph{dependent product} $\Pi_{x:A}B(x)$ is the type of functions assigning to each $a:A$ a term of $B(a)$. An obligation is a term of such a type: a function that, for every setup of a given kind, produces a payoff. A promise made to the audience early in a film has the type $\Pi_{s:\mathsf{Setup}}\mathsf{Payoff}(s)$ and is discharged by exhibiting a term.
+
+\begin{definition}[Story]
+A \emph{story} over a signature of event rules is a finite sequence $e_1,\dots,e_n$ of events together with contexts $\Gamma_0,\dots,\Gamma_n$ such that $\Gamma_0$ is the initial context and, for each $k$, the rule for $e_k$ is applicable in $\Gamma_{k-1}$ and $\Gamma_k$ is the context obtained by extending $\Gamma_{k-1}$ with the declarations introduced by $e_k$. A story is \emph{well typed} if all such rule applications are derivable.
+\end{definition}
+
+\begin{proposition}[Prefix closure]\label{prop:prefix}
+Every prefix of a well-typed story is well typed. Hence the set $\Adm$ of well-typed stories is a prefix-closed subset of the free monoid on events.
+\end{proposition}
+
+\begin{proof}
+The conditions for $e_k$ refer only to $\Gamma_{k-1}$, which depends only on $e_1,\dots,e_{k-1}$. A prefix $e_1,\dots,e_m$ with $m\le n$ therefore uses exactly the first $m$ of the derivations.
+\end{proof}
+
+Prefix closure is a small observation with large consequences. It says that admissibility is a property of the past: once a continuation is legal, no later event can retroactively make it illegal. The set $\Adm$ is a tree, and Chapter~\ref{ch:admissibility} studies paths through it.
+
+\section{Refinement and genre}
+
+A \emph{refinement type} $\{x:A\mid\varphi(x)\}$ is the subtype of $A$ cut out by a predicate $\varphi$. Genre conventions are refinements. A whodunit restricts stories to those in which the culprit is introduced before the reveal. A farce restricts to those in which each of a given list of misunderstandings is eventually resolved. Writing a genre as a refinement makes it checkable and, more importantly for generation, makes it a constraint that a sampler can enforce.
+
+The relationship of this structure to the Galois connection of Chapter~\ref{ch:scripts} is direct. The constraints of a script $\Psi$ define a refinement of the type of all films, and $\Mod(\Psi)$ is the type so defined. A well-typed story is thus a story in $\Mod(\Psi)$ for the script whose constraints are the typing rules.
+
+\section{Types as spaces}
+
+The homotopy interpretation of type theory regards a type as a space, a term as a point, and an equality $a=_Ab$ as a path from $a$ to $b$~\cite{hottbook2013}. Two paths between the same endpoints may fail to be equal, in which case the type has nontrivial higher structure. We adopt this reading as a modeling vocabulary, with the same caution as for the quantum analogy of the preceding chapter.
+
+\begin{example}[Rashomon]\label{ex:rashomon}
+Let $W$ be a type of world states, $a$ the state in which a crime has occurred and $b$ the state in which it has been adjudicated. Each witness account of the events between $a$ and $b$ is a path $p_k:a=_Wb$. The film \emph{Rashomon} (1950) presents several such paths, and the viewer's question is whether $p_1=p_2$ as paths. If $W$ is a set, in the sense that any two parallel paths are equal, the accounts agree and the question has a trivial answer. If $W$ has nontrivial identity structure, the accounts are distinct and the film is about exactly that distinction. The model thus separates two statements often conflated: that the accounts reach the same end state, which is the statement that $p_1,p_2$ have the same endpoints, and that they are the same account, which is the statement $p_1=p_2$.
+\end{example}
+
+\section*{Exercises}
+
+\begin{exercise}
+Extend \Cref{ex:chekhov} with a type $\mathsf{Dead}(c)$ for characters and a rule forbidding any event $\mathsf{speak}(c)$ in a context containing a term of $\mathsf{Dead}(c)$. Show that the story in which a character speaks after dying is ill typed. What changes if the character is permitted to speak in flashback?
+\end{exercise}
+
+\begin{exercise}
+Give a signature for a fair-play detective story: a rule $\mathsf{reveal}$ whose premises include witnesses that every clue used in the solution has been displayed to the audience. Show that prefix closure still holds.
+\end{exercise}
+
+\begin{exercise}
+Express the Kuleshov effect as a dependency: the type of the viewer's inference from shot $v$ depends on the preceding shot $u$. Write the type of the inference as a dependent product over the type of preceding shots.
+\end{exercise}

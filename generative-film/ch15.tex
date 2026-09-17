@@ -1,0 +1,203 @@
+\chapter{Transformations and Preservation Contracts}
+\label{ch:contracts}
+
+A system that changes a film must say what it will leave alone. A quieter soundtrack, a compressed scene, a genre substitution, and a redirected character do not preserve the same things, and a transformation described only by what it changes cannot be evaluated. This chapter formalizes the promise a transformation makes, shows when promises compose, and works through acoustic occupation as a case in which the formalism yields exact results.
+
+\section{Contracts}
+
+Let $\mathcal{V}$ be a set of versions as in Chapter~\ref{ch:equivalence}. A \emph{preservation relation} is a binary relation $\rho\subseteq\mathcal{V}\times\mathcal{V}$ read as ``$y$ preserves what $\rho$ cares about in $x$''. Examples are preservation of event order, of causal relations, of dialogue intelligibility, of dramatic function, and tolerance relations $\approx_\varepsilon$ from the previous chapter.
+
+\begin{definition}[Transformation contract]
+A \emph{transformation contract} consists of a function $T:\mathcal{D}\to\mathcal{V}$ on a domain $\mathcal{D}\subseteq\mathcal{V}$ of versions it applies to, together with preservation relations $\rho_1,\dots,\rho_m$, written $(T,\mathcal{D},\rho_1,\dots,\rho_m)$, such that $x\,\rho_j\,T(x)$ for all $x\in\mathcal{D}$ and all $j$. The \emph{target change} is whatever $T$ alters that is not in the scope of any $\rho_j$.
+\end{definition}
+
+A contract is silent about everything outside $\rho_1,\dots,\rho_m$, which is the point: it makes explicit which aspects are guaranteed and, by omission, which are not. Preservation of one aspect does not entail preservation of another, and Section~\ref{sec:conflict} gives a precise example.
+
+\begin{proposition}[Composition of contracts]\label{prop:compose-contracts}
+Let $(T,\mathcal{D},\rho)$ and $(S,\mathcal{D}',\rho)$ be contracts with $T(\mathcal{D})\subseteq\mathcal{D}'$.
+\begin{enumerate}
+\item If $\rho$ is transitive, then $(S\circ T,\mathcal{D},\rho)$ is a contract.
+\item If $\rho=\approx_\varepsilon$ for a pseudometric $d$, then $S\circ T$ satisfies $\approx_{2\varepsilon}$.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+For the first claim, $x\,\rho\,T(x)$ and $T(x)\,\rho\,S(T(x))$ give $x\,\rho\,S(T(x))$ by transitivity. For the second, $d(x,ST(x))\le d(x,T(x))+d(T(x),ST(x))\le2\varepsilon$.
+\end{proof}
+
+The lesson is the same as \Cref{cor:drift}. Exact preservation relations such as equality of event order are transitive and compose without loss. Thresholded relations do not, and a chain of transformations must be validated end to end.
+
+\section{Conflicting preservation}\label{sec:conflict}
+
+\begin{example}[Compression preserves order but not recovery]
+Model a version as a finite sequence of intervals, each tagged \emph{active} or \emph{quiet} and carrying a duration. Let $\rho_{\mathrm{ord}}$ say that two versions have the same sequence of tags, ignoring durations, and let $\rho_{\mathrm{rec}}$ say that every maximal run of quiet intervals in $x$ has a counterpart in $y$ of at least a stated minimum total duration $\tau_0$. A transformation $T$ that shortens all intervals by a common factor $c<1$ preserves $\rho_{\mathrm{ord}}$ exactly, but violates $\rho_{\mathrm{rec}}$ for any quiet run whose scaled duration falls below $\tau_0$. The two relations are independent: a transformation preserving one can destroy the other, and a contract that lists only $\rho_{\mathrm{ord}}$ licenses a compression that removes every opportunity for recovery.
+\end{example}
+
+The example is deliberately simple. Its point is the logical form: preservation relations are not ordered by implication in general, and a contract must name each aspect it guarantees. The chapters of this book have introduced several candidates, namely event order and causal relations (Chapters~\ref{ch:editing} and~\ref{ch:types}), continuity (Chapter~\ref{ch:cohomology}), admissibility (Chapter~\ref{ch:admissibility}), and the perceptual tolerance of Chapter~\ref{ch:equivalence}. A transformation of film should state its contract in terms of these.
+
+\section{Acoustic occupation}\label{sec:occupation}
+
+Sound offers a setting where the temporal organization of a feature, as distinct from its distribution, can be treated exactly. Let a soundtrack be reduced to a discrete-time sequence of levels $L_1,\dots,L_n$ for non-dialogue sound and $D_1,\dots,D_n$ for dialogue, in decibels over a fixed window. Fix a margin $\mu\ge0$ and call time step $t$ \emph{exceeding} if $L_t>D_t+\mu$. The \emph{exceedance set} is $E=\{t:L_t>D_t+\mu\}$.
+
+An \emph{occupation block} is a maximal run of consecutive exceeding steps, and a \emph{recovery interval} is a maximal run of consecutive non-exceeding steps lying between two blocks. These definitions are dialogue-referenced: a loud effect under silent dialogue and the same effect under loud dialogue are different with respect to $E$.
+
+\begin{proposition}[Distribution does not determine arrangement]\label{prop:arrangement}
+Let $n$ time steps contain $m$ exceeding steps, with $0<m<n$. Then the number $B$ of occupation blocks can be any integer with $1\le B\le\min(m,\,n-m+1)$, and each value occurs for some arrangement. Consequently the histogram of levels, which determines $m$, does not determine $B$ or the lengths of recovery intervals.
+\end{proposition}
+
+\begin{proof}
+Encode an arrangement as a binary sequence of length $n$ with $m$ ones. The number of blocks is the number of maximal runs of ones. Placing all ones consecutively gives $B=1$. For a given $B$ with $1\le B\le m$, split the $m$ ones into $B$ nonempty groups, which is possible since $B\le m$, and separate consecutive groups by at least one zero, which requires $B-1\le n-m$ zeros, that is, $B\le n-m+1$. Place the remaining zeros anywhere compatible with these separations. No arrangement can have more than $m$ runs, nor more than one run more than the number of zeros, since each pair of adjacent runs is separated by at least one zero. Thus $B$ ranges exactly over $1\le B\le\min(m,n-m+1)$.
+\end{proof}
+
+A soundtrack with an isolated peak every ten seconds and a soundtrack with a single thirty-second sustained passage may thus have identical level histograms and identical total exceedance time, and differ completely in the opportunities they give a listener to recover. This is the reason for treating acoustic occupation as a temporal structure and not a statistic.
+
+\section{A selective attenuator and its guarantee}
+
+Consider a proposed class of tools that attenuate selected non-dialogue stems, for instance explosions or music under speech, by a gain factor $\alpha\in(0,1]$ applied to the level $L_t$, in decibels as an offset $-a$ with $a\ge0$, leaving dialogue unchanged.
+
+\begin{proposition}[Monotone reduction of occupation]\label{prop:mufflerizer}
+Let $T_a$ reduce the non-dialogue level by $a\ge0$ decibels at all times, so that $L_t^{(a)}=L_t-a$ and $D_t^{(a)}=D_t$. Then the exceedance sets are nested, $E^{(a')}\subseteq E^{(a)}$ for $a\le a'$, the number of exceeding steps is non-increasing in $a$, and dialogue level is unchanged.
+\end{proposition}
+
+\begin{proof}
+If $t\in E^{(a')}$ then $L_t-a'>D_t+\mu$, and since $a\le a'$ this gives $L_t-a>D_t+\mu$, so $t\in E^{(a)}$. The inclusion implies the count is non-increasing. Dialogue is untouched by construction.
+\end{proof}
+
+The proposition is a guarantee about a defined quantity under a defined intervention, and it is exact. It says nothing about whether listeners prefer the result, whether intelligibility improves beyond what the margin captures, or whether the reduced version carries the same dramatic effect. Each of those is a separate preservation relation requiring its own operational definition and evidence. Selective attenuation by source category adds a further risk that the proposition does not address, namely misclassification: if screams or music are labeled as another category, the wrong material is attenuated, and the contract must state the cost of such errors.
+
+\section{Alternative versions of one scene}\label{sec:altversions}
+
+The contracts above become useful when several versions of the same scene are laid beside one another and each is checked against a stated list of relations. Take the forged-letter scene of Section~\ref{sec:scene} as the baseline $V_0$ and fix the following relations, all stipulated for this example.
+\begin{itemize}
+\item $\rho_{\mathrm{ord}}$: the sequence of history events is unchanged.
+\item $\rho_{\mathrm{ant}}$: a quiet interval of at least $\tau_0=5$ s precedes $B$'s question. In $V_0$ the pause lasts $7$ s.
+\item $\rho_{\mathrm{dia}}$: dialogue is unchanged in content and level.
+\item $\rho_{\mathrm{cue}}$: each causal cue sound, namely the phone buzz at $t=52$ and the door slam at $t=78$, remains at or above an audibility floor of $50$ dB.
+\item $\rho_{\mathrm{know}}$: the schedule of what the audience has been told is unchanged.
+\end{itemize}
+Four alternatives are considered.
+\begin{description}
+\item[$V_1$, compressed.] The pause is shortened from $7$ s to $3$ s and everything after it moves earlier by $4$ s; the running time becomes $92$ s, a reduction of about $4.2\%$.
+\item[$V_2$, uniformly quiet.] All non-dialogue sound is lowered by $4$ dB.
+\item[$V_3$, stem-wise quiet.] The street noise is lowered by $1$ dB and the music by $7$ dB; the door slam and phone buzz are left alone (policy $S$ of the next section, which also discusses whether the slam should stay loud).
+\item[$V_4$, early disclosure.] An insert shot at $t=18$ shows $A$ at the desk where the letter was forged, so that the audience learns that $A$ knows before $B$ asks the question.
+\end{description}
+Whether each version satisfies each relation can be settled by inspection of the specification, with the computations of the next section for the sound.
+
+\begin{center}
+\begin{tabular}{lccccc}
+\toprule
+ & $\rho_{\mathrm{ord}}$ & $\rho_{\mathrm{ant}}$ & $\rho_{\mathrm{dia}}$ & $\rho_{\mathrm{cue}}$ & $\rho_{\mathrm{know}}$\\
+\midrule
+$V_1$ compressed & holds & fails & holds & holds & holds\\
+$V_2$ uniform $-4$ dB & holds & holds & holds & holds & holds\\
+$V_3$ stem-wise & holds & holds & holds & holds & holds\\
+$V_4$ early disclosure & holds & holds & holds & holds & fails\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The table lists guarantees. It does not list gains and losses, which are the quantities the transformation was undertaken for, and these differ.
+
+\begin{itemize}
+\item $V_1$ gains $4$ s of running time. In the stipulated response model of Section~\ref{sec:perturb}, shortening $p_1$ from $7$ to $3$ lowers anticipation $q_1$ from $0.905$ to $0.682$, a loss of $0.223$ that exceeds the tolerance $\varepsilon=0.05$. The contract that listed only $\rho_{\mathrm{ord}}$ would have licensed it.
+\item $V_2$ reduces the number of exceeding steps from $14$ to $6$ (computed below). In the same model, lowering the music by $4$ dB lowers the fit measure $q_2$ from $0.679$ to $0.438$, a loss of $0.241$.
+\item $V_3$ reduces exceeding steps from $14$ to $2$, leaves the causal cues at their original levels, and lowers the fit measure $q_2$ from $0.679$ to $0.269$. The occupation is better than in $V_2$ and the modeled music fit is worse, which is the conflict of Section~\ref{sec:conflict} in numerical form (the music fit and occupation pull in opposite directions in this model).
+\item $V_4$ preserves every guarantee except $\rho_{\mathrm{know}}$, which it breaks on purpose. It changes the genre reading from mystery to dramatic irony, and no response model with parameters in $\R^p$ compares it with $V_0$, since the two differ by a discrete choice.
+\end{itemize}
+
+Two lessons follow. A version can satisfy every listed relation and still be one the author does not want, because the list omitted something that mattered, as with $V_3$ and the music. And the choice among $V_1,\dots,V_4$ is not a calculation: it is a decision about which relations the transformation should promise, and the contract records that decision where the viewer, the editor, and a generative system can read it.
+
+\section{A Whisperizer-style attenuator, in detail}\label{sec:whisper}
+
+Consider a tool, here called a Whisperizer, that lowers selected non-dialogue sound so that the scene's loud passages no longer crowd out speech. Four claims are commonly run together when such a tool is described, and they are logically independent.
+\begin{enumerate}
+\item \emph{Reduced occupation}: the exceedance set $E$ of Section~\ref{sec:occupation} shrinks or fragments.
+\item \emph{Preserved intelligibility}: dialogue is unchanged and non-dialogue sound stays within a stated margin of it. This is a proxy defined by levels. Actual intelligibility depends on spectrum, masking, room, and listener, and is not captured by the margin.
+\item \emph{Preserved causal cues}: sounds that are the only evidence of a plot event remain audible.
+\item \emph{Preferred experience}: listeners judge the result better. This is empirical, and nothing below speaks to it.
+\end{enumerate}
+
+\paragraph{The scene's sound, stipulated.} Let the reference dialogue level be $D_t=60$ dB at every step and the margin $\mu=3$ dB, so a step exceeds when $L_t>63$. Non-dialogue events are: ambient sound at $40$ dB throughout; street noise at $64$ dB for $t=20,21,22$; the phone buzz at $54$ dB at $t=52$; the door slam at $72$ dB for $t=78,79$; and music beginning at $t=80$ with level $58+0.8k$ dB at $t=80+k$ for $k=0,\dots,15$. These events do not overlap in time, so $L_t$ at each step is the level of the single active event. The audibility floor is $50$ dB.
+
+\paragraph{Uniform attenuation.} With no change, the exceeding steps are $t\in\{20,21,22\}$, $\{78,79\}$, and $\{87,\dots,95\}$ (the music exceeds $63$ once $0.8k>5$, that is for $k\ge7$): $14$ steps in three blocks, with recovery intervals of $55$ steps (23 to 77) and $7$ steps (80 to 86) between them. Under uniform attenuation by $a$ dB, \Cref{prop:mufflerizer} says the exceedance set shrinks as $a$ grows. The values are as follows.
+\begin{center}
+\begin{tabular}{rcccl}
+\toprule
+$a$ (dB) & exceeding steps & blocks & recovery intervals & buzz level (dB)\\
+\midrule
+$0$ & $14$ & $3$ & $55,\ 7$ & $54$\\
+$4$ & $6$ & $2$ & $12$ & $50$\\
+$6$ & $4$ & $2$ & $14$ & $48$\\
+\bottomrule
+\end{tabular}
+\end{center}
+At $a=4$ the street noise ($60$ dB) drops out, the door slam ($68$ dB) still exceeds, and the music exceeds only for $k\ge12$, that is $t=92,\dots,95$. At $a=6$ the music exceeds only at $t=94,95$. The last column shows the constraint of the cue relation: at $a=6$ the buzz is at $48$ dB, below the floor.
+
+\begin{proposition}[Cue-safe uniform attenuation]\label{prop:cuesafe}
+Let $\mathcal{C}$ be the set of causal cues with levels $L_c$ and floor $f$, with $L_c\ge f$. Uniform attenuation by $a\ge0$ preserves every cue above the floor if and only if $a\le a_{\max}=\min_{c\in\mathcal{C}}(L_c-f)$.
+\end{proposition}
+
+\begin{proof}
+A cue $c$ stays at or above the floor iff $L_c-a\ge f$, that is $a\le L_c-f$. All cues stay iff $a$ is at most every one of these bounds.
+\end{proof}
+
+In the scene, $a_{\max}=\min(72-50,\,54-50)=4$ dB, and the quiet cue, the phone buzz, sets the limit. Combined with \Cref{prop:mufflerizer}, the best any uniform attenuation can do under $\rho_{\mathrm{cue}}$ is the $a=4$ row: six exceeding steps.
+
+\paragraph{Stem-wise attenuation.} Treating each sound event as its own stem and choosing its gain separately removes the coupling between a loud non-cue and a quiet cue.
+
+\begin{proposition}[Cue-safe elimination of a stem]\label{prop:stemwise}
+Let a stem occupy a set of steps with levels $L_t\ge f$ and constant dialogue level $D$, and let $\mu$ be the margin. A single gain $a\ge0$ applied to the stem removes all its exceedances and keeps every step at or above the floor $f$ if and only if
+\[
+\max_tL_t-\min_tL_t\ \le\ D+\mu-f .
+\]
+\end{proposition}
+
+\begin{proof}
+Removing exceedance requires $L_t-a\le D+\mu$ for all $t$, that is $a\ge\max_tL_t-(D+\mu)$. Keeping the floor requires $a\le\min_tL_t-f$. Together with $a\ge0$, which is compatible with the second bound because $L_t\ge f$, such an $a$ exists iff $\max_tL_t-(D+\mu)\le\min_tL_t-f$, which rearranges to the stated inequality.
+\end{proof}
+
+Here $D+\mu-f=13$ dB. The music has levels from $58$ to $70$ dB, a range of $12\le13$, so it can be eliminated from the exceedance set with a gain $a\in[7,8]$ keeping it above the floor. The music is not a cue, so the contract does not require the floor of it, but the proposition shows how much room there is. At $a=7$ the music runs from $51$ to $63$ dB and never exceeds. The street noise needs only $a\ge1$. The door slam has range $0$ and needs $a\ge9$. Consider two policies.
+\begin{itemize}
+\item \emph{Policy $S$}: street $-1$ dB, music $-7$ dB, door slam and buzz untouched. The exceedance set is exactly $\{78,79\}$, a single block, with $78$ non-exceeding steps before it and $16$ after. The door slam retains its full $72$ dB.
+\item \emph{Policy $S^*$}: as $S$ with the door slam lowered by $9$ dB to $63$ dB. The exceedance set is empty, and all contract relations $\rho_{\mathrm{dia}}$, $\rho_{\mathrm{cue}}$ hold.
+\end{itemize}
+\paragraph{Why the slam should or should not stay loud.} The contract, as stated, does not decide between $S$ and $S^*$, and it is worth being explicit about why. Suppose, as a stipulation, that the door is out of frame, so that the slam is the only evidence the audience has of $B$'s exit. Then the \emph{causal information} of the cue is that an exit occurred, and what preserving it requires is that the sound be audible and recognizable. That is $\rho_{\mathrm{cue}}$, with a floor, and $S^*$ meets it at $63$ dB. Nothing in the causal function requires the original $72$ dB. A tool whose purpose is to reduce intrusive effects has no reason internal to its contract to leave the slam alone; if the slam is to stay loud, the reason must come from the author.
+
+The author's reason would be a different relation, \emph{salience} $\rho_{\mathrm{sal}}(\kappa)$: the cue stands above the dialogue by at least $\kappa$ dB, that is $L_c\ge D+\kappa$ at its steps. This expresses a claim about expressive function, that the slam punctuates $B$'s anger and not merely reports an exit, and that claim is a reading, not a consequence of the causal structure. The two relations interact as follows. Zero occupation requires $L_t\le D+\mu$ at every step, and $\rho_{\mathrm{sal}}(\kappa)$ requires $L_c\ge D+\kappa$ at the cue steps, so both can hold exactly when $\kappa\le\mu$; they conflict when $\kappa>\mu$. With $\mu=3$ dB, a slam at $63$ dB satisfies both for $\kappa\le3$ and $S^*$ is a legitimate choice. For $\kappa>3$, for instance $S$ with its slam $12$ dB over dialogue, occupation cannot reach zero and two exceeding steps remain. The threshold $\mu$ is a modeling parameter, and a slam at $63$ dB and one at $64$ dB are far apart for the proxy and presumably close for a listener, so both $\mu$ and $\kappa$ should be treated as decisions of the author, recorded in the contract, and tested with listeners, not as properties of sound.
+
+\paragraph{Separating the four claims.} For policy $S$ the four claims have different statuses. Reduced occupation is a computed fact: $14\to2$ exceeding steps. Preserved intelligibility, in the proxy sense, holds except at the two slam steps, which exceed the margin by design. Preserved causal cues holds because both cues are unchanged. Preferred experience is not established: the stipulated model of Section~\ref{sec:perturb} even predicts a large loss in music fit for $S$, and an experiment with listeners could confirm or overturn that. A report on such a tool should therefore present these four as four rows, each with its own evidence, and should not assert the fourth on the strength of the first three.
+
+\paragraph{Misclassification.} The analysis assumed that each sound event is correctly assigned to a stem. If the phone buzz is labeled as ambient noise and attenuated with it, then $\rho_{\mathrm{cue}}$ fails, and nothing in the guarantees above detects it. The contract of a stem-wise tool must therefore include the classifier's error rate on cues, and a cue-protection list supplied by the author is more reliable than inference.
+
+\section{Contracts for the principal transformations}
+
+Four families of transformation are common enough to describe by the form of their contracts.
+
+\emph{Sensory remixing} changes levels or channel balance and promises preservation of dialogue content and timing, event order, and perhaps spatial cues, while the target change is the occupation structure. \emph{Temporal compression} promises preservation of explicit plot facts and causal order and cannot promise preservation of recovery or anticipation without further conditions, by the example above. \emph{Genre transformation} changes style cues and promises preservation of events, and by itself preserves neither stakes nor expected outcomes; to support the new mode it typically needs changes to what the audience is led to expect, that is, to the semantic fold of Chapter~\ref{ch:layers}, and so cannot in general preserve that fold; this is a design observation, not a theorem. \emph{Generative reconstruction} replaces a version by one produced from a description and promises satisfaction of the description, that is, membership in $\Mod(\Psi)$, and promises nothing about the particular film beyond that.
+
+\section*{Exercises}
+
+\begin{exercise}
+For the compression example, suppose every quiet run of $x$ lasts at least $m_0\ge\tau_0$ seconds. Determine the smallest common factor $c<1$ for which $T$ still satisfies $\rho_{\mathrm{rec}}$, and describe a non-uniform compression that preserves $\rho_{\mathrm{rec}}$ while shortening the version.
+\end{exercise}
+
+\begin{exercise}
+Verify \Cref{prop:arrangement} for $n=6$, $m=3$ by listing all binary sequences with three ones and counting blocks. Which values of $B$ occur and with what multiplicities?
+\end{exercise}
+
+\begin{exercise}
+Define the dialogue-referenced exceedance differently, using a ratio of linear amplitudes in place of a difference of decibel levels, and show that the nesting result of \Cref{prop:mufflerizer} still holds.
+\end{exercise}
+
+\begin{exercise}
+Write the contract of a genre transformation from drama to comedy that changes only music and color grading. State which preservation relations it can honestly claim and which it cannot.
+\end{exercise}
+
+\begin{exercise}
+Using the sound specification of Section~\ref{sec:whisper}, find all real $a\ge0$ for which the number of exceeding steps is $4$ (the answer is an interval), and verify that none of them satisfies $\rho_{\mathrm{cue}}$ with floor $50$ dB.
+\end{exercise}
+
+\begin{exercise}
+State and prove a version of \Cref{prop:stemwise} in which the dialogue level $D_t$ varies with $t$. What replaces the quantity $D+\mu-f$?
+\end{exercise}
