@@ -1,0 +1,65 @@
+\chapter{Scripts, Models, and Generation}
+\label{ch:scripts}
+
+A script specifies a film without being one. Many films satisfy a given script, and a given film satisfies many scripts. This chapter formalizes that two-sided relation as a Galois connection, which gives the right setting for asking what it means to generate a film from a description.
+
+\section{Satisfaction and the Galois connection}
+
+Let $F$ be a set of films and $\Phi$ a set of constraints, such as ``the protagonist is in the kitchen at the end of the second scene'' or ``no shot exceeds forty seconds''. Let $\models\ \subseteq F\times\Phi$ be a satisfaction relation. For subsets $Y\subseteq F$ and $\Psi\subseteq\Phi$ define
+\[
+\Th(Y)=\{\psi\in\Phi:\ y\models\psi\ \text{for all }y\in Y\},\qquad
+\Mod(\Psi)=\{x\in F:\ x\models\psi\ \text{for all }\psi\in\Psi\}.
+\]
+A script is a set $\Psi$ of constraints, and $\Mod(\Psi)$ is the set of films that realize it. A set of films has a theory $\Th(Y)$, the set of constraints they all satisfy.
+
+\begin{proposition}[Galois connection]\label{prop:galois}
+For all $Y\subseteq F$ and $\Psi\subseteq\Phi$,
+\[
+Y\subseteq\Mod(\Psi)\iff\Psi\subseteq\Th(Y).
+\]
+Consequently $\Th$ and $\Mod$ are order-reversing, $Y\subseteq\Mod\Th(Y)$, $\Psi\subseteq\Th\Mod(\Psi)$, and $\Th\Mod\Th=\Th$, $\Mod\Th\Mod=\Mod$.
+\end{proposition}
+
+\begin{proof}
+Both sides of the equivalence say that $y\models\psi$ for every $y\in Y$ and every $\psi\in\Psi$. Taking $\Psi=\Th(Y)$ in the equivalence gives $Y\subseteq\Mod\Th(Y)$, and symmetrically for the other inclusion. Order reversal is immediate from the definitions. For the idempotence, applying the order-reversing $\Th$ to $Y\subseteq\Mod\Th(Y)$ gives $\Th\Mod\Th(Y)\subseteq\Th(Y)$, while the inclusion $\Th(Y)\subseteq\Th\Mod\Th(Y)$ is the second inclusion applied to $\Psi=\Th(Y)$. The case of $\Mod\Th\Mod$ is the same argument with the roles reversed.
+\end{proof}
+
+The closed sets of the connection are the \emph{definable} families of films: those that are exactly the set of realizations of some script. The operator $\Cl=\Th\Mod$ takes a script to its \emph{closure}, the set of all constraints implied by it relative to $F$. A script is \emph{complete} if $\Mod(\Psi)$ is a single film, and \emph{underdetermined} if $\Mod(\Psi)$ contains many films that differ in ways that matter to the director.
+
+\section{Generation as selection from a model class}
+
+In this language, the shooting of a film is the selection of an element of $\Mod(\Psi)$, and a generative system is a mechanism that makes this selection.
+
+\begin{definition}[Generative model for a script]
+A \emph{generative model} for a script $\Psi$ is a probability measure $P$ on $F$ with $P(\Mod(\Psi))=1$. It is \emph{faithful} if its support is exactly $\Mod(\Psi)$.
+\end{definition}
+
+A system trained on a corpus of films without being told $\Psi$ gives a measure on $F$ that typically assigns positive probability to films outside $\Mod(\Psi)$. This is the formal form of an everyday difficulty: such a system may produce a film in which a character who died in the second scene reappears in the fourth, because nothing in its training objective forbids that. The remedy, developed in Chapter~\ref{ch:admissibility}, is to condition on the script, which replaces $P$ by its restriction to $\Mod(\Psi)$, renormalized, assuming $P(\Mod(\Psi))>0$ (and, for continuous $F$, that $\Mod(\Psi)$ is measurable).
+
+\begin{remark}
+The connection runs in the opposite direction as well. Given a corpus $Y$ of films, $\Th(Y)$ is the set of constraints all of them satisfy, which is an inferred house style or genre. Learning a genre from examples is the computation of $\Th(Y)$, or of a statistical relaxation of it, and the result is a script against which new films can be checked.
+\end{remark}
+
+\section{Compression as adjunction}
+
+The Galois connection above is the poset-level shadow of an adjunction between categories, and it is worth stating the more general principle. Let $\mathbf{Film}$ be a category whose objects are films and whose morphisms record that one film is an edit or elaboration of another, and let $\mathbf{Script}$ be a category of descriptions ordered by refinement. A \emph{description functor} $D:\mathbf{Film}\to\mathbf{Script}$ and a \emph{realization functor} $G:\mathbf{Script}\to\mathbf{Film}$ form an adjunction $D\dashv G$ if there is a natural bijection
+\[
+\Hom_{\mathbf{Script}}(D(f),s)\cong\Hom_{\mathbf{Film}}(f,G(s)).
+\]
+Reading this: a film $f$ is a faithful elaboration of the realization of $s$ exactly when the description of $f$ refines to $s$ in the script category. When the categories are posets, this specializes to a monotone Galois connection, in which the composite $GD$ is a closure operator and $DG$ an interior (kernel) operator. The antitone connection of \Cref{prop:galois} is the same structure with one order reversed.
+
+The principle behind the ``text as substrate'' approach to generative media is that compression, the passage from a film to a description, and reconstruction, the passage back, can be arranged as an adjoint pair, so that the reconstruction is the best approximation consistent with the description. Nothing the description does record is lost exactly when the counit $DG\to\mathrm{id}$ is an isomorphism, that is, when $G$ is fully faithful, which is an additional hypothesis. Whether any practical system realizes such a pair exactly is an empirical question, and the framework serves to state what exactness would mean.
+
+\section*{Exercises}
+
+\begin{exercise}
+Let $F=\{0,1\}^*$ be finite binary words regarded as toy films and let $\Phi$ consist of the constraints ``has length at most $n$'' for $n\in\N$ together with ``begins with $0$''. Compute $\Th(\{01,011\})$ and $\Mod(\{\text{begins with }0\})$.
+\end{exercise}
+
+\begin{exercise}
+Show that $\Mod(\Psi_1\cup\Psi_2)=\Mod(\Psi_1)\cap\Mod(\Psi_2)$, so that adding constraints to a script can only shrink its set of realizations. Show that dually $\Th(Y_1\cup Y_2)=\Th(Y_1)\cap\Th(Y_2)$, and give an example in which $\Mod(\Psi_1)\cup\Mod(\Psi_2)$ is strictly smaller than $\Mod(\Psi_1\cap\Psi_2)$.
+\end{exercise}
+
+\begin{exercise}
+A script is \emph{unrealizable} if $\Mod(\Psi)=\emptyset$. Give a script for a film in which two constraints are individually realizable but jointly not. How does this relate to the sheaf-theoretic notion of a compatible family with no global section, to be introduced in Chapter~\ref{ch:sheaves}?
+\end{exercise}

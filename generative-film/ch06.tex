@@ -1,0 +1,72 @@
+\chapter{Presheaves, Sheaves, and Continuity}
+\label{ch:sheaves}
+
+The first five chapters treated a film as a global object, a path or a word, and asked how to compose. The mathematics of this chapter starts from the opposite end: local pieces of footage, each defined on a limited stretch of time or region of space, and the question of when they assemble into one consistent whole.
+
+\section{Presheaves and sheaves}
+
+Let $X$ be a topological space and let $\Open(X)$ be the poset of its open sets ordered by inclusion.
+
+\begin{definition}[Presheaf, sheaf]
+A \emph{presheaf of sets} on $X$ is a functor $F:\Open(X)^{\op}\to\Set$. For $V\subseteq U$ the image of the inclusion is the \emph{restriction} map $F(U)\to F(V)$, written $s\mapsto\restr{s}{V}$. A presheaf is a \emph{sheaf} if for every open set $U$ and every open cover $U=\bigcup_iU_i$ the following hold.
+\begin{description}
+\item[Locality.] If $s,t\in F(U)$ satisfy $\restr{s}{U_i}=\restr{t}{U_i}$ for all $i$, then $s=t$.
+\item[Gluing.] If $s_i\in F(U_i)$ satisfy $\restr{s_i}{U_i\cap U_j}=\restr{s_j}{U_i\cap U_j}$ for all $i,j$, then there exists $s\in F(U)$ with $\restr{s}{U_i}=s_i$ for all $i$.
+\end{description}
+\end{definition}
+
+Elements of $F(U)$ are called \emph{sections over $U$}. The two axioms say that a section is determined by its local behavior and that locally compatible data can be assembled. Both are the mathematical form of the idea that continuity is a local property that can be checked piece by piece~\cite{maclane1992}.
+
+\begin{proposition}[The sheaf of takes]\label{prop:takes}
+Let $T=[0,\tau]$ with its usual topology and let $\Sc$ be a scenario space. The assignment $F(U)=C(U,\Sc)$, continuous maps from $U$ to $\Sc$, with restriction given by restriction of maps, is a sheaf on $T$.
+\end{proposition}
+
+\begin{proof}
+Restriction of continuous maps is continuous, and restriction is functorial, so $F$ is a presheaf. For locality, two maps that agree on each $U_i$ agree at every point of $U=\bigcup U_i$. For gluing, a compatible family of continuous maps $s_i:U_i\to\Sc$ defines a unique function $s:U\to\Sc$ with $\restr{s}{U_i}=s_i$, and $s$ is continuous because its restriction to each member of an open cover is continuous.
+\end{proof}
+
+Sections of this sheaf over an open interval $U\subseteq T$ are the \emph{takes} defined on $U$. The next section explains how an editor's practice maps onto the sheaf axioms.
+
+\section{Handles, overlaps, and the failure of gluing}
+
+An editor typically has more footage than the cut requires. Each shot comes with \emph{handles}: extra frames before the in-point and after the out-point. Handles are what permit a dissolve, a trim, and a re-cut, and they are the overlaps in the sheaf-theoretic picture.
+
+Consider a film cut at time $t_0$. Choose $\epsilon>0$ and let $U_1=[0,t_0+\epsilon)$ and $U_2=(t_0-\epsilon,\tau]$. Let $s_1\in F(U_1)$ be the first shot extended by its out-handle and $s_2\in F(U_2)$ the second shot extended by its in-handle. The overlap is $U_1\cap U_2=(t_0-\epsilon,t_0+\epsilon)$.
+
+\begin{proposition}\label{prop:cut-fails}
+The family $(s_1,s_2)$ glues to a continuous global take if and only if $s_1=s_2$ on the overlap. In particular, if the shots depict different world states at some time in the overlap, no continuous global take extends both, and the edit is a cut in the sense of Chapter~\ref{ch:scenario}.
+\end{proposition}
+
+\begin{proof}
+This is the gluing axiom for the sheaf of \Cref{prop:takes} applied to the cover $\{U_1,U_2\}$. If the family is compatible on $U_1\cap U_2$ it glues to a unique global section, and conversely a global section restricts to a compatible family.
+\end{proof}
+
+This reframes the central quantities of editing. A \emph{hard cut} is a compatible-failure of the pair at the overlap. A \emph{match cut} is a pair that is compatible after rendering but not before: the sections of the sheaf of images $G(U)=C(U,\Img)$, defined in the same way, glue, while the sections of $F$ do not. The comparison is natural: rendering induces a morphism of sheaves $F\to G$, $s\mapsto\Ren\circ s$, and a match cut is a compatible family in $G$ that does not lift to a compatible family in $F$.
+
+\begin{remark}
+A morphism of sheaves that is surjective on stalks need not be surjective on sections over a given open set. For sheaves of abelian groups the discrepancy is measured by cohomology of the kernel; for sheaves of sets, as here, no such measure is available in general. The phenomenon is related to, but distinct from, the observation of Chapter~\ref{ch:categories} that $\Ren_*$ is not full, which arises mainly because image paths can leave $\Ren(\Sc)$.
+\end{remark}
+
+\section{Sheaves of discrete state}
+
+Not every aspect of a story world varies continuously. Whether a door is open, who holds a gun, and how many drinks have been consumed are discrete. The relevant sheaves are \emph{locally constant}.
+
+\begin{definition}
+Let $A$ be a set. The \emph{constant sheaf} $\underline{A}$ on $X$ assigns to each open $U$ the set of locally constant functions $U\to A$.
+\end{definition}
+
+A global section of $\underline{A}$ on a connected space $X$ is a constant function. On a disconnected space, it is a choice of value on each connected component. If the time of a film is $T=[0,\tau]$ minus a finite set of cut points, then a global section of $\underline{A}$ over that space is a choice of discrete state per scene, which is the form of the discrete continuity bookkeeping done by a script supervisor. The more interesting case is the one in which the underlying space has loops, taken up next.
+
+\section*{Exercises}
+
+\begin{exercise}
+Show that the presheaf of bounded continuous functions on $\R$ is not a sheaf. Which axiom fails?
+\end{exercise}
+
+\begin{exercise}
+Let $F(U)$ be the set of constant functions on $U$ (constant on all of $U$, not locally constant). Show that $F$ is a presheaf but not a sheaf on a disconnected space.
+\end{exercise}
+
+\begin{exercise}
+Describe the sheaf $F$ of \Cref{prop:takes} when the time domain is a circle $T=\R/\tau\Z$ representing a looped film. What is a global section? Is it automatic that the take at time $0$ equals the take at time $\tau$?
+\end{exercise}

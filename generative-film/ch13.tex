@@ -1,0 +1,72 @@
+\chapter{Selective Cinema and Multiplexing}
+\label{ch:selective}
+
+A film is ordinarily one object shown to many viewers. Several technologies break this arrangement: shutter glasses that pass alternate frames to different eyes, polarized and spectrally filtered displays, and interactive branching. In each, a single screen carries several films at once, and each viewer receives a projection of the whole. This chapter gives a model for such systems and states what limits them.
+
+\section{Frame multiplexing}
+
+Let a display refresh at $r$ frames per second, and index frames by $n\in\N$. Let $V$ be a finite set of \emph{viewer classes}. A \emph{schedule} is a partition of the frame indices
+\[
+\N=\bigsqcup_{v\in V}N_v,
+\]
+and a viewer of class $v$ wears a selector, for instance a synchronized shutter, that passes only the frames in $N_v$. If $f:\N\to\Img$ is the displayed sequence, viewer $v$ sees $f|_{N_v}$, which we may reindex as a film $f_v:\N\to\Img$ with $f_v(k)=f(n_k^v)$ for the $k$th element $n^v_k$ of $N_v$.
+
+\begin{proposition}[Rate budget]\label{prop:rate}
+If the schedule is periodic with the classes sharing frames equally, each viewer perceives $r/\lvert V\rvert$ frames per second. If viewers require at least $r_{\min}$ frames per second for acceptable motion, then $\lvert V\rvert\le\lfloor r/r_{\min}\rfloor$.
+\end{proposition}
+
+\begin{proof}
+Over a window of $r$ frames, the $\lvert V\rvert$ classes partition the frames equally, so each receives $r/\lvert V\rvert$. The constraint $r/\lvert V\rvert\ge r_{\min}$ rearranges to the stated bound. More generally, for a non-equal schedule the rates $r_v=\lvert N_v\cap\{1,\dots,r\}\rvert$ sum to $r$, so at most $\lfloor r/r_{\min}\rfloor$ classes can have $r_v\ge r_{\min}$.
+\end{proof}
+
+At $r=120$ frames per second and $r_{\min}=24$, up to five classes are admissible in this rough accounting; at $r=240$, up to ten. This is a crude bound, since viewers vary in their tolerance and since temporal coherence of low-rate streams can be improved by the content, but it shows that the multiplexing capacity of a display is a resource that is allocated, in the sense of the previous chapters, and not merely a technical feature.
+
+\section{Joint constraints}
+
+In the simplest case the $f_v$ are independent films. More interesting are schedules in which the films are \emph{complementary}: a single audio track serves two viewers who see different pictures, or the two films must be compatible in the sense that scenes that overlap in time satisfy a joint condition.
+
+Let $\mathcal{F}_v$ be the set of admissible films for class $v$, and let $J\subseteq\prod_v\mathcal{F}_v$ be a set of compatible tuples. A \emph{multiplexed film} is a tuple $(f_v)_{v\in V}\in J$ together with a schedule.
+
+\begin{proposition}\label{prop:sheafV}
+Consider the discrete space $V$, a nonempty joint constraint $J$, and the presheaf $\mathcal{G}$ on $V$ with $\mathcal{G}(S)=\prod_{v\in S}\mathcal{F}_v$ for $S\subseteq V$, restriction being projection. Then $\mathcal{G}$ is a sheaf. For a joint constraint $J\subseteq\prod_{v\in V}\mathcal{F}_v$, the assignment $\mathcal{J}(S)=\pi_S(J)$, the set of restrictions to $S$ of jointly admissible tuples, is always a subpresheaf of $\mathcal{G}$. It is a subsheaf if and only if $J=\prod_v\pi_v(J)$, that is, if and only if the constraint decomposes into independent constraints on each viewer.
+\end{proposition}
+
+\begin{proof}
+Every subset of a discrete space is open, and a cover of $S$ is a family of subsets with union $S$. A compatible family of local elements of $\mathcal{G}$ determines a value in $\mathcal{F}_v$ for each $v\in S$, and compatibility on overlaps says these values do not conflict, so the family glues uniquely to an element of $\prod_{v\in S}\mathcal{F}_v$. Hence $\mathcal{G}$ is a sheaf. Projection of a tuple in $J$ to $S$ and then to $S'\subseteq S$ equals projection directly to $S'$, so $\mathcal{J}$ is closed under restriction and is a subpresheaf, whatever $J$ is.
+
+Suppose $\mathcal{J}$ is a subsheaf. Cover $V$ by the singletons $\{v\}$. The family of elements $f_v\in\pi_v(J)=\mathcal{J}(\{v\})$ is compatible, because distinct singletons do not overlap. Gluing in $\mathcal{J}$ gives an element of $\mathcal{J}(V)=J$ whose $v$th coordinate is $f_v$. Thus every tuple of individually admissible films lies in $J$, which says $J=\prod_v\pi_v(J)$. Conversely, if $J=\prod_v\pi_v(J)$ then $\pi_S(J)=\prod_{v\in S}\pi_v(J)$, and a compatible family of local elements of $\mathcal{J}$ glues in $\mathcal{G}$ to a tuple whose coordinates all lie in the sets $\pi_v(J)$, hence to an element of $\pi_S(J)$.
+\end{proof}
+
+The proposition says that non-product constraints are exactly the obstruction to the gluing property for the multiplexed film: local admissibility of each viewer's film does not imply joint admissibility. The restrictions of jointly admissible tuples still behave as a presheaf, but a family of individually admissible films need not come from any jointly admissible tuple. The genuinely multiplexed case, in which two films shown together tell a story only when taken together, is the case with a non-product $J$, and the cost of this coupling is that the films cannot be generated independently. A generative system for such a film must sample from $J$, not from each $\mathcal{F}_v$.
+
+\section{Branching and selection}
+
+A branching film is a tree $\mathcal{T}$ of segments, rooted at the opening, in which each internal node has several children. A viewer's experience is a maximal path from the root, chosen by the viewer or by an external condition. The common prefix of two viewers' paths is a stretch they share. Shared segments are a cover in the sense of Chapter~\ref{ch:sheaves}: the viewers agree on the shared stretch and diverge after it.
+
+\begin{proposition}\label{prop:branching}
+Let $\mathcal{T}$ be a finite rooted tree with $L$ leaves. The number of distinct viewer experiences is $L$, and the total running time of the content that must be produced is the sum of the durations of all segments, which is at most $L$ times the longest root-to-leaf duration, with equality only when no segments are shared.
+\end{proposition}
+
+\begin{proof}
+Each maximal path from the root ends at a leaf, and distinct leaves give distinct paths in a tree, so there are $L$ experiences. The content that must be produced is the set of all segments, and each segment lies on at least one root-to-leaf path. A segment lying on $k$ paths is counted $k$ times in the sum of the path durations and once in the content total, so the content total is at most the sum of the path durations, which is at most $L$ times the longest. Equality throughout requires $k=1$ for every segment.
+\end{proof}
+
+The sharing of segments is where branching films save work, and it is also where they are constrained: any shared segment must be admissible for every experience that traverses it, and so must be consistent with every history that leads to it. A segment shared by two branches that diverge earlier must not depend on the facts on which they diverged. This is the type-theoretic requirement of Chapter~\ref{ch:types} read on a tree: a term in the shared segment cannot require a witness that exists only on one branch.
+
+\begin{principle}[Shared-segment principle]\label{pr:shared}
+A segment can be shared among experiences if it is well typed in the intersection of the contexts of those experiences; and if it is well typed in each experience's context by the same term, the intersection is the weakest context that suffices. The more branches share a segment, the smaller the context in which it must be well typed, and therefore the weaker the dependencies it can carry.
+\end{principle}
+
+\section*{Exercises}
+
+\begin{exercise}
+A display at 144 frames per second serves three viewer classes with rates $r_1,r_2,r_3$ and $r_{\min}=36$. Find all integer schedules of rates compatible with the budget of \Cref{prop:rate}.
+\end{exercise}
+
+\begin{exercise}
+Give an example of a non-product joint constraint $J$ on two viewer classes in which each viewer's film is individually admissible but the pair is not, and explain what a generative system must do to sample from $J$.
+\end{exercise}
+
+\begin{exercise}
+In a branching film with the binary tree of depth $d$, compute the number of leaves and the total content duration if each segment lasts one minute, and compare with the duration of one experience.
+\end{exercise}

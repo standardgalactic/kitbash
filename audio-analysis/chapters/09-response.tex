@@ -1,0 +1,63 @@
+\chapter{The Hand on the Volume}
+\label{ch:response}
+
+The framework's hypotheses are about behaviour: when listeners reduce the volume, how far, and for how long. This chapter specifies how that behaviour can be recorded and how a study should be designed so that the resulting data can confirm or refute the framework rather than decorate it.
+
+\section{Origin of the measure}
+
+The idea of treating volume behaviour as data predates this analysis. A set of design notes from July 2025, kept in the author's public repository, proposed a tool provisionally called MuteNet: a background process that records when viewers mute, when they drop the volume sharply, and when they restore it after a loud scene, and that aggregates these records across viewers to identify consensus moments of unpleasant sound and to train models of them \citep{flyxion2025}. The same notes proposed the intervention developed in Chapter~\ref{ch:intervention}. The present chapter turns the first proposal into a measurement protocol.
+
+\section{Why volume behaviour}
+
+Volume behaviour has three advantages as a dependent variable. It is produced during viewing rather than recalled afterwards. It is continuous in time and can be aligned exactly with the soundtrack. And, as the noise-control literature suggests \citep{glass1972}, it is a direct expression of the listener exercising control over the sound, which is the phenomenon at issue. Its disadvantage is that it confounds several motives (level, distortion, content, fatigue, and the wish to hear the next line of dialogue), which is why it must be combined with the chain measurements of Chapter~\ref{ch:chain} and the annotations described below.
+
+\section{Recording}
+
+The script \texttt{throttle-log.lua} (Appendix~\ref{app:code}) runs inside the \texttt{mpv} player and writes a record each time the volume, mute state, or pause state changes, stamped with the film time, the wall-clock time, the slider value, and the corresponding gain in decibels. A key binding records a marker when something bothers the viewer without a volume change. The protocol requires that system volume and amplifier settings be fixed and recorded before viewing and that the viewer adjust level only within the player, so that the logged gain is the only gain that changes.
+
+From the log the following variables are derived:
+\begin{description}
+\item[Reduction onset.] A time at which gain decreases by at least 3~dB within two seconds.
+\item[Reduction depth.] The gain change in dB, with full muting or a slider at zero treated as a separate outcome, \emph{off}.
+\item[Listener recovery time.] The time from a reduction until gain returns to within 3~dB of its prior value.
+\item[Marker.] A timestamp without gain change.
+\end{description}
+
+Listener recovery time is the behavioural counterpart of the soundtrack's recovery windows. The comparison of the two is the most direct test the framework admits: whether listeners restore the volume when, and only when, the soundtrack returns to dialogue level.
+
+\section{Annotation of candidates}
+
+The audition clips produced by the pipeline allow the acoustic detectors to be tied to identified sources, but only under conditions that prevent the annotator's expectations from determining the labels.
+
+\begin{enumerate}
+\item \textbf{Blind presentation.} Clips are renamed with random identifiers and shuffled across categories. Detector name, score, and timestamp are withheld until labelling is complete.
+\item \textbf{Random controls.} Thirty to fifty windows drawn uniformly from the audible portion of the film are mixed in with the detector clips. Without them, the proportion of detector clips labelled as unpleasant has no baseline and cannot show that the detectors select anything.
+\item \textbf{Several dimensions.} Each clip receives a source label from a fixed vocabulary (Appendix~\ref{app:instrument}), a role (voice, music, effect, ambience, mixed), an intensity rating from one to five, and a binary judgement of whether the listener would reduce the volume.
+\item \textbf{More than one listener.} Three to five listeners allow inter-rater agreement to be computed and turn the single-listener limitation into a measurement of variation between listeners.
+\end{enumerate}
+
+The pipeline's annotation summary then reports, for each detector, the share of its clips that were not false positives and the distribution of source labels, which can be compared with the same distribution for the random controls.
+
+\section{Design}
+
+\subsection{Pre-registration}
+
+Before any response data are examined, the predictions of Chapter~\ref{ch:framework} are to be written down with their direction and the variables that operationalise them. The listening report was produced before the analysis. The analysis has since been seen by the listener, and any further viewing of this film by the same listener is a repeat viewing informed by the plots. That contamination is unavoidable for this listener and film and must be stated; it is avoidable for new listeners and new films.
+
+\subsection{Comparison corpus}
+
+A single film cannot show that its occupation is unusual. A corpus of five to ten films, including films of the same genre from earlier decades and films of other genres from the same period, analysed with a common dialogue-referenced method and thresholds fixed across the corpus, would allow the case's exceedance and block statistics to be placed in a distribution. The percentile-based detectors of the current pipeline would need pooled thresholds for this purpose.
+
+\subsection{Playback conditions}
+
+Each listener should view under at least two conditions: the chain of interest and a neutral reference (headphones or monitors of known response), with order counterbalanced across listeners and films. This separates what listeners respond to in the mix from what they respond to in the chain, which is the objection a reviewer would raise first to any single-chain study.
+
+\section{Analysis}
+
+The primary model is a discrete-time hazard model. For each second in which the listener has not already reduced the volume, the outcome is whether a reduction onset occurs in that second. Predictors are current exceedance $E(t)$; time already elapsed in the current occupation block; recovery debt $K(t)$; the residualised overdetermination index; the playback condition; and listener and film random effects. The hypotheses of Chapter~\ref{ch:framework} map onto coefficients: occupation over level (block elapsed time and $E$ outperform instantaneous level alone, and whole-film statistics add nothing), recovery debt (positive coefficient on $K$), overdetermination (positive coefficient on $\Omega$ at fixed $E$), and chain amplification (positive effect of the chain condition, larger at high $E$).
+
+A secondary model predicts listener recovery time from the time until the soundtrack's next absolute recovery window. A tertiary analysis predicts the \emph{off} outcome specifically from block length and implied throttle depth.
+
+\section{Aggregation}
+
+The MuteNet proposal envisaged aggregation across many viewers. The log format above is sufficient for that purpose and contains nothing about the viewer beyond their volume behaviour and the film's identity. Aggregated over viewers, reduction onsets form an empirical annoyance curve for a film, which could be published alongside it much as loudness metadata already is, and which would give sound designers a direct view of where home listeners reach for the control.

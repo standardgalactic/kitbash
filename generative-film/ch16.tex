@@ -1,0 +1,169 @@
+\chapter{Tropes and Hierarchical Direction}
+\label{ch:direction}
+
+Chapters~\ref{ch:types} and~\ref{ch:linear} gave a typed account of what may happen in a story. Two questions remain for a system that is meant to be directed. First, how can recurring narrative patterns, tropes, be represented so that they can be recognized in an existing film and selected for a new one? Second, how can a person express intentions at several scales, from genre to gesture, without specifying every movement? This chapter answers both with the machinery already built, and it identifies where the machinery reaches its limits.
+
+\section{Tropes as schemas}
+
+A trope label rarely specifies enough to reconstruct a scene. The useful object is a \emph{schema}: roles, enabling conditions, expected developments, and timing.
+
+\begin{definition}[Trope schema]
+A \emph{trope schema} $\mathsf{T}$ consists of a context $\Gamma_{\mathsf{T}}$ declaring its roles, a type $\mathsf{Pre}_{\mathsf{T}}(\Gamma_{\mathsf{T}})$ of enabling conditions, a set $\mathsf{Dev}_{\mathsf{T}}$ of admissible developments, each an event word over the story's event alphabet, and a timing window $W_{\mathsf{T}}\subseteq\R_{\ge0}\times\R_{\ge0}$ of permitted onset and duration. An \emph{instance} of $\mathsf{T}$ in a film is a substitution of the roles by characters or objects, a witness of the enabling conditions in the story state at the onset, and a development from $\mathsf{Dev}_{\mathsf{T}}$ whose timing lies in $W_{\mathsf{T}}$.
+\end{definition}
+
+A schema is thus a typed fragment of the kind introduced in Chapter~\ref{ch:types}, and its instance requires a witness: a trope cannot occur unless its enabling conditions hold. This yields the compatibility question of trope composition. Two schemas compose only if the developments of the first supply, as postconditions, the enabling conditions of the second. A sequence of recognizable tropes without such links is a list, not a plot.
+
+\section{Reverse inference of tropes}
+
+Given a finished film, which schemas does it instantiate? In the vocabulary of Chapter~\ref{ch:scripts}, let $F$ be a set of films and let the constraints $\Phi$ be statements of the form ``contains an instance of schema $\mathsf{T}$ at interval $I$''. Then the set of schemas a film $f$ satisfies is $\Th(\{f\})$ restricted to this vocabulary.
+
+\begin{proposition}[Underdetermination]\label{prop:underdet}
+Let $\Phi_{\mathsf{trope}}$ be a vocabulary of trope constraints and $f$ a film. The set $\Th(\{f\})\cap\Phi_{\mathsf{trope}}$ is closed under the consequences of the satisfaction relation: if $\psi$ is satisfied by every film that satisfies all of a subset $\Psi\subseteq\Th(\{f\})$, then $\psi\in\Th(\{f\})$. Distinct films may have the same trope theory, and a trope theory need not determine a unique film.
+\end{proposition}
+
+\begin{proof}
+If $\psi$ holds in every model of $\Psi$, and $f\in\Mod(\Psi)$ because $\Psi\subseteq\Th(\{f\})$, then $f\models\psi$, so $\psi\in\Th(\{f\})$. For the second statement, take two films that agree on every constraint in $\Phi_{\mathsf{trope}}$ and differ only in a feature outside that vocabulary, such as the color of a costume; they have the same trope theory. Here $\psi$ is taken in $\Phi_{\mathsf{trope}}$ for the intersection to be defined.
+\end{proof}
+
+The proposition formalizes a methodological warning from Chapter~\ref{ch:scripts}. A trope analysis recovers a closed set of constraints, and the original film is only one of the many that realize it. Reverse inference from observed events to schemas is further complicated by the fact that a schema instance is a hypothesis about function, while the observed events are features: the same observable event may instantiate different tropes depending on what the audience knows. Automatic suggestions of tropes should accordingly be treated as hypotheses for review, each with the evidence that supports it.
+
+\section{Commands at several scales}
+
+A director's instruction to an actor and a user's instruction to a simulated character are both commands issued at some level of abstraction. A useful scheme distinguishes levels from world and genre through plot, sequence, scene, relationship, goal, action, and gesture. A higher-level command constrains lower-level choices without determining them.
+
+\begin{definition}[Command language]
+A \emph{command alphabet} $K$ is a finite set of keys. A \emph{command} is a word over $K$ selected from a set $\mathcal{K}\subseteq K^*$ of valid command words. Each command $c\in\mathcal{K}$ has a \emph{scope}, a \emph{precondition} that is a type in the context of the current story state, and an \emph{effect}, which is a set $R(c)\subseteq E^*$ of event words called its \emph{realizations}.
+\end{definition}
+
+A command at the level of a gesture has a small set of realizations, and a command at the level of a plot has a large one. A realization is \emph{acceptable} if it satisfies the preservation conditions of the command's contract, which for a dramatic command will include the preservation of the intended function. The relation between a high-level command and its realizations is a refinement.
+
+\begin{proposition}[Prefix-free commands decode uniquely]\label{prop:prefixfree}
+If $\mathcal{K}$ is a set of nonempty words that is prefix-free, that is, no command is a proper prefix of another, then every word $w\in K^*$ that is a concatenation of commands has a unique factorization $w=c_1c_2\cdots c_r$ with each $c_i\in\mathcal{K}$.
+\end{proposition}
+
+\begin{proof}
+Suppose $c_1\cdots c_r=c_1'\cdots c_s'$ are two factorizations, and let $i$ be the first index with $c_i\ne c_i'$. After removing the equal common prefix, the two words begin with $c_i$ and $c_i'$ respectively, so one is a prefix of the other, which contradicts prefix-freeness unless they are equal. The same argument applied inductively shows $r=s$ and $c_i=c_i'$ for all $i$.
+\end{proof}
+
+Hierarchical, mnemonic key sequences of the kind found in modal editors organize commands as paths in a tree. If every command is a leaf, the key set is prefix-free and every keystroke stream parses uniquely, which is the property that makes menus of this type unambiguous to a machine. The cost is that no command can be a prefix of another, so a command cannot be both complete and extensible. Interfaces resolve this by terminating commands with an explicit key or a timeout, which restores prefix-freeness at the price of an additional symbol. The design question of discoverability and memorization is empirical, and the notation of any specific interface should be designed and tested rather than inferred from the formal property.
+
+\section{Command semantics: order matters}
+
+Commands act on a story state, and their order can change the outcome, because one may establish what another requires.
+
+\begin{example}[Non-commuting commands]\label{ex:noncomm}
+Let $c_1$ be the command ``character $A$ learns that the letter is forged'', whose effect is to add the fact $\mathsf{Knows}(A,\mathsf{forged})$ to the state, and let $c_2$ be ``$A$ confronts $B$ about the forgery'', whose precondition is $\mathsf{Knows}(A,\mathsf{forged})$. The sequence $c_1c_2$ is valid. The sequence $c_2c_1$ is invalid, since the precondition of $c_2$ is not satisfied in the initial state. The commands do not commute.
+\end{example}
+
+The semantics of \Cref{ex:noncomm} is the semantics of Chapter~\ref{ch:linear} read in the command layer: a command is a rule with premises and conclusions, and a sequence is valid when each command's premises are present in the current marking. Disjointness of resources gives commutation, by \Cref{prop:commute}. Here the shared fact $\mathsf{Knows}(A,\mathsf{forged})$ is exactly what couples the two commands.
+
+\begin{proposition}[Realizations of a sequence]\label{prop:realize}
+Let $c_1,\dots,c_r$ be a valid command sequence with realization sets $R(c_i)\subseteq E^*$. Define a \emph{realization of the sequence} to be a concatenation $w_1\cdots w_r$ with $w_i\in R(c_i)$ that is an admissible history. Then the set of realizations is exactly
+\[
+\{w_1w_2\cdots w_r:\ w_i\in R(c_i)\}\cap\Adm,
+\]
+where $\Adm$ is the set of admissible histories, and this may be a proper subset of the unconstrained product because a choice of realization for one command may constrain the choices available for later ones.
+\end{proposition}
+
+\begin{proof}
+Every realization of the sequence is a concatenation of realizations of its commands, which gives the first factor, and every realization must be an admissible history, which gives the intersection with $\Adm$. A realization of $c_1$ that consumes a resource needed by every realization of $c_2$ makes any concatenation using it inadmissible, so the intersection can be a proper subset of the product.
+\end{proof}
+
+This is the formal reason why high-level direction of characters cannot be treated as independent instructions: later commands inherit the consequences of earlier realizations. Systems that support such direction need to expose conflicts and not resolve them silently, and to preview alternative realizations at the semantic level where the user is working. They also need undo and revision at that same level, so that a correction to one command does not silently invalidate a setup that a later command depends on, a requirement that follows from the preconditions themselves: a change to an early command can invalidate all later commands whose preconditions it supplied.
+
+\section{A complete trope example: concealed knowledge}\label{sec:tropeexample}
+
+Return to the forged-letter scene. Two schemas in the sense of the definition above are relevant, and the difference between them lies in which layer each constrains.
+
+\begin{definition}[Two schemas on different layers]
+\emph{Concealed knowledge}, $\mathsf{T}_{\mathrm{con}}$, has roles $K,I$ (knower and uninformed) and a fact $\varphi$. Its enabling condition is $\mathsf{Knows}(K,\varphi)\times\neg\mathsf{Knows}(I,\varphi)$ in the \emph{state} layer. Its developments are
+\[
+\mathsf{Dev}=\{\mathsf{ask}\,\mathsf{deflect}\,\mathsf{reveal},\ \mathsf{ask}\,\mathsf{deflect}\,\mathsf{deflect}\,\mathsf{reveal}\},
+\]
+where $\mathsf{ask}$ is a question by $I$ bearing on $\varphi$, $\mathsf{deflect}$ is an evasive response by $K$, and $\mathsf{reveal}$ adds $\mathsf{Knows}(I,\varphi)$. Its timing window requires the first $\mathsf{deflect}$ to begin within $10$ s of $\mathsf{ask}$ and $\mathsf{reveal}$ to occur within $30$ s of $\mathsf{ask}$.
+
+\emph{Dramatic irony}, $\mathsf{T}_{\mathrm{iro}}$, has the same roles and developments and, in addition, requires the \emph{audience} layer to contain $\mathsf{Knows}_{\mathrm{aud}}(\varphi)$ at the onset of $\mathsf{ask}$.
+\end{definition}
+
+\paragraph{Instance in the baseline.} In $V_0$ the history contains $\mathsf{ask}$ at $t=38$ (question), $\mathsf{deflect}$ at $t=46$, and $\mathsf{reveal}$ at $t=58$. The word $\mathsf{ask}\,\mathsf{deflect}\,\mathsf{reveal}$ is in $\mathsf{Dev}$. The deflection begins $8$ s after the question, within the $10$ s bound, and the reveal occurs $20$ s after the question, within $30$ s. The enabling condition holds throughout $[0,58)$ because $A$ knows from the start, so $\mathsf{T}_{\mathrm{con}}$ has an instance with onset at $t=38$. The schema $\mathsf{T}_{\mathrm{iro}}$ does \emph{not} have an instance in $V_0$, because the audience layer has not been told that $A$ knows until $t=58$. In $V_4$, where the insert at $t=18$ tells the audience, $\mathsf{T}_{\mathrm{iro}}$ has an instance and $\mathsf{T}_{\mathrm{con}}$ has the same one. The two schemas therefore separate the versions $V_0$ and $V_4$, even though the state-layer history is identical.
+
+\paragraph{Reverse inference and a competing hypothesis.} A viewer, or a system annotating $V_0$, sees only observable events: $A$ glances at the letter ($t=18$), pauses ($31$ to $38$), is asked a question ($38$), responds evasively ($46$), and says something that reveals the forgery ($58$). From the pause and the question-and-evasion exchange alone, $t=31$ to $46$, a second hypothesis is equally supported. Let $\mathsf{T}_{\mathrm{int}}$ be an \emph{interrogation} schema in which $B$ presses $A$ about a matter $\psi$ unrelated to the letter, for example where $A$ was the previous evening. Under $\mathsf{T}_{\mathrm{int}}$ the same word $\mathsf{ask}\,\mathsf{deflect}$ occurs with $\psi$ in place of $\varphi$. This is a separate point from \Cref{prop:underdet}, which concerns the film: here the observables of this stretch do not determine the theory, as the table below shows.
+
+\begin{center}
+\small
+\begin{tabular}{p{5.8cm}p{3cm}p{3cm}}
+\toprule
+observable & $\mathsf{T}_{\mathrm{con}}$ with $\varphi=$ forged & $\mathsf{T}_{\mathrm{int}}$ with $\psi$ unrelated\\
+\midrule
+$A$ glances at the letter, $t=18$ & expected & unexplained\\
+long pause, $t=31$ to $38$ & compatible & compatible\\
+question and evasion, $t=38$ to $46$ & compatible & compatible\\
+(absent in $V_0$) $A$'s eyes go to the letter during the evasion & expected & unexplained\\
+(absent in $V_0$) the evasion names the letter in dialogue & expected & excluded\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The pause and the question-and-evasion exchange do not discriminate. Observations that discriminate are those that lie in the evidence set of one hypothesis and not the other: a glance toward the letter during the evasion, or a line of dialogue that names the letter. Neither is part of the baseline specification, and adding either to the scene would settle the reading earlier. The annotation of $V_0$ as an instance of $\mathsf{T}_{\mathrm{con}}$ is therefore a hypothesis resting on the glance at $t=18$ and on the reveal at $t=58$, and until $t=58$ it is one of two readings. This is the point of the earlier warning: the reveal at $t=58$ is the first event that collapses the ambiguity, and a film designer who wants the audience to hold both readings has a measurable interval, $t=38$ to $58$, in which to maintain them.
+
+\paragraph{Composition.} The reveal adds $\mathsf{Knows}(B,\varphi)$, which is the enabling condition of two further schemas that depend on it independently. The first, $\mathsf{T}_{\mathrm{rea}}$, is a reaction in which $B$'s face and posture register the knowledge; its timing window requires onset within $5$ s of the reveal, and the reaction shot at $t=62$, $4$ s after $t=58$, is within it (the duration of the shot is not constrained by the window). The second, $\mathsf{T}_{\mathrm{dep}}$, is $B$'s departure, and the door exit at $t=78$ is its development; its enabling condition is again $\mathsf{Knows}(B,\varphi)$, supplied by the reveal and not by the reaction. The three schemas form a plot in the sense of the earlier section because the postcondition of $\mathsf{T}_{\mathrm{con}}$ supplies the enabling conditions of the other two, and removing the reveal removes both.
+
+\section{A complete session of hierarchical direction}\label{sec:session}
+
+A command language for the scene needs a few commands, all of the same length so that the key set is prefix-free. Each command is a path of three keys: a scale, a category, and an action.
+
+\begin{center}
+\small
+\begin{tabular}{p{1.0cm}p{3.3cm}p{3.7cm}p{3.1cm}}
+\toprule
+keys & meaning & precondition & effect\\
+\midrule
+\texttt{s k l} & $A$ learns the letter is forged & none & $\mathsf{Knows}(A,\varphi)$\\
+\texttt{s k c} & $A$ conceals & $\mathsf{Knows}(A,\varphi)$, $\neg\mathsf{Knows}(B,\varphi)$ & concealment active\\
+\texttt{s k r} & reveal to $B$ & concealment active & $\mathsf{Knows}(B,\varphi)$\\
+\texttt{g r b} & reaction shot of $B$ & $\mathsf{Knows}(B,\varphi)$ & reaction recorded\\
+\texttt{s d x} & $B$ exits, door slam & reaction recorded & $B$ gone\\
+\texttt{s m q} & music with a quiet profile & none & music stem policy set\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Because every command is a word of exactly three keys, no command is a proper prefix of another, so by \Cref{prop:prefixfree} any concatenation parses uniquely. The user can type a continuous stream of eighteen keys, and the interface need not use a terminator.
+
+\paragraph{The valid orderings.} The preconditions of the table impose the chain
+\[
+\texttt{skl}<\texttt{skc}<\texttt{skr}<\texttt{grb}<\texttt{sdx}
+\]
+and leave \texttt{smq} unconstrained. Of the $6!=720$ orderings of the six commands, the valid ones are those that place the five chained commands in order and insert \texttt{smq} at any of the six positions, so there are exactly $6$, a count confirmed by enumerating all $720$ orderings against the preconditions of the table (the script \texttt{verify.py} distributed with the source does this). If the user types \texttt{skc} first, the system refuses at step one with the message that $\mathsf{Knows}(A,\varphi)$ is absent. If the user types \texttt{skl skr}, it refuses at step two because no concealment is active. In both cases the refusal names the precondition, not merely the command, so that the user can repair the plan. The order \texttt{skl skc skr grb sdx smq} is valid, and so are the other five that move \texttt{smq} earlier.
+
+\paragraph{Where choices enter.} A command fixes a semantic effect and leaves discretionary choices open. Three are stipulated here: the form of the deflection under \texttt{skc} (spoken or by gesture), the length of the reaction shot under \texttt{grb} in seconds (any of $2,3,4,5,6$), and the character of the slam under \texttt{sdx} (hard at $72$ dB or soft at $51$ dB). The product of the choice sets has $2\times5\times2=20$ elements. An admissibility rule couples two choices: a soft slam is admissible only if the reaction lasted at least $4$ s, because the audience needs the face to carry the departure. For a hard slam all five durations are admissible, and for a soft slam three are. The admissible realizations number $2\times(5+3)=16$, a proper subset of the $20$ in the product, in agreement with \Cref{prop:realize}.
+
+The choices do not all enter the history. The choice between spoken and gestured deflection leaves the semantic fold unchanged, since both yield the same state, and so it belongs to the appearance layer only. The choice of reaction duration affects the timing window of $\mathsf{T}_{\mathrm{rea}}$ and the audience's access to $B$'s state, and the choice of slam affects whether the cue is salient in the sense of Section~\ref{sec:whisper}. A system that records only the commands and not the realized choices loses exactly this information. A system that records the realized choices in the history, when they affect the fold or an enabling condition, and in the appearance layer otherwise, has what it needs to answer why a later command is or is not admissible.
+
+\paragraph{Revision.} Suppose the user deletes \texttt{skl}. Because preconditions are read in the state the earlier commands produced, every command whose precondition depends on $\mathsf{Knows}(A,\varphi)$ becomes invalid: \texttt{skc}, then \texttt{skr}, \texttt{grb}, and \texttt{sdx}. Only \texttt{smq} survives. A system that edits at the command level should present this cascade before applying the deletion, and offer the alternatives: delete all dependents, or replace \texttt{skl} by another command that establishes the same fact. The cascade is exactly the dependency graph of the five chained commands, which the enumeration in the accompanying script reproduces.
+
+\section*{Exercises}
+
+\begin{exercise}
+Write a trope schema for a mistaken-identity plot in the sense of the definition above, specifying roles, enabling conditions, developments, and timing window. Give an instance in a film of your choice and identify the witness of the enabling conditions.
+\end{exercise}
+
+\begin{exercise}
+Show that if $\mathcal{K}$ is not prefix-free, the factorization of \Cref{prop:prefixfree} can fail to be unique. Give an example over a two-letter alphabet.
+\end{exercise}
+
+\begin{exercise}
+Using the resource semantics of Chapter~\ref{ch:linear}, model three commands with a shared resource so that exactly two of the six possible orderings are valid. Describe the story-level interpretation.
+\end{exercise}
+
+\begin{exercise}
+A user issues a high-level command whose set of realizations $R(c)$ is empty in the current state. List three distinct responses a system might give (refuse, replan earlier commands, request revision) and state which formal property of $\Adm$ each relies on.
+\end{exercise}
+
+\begin{exercise}
+In the command language of Section~\ref{sec:session}, add a command \texttt{s k a} (``$A$ confesses unprompted'') with precondition $\mathsf{Knows}(A,\varphi)\times\neg\mathsf{Knows}(B,\varphi)$ and effect $\mathsf{Knows}(B,\varphi)$. Determine which pairs of commands cannot occur together in a valid sequence, and list the maximal valid sequences.
+\end{exercise}
+
+\begin{exercise}
+Write a trope schema for \emph{red herring} in the sense of Section~\ref{sec:tropeexample}, giving roles, enabling conditions, developments, and a timing window, and say which observable would discriminate it from a genuine clue.
+\end{exercise}

@@ -1,0 +1,115 @@
+\chapter{Scenario Spaces and Films as Paths}
+\label{ch:scenario}
+
+A camera pointed at a staged event records one of many possible views of one of many possible world states. To reason about film mathematically, the first task is to name the space in which those states live and to say what a film is in relation to it. This chapter does so, and then adds just enough geometry to state a hypothesis about camera movement.
+
+\section{Scenario spaces}
+
+\begin{definition}[Scenario space]
+A \emph{scenario space} is a pair $(\Sc,\Ren)$ where $\Sc$ is a smooth manifold, possibly with corners, and $\Ren:\Sc\to\Img$ is a continuous map into a metric space $\Img$ of images. The elements of $\Sc$ are \emph{scenarios} or \emph{world states}, and $\Ren$ is the \emph{rendering}.
+\end{definition}
+
+In the standard example $\Img=L^2(\Omega;\R^3)$ for a rectangle $\Omega\subset\R^2$, so that an image is a color field on the screen. The choice of $L^2$ is a convenience that makes $\Img$ a Hilbert space and is not essential to anything below. What matters is that $\Ren$ is generally far from injective: many world states produce the same image, and this is the source of most of the interesting phenomena in later chapters.
+
+A concrete scenario space has a product decomposition
+\[
+\Sc=\mathcal{C}\times\mathcal{A}\times\mathcal{L}\times\mathcal{E},
+\]
+where $\mathcal{C}=SE(3)\times(0,\infty)$ records camera pose and focal length, $\mathcal{A}$ records the configurations of the actors, $\mathcal{L}$ the lighting, and $\mathcal{E}$ the remaining environment. The camera factor is the only one that is directly under the cinematographer's control during a take, and the other factors are under the control of the production designer, the actors, and the physics of the set.
+
+\begin{example}
+A two-person dialogue in a room has $\mathcal{A}=Q_1\times Q_2$, where $Q_i$ is the configuration space of the $i$th actor's body, and $\mathcal{L}$ a space of light-source parameters. Fixing everything but the camera gives the subspace $\mathcal{C}\times\{(a,\ell,e)\}$, which is the space of all possible framings of one frozen moment.
+\end{example}
+
+\section{Shots and films}
+
+Time enters through paths. To avoid the awkwardness that concatenation of paths on fixed intervals is not strictly associative, we use Moore paths, which carry their own duration.
+
+\begin{definition}[Shot]
+A \emph{shot} is a pair $(\tau,\gamma)$ with $\tau>0$ and $\gamma:[0,\tau]\to\Sc$ continuous and piecewise $C^1$. We write $\dur(\gamma)=\tau$.
+\end{definition}
+
+\begin{definition}[Film]
+A \emph{film} is a finite sequence $f=(\gamma_1,\dots,\gamma_n)$ of shots. Its \emph{rendered form} is the sequence of image-valued paths $\Ren\circ\gamma_k:[0,\tau_k]\to\Img$. Its total duration is $\sum_k\tau_k$. The \emph{seams} of $f$ are the pairs $(\gamma_k(\tau_k),\gamma_{k+1}(0))$ for $1\le k<n$.
+\end{definition}
+
+A seam is \emph{continuous} when the two endpoints coincide in $\Sc$. A seam is a \emph{match} when they are distinct in $\Sc$ but close in $\Img$, which is the situation of a match cut and of the hidden cuts in films assembled to appear as one take. A seam is a \emph{hard cut} when both the scenario endpoints and their renderings are far apart. The three cases are distinguished by the numbers
+\[
+\delta_\Sc=d_\Sc\bigl(\gamma_k(\tau_k),\gamma_{k+1}(0)\bigr),\qquad
+\delta_\Img=d_\Img\bigl(\Ren\gamma_k(\tau_k),\Ren\gamma_{k+1}(0)\bigr),
+\]
+for any chosen metric $d_\Sc$ on $\Sc$. Continuity is $\delta_\Sc=0$, which implies $\delta_\Img=0$. Matching is $\delta_\Img$ small with $\delta_\Sc$ not small. Because $\Ren$ is continuous, small $\delta_\Sc$ forces small $\delta_\Img$ locally, but the converse fails, and its failure is exactly what a match cut exploits.
+
+\begin{proposition}\label{prop:seam-lipschitz}
+If $\Ren$ is $L$-Lipschitz with respect to $d_\Sc$ and $d_\Img$, then $\delta_\Img\le L\,\delta_\Sc$ at every seam.
+\end{proposition}
+
+\begin{proof}
+Immediate from the definition of the Lipschitz condition applied to the two endpoints.
+\end{proof}
+
+The proposition says that a viewer cannot see a cut whose scenario jump is small, which is the principle behind continuity editing. The interesting direction, and the one that makes cinema possible, is the converse failure: a cut with large $\delta_\Sc$ and small $\delta_\Img$ is invisible to the eye and nonetheless transports the story to a different world state.
+
+\section{A perceptual geometry}
+
+To speak of natural camera motion, a metric on $\Sc$ is needed that measures how different two nearby scenarios look to a viewer, not how different they are as physical configurations. Information geometry supplies one~\cite{amari2016}.
+
+Let $X$ be a finite set of screen regions, and suppose each scenario $s$ induces a probability distribution $p(\cdot\mid s)$ on $X$ describing where a viewer's attention falls, with $s\mapsto p(\cdot\mid s)$ smooth and strictly positive. The \emph{Fisher--Rao pullback metric} is
+\[
+g_s(u,v)=\sum_{x\in X}p(x\mid s)\,\bigl(\partial_u\log p(x\mid s)\bigr)\bigl(\partial_v\log p(x\mid s)\bigr),\qquad u,v\in T_s\Sc.
+\]
+It is positive semidefinite everywhere, and positive definite exactly where the map $s\mapsto p(\cdot\mid s)$ is an immersion. Directions in which attention does not change are null directions of $g$, and these are the scenario changes that a viewer does not perceive as change.
+
+Given $g$, and a smooth function $U:\Sc\times[0,T]\to\R$ representing a narrative cost, one defines the action of a shot by
+\[
+\mathcal{E}(\gamma)=\int_0^{\tau}\Bigl(\tfrac12\,g_{\gamma(t)}(\gamma'(t),\gamma'(t))+U(\gamma(t),t)\Bigr)\,dt.
+\]
+The first term charges for perceptual speed, and the second for passing through states that are narratively unwarranted at time $t$.
+
+\begin{proposition}[Equation of natural motion]\label{prop:EL}
+Suppose $g$ is positive definite, so that $(\Sc,g)$ is a Riemannian manifold. A shot $\gamma$ of class $C^2$ (we restrict to this class, although shots are only piecewise $C^1$) is a critical point of $\mathcal{E}$ among shots with the same endpoints and duration if and only if
+\[
+\nabla_{\gamma'}\gamma'=\operatorname{grad}_g U(\cdot,t)\big|_{\gamma(t)},
+\]
+where $\nabla$ is the Levi-Civita connection of $g$. In particular, if $U\equiv0$, critical points are exactly the geodesics of $g$ parametrized with constant speed.
+\end{proposition}
+
+\begin{proof}
+Let $\gamma_\epsilon$ be a smooth variation with variation field $\xi$ vanishing at $t=0$ and $t=\tau$. Differentiating $\mathcal{E}(\gamma_\epsilon)$ at $\epsilon=0$ and using metric compatibility of $\nabla$ gives
+\[
+\frac{d}{d\epsilon}\Big|_0\mathcal{E}(\gamma_\epsilon)=\int_0^\tau\Bigl(g(\gamma',\nabla_t\xi)+dU(\xi)\Bigr)dt.
+\]
+Integrating the first term by parts and using $\xi(0)=\xi(\tau)=0$ yields
+\[
+\int_0^\tau g\bigl(-\nabla_{\gamma'}\gamma'+\operatorname{grad}U,\ \xi\bigr)\,dt.
+\]
+This vanishes for every $\xi$ if and only if the integrand's first slot vanishes identically, by the fundamental lemma of the calculus of variations. For $U\equiv0$ the equation is the geodesic equation, and geodesics have constant speed.
+\end{proof}
+
+The sign in the equation deserves a remark. A critical shot accelerates toward regions of higher narrative cost, which is to say that it hurries through them, since time spent there is charged at the higher rate. Lingering is reserved for narratively warranted regions.
+
+\begin{principle}[Geodesic principle of cinematic naturalness]\label{pr:geodesic}
+Camera movements that viewers experience as natural are, to good approximation, critical points of an action of the form $\mathcal{E}$ for a perceptual metric $g$ of Fisher--Rao type and a narrative cost $U$.
+\end{principle}
+
+This is a hypothesis about perception and craft, not a theorem. It would be undermined by evidence that the camera paths experienced as natural systematically fail to satisfy the equation of \Cref{prop:EL} for any metric in the family, or that viewers' judgments of naturalness are insensitive to deviations from critical paths. The proposition is nonetheless useful as a specification: it tells a generative system what family of paths to prefer, and it makes the hypothesis operational.
+
+\section{Bridge: four coordinates of one scene}
+
+Return to the forged-letter scene of Section~\ref{sec:scene}. A watcher of the scene tracks at least four different things that a single point of the scenario space does not separate. \emph{Physical activity} $m(t)$ is the speed of the scenario path in a chosen metric: it is large when $A$ enters and when $B$ leaves, and near zero through the pause. \emph{Character knowledge} $k(t)$ is the set of facts each character holds: it changes once, at $t=58$, when $B$ learns that the letter is forged. \emph{Audience discovery} $d(t)$ is the set of facts the audience has been given, which in the baseline version also changes at $t=58$, since nothing earlier settles that $A$ knows. \emph{Sensory intensity} $i(t)$ is the non-dialogue sound level, which rises at the street noise, the door slam, and the music.
+
+These four processes are independent in the following sense: any one of them can be made to change while the others are held fixed. The door slam raises $i$ while $k$ and $d$ stay constant, and the reveal changes $k$ and $d$ while $m$ is small. Consider two edits of the same footage that share dialogue and timing. The first has fourteen cuts in ninety-six seconds, a rate of about $0.146$ cuts per second. The second has four cuts, a rate of about $0.042$ cuts per second, which is lower by a factor of $3.5$. Both place the question at $t=38$ and the reveal at $t=58$, so each contains the same two events that change the semantic state of the story. The cut rate is a descriptor of the visual channel and says nothing about narrative progress, which is the same in both. Pacing is accordingly better described as the vector of processes $(m,k,d,i)$ together with the cut process than as a single speed. Chapter~\ref{ch:equivalence} asks how far each coordinate can be altered before a viewer notices.
+
+\section*{Exercises}
+
+\begin{exercise}
+Let $\Sc=\R^2$ with $g$ the Euclidean metric and $U(x,y,t)=\kappa\,e^{-(x^2+y^2)}$ for $\kappa>0$. Write the equation of \Cref{prop:EL} explicitly and describe qualitatively the solutions with endpoints on opposite sides of the origin.
+\end{exercise}
+
+\begin{exercise}
+Show that if $\Ren$ factors through a quotient $\Sc\to\Sc/G$ by a group action, then every $G$-orbit consists of scenarios that are indistinguishable in $\Img$. Give a filmic example with $G\cong\Z/2$.
+\end{exercise}
+
+\begin{exercise}
+In \Cref{prop:EL}, replace the narrative cost by one that depends on velocity, $U(s,v,t)$. State the resulting Euler--Lagrange equation. Why might a velocity-dependent cost be natural for modeling the preference for smooth pans over jerky ones?
+\end{exercise}

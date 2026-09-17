@@ -1,0 +1,145 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,booktabs,array,enumitem,hyperref}
+\newtheorem{proposition}{Proposition}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+\newcommand{\Wrec}{\Delta\eta}
+\newcommand{\E}{\mathbb{E}}
+\title{Corrections to the Washout Bound in \emph{Axial Holonomy and Visibility-Weighted Coherence} (draft 03)}
+\author{Audit note prepared for Flyxion}
+\date{9 October 2026}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note re-derives the washout inequality of draft 03 with every stochastic quantity defined, sets each corrected statement beside the original, and records which results were checked analytically, which numerically, and which remain open. Four statements in the draft change: the small-amplitude expansion of the Bessel product, the asymptotic scaling of the phase variance, the definition of the correlated field in the Ising section, and the amplitude of the layer-averaged order parameter. The boxed bound survives with a modified prefactor and an explicit validity condition. The Ising section and the XY section are shown to describe different stochastic objects, and the claim that large correlation length is the coherent regime holds only for the XY form. The note does not assess the observational inputs or the physical interpretation.
+\end{abstract}
+
+\section{Definitions}
+
+Let $\theta(\eta)$ be a stationary Gaussian field with mean $\bar\theta$, variance $\sigma^2$ and correlation $\rho(\Delta)=e^{-|\Delta|/\xi}$. Let $W(\eta)$ be a normalized Gaussian visibility kernel whose standard deviation is $\Wrec$. This choice of $\Wrec$ matters: the prefactors below change for a kernel with a different shape or with $\Wrec$ defined as a full width. In the XY form the accumulated rotation from emission time $\eta$ is $\beta(\eta)=\kappa_0[\theta(\eta_{\rm obs})-\theta(\eta)]$. The observable is
+\[
+|\mathcal W|=\Big|\int d\eta\,W(\eta)\,e^{2i\beta(\eta)}\Big|=\Big|\int d\eta\,W(\eta)\,e^{-2i\kappa_0\theta(\eta)}\Big|,
+\]
+because the observer-end term is a phase common to all $\eta$. Write $\theta_W=\int W\theta$ for the kernel average and $V_W=\int W(\theta-\theta_W)^2$ for the realized variance of $\theta$ inside the kernel. Two different objects are in play. The variance of the kernel average is $\operatorname{Var}(\theta_W)=\sigma^2\iint W\rho W$, which rises with $\xi$. The expected within-kernel variance is
+\[
+\E[V_W]=\sigma^2 S(\xi/\Wrec),\qquad S=1-\iint W(\eta)W(\eta')\,\rho(\eta-\eta')\,d\eta\,d\eta',
+\]
+which falls with $\xi$. Washout is controlled by the second object.
+
+\section{Statements compared with the draft}
+
+\begin{table}[h]
+\centering\small
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{p{3.0cm}p{5.6cm}p{6.2cm}}
+\toprule
+Item & Draft 03 & Corrected \\
+\midrule
+Bessel expansion & $|\mathcal W|\approx 1-2\sum_k A_k^2$ & $\prod_k J_0(2A_k)=1-\sum_k A_k^2+O(A^4)$, since $J_0(2A)=1-A^2+A^4/4-\dots$. The draft's own plotted values and its Gaussian formula $\exp(-A^2)$ agree with this. \\
+Phase variance & $\sim\Wrec/\xi$ for $\xi\ll\Wrec$; constant for $\xi\gg\Wrec$ & $\sigma^2 S$ with $S\to1$ for $\xi\ll\Wrec$ and $S\simeq(2/\sqrt\pi)\,\Wrec/\xi$ for $\xi\gg\Wrec$. The draft's integral $\iint W\rho W$ goes to $0$ at small $\xi$ and to $1$ at large $\xi$, so it is the complement of $S$. \\
+Coherence bound & $\xi\gtrsim 2\kappa_0^2\Wrec/\epsilon$ & $\xi/\Wrec\gtrsim(4/\sqrt\pi)\,\kappa_0^2\sigma^2/\epsilon$, valid only if $\kappa_0^2\sigma^2\gg\epsilon\sqrt\pi/4$. If $2\kappa_0^2\sigma^2\le\epsilon$ there is no constraint on $\xi$. \\
+Ising correlator & $m=\E[\sigma_x]$, $C=\E[mm']-\E[m]^2$ & With $m$ an ensemble mean, $C\equiv0$. Define $\bar\sigma(\eta)$ as the realized layer average and use its covariance. \\
+Layer-average amplitude & (implicit $O(1)$ amplitude) & $\operatorname{Var}(\bar\sigma)=L_4^{-2}\sum_{ij}\operatorname{Cov}(\sigma_i,\sigma_j)\approx(1-m^2)\min(1,2\xi_4/L_4)$ for exponential layer correlations. It is $1/L_4$ only for independent layers. \\
+Role of large $\xi$ in the Ising section & coherent regime, as in the XY section & For $\kappa_A=\kappa_0 m$ the correlated field is the rotation rate, and washout grows with $\xi$ (Section 5). \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Derivation of the corrected bound}
+
+Expanding $e^{-2i\kappa_0\theta}$ about the kernel average and keeping second order gives
+\[
+|\mathcal W|\simeq 1-2\kappa_0^2V_W,
+\qquad
+\E|\mathcal W|\simeq1-2\kappa_0^2\sigma^2S(\xi/\Wrec).
+\]
+The draft's Gaussian expression $\exp(-2\kappa_0^2\mathrm{Var}_W)$ is this result with $\mathrm{Var}_W$ read as $\sigma^2S$; beyond second order the exponential form is not exact for a Gaussian field and should not be used for larger washout.
+
+For $\xi\gg\Wrec$ the correlation is $\rho\simeq1-|\Delta|/\xi$, so $S\simeq\E|\eta-\eta'|/\xi$. The difference of two independent kernel draws has standard deviation $\sqrt2\,\Wrec$, hence $\E|\eta-\eta'|=2\Wrec/\sqrt\pi$ and $S\simeq(2/\sqrt\pi)\,\Wrec/\xi$. Numerically, for $\xi/\Wrec=100$ the exact double integral gives $S=0.0112$ against the asymptotic $0.01128$.
+
+\begin{proposition}
+Let $\Sigma^2=\kappa_0^2\sigma^2$ be the variance of the rotation angle carried by the field. If $|\mathcal W|\ge1-\epsilon$ and $\xi\gg\Wrec$, then
+\[
+\frac{\xi}{\Wrec}\;\gtrsim\;\frac{4}{\sqrt\pi}\,\frac{\Sigma^2}{\epsilon}.
+\]
+The assumption $\xi\gg\Wrec$ is self-consistent only when $\Sigma^2\gg\epsilon\sqrt\pi/4$. When $2\Sigma^2\le\epsilon$ the constraint is vacuous, because $S\le1$ for every $\xi$.
+\end{proposition}
+
+The parameters $\kappa_0$ and $\sigma$ enter only through $\Sigma^2$, so the reviewer's concern about an unaccounted amplitude is resolved by naming $\Sigma$ as the single free parameter of the bound. Its value is not fixed anywhere in the draft, so the bound still predicts no number.
+
+\section{Layer-averaged amplitude}
+
+For the realized layer average over $L_4$ layers the variance is $L_4^{-2}\sum_{ij}\operatorname{Cov}(\sigma_i,\sigma_j)$. Taking $\operatorname{Cov}\propto e^{-|i-j|/\xi_4}$ with $L_4=50$ gives the following ratios to the single-spin variance (a pure exponential, not critical Ising statistics).
+
+\begin{table}[h]
+\centering\small
+\begin{tabular}{rcc}
+\toprule
+$\xi_4$ & $\operatorname{Var}(\bar\sigma)/\operatorname{Var}(\sigma)$ & $1/L_4$ \\
+\midrule
+0.5 & 0.026 & 0.020 \\
+2 & 0.079 & 0.020 \\
+10 & 0.32 & 0.020 \\
+50 & 0.74 & 0.020 \\
+500 & 0.97 & 0.020 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Near criticality the amplitude of the fluctuating part of the layer average therefore rises toward the single-spin variance as $\xi_4$ approaches $L_4$. This feeds directly into $\sigma^2$ in the bound, so a model that raises $\xi$ to satisfy the bound also raises $\sigma$, and the net effect has to be computed from the critical statistics of the model, which this note does not do.
+
+\section{The one-dimensional transfer matrix}
+
+The appendix quotes $\xi_4=-1/\ln\tanh(J_4/k_BT)$, which is exact for a one-dimensional Ising chain. That chain has no finite critical temperature, so it cannot supply $T_c(J_4)$ or a critical exponent $\nu=1/2$. A one-dimensional expression can still approximate correlations along one axis of a higher-dimensional lattice, but then the correlation length is governed by the five-dimensional model and must be derived from it, not inherited from the chain. In five dimensions the Ising model lies above its upper critical dimension, mean-field exponents apply, and the $\epsilon=4-d$ expansion used in the renormalization-group appendix has $\epsilon=-1$. The beta functions in that appendix were not re-derived here and should be treated as unverified.
+
+\section{The Ising and XY sections describe different fields}
+
+In the XY section the correlated field is the phase $\theta$ and $\beta=\kappa_0\Delta\theta$. In the Ising section $\kappa_A=\kappa_0 m$ is the correlated field and $\beta(\eta)=\kappa_0\int m\,d\eta$. The two give opposite dependence on $\xi$. I simulated a zero-mean Gaussian field with $\kappa_0\sigma=0.05$ on the same Gaussian kernel and computed the mean of $1-|\mathcal W|$ over 300 draws per row.
+
+\begin{table}[h]
+\centering\small
+\begin{tabular}{rcc}
+\toprule
+$\xi/\Wrec$ & Ising form ($\kappa_A$ correlated) & XY form ($\theta$ correlated) \\
+\midrule
+0.03 & 0.00017 & 0.00488 \\
+0.1 & 0.00053 & 0.00468 \\
+0.3 & 0.00135 & 0.00423 \\
+1 & 0.00289 & 0.00295 \\
+3 & 0.00426 & 0.00150 \\
+10 & 0.00429 & 0.00051 \\
+100 & 0.00446 & 0.00006 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+In the Ising form rapid fluctuations of $m$ average out across the kernel, while a long-correlated offset in $m$ tilts the accumulated phase across the whole kernel, so washout rises and saturates with $\xi$. The statement of the Coherence Theorem, that $\xi\gg\Wrec$ is the coherent regime, holds for the XY form only. The draft introduces the XY model as a continuation of the Ising model, but the two are not related by that statement. Repairing this requires one of two moves: define the Ising spin field as the phase itself, or derive the XY phase field from the Ising degrees of freedom. Neither is done here, and the second is a physical-interpretation question that the corrected inequality does not settle.
+
+\section{Status of each result}
+
+\begin{table}[h]
+\centering\small
+\begin{tabular}{p{6.2cm}p{7.6cm}}
+\toprule
+Result & Status \\
+\midrule
+Bessel coefficient & Analytic, confirmed numerically with scipy. \\
+Within-kernel versus kernel-average variance & Analytic, confirmed by a numerical double integral and a Monte Carlo. \\
+Prefactor $4/\sqrt\pi$ and validity condition & Analytic for a Gaussian kernel; prefactor changes with kernel shape. \\
+Layer-average scaling & Analytic for exponential layer correlations; not checked against critical Ising statistics. \\
+Ising versus XY dependence on $\xi$ & Numerical, Gaussian toy only, one value of $\kappa_0\sigma$. \\
+Transfer-matrix and RG appendices & Flagged; beta functions not re-derived. \\
+Observational inputs ($\epsilon=0.0058$, $\beta\approx0.3^\circ$) & Not examined. \\
+Discriminant predictions & Not examined beyond noting they carry no amplitude. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{remark}
+The corrected inequality is a statement about a Gaussian phase field with a given correlation length and amplitude. It does not show that the five-dimensional Ising mechanism generates such a field, and it does not distinguish the model from a homogeneous pseudoscalar with a bounded gradient across last scattering, to which it appears to reduce. That reduction is stated as an apparent equivalence and has not been checked against the literature.
+\end{remark}
+
+\end{document}
+

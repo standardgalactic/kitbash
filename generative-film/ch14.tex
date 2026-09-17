@@ -1,0 +1,190 @@
+\chapter{Perceptual Equivalence and Effective Dimension}
+\label{ch:equivalence}
+
+A film has many adjustable features: durations, levels, color, timing of disclosures, positions of reaction shots. A viewer distinguishes far fewer variations than a production can make. Two questions follow. When may two versions be treated as the same experience? And how many independently meaningful variations does a scene sustain? Both are easily asked loosely and easily answered wrongly. This chapter states them precisely, proves what the formalism does and does not permit, and marks where evidence about viewers must replace mathematics.
+
+\section{Versions, tasks, and dissimilarity}
+
+A \emph{version} is a film together with the presentation conditions relevant to a comparison: the soundtrack as mixed, the playback environment, the subtitles shown. Let $\mathcal{V}$ be a set of versions. Perceptual comparison is conditioned on a \emph{situation} $\theta$ that bundles a viewer or population, a task such as following the plot or judging tension, and a context. For each $\theta$, suppose an operational procedure yields a \emph{dissimilarity} $d_\theta:\mathcal{V}\times\mathcal{V}\to[0,\infty)$, for instance a calibrated detection rate in a discrimination experiment. Everything in this chapter is relative to a fixed $\theta$, and the subscript is dropped.
+
+Three response variables must not be conflated: whether a change is \emph{detected}, whether it changes \emph{comprehension}, and whether it changes \emph{aesthetic or affective response}. Each defines its own $d$. A version pair can be indistinguishable for detection and yet differ in comprehension, as when a deleted line is never noticed but removes the explanation of a later event.
+
+\begin{definition}[Pseudometric dissimilarity]
+The function $d$ is a \emph{pseudometric} if $d(x,x)=0$, $d(x,y)=d(y,x)$, and $d(x,z)\le d(x,y)+d(y,z)$ for all versions. It is a \emph{metric} if additionally $d(x,y)=0$ implies $x=y$.
+\end{definition}
+
+Whether empirical dissimilarities satisfy the triangle inequality is itself an empirical matter. The results below that rely on it are therefore conditional, and the text says so where it matters.
+
+\section{Exact equivalence and the quotient}
+
+\begin{proposition}[Quotient by zero dissimilarity]\label{prop:quotient}
+If $d$ is a pseudometric on $\mathcal{V}$, then the relation $x\approx_0y\iff d(x,y)=0$ is an equivalence relation, and $d$ descends to a well-defined metric on the quotient $\mathcal{V}/{\approx_0}$.
+\end{proposition}
+
+\begin{proof}
+Reflexivity and symmetry follow from $d(x,x)=0$ and symmetry of $d$. For transitivity, if $d(x,y)=d(y,z)=0$ then $0\le d(x,z)\le d(x,y)+d(y,z)=0$. To see that $d$ descends, suppose $x\approx_0x'$ and $y\approx_0y'$. Then $d(x,y)\le d(x,x')+d(x',y')+d(y',y)=d(x',y')$, and symmetrically $d(x',y')\le d(x,y)$, so the value depends only on classes. The descended function satisfies the metric axioms, and distinct classes have positive distance by construction.
+\end{proof}
+
+This is the only sense in which one may speak of a \emph{perceptual equivalence class}: versions at dissimilarity exactly zero, under a pseudometric. Real viewers never produce exact zero. What they produce are thresholded judgments, treated next.
+
+\section{Thresholded similarity is not transitive}
+
+For $\varepsilon>0$ define $x\approx_\varepsilon y$ iff $d(x,y)\le\varepsilon$, read as \emph{indistinguishable at tolerance $\varepsilon$}.
+
+\begin{proposition}[Failure of transitivity]\label{prop:nontransitive}
+For every $\varepsilon>0$ the relation $\approx_\varepsilon$ is reflexive and symmetric. It need not be transitive, even when $d$ is a metric. If $x_0\approx_\varepsilon x_1\approx_\varepsilon\cdots\approx_\varepsilon x_n$ and $d$ is a pseudometric, then
+\[
+d(x_0,x_n)\le n\varepsilon,
+\]
+and the bound is attained for some pseudometric spaces.
+\end{proposition}
+
+\begin{proof}
+Reflexivity and symmetry are inherited from $d$. For non-transitivity take $\mathcal{V}=\R$ with $d(x,y)=\lvert x-y\rvert$ and the points $0$, $\varepsilon$, $2\varepsilon$: then $0\approx_\varepsilon\varepsilon$ and $\varepsilon\approx_\varepsilon2\varepsilon$, but $d(0,2\varepsilon)=2\varepsilon>\varepsilon$. The chain bound follows by induction on $n$ from the triangle inequality: $d(x_0,x_n)\le d(x_0,x_{n-1})+d(x_{n-1},x_n)\le(n-1)\varepsilon+\varepsilon$. In $\R$ the points $x_k=k\varepsilon$ show that equality $d(x_0,x_n)=n\varepsilon$ occurs.
+\end{proof}
+
+The phenomenon is old in the psychology of discrimination: sequences of stimuli each indistinguishable from the next may connect visibly different endpoints, and the appropriate order structure for such judgments is that of a semiorder rather than an equivalence relation~\cite{luce1956}. The consequence for editing is practical.
+
+\begin{corollary}[Accumulated drift]\label{cor:drift}
+Let $T_1,\dots,T_n$ be transformations each satisfying $d(x,T_k(x))\le\varepsilon$ for all $x$ in its domain. Then $d(x,T_n\circ\cdots\circ T_1(x))\le n\varepsilon$ for a pseudometric $d$. To guarantee a final drift of at most $\delta$ after $n$ steps by this argument alone, each step must satisfy $\varepsilon\le\delta/n$.
+\end{corollary}
+
+\begin{proof}
+Apply \Cref{prop:nontransitive} to the chain $x,\,T_1x,\,T_2T_1x,\dots$, each consecutive pair being within $\varepsilon$ by hypothesis.
+\end{proof}
+
+The corollary explains a recurring failure of iterated processing: a pipeline of steps each judged imperceptible can produce a result that is not. It also states what validation must do. Imperceptibility of each step does not certify the composite, and the composite must be compared with the original directly. If the triangle inequality fails for the empirical $d$, the bound itself may fail, and direct comparison is then the only safe course.
+
+\section{Effective degrees of freedom}
+
+Suppose a scene is controlled by $p$ real parameters $\theta_1,\dots,\theta_p$ forming an open set $\Theta\subseteq\R^p$: cut times, gains, durations, gesture timings. Suppose a differentiable \emph{response model} $r:\Theta\to\R^q$ maps parameters to a vector of response measures, such as predicted comprehension scores or ratings of tension, and that perceptual dissimilarity between parameter settings is $d(\theta,\theta')=\lVert r(\theta)-r(\theta')\rVert_W$, where $\lVert z\rVert_W=(z^{\top}Wz)^{1/2}$ for a fixed symmetric positive definite weight matrix $W$ (the Euclidean norm when $W=I$). Perturbation sizes in parameter space are measured in the Euclidean norm. The weights encode the relative importance of the response measures, and replacing $J$ by $W^{1/2}J$ reduces the weighted case to the Euclidean one, so below $J$ denotes the weighted sensitivity matrix $W^{1/2}Dr(\theta)$ when $W\neq I$. Such a model is a hypothesis to be fit and tested, not something the mathematics supplies.
+
+The \emph{sensitivity matrix} at $\theta$ is the Jacobian $J=Dr(\theta)\in\R^{q\times p}$, weighted as just described. Its rank counts the locally independent directions in which parameters change the response.
+
+\begin{proposition}[Redundant controls]\label{prop:redundant}
+If $J=Dr(\theta)$ has rank $k$ and the rank of $Dr$ is constant, equal to $k$, on a neighborhood of $\theta$, then there is a neighborhood of $\theta$ in which the level set of $r$ through each point is an embedded submanifold of dimension $p-k$. In particular, there are $p-k$ independent directions of parameter change that leave the modeled response unchanged.
+\end{proposition}
+
+\begin{proof}
+This is the constant rank theorem~\cite{lee2013}: if $Dr$ has constant rank $k$ near $\theta$, there are local coordinates in which $r$ takes the form $(x_1,\dots,x_p)\mapsto(x_1,\dots,x_k,0,\dots,0)$. The fibers are then the coordinate planes of dimension $p-k$.
+\end{proof}
+
+Exact invariance is an idealization. A viewer who detects response changes only above a tolerance $\varepsilon$ treats directions of small sensitivity as redundant as well. Let $\sigma_1\ge\cdots\ge\sigma_{\min(p,q)}$ be the singular values of $J$ and let $v_i$ be unit right singular vectors.
+
+\begin{proposition}[First-order effective dimension]\label{prop:effdim}
+With the Euclidean norm on parameters and the (weighted) Euclidean norm on responses, a parameter perturbation $\rho v_i$ of size $\rho>0$ changes the modeled response by $\sigma_i\rho$ to first order, that is, $r(\theta+\rho v_i)-r(\theta)=\rho Jv_i+o(\rho)$ with $\lVert Jv_i\rVert=\sigma_i$. Hence the number of singular directions in which a perturbation budget $\rho$ produces a first-order change exceeding tolerance $\varepsilon$ is
+\[
+d_{\mathrm{eff}}(\theta;\varepsilon,\rho)=\#\{i:\ \sigma_i>\varepsilon/\rho\}.
+\]
+\end{proposition}
+
+\begin{proof}
+Differentiability gives the first-order expansion. By the definition of the singular value decomposition $Jv_i=\sigma_iu_i$ with $u_i$ a unit vector in the Euclidean norm, so $\lVert Jv_i\rVert_2=\sigma_i$. The argument uses that the norms are induced by inner products, which is why an arbitrary norm is not permitted. The first-order change in direction $v_i$ exceeds $\varepsilon$ exactly when $\sigma_i\rho>\varepsilon$.
+\end{proof}
+
+The quantity $d_{\mathrm{eff}}$ is not a property of the film. It depends on the model $r$, the base point $\theta$, the tolerance $\varepsilon$ that encodes a viewer and task, and the budget $\rho$ that encodes how much one is willing to vary. It never exceeds $\min(p,q)$, and it generally decreases as $\varepsilon$ grows or $\rho$ shrinks. The proposition therefore gives a precise form to the question of how many parameters can be varied before a difference is noticed, without asserting that cinema has a single intrinsic dimension. The first-order character matters: when several parameters change at once by large amounts, the linearization may fail, and the interaction of changes must be examined by experiment.
+
+\begin{principle}[Conditional dimension]\label{pr:conditional}
+The number of perceptually independent variations a scene sustains is a conditional quantity, indexed by scene, viewer population, task, tolerance, and perturbation budget. Claims of a universal number are unsupported, and estimates should be reported with all five conditions.
+\end{principle}
+
+Its status is methodological: it constrains what may be claimed, and it would be contradicted by a demonstration that the conditional estimates were stable across scenes and populations to a degree that justified a single figure.
+
+\section{Worked perturbations in the forged-letter scene}\label{sec:perturb}
+
+The apparatus of the previous section is abstract until a model is written down. This section writes down a deliberately simple one for the forged-letter scene of Section~\ref{sec:scene}, computes every quantity of the preceding propositions, and then shows where the first-order analysis fails. The response model is \emph{stipulated}. Its functional forms are chosen for transparency, not fitted to viewers, and none of the numbers below is a measurement. What the section demonstrates is the method: which units appear, what a singular value means in those units, how the tolerance enters, and what the local analysis can and cannot say.
+
+\paragraph{Parameters and units.} Four controls are varied, with base values taken from the baseline edit.
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+symbol & control & unit & base value\\
+\midrule
+$p_1$ & length of the pause before $B$'s question (cut timing) & s & $7$\\
+$p_2$ & delay of music onset after the door slam & s & $2$\\
+$p_3$ & music level relative to the reference & dB & $-2$\\
+$p_4$ & duration of $B$'s reaction shot (gesture duration) & s & $4$\\
+\bottomrule
+\end{tabular}
+\end{center}
+The disclosure order, namely whether the audience learns that $A$ knows before or after $B$'s question, is a fifth control and is discrete. It has no derivative and is treated separately below.
+
+\paragraph{Response model.} Three response measures are modeled, each scaled to $[0,1]$: anticipation $q_1$ (how strongly the pause builds expectation of the question), fit of the music $q_2$, and salience of the reaction $q_3$. We stipulate
+\[
+q_1=\tanh\!\Bigl(\frac{p_1+\tfrac12p_4}{6}\Bigr),\qquad
+q_2=\frac{1}{1+e^{-(p_3+5)/4}}\;e^{-(p_2-2)^2/18},\qquad
+q_3=1-e^{-p_4/2}.
+\]
+All three measures are dimensionless and lie in $[0,1]$, so we take $W=I$, and tolerances $\varepsilon$ are in the same units. At the base point $\theta_0=(7,2,-2,4)$ the responses are $r(\theta_0)=(0.9051,\,0.6792,\,0.8647)$. The Jacobian $J=Dr(\theta_0)$, with columns ordered $p_1,\dots,p_4$, is
+\[
+J=\begin{pmatrix}
+0.0301 & 0 & 0 & 0.0151\\
+0 & 0 & 0.0545 & 0\\
+0 & 0 & 0 & 0.0677
+\end{pmatrix},
+\]
+with entries in response units per second for $p_1,p_2,p_4$ and per decibel for $p_3$. The entries are not comparable as they stand, because a second and a decibel are not commensurable. The remedy is to state a perturbation budget in the units of each control.
+
+\paragraph{A budget with units.} Let $D=\operatorname{diag}(1\,\mathrm{s},\,1\,\mathrm{s},\,2\,\mathrm{dB},\,1\,\mathrm{s})$. The budget is the set of perturbations $\theta_0+\rho Du$ with $\lVert u\rVert\le1$ and $\rho=1$: an editor is willing to move the timing controls by about a second and the level by about two decibels. In the variable $u$ the sensitivity matrix is $JD$, and \Cref{prop:effdim} applies to the matrix $JD$ (in place of $J$) with the Euclidean norm on $u$, and the budget is $\rho=1$. The singular values of $JD$ are
+\[
+\sigma_1=0.1089,\qquad\sigma_2=0.0697,\qquad\sigma_3=0.0292 .
+\]
+\Cref{prop:effdim} then gives $d_{\mathrm{eff}}=\#\{i:\sigma_i>\varepsilon/\rho\}$. For a viewer tolerance $\varepsilon=0.05$ it gives $d_{\mathrm{eff}}=2$, and for the stricter $\varepsilon=0.02$ it gives $d_{\mathrm{eff}}=3$. Four controls therefore support two perceptually independent variations for the coarser viewer and three for the finer one, in this model, for this budget. This is the content of \Cref{pr:conditional} in a single example: the number depends on the tolerance, and it would change with a different budget $D$.
+
+Two structural features are visible. The matrix $J$ has rank $3$ with a nontrivial kernel, and $p_1$ and $p_4$ act through a common response $q_1$, so a change in the pause can be partly offset by an opposite change in the reaction duration. Indeed $\partial q_1/\partial p_1=0.0301$ and $\partial q_1/\partial p_4=0.0151$, so lengthening $p_4$ by $1$ s and shortening $p_1$ by $0.5$ s leaves $q_1$ unchanged to first order, although $q_3$ changes. The column for $p_2$ is zero because the music onset delay is at its modeled optimum, where the response is quadratic and its derivative vanishes.
+
+\paragraph{Where the first-order analysis fails.} The zero column suggests that the onset delay is irrelevant. It is not. Shifting $p_2$ by $1.5$ s changes $q_2$ by $-0.0798$, and by $3$ s by $-0.2672$, both beyond $\varepsilon=0.05$, although the first-order prediction is exactly zero. The general statement is a bound on the remainder.
+
+\begin{proposition}[Validity of the first-order prediction]\label{prop:taylor}
+Let $r$ be $C^2$ on an open set containing the segment from $\theta$ to $\theta+h$. Let $M_h$ be an upper bound for $\lVert D^2r(\xi)[h,h]\rVert/\lVert h\rVert^2$ over $\xi$ on the segment. Then
+\[
+\bigl\lVert r(\theta+h)-r(\theta)-Dr(\theta)h\bigr\rVert\le\tfrac12M_h\lVert h\rVert^2 .
+\]
+Consequently, if $\lVert Dr(\theta)h\rVert>\varepsilon+\tfrac12M_h\lVert h\rVert^2$ the change exceeds $\varepsilon$, and if $\lVert Dr(\theta)h\rVert<\varepsilon-\tfrac12M_h\lVert h\rVert^2$ it does not. Between these values the first-order estimate does not decide.
+\end{proposition}
+
+\begin{proof}
+Put $\phi(s)=r(\theta+sh)$. By Taylor's theorem with integral remainder, $\phi(1)-\phi(0)-\phi'(0)=\int_0^1(1-s)\,\phi''(s)\,ds$, and $\phi''(s)=D^2r(\theta+sh)[h,h]$. Taking norms, the integrand is at most $(1-s)M_h\lVert h\rVert^2$, and $\int_0^1(1-s)\,ds=\tfrac12$.
+\end{proof}
+
+The bound depends on the direction $h$ and on the segment, not on a global bound for the whole map, which is what the worked perturbations need. For a shift of $p_2$ the segment lies in the line $\theta_0+te_2$, along which $q_2$ is the only response that varies, with $\phi''=\partial^2q_2/\partial p_2^2$. Its absolute value is at most $M_h=0.0755$ on $p_2\in[0,3]$, the maximum being attained at the base point (verified numerically in the accompanying script).
+
+With $M_h=0.0755$ along this line, the first-order prediction is decisive only when $\tfrac12M_h\lVert h\rVert^2$ is small compared with $\varepsilon$, which means $\lVert h\rVert\ll\sqrt{2\varepsilon/M_h}=1.15$ s. At $h=1.5$ s the remainder bound is $0.085$, which contains the observed change $0.080$; at $h=3$ s the bound $0.340$ contains the observed $0.267$. For the pause the same bound along the $p_1$ line is $0.162$ at $h=-4$ s against an actual remainder of $0.102$, so the bound is valid but not sharp. The practical rule is that a sensitivity analysis is reported together with the radius within which it was checked.
+
+\paragraph{Asymmetry of cut timing.} The linearization also misses asymmetry. For the pause, $\partial q_1/\partial p_1=0.0301$ per second predicts a symmetric tolerance of $\pm0.05/0.0301=\pm1.66$ s. The model itself gives $q_1\ge0.9051-0.05$ only if $p_1\ge5.65$, so the pause may be shortened by $1.35$ s, and $q_1\le0.9051+0.05$ up to $p_1=9.32$, so it may be lengthened by $2.32$ s. A reduction of $4$ s is predicted by the linearization to cost $0.120$ and costs $0.223$ in the model, because $\tanh$ is concave. Saturating responses are typical of perceptual measures, and for such responses the tolerance region is not symmetric about the base point.
+
+\paragraph{Weighted measures.} If $q_1$ is judged to matter twice as much as the others, $W=\operatorname{diag}(4,1,1)$ and $W^{1/2}=\operatorname{diag}(2,1,1)$. The sensitivity matrix becomes $W^{1/2}JD$, whose first row is doubled, and the singular values must be recomputed from that matrix; the unweighted values do not carry over. The weights are a statement about the task and are part of the conditions that \Cref{pr:conditional} requires one to report.
+
+\paragraph{Disclosure order.} Let $t_d$ be the time at which the audience is first given the fact that $A$ knows the letter is forged. If $t_d<38$ the question at $t=38$ is received with the audience already in possession of the fact, and the scene reads as dramatic irony. If $t_d>38$ the audience shares $B$'s ignorance when the question is asked and the scene reads as a mystery resolved at $t_d$. Although $t_d$ is a number, the change in how the question is read is not expected to vary smoothly across $t_d=38$, and a response model fitted on either side will not extrapolate across it. The honest treatment is to partition the parameter space at the discontinuity, compute sensitivity within each piece, and compare the two pieces directly by experiment. No Jacobian is defined at the boundary, and \Cref{prop:effdim} says nothing about it. This is a concrete instance of the earlier remark that the local analysis describes smooth motion within a class of versions and not a change of class.
+
+\paragraph{What an experiment would supply.} To replace the stipulated model one needs, for each control, a set of stimuli at several levels, paired judgments by a viewer population on a stated task, a fitted $r$, and a check of \Cref{prop:taylor} at the radii used. The singular spectrum so obtained is the quantity the conjecture of the next section is about.
+
+\section{Painting and minimal cues}
+
+A traditional observation in the study of pictures is that a small repertoire of cues, such as balance, directional guidance, repeated forms, and selective emphasis, suffices for a work to be seen as composed. The film analogue would be a repertoire of temporal cues: an anticipatory pause, a reaction shot, a delayed disclosure. In the present vocabulary the analogue is the claim that $d_{\mathrm{eff}}$ is small relative to $p$ near typical production settings, because most parameters are either redundant or masked by a few dominant cues. That is an empirical conjecture. It can be tested by estimating the singular spectrum of $J$ from controlled perturbation experiments, and a rapidly decaying spectrum would support it.
+
+\section*{Exercises}
+
+\begin{exercise}
+Let $\mathcal{V}=\{0,1,\dots,N\}$ with $d(x,y)=\lvert x-y\rvert$ and $\varepsilon=1$. For which pairs does $x\approx_1y$ hold? Show that the transitive closure of $\approx_1$ is the full relation, and explain why this illustrates the difficulty of defining equivalence classes from thresholded judgments.
+\end{exercise}
+
+\begin{exercise}
+Suppose the empirical dissimilarity satisfies only a relaxed triangle inequality $d(x,z)\le K\bigl(d(x,y)+d(y,z)\bigr)$ for some $K>1$. Show that $\approx_0$ is still an equivalence relation, and that for $n=2$ the drift bound becomes $d(x_0,x_2)\le2K\varepsilon$.
+\end{exercise}
+
+\begin{exercise}
+Let $r(\theta_1,\theta_2,\theta_3)=(\theta_1+\theta_2,\ \theta_3)$. Compute the rank of $Dr$ and describe the level sets. Interpret $\theta_1$ and $\theta_2$ as two timing parameters that jointly determine one perceived delay.
+\end{exercise}
+
+\begin{exercise}
+Design a controlled perturbation experiment to estimate the singular values of the sensitivity matrix for a two-parameter scene, specifying the response measures, the perturbation sizes, and a rule for deciding when the linearization is unreliable.
+\end{exercise}
+
+\begin{exercise}
+In Section~\ref{sec:perturb}, change the weight matrix to $W=\operatorname{diag}(4,1,1)$ and recompute the singular values of $W^{1/2}JD$. For which tolerances $\varepsilon$ does $d_{\mathrm{eff}}$ change compared with the unweighted case?
+\end{exercise}
+
+\begin{exercise}
+For the response $q_1=\tanh((p_1+\tfrac12p_4)/6)$, find the set of $(p_1,p_4)$ with $q_1\ge0.855$ and compare it with the half-plane predicted by linearization at $(7,4)$. Where do the two differ most?
+\end{exercise}
