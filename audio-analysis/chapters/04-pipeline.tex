@@ -1,0 +1,104 @@
+\chapter{The Analysis Pipeline}
+\label{ch:pipeline}
+
+The quantities of Chapter~\ref{ch:framework} are computed in two stages. The first, \texttt{analyze-soundtrack-v3.1.py}, decodes the film, extracts frame-level features in bounded memory, derives detector scores and events, and writes audition clips. The second, \texttt{occupation.py}, measures BS.1770 loudness in its own decode pass, aligns the film's subtitles, aggregates everything to one-second bins, and computes the dialogue-referenced quantities. Both are listed in Appendix~\ref{app:code}. This chapter describes what they compute and why, and records the parameters that the results depend on.
+
+\section{Design constraints}
+
+A feature film at 48~kHz with six channels is roughly 1.5 billion samples. The first attempt at this analysis computed a short-time Fourier transform of the whole film in memory and was terminated by the operating system. Every later version follows three rules. Decoding and channel manipulation are done by \texttt{ffmpeg}, which streams. Python reads the decoded analysis stems in chunks of sixty seconds and keeps only compact per-frame features. Normalisation statistics are computed only after all chunks have been processed, so that a quiet minute and a loud minute are compared against the same film-wide scale rather than each being treated as its own acoustic universe.
+
+\section{Analysis stems}
+
+Four single-channel stems are produced:
+
+\begin{description}
+\item[Broadband.] A mono downmix of the full mix at 16~kHz.
+\item[Low band.] The same downmix low-pass filtered at 250~Hz, at 8~kHz.
+\item[Centre.] The front centre channel alone, at 16~kHz.
+\item[Non-centre.] An equal-weight mix of the front left and right and the two surround channels, at 16~kHz.
+\end{description}
+
+One property of the downmix matters for interpretation. When a stream is tagged with a 5.1 layout, the default \texttt{ffmpeg} downmix to mono does not include the low-frequency effects channel. This was verified directly: a test file with a 50~Hz tone in the LFE channel alone produced output at $-91$~dB, while the same tone in the centre channel produced output at $-19.7$~dB. Consequently the ``low-frequency'' measures in this study describe bass carried in the main channels, not the LFE channel. Many software players make the same omission when downmixing for stereo output, so the analysed signal may resemble what a listener on a stereo or mono chain actually hears more closely than a full-range measurement would; this is an assumption to be checked against the player used, not a finding.
+
+\section{Frame features}
+
+Features are computed with \texttt{librosa} \citep{mcfee2015} at a hop of 512 samples (32~ms at 16~kHz):
+
+\begin{description}
+\item[Level.] Frame RMS in dBFS.
+\item[Onset strength.] Spectral flux on a mel spectrogram in the log domain, the standard onset detection function \citep{bello2005}.
+\item[Spectral shape.] Centroid, flatness \citep{johnston1988}, and zero-crossing rate.
+\item[Low-band level and onset strength] on the low stem.
+\item[Centre and non-centre level.]
+\end{description}
+
+Onset strength, centroid, flatness, and zero-crossing rate are all nearly independent of absolute level. A click at $-70$~dBFS produces the same log-domain spectral flux as the same click at $-30$~dBFS; the noise floor of a near-silent passage has maximal flatness. This property is the source of the most consequential failure described in Chapter~\ref{ch:failures}.
+
+\section{Audibility weighting}
+
+Version 3.1 multiplies every shape and transient feature by an audibility weight
+\begin{equation}
+w(t) = \operatorname{clip}\!\left(\frac{L(t) - L_{\min}}{L_{\text{full}} - L_{\min}},\ 0,\ 1\right),
+\end{equation}
+with $L_{\min}=-65$ and $L_{\text{full}}=-45$~dBFS by default, and a corresponding weight on the low band with bounds $-70$ and $-50$~dBFS. Robust statistics (median and scaled median absolute deviation, with interquartile and standard-deviation fallbacks when the MAD is degenerate) are computed over audible frames only.
+
+\section{Detectors}
+
+\begin{description}
+\item[Impact.] Peaks of a weighted sum of standardised onset, level, and spectral shape, above the 98.5th percentile and at least 0.75~s apart.
+\item[Low-frequency onset activity.] Four-second moving density of positive standardised low-band onset strength, combined with low-band level; peaks above the 97.5th percentile at least 4~s apart.
+\item[Harshness.] Weighted sum of standardised centroid, flatness, zero-crossing rate, and level; peaks above the 98th percentile at least 3~s apart.
+\item[Barrage.] Five-second moving density of positive standardised onset strength, combined with level and centroid; contiguous regions above the 85th percentile lasting at least 3~s.
+\item[Burden.] A bounded composite of normalised level, onset strength, low-frequency onset density, centroid, flatness, and barrage density, smoothed over half a second. High-load regions are those above its 80th percentile for at least 4~s; relative recovery regions are those below its 25th percentile for at least 5~s.
+\item[Swell.] An event detector described in Chapter~\ref{ch:failures}.
+\end{description}
+
+Every detector threshold except the swell detector is a percentile of the film's own score distribution. The consequences of that choice for interpretation are taken up in Chapter~\ref{ch:failures}. The dialogue-referenced quantities of Chapter~\ref{ch:framework} were introduced to avoid them.
+
+\section{Audition clips}
+
+For each of the swell, low-frequency, impact, harshness, and barrage detectors, the twenty highest-scoring candidates are cut from the source as short stereo MP3 clips, with a playlist per category and an annotation table with blank label and notes columns. Point events are cut from twelve seconds before to eight seconds after; swells from four seconds before the rise to six seconds after it; regions from five seconds before their start. This is the bridge from acoustic proxies to identified sources, and Chapter~\ref{ch:response} describes how it must be modified before its labels can count as evidence.
+
+\section{Loudness}
+
+The level measure of Chapter~\ref{ch:framework} is taken from \texttt{ffmpeg}'s \texttt{ebur128} filter, an implementation of BS.1770 and EBU R\,128, run once over the film's full 5.1 stream. The filter reports momentary loudness (400~ms window) ten times a second; these values are energy-averaged into one-second bins. The same pass yields the film's integrated loudness and its loudness range under EBU Tech~3342, which Chapter~\ref{ch:case} sets beside the occupation measures. Both are cached so that later runs do not decode the film again.
+
+The RMS level of the version~3.1 frame table remains available and is used when the film is not supplied. The two measures differ in weighting, channel treatment, and window, and they are not interchangeable in absolute terms; within one analysis only one is used.
+
+\section{Subtitles}
+
+The film's subtitle file (SubRip format) is parsed into timed cues. Formatting tags are stripped and HTML entities decoded. Cues whose text is entirely descriptive of sound, such as \texttt{[GUNFIRE]}, \texttt{(sighs)}, or music symbols, are removed, since subtitles for deaf and hard-of-hearing viewers use them to describe non-speech sound; cues that mix a description with speech, or carry a speaker label before speech, are kept. Each second receives the fraction of its duration covered by remaining cues.
+
+Subtitle files are often timed to a different release of a film, shifted by a few seconds. The script estimates a constant offset by computing the correlation between cue coverage and a binary indicator of centre-channel dominance at lags from $-30$ to $+30$~s in half-second steps, and applies the best lag only if it improves the correlation by more than ten percent over no shift. A fixed offset can be supplied instead. Timing that drifts over the film, as when a subtitle file was made for a version at a different frame rate, is not corrected by a constant offset; the reported correlation at the chosen lag is a check on this.
+
+\section{Parameters}
+
+Table~\ref{tab:params} records the defaults. Every result reported in Chapter~\ref{ch:case} uses them unless stated otherwise.
+
+\begin{table}[htbp]\centering\small
+\begin{tabularx}{\linewidth}{lXl}
+\toprule
+Parameter & Role & Default \\
+\midrule
+Chunk & Decode and feature window & 60 s \\
+Sample rate & Broadband, centre, non-centre stems & 16 kHz \\
+Hop & Frame spacing & 512 samples \\
+$L_{\min}$, $L_{\text{full}}$ & Audibility weight bounds (frame features) & $-65$, $-45$ dBFS \\
+Audibility floor & Per-second bins, BS.1770 level & $-60$ LUFS \\
+Low-band bounds & Low-band audibility weight & $-70$, $-50$ dBFS \\
+Swell windows & Rise windows & 2, 4, 6, 8 s \\
+Swell minimum rise & & 6 dB \\
+Subtitle coverage & Minimum cue coverage for a subtitled bin & 0.5 \\
+Subtitle offset search & Lag range and step & $\pm30$ s, 0.5 s \\
+$c$ & Centre advantage for dialogue-likely bins & 6 dB \\
+$p$ & Transient cap percentile for dialogue-likely bins & 75 \\
+$\delta$ & Occupation tolerance & 10 dB \\
+$g$ & Block merge gap & 5 s \\
+$m$ & Minimum reported block & 60 s \\
+$\rho$, $w$ & Absolute recovery margin and width & 0 dB, 5 s \\
+Channel threshold & Elevated salience channel & 1.5 (standardised) \\
+Residual margin & Share of threshold left after level fit & 0.5 \\
+\bottomrule
+\end{tabularx}
+\caption{Pipeline parameters.}\label{tab:params}
+\end{table}

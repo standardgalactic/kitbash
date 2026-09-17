@@ -1,0 +1,51 @@
+\chapter{Remixing for the Listener}
+\label{ch:intervention}
+
+A listener who reduces the volume during an action sequence is already remixing the film, crudely, with a single global gain. This chapter considers how that remix can be done less crudely, beginning with what is possible now on any 5.1 source and ending with more speculative tools.
+
+\section{A continuum of interventions}
+
+The July 2025 notes that proposed the response measure of Chapter~\ref{ch:response} also proposed a pair of tools, a ``whisperizer'' and a ``mufflerizer'' \citep{flyxion2025}. In their most radical form they would re-render all dialogue as whispered speech, detect gunshots, explosions, and screams, remove them, replace each class with a stylised musical substitute, and signal the substitution visually on screen. Taken literally this is a transformation of the film into a different work. Taken as the far end of a continuum, it clarifies the design space:
+
+\begin{enumerate}
+\item \textbf{Global gain.} The listener's volume control. Available everywhere; sacrifices dialogue to control action or the reverse.
+\item \textbf{Global dynamic range control.} Consumer ``night mode'' and decoder compression profiles. Reduces the gap between loud and quiet without regard to source.
+\item \textbf{Channel-based rebalancing.} Raising the channel that carries most dialogue relative to the others, then compressing. Available on any discrete multichannel source.
+\item \textbf{Separated rebalancing.} Estimating a dialogue stem by source separation, for sources in which dialogue is not isolated by channel, and rebalancing it against the rest.
+\item \textbf{Class-specific attenuation.} Detecting particular event classes and attenuating them selectively.
+\item \textbf{Class-specific substitution.} Replacing detected classes with other sounds and, optionally, visual cues.
+\end{enumerate}
+
+\section{A dialogue-forward downmix}
+
+Level 3 is available today with \texttt{ffmpeg} or with the \texttt{mpv} player, which accepts \texttt{ffmpeg} filters during playback. The following plays a 5.1 film with the centre channel forward, everything else reduced, the result compressed and limited, and the output in mono:
+
+\begin{lstlisting}[language=bash,numbers=none]
+mpv --af="lavfi=[pan=mono|c0=1.0*FC+0.35*FL+0.35*FR+0.25*SL+0.25*SR,acompressor=threshold=-24dB:ratio=6:attack=5:release=250:makeup=6dB,alimiter=limit=-3dB]" film.mkv
+\end{lstlisting}
+
+The same filter chain in an \texttt{ffmpeg} command renders a permanently rebalanced copy of the file:
+
+\begin{lstlisting}[language=bash,numbers=none]
+ffmpeg -i film.mkv -map 0:v -map 0:a:0 -c:v copy \
+  -af "pan=mono|c0=1.0*FC+0.35*FL+0.35*FR+0.25*SL+0.25*SR,acompressor=threshold=-24dB:ratio=6:attack=5:release=250:makeup=6dB,alimiter=limit=-3dB" \
+  -c:a aac -b:a 160k film-dialogue-forward.mkv
+\end{lstlisting}
+
+Each stage has a purpose. The \texttt{pan} stage reweights channels before they are summed, raising dialogue relative to effects and music by roughly 9 to 12~dB compared with an equal-weight sum, and produces a single channel so that a mono chain receives the whole mix regardless of which conductor its plug connects. The compressor reduces the level of passages above its threshold by a factor of six, with a fast attack to catch impacts and a moderate release to avoid audible pumping between lines, and restores overall level with make-up gain. The limiter enforces a ceiling so that transients the compressor misses cannot drive a downstream preamplifier into clipping. The weights and time constants are starting points, tested for correct operation on a synthetic multichannel file, and are meant to be adjusted by ear.
+
+\section{Limitations}
+
+Channel-based rebalancing inherits the limits of the dialogue proxy of Chapter~\ref{ch:framework}. Effects panned to the centre are raised with the dialogue; dialogue spread into the front pair is partly lowered with the effects. Compression changes the character of the mix everywhere, not only where it is needed. And on stereo sources there is no centre channel to raise, which is where level 4 becomes necessary.
+
+\section{Beyond channels}
+
+Levels 4 to 6 depend on models. Neural source separation can estimate a dialogue stem from a stereo mix, and sound event detection models trained on large labelled corpora \citep{gemmeke2017} can mark gunshots, explosions, and screams in time. Next-generation broadcast audio formats already carry dialogue as a separate object with user-adjustable level, which makes level 4 a matter of metadata rather than estimation for programmes delivered in those formats. Class-specific substitution (level 6) is a creative transformation rather than a correction; it has an accessibility rationale for viewers with sound sensitivity, for whom certain classes of sound are the barrier to watching at all, and a clear risk of misclassification, which is a reason to signal substitutions visibly rather than silently.
+
+\section{The objection from intent}
+
+An intervention of any of these kinds alters what the filmmakers made. The objection deserves a direct answer. The dynamic relationships of a film mix are authored for a calibrated room (Chapter~\ref{ch:background}). In an uncalibrated home, through an arbitrary chain, those relationships are already not reproduced, and the listener already intervenes with the volume control, in the crudest possible way and at the cost of whole scenes of dialogue. The choice is not between the authored mix and an altered one. It is between an alteration performed by hand, reactively, with one global control, and an alteration designed to keep the dialogue the film depends on while bringing the rest into a range the room can carry.
+
+\section{Evaluation}
+
+Hypothesis~5 of Chapter~\ref{ch:framework} states what the intervention must achieve: fewer and shorter volume reductions without loss of dialogue comprehension. The design of Chapter~\ref{ch:response} tests it directly by adding the rebalanced mix as a playback condition, with comprehension assessed by brief questions on dialogue content after each viewing. An intervention that reduces throttling by making dialogue as hard to follow as the action is not a success.

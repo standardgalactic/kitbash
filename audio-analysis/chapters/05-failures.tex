@@ -1,0 +1,65 @@
+\chapter{How the Detectors Failed}
+\label{ch:failures}
+
+This chapter documents four failures of the analysis as it was first built and first read. Each produced output that looked meaningful. Each was caught only by comparing one plot against another or by running the pipeline on a synthetic signal whose contents were known. They are recorded in detail because they are generic: any analysis that standardises heavy-tailed features, uses level-invariant descriptors, or thresholds by percentiles is exposed to them.
+
+\section{The swell detector that detected transients}
+
+Version~3 attempted to detect gradual swells by smoothing the level trace, taking its positive gradient, standardising the result by median and median absolute deviation, smoothing again, and subtracting a penalty proportional to positive standardised onset strength so that abrupt impacts would not count as swells.
+
+On the film, more than half of the positive-gradient values were exactly zero, because at any moment the smoothed level is as likely to be falling as rising and every falling frame is clipped to zero. The median was therefore zero and so was the median absolute deviation. The standardisation function returned an array of zeros when the scale was degenerate. The gradient term vanished, and what remained was
+\begin{equation}
+\text{swell}(t) = -0.25\,\max\big(0,\ z_{\text{onset}}(t)\big),
+\end{equation}
+an inverted, scaled copy of the onset trace. Figure~\ref{fig:swellfail} shows the result. The deepest troughs of the ``swell'' plot, near $-14$ at about 14 and 63 minutes, sit exactly under the two largest onset peaks. Every swell candidate reported by version~3 was a peak of this inverted function, which is to say a place where nothing happened.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{v3-04-swells.png}\\[0.5em]
+\includegraphics[width=\linewidth]{v3-02-transients.png}
+\caption{Version~3 swell score (top) and onset strength (bottom). With a zero MAD the swell score reduced to a negated multiple of positive standardised onset strength; its troughs mirror the onset peaks.}
+\label{fig:swellfail}
+\end{figure}
+
+The failure is data dependent. On a synthetic test file the same code did not degenerate, because the synthetic signal had fewer exact ties. A test that passes on synthetic data does not certify the code on real data, and the converse also holds; both are needed.
+
+Version~3.1 replaces the frame-level gradient with an event detector. Level is averaged in the power domain over 0.25-second bins and median-filtered over about one second, so that a single transient cannot carry a bin. For each candidate window $\Delta\in\{2,4,6,8\}$ seconds the rise $S(t,\Delta) = L(t+\Delta)-L(t)$ is computed. A candidate is accepted if the rise is at least 6~dB, at least 60\% of the bin-to-bin steps within the window are upward, the two largest steps together account for no more than half the rise, and the window ends above the audibility floor. The two-largest-steps rule was added after a synthetic test showed that a hard cut from near silence into a loud passage, smeared by the analysis window across two bins, otherwise passed as a swell. On the synthetic file the corrected detector recovered a ramp placed between 150 and 158 seconds as an event from 149.25 to 157.25 seconds and reported nothing else.
+
+The standardisation function was also changed so that a degenerate MAD falls back to the interquartile range and then to the standard deviation, rather than silently returning zeros.
+
+\section{Harshness in silence}
+
+The version~3 harshness score combined standardised spectral centroid, flatness, zero-crossing rate, and level. Its largest values in the entire film, near 66 against a typical ceiling around 30, occur at the very start, at about 81 minutes, and at the very end (Figure~\ref{fig:harshfail}). Each coincides with a dropout to digital silence at $-100$~dBFS on the level plot. In near silence the spectrum is the noise floor, which is spectrally flat and dominated by high-frequency dither; flatness and zero-crossing rate are maximal and the centroid is high. The most ``harsh'' moments of the film were the moments with no sound in them.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{v3-06-harshness.png}\\[0.5em]
+\includegraphics[width=\linewidth]{v3-01-loudness.png}
+\caption{Version~3 harshness (top) and level (bottom). The three largest harshness spikes coincide with dropouts to $-100$~dBFS.}
+\label{fig:harshfail}
+\end{figure}
+
+The same level invariance affected every onset-based measure. Between about 81 and 84 minutes the level trace sits mostly between $-55$ and $-75$~dBFS, far below the rest of the film, yet transient, barrage, low-frequency, and burden scores all peak there. An early reading of the plots described that stretch as the most intense passage of the film. It was a quiet passage with dense low-level transients. The subtitle timings introduced later (Chapter~\ref{ch:case}) identify it as the film's closing dialogue scene: more than half of its seconds carry subtitled speech, and its median level lies about 10~dB below the film's dialogue reference. The end credits begin only after about 84 minutes.
+
+A synthetic test made the magnitude of the problem concrete. A passage of short noise bursts at a mono level of about $-83$~dBFS received a mean version~3 barrage score of 87, against 26 for a passage of modulated speech-band noise at about $-50$~dBFS, and a higher burden (0.54 against 0.50). After audibility weighting (Chapter~\ref{ch:pipeline}) the quiet passage scored $-7$ on barrage and 0.00 on burden, and the harshness score in digital silence fell to zero.
+
+\section{Statistics fixed by their thresholds}
+
+Version~3.1 on the film reported, among other things, that barrage regions occupied 8.0\% of the running time, high-load regions 15.8\%, and recovery regions 19.2\%, and that recovery was therefore scarce. These numbers are largely determined before any audio is analysed. High load is defined as the top 20\% of the burden score, so about 20\% of frames exceed the threshold by construction; the 15.8\% is the part of that 20\% that falls in runs of four seconds or more. Recovery is the bottom 25\%, so about a quarter of the film is recovery by definition; 19.2\% is the part in runs of five seconds or more. Barrage is the top 15\% of its score, of which 8.0\% survives the three-second minimum. Similarly, the 902 impact candidates are peaks above the 98.5th percentile at least 0.75~s apart; a different percentile gives a different count.
+
+What these statistics can legitimately show is the arrangement in time of each category: where the qualifying windows fall, and the distribution of run lengths and gaps. The longest interval with no relative recovery window, 694.7 seconds, is such a statistic, and it is informative about the location of the film's densest stretch. It cannot show how much recovery the film provides compared with other films, because a film that was relentless from beginning to end would still be one quarter ``recovery''. The dialogue-referenced definitions of Chapter~\ref{ch:framework} were introduced for this reason.
+
+\section{Interpretive overreach}
+
+The fourth failure was not in the code. An interpretive pass over the version~3 and~3.1 plots, produced with the assistance of a language model, made a series of claims that the analysis could not support: that the 81 to 84 minute stretch was the most intense in the film (it was quiet; see above); that the film's recovery was scarce (a threshold artefact); that the film ``has plenty of dynamic range'' (the analysis measured unweighted RMS of a mono downmix, not loudness range in the standard sense); that swells of 30 to 36~dB demonstrated dramatic musical rises (the detector at that point checked only the end level of a swell, so a large rise could begin in near silence and could be a scene transition); and that the low-frequency detector found drums (it measures low-band onset density from any source).
+
+Each claim was plausible, fluent, and consistent with the listener's report, which is what made it dangerous. The general lesson is that agreement between an analysis and a prior impression is weak evidence that the analysis is right. The specific corrections are built into the pipeline and into the reporting rules of Chapter~\ref{ch:case}: swell events carry their start and end levels; low-frequency activity is named for what it measures; percentile-defined totals are not reported as findings; and the loudness range of the film is reported only as measured under BS.1770 and EBU Tech~3342 (Chapter~\ref{ch:case}).
+
+\section{Rules adopted}
+
+\begin{enumerate}
+\item Name each detector for the quantity it measures, not for the source it is hoped to find.
+\item Test each detector on a synthetic signal with known contents, and inspect its output on real data against at least one independent trace.
+\item Weight level-invariant features by audibility before standardising them, and compute statistics over audible frames.
+\item Treat any total produced by a percentile threshold as a description of the threshold unless it is compared across films with a common threshold.
+\item Report the start and end levels of every rise.
+\item Do not accept an interpretation because it agrees with the listening report.
+\end{enumerate}

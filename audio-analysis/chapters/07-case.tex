@@ -1,0 +1,184 @@
+\chapter{Case Study: \emph{Drive Through Fire}}
+\label{ch:case}
+
+\section{The film}
+
+\emph{Drive Through Fire} is an action thriller directed by Lauren Bond and Jim Carlson, with Carlson and Michael Jai White in leading roles, released to video on demand and digital platforms on 11 September 2026 \citep{comingsoon2026}. Its published synopsis promises escalating violence ending in a rescue mission and a final confrontation, which is to say a genre in which extended gunfire and fight sequences are expected. Nothing in this chapter is a judgement of the film as a work. The question is how its soundtrack is organised in time relative to its dialogue, and what that organisation does to a listener at home.
+
+The analysed file carries a six-channel 5.1 stream at 48~kHz. The decoded analysis stems run for 1:27:01.98, yielding 163{,}188 analysis frames.
+
+\section{The listening report}
+
+The report on which the case rests was given after a single viewing through the chain described in Chapter~\ref{ch:chain}. It makes four claims.
+
+\begin{description}
+\item[R1.] Dialogue was mixed lower than the sound effects, the swelling music, and the drums, and the difference was large enough to be comic.
+\item[R2.] There were very long sequences of automatic gunfire and fighting.
+\item[R3.] During those sequences the volume was reduced repeatedly, and in some cases turned fully off for one to two minutes or more, until the action on screen subsided.
+\item[R4.] The amplifier exaggerated the imbalance.
+\end{description}
+
+The report is retrospective and has no timestamps. It is the observation that the rest of the book tries to explain and to make testable, not evidence for the framework. R1 and R2 are claims about the soundtrack and can be checked against the file. R3 is a claim about behaviour; the file can show whether the conditions the framework associates with such behaviour are present, but not that they caused it. R4 is a claim about the chain and is addressed only by the protocol of Chapter~\ref{ch:chain}.
+
+\section{Descriptive output of the pipeline}
+
+Table~\ref{tab:v31} gives the summary produced by version~3.1. Following the rules of Chapter~\ref{ch:failures}, its totals are reported as descriptions of the detectors at their thresholds, not as findings about the film.
+
+\begin{table}[htbp]\centering\small
+\begin{tabular}{lrl}
+\toprule
+Quantity & Value & Status \\
+\midrule
+Frames below audibility floor ($-65$ dBFS) & 3.2\% & measured \\
+Impact candidates & 902 & threshold-determined \\
+Low-frequency onset candidates & 52 & threshold-determined \\
+Swell events & 78 & measured (event criteria) \\
+Harshness candidates & 366 & threshold-determined \\
+Barrage regions (time share) & 54 (8.0\%) & threshold-determined \\
+High-load regions (time share) & 77 (15.8\%) & threshold-determined \\
+Relative recovery regions (time share) & 78 (19.2\%) & threshold-determined \\
+Median interval without relative recovery & 17.2 s & arrangement \\
+Longest interval without relative recovery & 694.7 s & arrangement \\
+\bottomrule
+\end{tabular}
+\caption{Version 3.1 summary for the film. ``Arrangement'' marks statistics that describe where threshold-defined events fall in time, which is informative within the film even though the totals are not.}\label{tab:v31}
+\end{table}
+
+Two arrangement statistics carry information. The median interval between relative recovery windows is 17.2 seconds: over most of the film, the soundtrack returns to its own quieter states frequently. The longest interval is 694.7 seconds, more than eleven and a half minutes. The distribution is therefore strongly skewed. Recovery is ordinarily frequent, and then for one long stretch it is absent.
+
+\section{The shape of the film}
+
+The version~3 traces, read with the caveats of Chapter~\ref{ch:failures}, show the arrangement that the skewed gap distribution implies. For the first hour the level trace alternates between passages near $-40$ to $-60$~dBFS and shorter excursions toward $-25$, with frequent relative recovery windows. From about 61 minutes the level rises and stays high, mostly between $-20$ and $-40$~dBFS, until about 80 minutes. On the version~3 recovery plot (Figure~\ref{fig:v3rec}) the relative recovery windows thin out after about 33 minutes and are almost absent between about 69 and 80 minutes. Low-frequency onset activity recurs throughout the film rather than being confined to its climax, with concentrations near 13 to 16, 38 to 45, 58 to 64, and 71 to 83 minutes.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{v3-09-recovery.png}
+\caption{Version~3 burden with relative recovery windows shaded. The windows are frequent early, sparse after about 33 minutes, and nearly absent between about 69 and 80 minutes. Burden here is not audibility-weighted; the shaded region after about 84 minutes is the end credits.}
+\label{fig:v3rec}
+\end{figure}
+
+% NOTE: numbers written as macros (\res..., \x...) are regenerated by
+% code/occupation.py and code/occupation-extras.py. A few descriptive
+% statements in this section (block times, segment percentages in the
+% prose, the six-second agreement of gap locations) were written from the
+% September 2026 run and must be re-checked if the analysis is rerun.
+\section{Dialogue-referenced measures}
+
+The measures of Chapter~\ref{ch:framework} were computed by \texttt{occupation.py} from the version~3.1 frame table, the film's 5.1 stream, and its subtitle file. \ifresults{Level is \resLevelMeasure, in \resLevelUnit.}{In this build the script has not been run, and every value below prints as \pending; Appendix~\ref{app:repro} gives the command.}
+
+\subsection{Loudness by the standard measures}
+
+By BS.1770 the film's integrated loudness is \resIntegrated~LUFS and its loudness range under EBU Tech~3342 is \resLRA~LU, spanning \resLRALow{} to \resLRAHigh~LUFS. These are the numbers a loudness-compliance check would report. They are given first because the rest of this section describes what they leave out: where in the film the loud material sits relative to the dialogue, and how long it stays there. Two relations are worth noting in advance. The dialogue reference found below lies \xDialogueBelowIntegrated~dB below the integrated loudness, so a playback system that normalised this film to a loudness target would place its dialogue that far below the target. And the upper bound of the loudness range, \resLRAHigh~LUFS, sits almost exactly where the plateau of loud material described below tops out.
+
+\subsection{Subtitles and the dialogue proxy}
+
+The subtitle file contains \resSubCues{} cues, of which \resSubNonspeechCues{} describe sound rather than speech and were removed, leaving \resSubSpeechCues. The applied offset is \resSubOffset~s; the correlation between cue coverage and centre-channel dominance is \resSubCorrZero{} with no shift and \resSubCorrOffset{} at the applied offset. After alignment, \resSubSeconds{} audible seconds are subtitled dialogue. No cue consisted solely of a sound description, so the file is an ordinary subtitle track rather than one written for deaf and hard-of-hearing viewers, and the best lag was zero: the subtitles were already aligned with this release.
+
+Against these seconds, the centre-channel proxy (\resProxySeconds{} seconds) has a precision of \resProxyPrecision{} and a recall of \resProxyRecall. Precision measures how often the proxy's dialogue seconds are in fact subtitled speech; recall measures how much subtitled speech the proxy finds. The dialogue reference computed from the proxy is \resDialogueRefProxy~\resLevelUnit, against \resDialogueRefSub~\resLevelUnit{} from subtitles, and \resDialogueRefSubCapped~\resLevelUnit{} from subtitles with the most transient-heavy quarter removed. The three agree within about one decibel, so the results that follow do not depend on which definition of dialogue is used.
+
+The combination is instructive. The proxy identifies dialogue seconds poorly, with precision and recall both near one half, yet it estimates dialogue \emph{level} almost exactly. Its errors are of two kinds that cancel in the median: centre-dominant seconds between cues (pauses, reactions, centre-panned ambience) that are at dialogue level without being subtitled, and subtitled seconds excluded by the transient cap or by a momentary loss of centre dominance. For a comparison corpus this is useful: films without subtitles can be given a dialogue reference from the proxy with some confidence, but not a dialogue timeline. The film's dialogue is strongly centred: the median centre advantage is \xCenterAdvDlg~dB in subtitled seconds against \xCenterAdvOther~dB elsewhere, which is the property the intervention of Chapter~\ref{ch:intervention} relies on.
+
+\subsection{The dialogue reference}
+
+The reference used below is taken from \resDialogueSource: $D = \resDialogueRef$~\resLevelUnit, computed from \resDialogueSeconds{} seconds (\resDialogueShare{} of the running time). The median centre-channel level in those seconds is \resDialogueCenter~dBFS. The reference is a median, and dialogue itself spans a wide range around it: the 10th and 90th percentiles of subtitled seconds lie at \xDlgPTen{} and \xDlgPNinety~dB relative to $D$, the quartiles at \xDlgPTwentyFive{} and \xDlgPSeventyFive~dB. Some of that spread is the dialogue and some is whatever else plays in the same second; the per-second level is the level of the whole mix. A listener anchored to dialogue is anchored to a band, not a line. \ifdefstring{\resDialogueFallback}{yes}{Fewer than thirty dialogue seconds were found, so the reference has fallen back to the median level of all audible seconds; in this build it should not be read as a dialogue level.}{}
+
+\subsection{Exceedance}
+
+Table~\ref{tab:exceed} gives the share of audible seconds whose level exceeds the dialogue reference by 5, 10, 15, and 20~dB, and Figure~\ref{fig:exceed} their distribution. The 95th percentile of exceedance is \resPNinetyFive~dB and the 99th is \resPNinetyNine~dB.
+
+\begin{table}[htbp]\centering\small
+\begin{tabular}{lr}
+\toprule
+Exceedance over dialogue reference & Share of audible seconds \\
+\midrule
+$\ge 5$ dB & \resExceedFive \\
+$\ge 10$ dB & \resExceedTen \\
+$\ge 15$ dB & \resExceedFifteen \\
+$\ge 20$ dB & \resExceedTwenty \\
+\bottomrule
+\end{tabular}
+\caption{Exceedance over the dialogue reference.}\label{tab:exceed}
+\end{table}
+
+\optfig{results/fig-exceedance.png}{0.7}{Distribution of per-second level relative to the dialogue reference. Blue: the reference. Red: the occupation tolerance $\delta = \resDelta$ dB.\label{fig:exceed}}
+
+These figures bear on R1. A mix in which dialogue sits comfortably within the range of the rest of the soundtrack would show little mass beyond $+10$~dB. The size of that mass, and of the tail beyond $+20$~dB, measures how far a dialogue-anchored listening level is exceeded and how often. Set beside the loudness range above, they show the difference between the two kinds of description: loudness range reports how widely the level varies, while the exceedance distribution reports how far the level varies \emph{above the one level the listener cares about}.
+
+For this film the answer is specific. Almost a third of the audible running time (\resExceedTen) lies at least 10~dB above the dialogue reference, but only \resExceedTwenty{} lies 20~dB or more above it. The occupied range is a plateau rather than a tail: among occupied seconds the median exceedance is \xOccMedian~dB, the 90th percentile \xOccPNinety~dB, and \xOccPlateauShare{} fall between $+12$ and $+19$~dB, after which the distribution falls away steeply (Figure~\ref{fig:exceed}). The loudest second in the film is \xLevelMax~LUFS, \xRelMax~dB above the reference. By peak intensity this is not an extreme soundtrack. What distinguishes it is how much time it spends in one band well above its dialogue. That is the distinction between peak intensity and occupation drawn in Chapter~\ref{ch:intro}, found in the data.\footnote{A plateau with a steep upper edge is what one would expect if loud material were held under a ceiling by compression or limiting in the mix or master. That is a hypothesis about production, not a measurement; the file shows the shape, not how it was made.}
+
+\subsection{Occupation blocks}
+
+With tolerance $\delta = \resDelta$~dB, merge gap $g = \resMergeGap$~s, and minimum length $m = \resMinBlock$~s, the analysis finds \resOccBlocksN{} occupation blocks, totalling \resOccTotalMin{} minutes. The longest lasts \resOccLongestMin{} minutes and begins at \resOccLongestStart. Table~\ref{tab:blocks} lists them with the implied throttle depth of Chapter~\ref{ch:framework}, the attenuation a listener who had set the volume for dialogue would need to hold each block's 95th-percentile level at tolerance. Across blocks the median implied throttle is \resThrottleMedian~dB and the largest is \resThrottleMax~dB.
+
+Three blocks fall in the first hour, at about 8, 20, and 36 minutes, each isolated. The other six fall between 1:00:48 and 1:19:53. The last two are separated by only eleven seconds, so that from 1:13:45 to 1:19:53 the soundtrack is effectively a single block of about six minutes. Blocks do not contain all occupied time: of \xOccSeconds{} occupied seconds, \xOccInBlocks{} (\xOccInBlocksShare) fall in blocks and the rest in shorter episodes.
+
+\begin{table}[htbp]\centering\small
+\begin{tabular}{llrrrrr}
+\toprule
+Start & End & Min. & Median $E$ & $Q_{95}(E)$ & Throttle (dB) & Subtitled s \\
+\midrule
+\resOccRows \\
+\bottomrule
+\end{tabular}
+\caption{Level-defined occupation blocks of at least \resMinBlock{} s. The last column counts subtitled dialogue seconds inside each block.}\label{tab:blocks}
+\end{table}
+
+\optfig{results/fig-occupation.png}{1.0}{Per-second level with the dialogue reference, the occupation tolerance, and occupation blocks shaded. Ticks along the bottom mark subtitled dialogue seconds.\label{fig:occ}}
+
+An independent, transient-defined count comes from merging version~3.1 barrage regions across gaps of up to \resMergeGap~s. That procedure yields \resBarrageBlocksN{} blocks of at least \resMinBlock~s, the longest lasting \resBarrageLongestMin{} minutes. Figure~\ref{fig:blocks} compares the two definitions on a common time axis. Agreement between the two definitions would have been evidence that the blocks are properties of the soundtrack rather than of either detector. They do not agree. No merged barrage run reaches \resMinBlock~s; transient-defined episodes are scattered through the film and short. Inside level-defined blocks the mean barrage score is higher than outside (\xBarrageIn{} against \xBarrageOut) and the mean low-frequency onset score much higher (\xDrumIn{} against \xDrumOut), but neither forms continuous runs above the detectors' thresholds. The blocks are sustained in level; their onset density is episodic within them. Part of the disagreement is built into the barrage detector, whose percentile threshold and three-second minimum fragment long episodes. The rest is plausibly real: bursts of gunfire or impacts over a continuous loud bed of music and effects would produce exactly this pattern. The audition clips can decide between these readings.
+
+\optfig{results/fig-blocks.png}{1.0}{Level-defined (top) and transient-defined (bottom) blocks. Dark segments meet the minimum length.\label{fig:blocks}}
+
+\subsection{Two regimes}
+
+The distribution of blocks and gaps suggests that the film changes character in its last half hour. Table~\ref{tab:segments} and Figure~\ref{fig:segments} make this explicit with fixed ten-minute segments, which involve no choice of boundary. For the first hour, between 13\% and 40\% of each segment lies 10~dB or more above dialogue and between 30\% and 51\% at or below it. In the two segments from 1:00:00 to 1:20:00 the proportions invert: 62\% and 71\% above, 14\% and 3\% at or below. The last segment, containing the closing dialogue scene and the credits, returns to the pattern of the first hour.
+
+\begin{table}[htbp]\centering\small
+\begin{tabular}{lrrrrr}
+\toprule
+Segment & $\ge +\delta$ (\%) & $\le D$ (\%) & In blocks (\%) & Subtitled (\%) & Median $E$ \\
+\midrule
+\xSegmentRows \\
+\bottomrule
+\end{tabular}
+\caption{Ten-minute segments: share of audible seconds at least $\delta$ above the dialogue reference, at or below it, inside occupation blocks, and carrying subtitled speech, with median exceedance in dB.}\label{tab:segments}
+\end{table}
+
+\optfig{results/fig-segments.png}{0.95}{Share of audible seconds at least $\delta$ above the dialogue reference, at or below it, and carrying subtitled speech, by ten-minute segment.\label{fig:segments}}
+
+The span defined by the longest recovery gaps and the two brief windows between them runs from \xSpanStart{} to \xSpanEnd, \xSpanMin{} minutes. Within it, \xSpanExceedShare{} of seconds lie at least $\delta$ above dialogue, \xSpanAtOrBelowShare{} at or below it, the median exceedance is \xSpanMedianRel~dB, and \xSpanInBlockShare{} of seconds belong to occupation blocks. The soundtrack returns to dialogue level for five seconds or more on only two occasions, totalling \xSpanRecoverySeconds{} seconds. Before \xSpanStart, the corresponding figures are \xBeforeExceedShare{} above, \xBeforeAtOrBelowShare{} at or below, and \xBeforeInBlockShare{} in blocks.
+
+These results bear on R2 and R3. The framework predicts that fully turning the volume down for a minute or more occurs in blocks that are both long and deep, that is, with large implied throttle. The report is consistent with the framework if the film contains blocks of that kind. It would count against the framework's account of the report if the film contained no such blocks: if, for example, exceedances were large but brief, or long but shallow.
+
+\subsection{Dialogue exposed to throttling}
+
+Occupation blocks are not free of speech. Across all blocks, \resSubInBlocks{} subtitled dialogue seconds fall inside them, \resSubInBlocksShare{} of all subtitled dialogue in the film; the block from 1:09:24 to 1:11:34 alone contains 48. The median level of these seconds is \xDlgInBlockMedian~dB relative to the reference, against \xDlgOutBlockMedian~dB for subtitled seconds outside blocks. Because the per-second level is that of the whole mix, this does not say the speech is loud; it says the speech occurs inside the loud material. Whether it remains intelligible there is a question of masking, which this analysis does not measure. This is the dialogue a listener loses by turning the volume down or off for the duration of a block, and it quantifies the dilemma of Chapter~\ref{ch:intro}: in these seconds the soundtrack asks to be heard and to be turned down at the same time. The subtitles also give the listener a partial remedy, which is to read what cannot be heard; that the remedy exists at all is a measure of the problem.
+
+\subsection{Recovery}
+
+Using the absolute definition (at least five seconds at or below the dialogue reference, or inaudible), the film contains \resAbsRecoveryN{} recovery windows, covering \resAbsRecoveryShare{} of its running time. The longest gap between them lasts \resAbsGapLongestMin{} minutes and begins at \resAbsGapLongestStart. The maximum recovery debt accumulated within a single gap is \resDebtMax~dB$\cdot$s. The longest relative-recovery gap from Table~\ref{tab:v31} lasts \resRecoveryGapLongestMin{} minutes and begins at \resRecoveryGapLongestStart. The two definitions, one based on the film's own quietest quarter and the other on its dialogue level, place their longest gaps within six seconds of each other. The location of the film's longest stretch without rest does not depend on how rest is defined. A recovery gap is not an occupation block: a gap measures how long the soundtrack goes without returning to dialogue level, while a block measures how long it stays at least $\delta$ above it. A long gap may contain a block, several short ones, or none.
+
+\begin{table}[htbp]\centering\small
+\begin{tabular}{llr}
+\toprule
+Gap start & Gap end & Minutes \\
+\midrule
+\resAbsGapRows \\
+\bottomrule
+\end{tabular}
+\caption{The five longest gaps between absolute recovery windows.}\label{tab:gaps}
+\end{table}
+
+\subsection{Swells}
+
+The swell detector found \resSwellN{} sustained rises, of which \resSwellLarge{} rise by 20~dB or more. Only \resSwellFromQuiet{} begin below \resSwellQuietLevel~\resLevelUnit, near the audibility floor, where a large rise is more likely to be an entry from near silence or a scene transition than a crescendo. The concern raised in Chapter~\ref{ch:failures}, that large detected rises might mostly be entries from silence, therefore does not hold for this film: most begin from audible levels. \resSwellIntoOcc{} of the \resSwellN{} end in the occupied range, at or above $D+\delta$. These are the swells that matter for the listener model, rises that carry the soundtrack from a level set for dialogue into the range where the volume must come down. Whether they are musical is a question for the audition clips.
+
+\section{Assessment}
+
+\begin{description}
+\item[R1] is borne out by the file. Measured against its own subtitled dialogue, the film spends \resExceedTen{} of its audible running time at least 10~dB above dialogue level and \resExceedFifteen{} at least 15~dB above it, while its dialogue is strongly centred and its loud material is held on a plateau 12 to 19~dB above the reference. Whether this makes the dialogue ``mixed too low'' or the effects ``mixed too high'' is the same measurement described two ways.
+\item[R2] is borne out in level and not in onset density. The film contains \resOccBlocksN{} blocks of a minute or more at least 10~dB above dialogue, six of them in its last half hour and one effectively six minutes long. The transient detectors do not find sustained barrages of comparable length; onset activity is elevated but episodic within the blocks.
+\item[R3] cannot be tested against the file, but the conditions the framework associates with turning the volume fully down are present: long blocks with implied throttle depths from \xThrottleMin{} to \resThrottleMax~dB (median \resThrottleMedian~dB), and a span of \xSpanMin{} minutes in which the soundtrack returns to dialogue level for only \xSpanRecoverySeconds{} seconds. The reported behaviour, turning the volume off for one to two minutes or more, matches the lengths of the blocks in that span.
+\item[R4] remains untested.
+\end{description}
+
+The case therefore supports the central distinction of the book at the grade ``measured'': this soundtrack is not distinguished by extreme peaks but by the amount and continuity of time it spends in one band well above its dialogue, concentrated in a single twenty-minute stretch with almost no return to rest.

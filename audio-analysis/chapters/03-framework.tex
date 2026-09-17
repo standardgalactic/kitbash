@@ -1,0 +1,139 @@
+\chapter{A Framework for Occupation}
+\label{ch:framework}
+
+This chapter defines the quantities used in the rest of the book and states the hypotheses they are meant to test. The definitions are deliberately simple. Each is chosen so that it can be computed from a soundtrack file with the pipeline of Chapter~\ref{ch:pipeline} and so that its dependence on free parameters is explicit.
+
+\section{Time base and level}
+
+Let the film occupy the interval $[0, T]$ and let time be discretised into one-second bins indexed by $t$. Let $L(t)$ denote the level of the reproduced signal in bin $t$, computed as the energy mean of the level values falling in that bin:
+\begin{equation}
+L(t) = 10\log_{10}\Big(\frac{1}{|F_t|}\sum_{f\in F_t} 10^{\ell_f/10}\Big),
+\end{equation}
+where $F_t$ is the set of level measurements falling in bin $t$ and $\ell_f$ is the level of measurement $f$. Averaging in the power domain rather than in decibels matters: a second containing one loud impact and otherwise near silence should register the impact, not the silence.
+
+The primary level measure is BS.1770 momentary loudness \citep{itu1770}, measured on the full 5.1 mix at ten values per second and energy-averaged into one-second bins, in LUFS. It applies the standard's K-weighting and channel weights and, as the standard specifies, excludes the low-frequency effects channel. When the film itself is not available to the analysis, the pipeline falls back to unweighted RMS of a mono downmix of the main channels, in dBFS (Chapter~\ref{ch:pipeline}). Only differences in level enter the framework, so the choice of unit does not affect the definitions below, but K-weighting does change which material counts as loud: it discounts low frequencies and emphasises the presence region, closer to how loudness is perceived.
+
+A bin is \emph{audible} if $L(t)$ exceeds a floor $L_{\min}$ (default $-60$~LUFS, or $-65$~dBFS for the RMS fallback). Inaudible bins are excluded from all statistics that are normalised by duration.
+
+\section{The dialogue reference}
+
+Two definitions of dialogue time are used. The primary one is taken from the film's subtitles, which record when speech occurs. The secondary one is a centre-channel proxy, which requires nothing but the audio; it is retained because most films in a comparison corpus will have it and not all will have reliable subtitles, and because comparing it with the subtitle definition measures how far the proxy can be trusted.
+
+\begin{definition}[Subtitled dialogue bins]
+Let a subtitle file contain cues $(a_i, b_i, x_i)$ with start and end times and text. Remove cues whose text describes sound rather than speech: text consisting only of bracketed or parenthesised descriptions such as \texttt{[GUNFIRE]} or \texttt{(sighs)}, or of music symbols. Let $\kappa(t)$ be the fraction of bin $t$ covered by the remaining cues after shifting all cue times by an offset $\omega_s$. The set of subtitled dialogue bins is
+\begin{equation}
+\mathcal{S} = \{\, t : t \text{ audible},\ \kappa(t) \ge 0.5 \,\}.
+\end{equation}
+\end{definition}
+
+The offset $\omega_s$ corrects for subtitles timed to a different release of the film. It may be given, or estimated as the lag, within $\pm30$~s, that maximises the correlation between cue coverage and centre-channel dominance.
+
+\begin{definition}[Dialogue-likely bins]
+Let $C(t)$ and $N(t)$ be the levels of the centre channel and of the non-centre mix (front and surround pairs) in bin $t$. The set of dialogue-likely bins is
+\begin{equation}
+\mathcal{D} = \{\, t : t \text{ audible},\ C(t) - N(t) \ge c,\ \tau(t) \le Q_{p}(\tau \mid C - N \ge c) \,\},
+\end{equation}
+where $c$ is a centre-advantage threshold (default 6~dB), $\tau(t)$ is transient activity (Section~\ref{sec:channels}), and $Q_p$ is its $p$-th percentile (default 75) among centre-dominant audible bins.
+\end{definition}
+
+The definition encodes a convention of film mixing, that dialogue is carried predominantly in the centre channel, and removes the most transient-heavy centre-dominant bins because centre-panned impacts and gunfire are common in action scenes. It remains a proxy. Music, effects, and ambience can sit in the centre, and dialogue can be spread. Its agreement with $\mathcal{S}$ is reported as precision $|\mathcal{D}\cap\mathcal{S}|/|\mathcal{D}|$ and recall $|\mathcal{D}\cap\mathcal{S}|/|\mathcal{S}|$.
+
+\begin{definition}[Dialogue reference]
+The dialogue reference is $D = \operatorname{median}\{L(t) : t\in\mathcal{S}\}$ when subtitles are available, and $D = \operatorname{median}\{L(t) : t\in\mathcal{D}\}$ otherwise.
+\end{definition}
+
+Subtitles mark when speech occurs, not how loud it is, and they mark shouted lines inside gunfights as readily as quiet conversation. The median is robust to such lines because most dialogue in most films is not delivered over gunfire. As a check, the reference is also computed with the most transient-heavy quarter of subtitled bins removed.
+
+$D$ is the level at which a listener who sets the volume for speech is anchored. It is internal to the film, and that is intentional: the listener's anchor is also internal to the film.
+
+\section{Exceedance and occupation}
+
+\begin{definition}[Exceedance]
+$E(t) = L(t) - D$.
+\end{definition}
+
+\begin{definition}[Occupation]
+For a tolerance $\delta > 0$ (default 10~dB), bin $t$ is \emph{occupied} if $E(t) \ge \delta$. The occupation fraction is
+\begin{equation}
+\phi_\delta = \frac{|\{t \text{ audible} : E(t)\ge\delta\}|}{|\{t \text{ audible}\}|}.
+\end{equation}
+\end{definition}
+
+\begin{definition}[Occupation block]
+Let $O$ be the set of occupied bins. Form maximal runs of consecutive bins in $O$, then merge any two runs separated by a gap of at most $g$ seconds (default 5). An \emph{occupation block} is a merged run of total length at least $m$ seconds (default 60).
+\end{definition}
+
+The merging step reflects the fact that a two-second dip below $D+\delta$ in the middle of a firefight does not give the listener a usable opportunity to restore the volume. The minimum length $m$ reflects the case: the behaviour at issue is reducing the volume for a minute or more.
+
+A block need not be occupied throughout. Its internal composition is summarised by the share of occupied bins and by percentiles of $E$ within it.
+
+\section{Recovery}
+
+The pipeline of Chapter~\ref{ch:pipeline} defines recovery relatively, as intervals of at least five seconds in which a composite burden score lies in its own bottom quartile. Chapter~\ref{ch:failures} explains why that definition cannot support claims about how much recovery a film provides: roughly a quarter of the film is below its own lower quartile by construction. A relative definition can still locate the longest stretches without recovery, and it is used for that purpose only.
+
+An absolute definition, anchored to the dialogue reference, is preferred:
+
+\begin{definition}[Recovery window]
+For a margin $\rho$ and width $w$, a recovery window is an interval of at least $w$ consecutive audible bins in which $E(t)\le\rho$ throughout. The default is $\rho = 0$, $w=5$: at least five seconds at or below dialogue level.
+\end{definition}
+
+\begin{definition}[Recovery gap and recovery debt]
+A recovery gap is the interval between the end of one recovery window and the start of the next. Within a gap beginning at $t_0$, the recovery debt at time $t$ is
+\begin{equation}
+K(t) = \sum_{s=t_0}^{t} \max\big(0,\ E(s) - \delta\big).
+\end{equation}
+\end{definition}
+
+$K$ is a crude accumulator: it grows only while the soundtrack exceeds tolerance and resets only when the soundtrack returns to dialogue level for long enough. It is proposed as a predictor, not a model of physiology.
+
+\section{Salience channels}
+\label{sec:channels}
+
+Level is one way a soundtrack claims attention. The pipeline measures four others, each a candidate channel of salience:
+
+\begin{description}
+\item[Transient activity $\tau(t)$.] Density of broadband spectral-flux onsets over a five-second window, weighted by audibility.
+\item[Low-frequency onset activity $\lambda(t)$.] Density of onsets in the band below 250~Hz over a four-second window. This is often percussion but also engines, impacts, and explosions; it is named for what it measures.
+\item[Swell events $\sigma$.] Sustained rises in level of at least 6~dB over windows of two to eight seconds that are not carried by a single step.
+\item[Spectral harshness $\eta(t)$.] A composite of spectral centroid, flatness, and zero-crossing rate, weighted by audibility.
+\end{description}
+
+\begin{definition}[Overdetermination index]
+Given thresholds $\theta_k$ for each channel, $\Omega(t) = \sum_k \mathbf{1}[\,\text{channel } k \text{ elevated at } t\,]$, with level exceedance $E(t)\ge\delta$ counted as one of the channels.
+\end{definition}
+
+$\Omega$ counts how many independent means the soundtrack is using at once to claim attention. The name reflects the hypothesis that high $\Omega$ is redundant signalling, several mechanisms communicating the same instruction to attend.
+
+\section{A listener model}
+
+Let the listener set the volume so that dialogue is reproduced comfortably, and let $G(t)\le 0$ be the additional gain applied by the listener at time $t$ relative to that setting. Suppose the listener tolerates reproduced level up to $D+\delta$. Holding a block at tolerance requires $G(t) \le -\max(0, E(t)-\delta)$. Since listeners do not adjust gain second by second, a single setting per block is more realistic. The \emph{implied throttle depth} of a block $b$ is
+\begin{equation}
+T_b = \max\big(0,\ Q_{95}(E \mid b) - \delta\big),
+\end{equation}
+the attenuation needed to hold the block's 95th-percentile exceedance at tolerance.
+
+Two responses are available when $T_b$ is large. The listener can attenuate by $T_b$ and lose the dialogue inside the block, which sits at $D + G < D - T_b$, or can turn the volume fully down and wait. The model predicts the second response when $T_b$ is large and the block is long, because attenuation by a large $T_b$ leaves nothing intelligible to attend to anyway. This is the behaviour reported in the case.
+
+\section{Hypotheses}
+
+\begin{hypothesis}[Occupation over level]
+Volume reductions are better predicted by occupation variables (current $E(t)$ together with time already spent in the current block) than by instantaneous level alone, and far better than by whole-programme statistics such as integrated loudness or loudness range.
+\end{hypothesis}
+
+\begin{hypothesis}[Recovery debt]
+Conditional on $E(t)$, the probability of a volume reduction increases with $K(t)$.
+\end{hypothesis}
+
+\begin{hypothesis}[Overdetermination]
+Conditional on $E(t)$, the probability of a volume reduction increases with $\Omega(t)$.
+\end{hypothesis}
+
+\begin{hypothesis}[Chain amplification]
+A reproduction chain that is weak in the speech-importance band and that saturates on transients increases effective exceedance: it raises the level needed for intelligible dialogue and adds distortion products during the loudest passages.
+\end{hypothesis}
+
+\begin{hypothesis}[Intervention]
+A dialogue-forward downmix with dynamic range compression reduces the number and duration of volume reductions without reducing comprehension of the dialogue.
+\end{hypothesis}
+
+None of these is tested in this monograph. Chapter~\ref{ch:case} measures the soundtrack-side quantities they depend on. Chapter~\ref{ch:response} specifies the data needed to test them.
