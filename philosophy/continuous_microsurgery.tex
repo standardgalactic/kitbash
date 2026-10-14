@@ -1,0 +1,729 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1.15in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage[expansion=false]{microtype}
+\usepackage[hidelinks]{hyperref}
+\usepackage{setspace}
+\setstretch{1.08}
+\setlength{\parskip}{0.55em}
+\setlength{\parindent}{0pt}
+\emergencystretch=2em
+
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{example}{Example}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Ind}{\mathbf{1}}
+\newcommand{\Adm}{\operatorname{Admissible}}
+
+\title{Continuous Microsurgery\\[0.5em]
+\large The Ethics of Never Putting the Knife Down}
+\author{Flyxion\\Independent Researcher}
+\date{October 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent
+Medical ethics ordinarily evaluates an intervention: whether it is indicated, whether the patient consented, whether its expected benefit exceeds its expected harm. That unit of analysis suits episodic medicine, in which a treatment has a beginning and an end. It suits poorly a hypothetical regime, called here continuous microsurgery, in which small, frequent, individually low-risk interventions maintain the body indefinitely and no endpoint is presumed. The regime is considered in its longevity form, in which survival is extended not by a single cure for aging but by progressively replacing the body's dependence on its original anatomical configuration, through a distributed auxiliary organ, an alternative metabolic interface, continuous skeletal adjustment, and autonomous tissue repair. The thesis is that such a regime is not ethically distinctive because it subjects the body to perpetual modification, but because an indefinite sequence of beneficial interventions can transform the conditions under which later interventions are chosen, so that the ethical unit of analysis is the trajectory and not the intervention. The essay develops this claim with a longitudinal decision model and a set of propositions with proofs. Each of the four proposed systems imposes a quantitative constraint: redundancy in a distributed organ extends unmaintained viability only logarithmically and is bounded by common-cause failure, an adult metabolic interface can be caught in a trap in which light use worsens balance because it accelerates atrophy of native clearance, skeletal adjustment is limited by the least tolerant tissue and returns more slowly than it advances, and repair agents have a damage floor below which they do net harm. A rule that depends only on the current physiological state cannot enforce a constraint that distinguishes histories ending in the same state. The accumulated probability of a complication is coupled to the life gained, so it cannot by itself count against a life-extending regime, and the comparison class is fixed by competing risks. The option to discontinue has a price, the expected capped regret of the patient's later self, whose price per unit of lock-in is greatest for the first increments. Dependence ratchets when institutional state accumulates, and a criterion based on falling per-step risk can authorize steps whose cumulative net value is negative. In a damage-balance model of longevity by reconstruction, and conditional on a use-dependent atrophy mechanism that is assumed and not established, atrophy of the body's own repair raises the maintenance load needed to hold a damage level and shortens the grace period after support is lost, and together with institutional lock-in this defines horizons after which first the loss of the present supplier, and later any unsupported survival, can no longer be survived, and these are distinguished from planned withdrawal. Consent exercised as a veto carries at most one bit of influence per decision, and consent exercised under endogenously changing preferences does not compose into consent to the sequence. A feedback model of psychological change shows that external control toward a target accelerates the decay of dependence on the person's initial character, and that the reach of such control is bounded by controllability. A threshold model shows that pressure to continue can arise among individually voluntary choices without any coercing institution. Against this background the strongest case for the technology, that it enlarges autonomy, is formalized and shown to hold, for the future of leaving the regime, exactly when exit costs stay within what the person can bear. The essay closes with three independent protections, the right to continue, the right to discontinue, and the right not to have one's future options made unnecessarily dependent on continued intervention, and with a trajectory-level admissibility condition whose conjuncts are tested against one another. The freedoms of exit, migration, and reconstitution are shown to be independent, and autonomy under reconstruction is argued to require not anatomical reversibility but governability of the system's dependencies. Throughout, documented facts, established mathematical results, labeled hypotheses about the regime, and propositions proved here are kept distinct. Several of the propositions apply standard mathematics to a new interpretation, and the contribution lies in their integration.
+\end{abstract}
+
+\section{Introduction: A Regime, Not a Procedure}
+
+The dominant framework of contemporary medical ethics evaluates decisions one at a time. A proposed intervention is assessed for medical indication, for the voluntariness and information of the patient's consent, for the balance of its expected benefit and expected harm, and for its fairness of access, which are the commitments that the principlist tradition organizes under respect for autonomy, beneficence, nonmaleficence, and justice \cite{beauchamp2019}. The framework is a good one, and its unit of analysis is well matched to the medicine it was developed to govern. An operation, a course of antibiotics, or a screening decision has a beginning and an end, and the question of whether it was ethical can be answered by examining the circumstances in which it was proposed, chosen, and carried out. The unit of analysis is a poor match for a medical relationship that has no presumptive end, because in such a relationship the circumstances of each decision are partly the product of the decisions that preceded it, and an evaluation that treats each decision as if it began from a clean slate will systematically miss what the sequence as a whole does.
+
+The regime considered here is called continuous microsurgery. It is a hypothetical regime in which small, frequent, individually low-risk interventions maintain tissue and physiological function indefinitely, delivered through an institutional apparatus of devices, clinicians, monitoring, consumables, and records that persists for as long as the patient does. In its longevity form, the regime is a proposal to extend healthy life not through a single cure for aging but by progressively replacing the body's dependence on its original anatomical configuration. The components considered are a distributed auxiliary organ that senses and buffers physiological state (the hepastitium), an alternative metabolic interface for nutrient delivery and waste removal (the umbilicus), continuous skeletal adjustment, and autonomous micro-scale tissue repair, and Section~\ref{sec:analogues} describes each with its evidential status. No present technology performs continuous microsurgery in this sense. The nearest analogues are partial and are discussed in Section~\ref{sec:analogues}: implanted devices that require long-term support, closed-loop systems that sense and act without episodic clinical contact, and chronic multi-drug regimens in which each prescription arises from the effects of an earlier one. The essay treats the regime as a conditional object. It asks what would follow for the ethics of medicine if such a regime existed, and it takes no position on whether, when, or in what form it will exist. The question is of interest now because the structural features that make the regime ethically distinctive are already visible, in attenuated form, in the analogues, and because a framework developed in advance of the full regime can be tested against the partial cases that already exist.
+
+The central claim is that continuous microsurgery is not ethically distinctive because it subjects the body to perpetual modification. The body is already in perpetual modification, through molecular turnover, adaptation, injury, and repair, and nothing about repair by a clinician is mysterious merely because it is repeated. The regime is distinctive because a potentially indefinite sequence of individually beneficial interventions can transform the conditions under which subsequent interventions are chosen. A patient who accepts a minor preventive procedure at forty and a more sophisticated one at forty-five has made two decisions, each of which may be safe, consensual, medically indicated, and beneficial when considered in isolation. The ethical character of the pair, however, is not determined by the ethical character of its members. The second decision is made in a world that the first decision helped to build, with different options available, different costs of refusal, different institutional relationships, and possibly different preferences. Over decades, this recursion can generate dependencies, obligations, inequalities, and transformations that no individual authorization adequately describes. The unit of ethical analysis is therefore the trajectory, including the conditions under which the patient can still put the knife down.
+
+This claim is easy to assert and easy to misread, and the purpose of the formal apparatus developed below is to state it precisely and to test it. Two misreadings deserve mention at the outset. The first is that the claim amounts to a general suspicion of long-term medicine, which it does not. There is nothing intrinsically dignified about preventable vascular disease, neurodegeneration, chronic pain, or the progressive loss of independence, and a maintenance regime that substantially postponed these conditions could enlarge autonomy and not diminish it. Section~\ref{sec:strongest} formalizes the strongest version of this argument and shows when it holds. The second misreading is that the claim requires a malicious or even a negligent institution. It does not. A succession of competent clinicians, conscientious insurers, satisfied patients, and successful technologies could establish a system in which declining treatment becomes increasingly hard to justify socially, economically, or personally, and Section~\ref{sec:cascade} shows that this can follow from individually voluntary choices without any coercive actor.
+
+The mathematical development proceeds from a longitudinal decision model in which the patient's physiological state, an institutional state, and the history of treatment evolve together under a policy. Within that model, the essay proves a sequence of results, stated in prose here and with full statements and proofs below. A rule that looks only at the current physiological state cannot enforce a constraint that distinguishes histories ending in the same state, which is a narrower claim than the inadequacy of consent, and the minimal additional state required is the equivalence class of the history under the constraint. The accumulated probability of at least one complication grows with the life gained, which means that it is a statistic of exposure and not an independent objection, and the correct comparison is between competing hazards. The option to discontinue has a precise price, which is the expected capped regret of the patient's later self, and that price is concave in the exit cost, so that the option destroyed per unit of lock-in is greatest for the first increments. When institutional state accumulates monotonically, exit costs ratchet, and a rule that authorizes each step because its own medical risk has fallen can authorize a sequence whose cumulative net value is negative. In a damage-balance model of longevity by reconstruction, and conditional on a use-dependent atrophy mechanism that is assumed and not established, atrophy of the body's own repair raises the maintenance load required to hold a damage level and shortens the grace period after support is lost, and together with institutional lock-in this defines horizons after which first the loss of the present supplier, and later any unsupported survival, can no longer be survived, and these are distinguished from planned withdrawal. Consent exercised as a veto over proposals made by a preference-blind protocol conveys at most one bit of influence per decision, and consent exercised under preferences that the interventions themselves alter does not compose into consent to the sequence. A feedback model of psychological change shows that control toward an externally set target accelerates the decay of dependence on the person's initial character, and that the extent of such control is bounded by a rank condition. A threshold model shows that the share of a population that continues treatment can exceed the share for whom continuation is intrinsically worthwhile by an amount that depends only on the social cost of declining.
+
+Four classes of claim appear in the essay, and the discipline of keeping them apart is maintained throughout. Documented facts concern existing systems and practices and are drawn from reporting, review articles, and methodological literature, and each is cited. Established mathematical results are standard theorems from probability, information theory, decision theory, and control theory, and they are cited and, where short, proved. Hypotheses about the regime are statements about what continuous microsurgery would be like, and they are labeled as hypotheses because no instance of the regime exists. Propositions proved here are statements within the formal model, and their scope is the model and not the world. Several are direct applications of standard mathematics (Nerode equivalence, an option-value integral, linear feedback, the controllability rank test, a threshold equilibrium) to a new interpretation, and the contribution claimed is their integration into a single ethical architecture, together with the grace-period, exit-horizon, and subsystem results, and not the novelty of any one technique. The model is conceptual and is not a validated clinical scoring system, and none of its parameters is estimated from data. Numerical illustrations are parametric and serve to exhibit structure.
+
+The essay is organized as follows. Section~\ref{sec:analogues} describes the regime, its documented analogues, and the arguments for and against it in the existing literature. Section~\ref{sec:subsystems} states one quantitative constraint for each of the four systems, covering node redundancy, mass balance, tissue strain, and repair-agent net benefit. Section~\ref{sec:model} introduces the decision model and proves that local admissibility rules cannot enforce history-dependent constraints. Section~\ref{sec:risk} treats cumulative risk, exposure, and competing risks. Section~\ref{sec:exit} prices the option to discontinue. Section~\ref{sec:ratchet} develops the ratchets of institutional, biological, and structural dependence and the three kinds of exit and the horizons they define. Section~\ref{sec:consent} examines consent under preference change and the limits of consent as a veto. Section~\ref{sec:identity} treats identity and control. Section~\ref{sec:cascade} shows how pressure to continue can emerge without a coercer. Section~\ref{sec:strongest} formalizes the strongest case for the regime. Section~\ref{sec:protections} states the three protections and a trajectory-level admissibility condition and tests it on a worked example. Section~\ref{sec:objections} considers objections, and Section~\ref{sec:limits} states limitations and concludes.
+
+\section{The Regime, Its Components, and Its Analogues}\label{sec:analogues}
+
+\subsection{The longevity hypothesis}
+
+There are two broad ways in which healthy life might be extended through medical technology. Preservation attempts to maintain the organism's existing architecture, slowing or repairing the degradation of the structures the body already has. Reconstruction allows the architecture itself to change, provided that essential functions and an acceptable continuity of the individual are maintained. Continuous microsurgery in its longevity form belongs to the second category. Its central proposition is that longevity might be achieved not by discovering a single cure for aging, but by progressively replacing the body's dependence on its original anatomical configuration. The organism acquires additional organs, internal maintenance systems, alternative metabolic pathways, and mechanisms for modifying its own structure over time, and the ethical problem the essay pursues is how extensively structure and supporting infrastructure can change while preserving the physiological and personal continuities that make the extended life worth living.
+
+The longevity hypothesis can be given a minimal formal statement. Let $D(t)$ denote an accumulated burden of a specified class of damage, $G(t)$ its rate of generation, and $R(t)$ the effective rate of repair, so that
+\[
+\frac{dD}{dt}=G(t)-R(t).
+\]
+If $R$ can sustainably match or exceed $G$, that damage burden need not increase. The statement is deliberately modest. It does not establish indefinite survival, because biological aging involves many interacting damage processes, some of them poorly understood, and the generation of one class of damage may depend on the burden of another. Nor does it establish that a repair system is safe, since any system capable of altering tissue can introduce new hazards of its own. What the equation identifies is the actual structure of the hypothesis: aging-related deterioration might become manageable as a continuously regulated collection of failure processes, each held below a functional threshold, instead of an irreversible aggregate condition that merely awaits the moment at which it becomes clinically significant. Section~\ref{sec:ratchet} extends the equation to include the body's own repair capacity and shows what follows when that capacity changes in response to the maintenance regime.
+
+\subsection{Four proposed systems}
+
+Four systems are considered, each a hypothesis about a way in which the body's dependence on its original configuration could be reduced. They are described in the vocabulary of the proposal, and the evidential status of each is stated.
+
+The first is the hepatastitium, hereafter the hepastitium. The name denotes the complete organ system, its constituent units are hepastitial nodes, the network they form is the hepastitial network, and its coordinating functions are hepastitial regulation. The system is conceived as a distributed network of implanted micro-relays that sample physiological conditions and coordinate local interventions, and thus as an auxiliary capacity spread across tissues and not as a single replacement organ. Its backup sampling nodes would monitor local oxygenation, glucose availability, metabolites, inflammatory markers, and tissue integrity. Its time-release reservoirs of oxygen and glucose would provide temporary metabolic support during interruptions of circulation or nutrient delivery. Its internal centrifuge for the desiccation of bodily fluids would need further specification, because separating fluid components, concentrating solutes, and removing water are different physiological operations, and a centrifuge alone neither eliminates waste nor resolves the osmotic and energy requirements of fluid management. The last point deserves emphasis for the later analysis. Removing water from a solution requires work against its osmotic pressure, which places a lower bound on the energy that an implanted desiccation system must be supplied. The bound is small in thermodynamic terms, as Section~\ref{sec:subsystems} shows, so the energy dependency of a real system is set by its efficiency and power source and not by the physics alone. The deeper idea of the hepastitium is physiological redundancy. Human anatomy contains some redundancy, but many essential functions remain vulnerable to concentrated failure, and an artificial auxiliary system could in principle distribute functions that are presently localized. It would not necessarily replace the liver, kidneys, lungs, or endocrine system, and would instead serve as supplementary physiological infrastructure with its own sensing, storage, circulation, and control mechanisms.
+
+The second is the umbilicus, an elective adult interface at the navel through which nutrients could be taken in and wastes removed, by analogy with fetal physiology. In fetal development the placenta and the umbilical circulation provide an external exchange system, delivering oxygen and nutrients and removing carbon dioxide and metabolic wastes through the broader maternal-placental arrangement. An adult umbilicus would not reactivate that circulation, which closes and remodels after birth. It would require an entirely new implanted interface connecting implanted exchange hardware to an external apparatus capable of delivering nutrients, removing metabolic waste, regulating fluid balance, and potentially providing temporary organ support, and it would face substantial challenges of infection, thrombosis, immune response, fluid balance, and safe disconnection. Conceptually, however, it changes the architecture of human metabolism, because eating, digestion, respiration, and renal excretion would cease to be the only possible routes of physiological support. An individual might alternate between ordinary biological functioning and externally supported maintenance, a possibility that becomes important in Section~\ref{sec:ratchet}, where alternation is shown to be a design variable that governs how much of the body's own capacity survives.
+
+The third is continuous skeletal adjustment, the extension or shortening of bones by very small increments applied at a very high frequency. The proposed schedule is approximately one half of a millimeter every five hours. At that rate the displacement is about 2.4 millimeters per day, 16.8 millimeters per week, and 72 millimeters over thirty days. Conventional clinical distraction osteogenesis proceeds at roughly one millimeter per day divided into several small increments, following the tension-stress principle described by Ilizarov \cite{ilizarov1989}, so the proposed rate is about two and a half times the conventional one. More importantly, extending a bone is not equivalent to extending a limb successfully. Muscles, tendons, nerves, vessels, skin, and joint geometry must accommodate the change while new bone forms and consolidates, and shortening raises additional problems of tissue removal and reconstruction, so that a reversible skeletal geometry would require technologies beyond conventional bone distraction. The theoretical significance is nonetheless considerable. The adult skeleton would cease to be a relatively fixed anatomical constraint and become a continuously adjustable structure, which makes it the clearest example of a component whose changes are not obviously reversible and whose reversibility is the subject of the structural analysis of Section~\ref{sec:ratchet}.
+
+The fourth is the population of micro-repair bots, which would provide the closest realization of continuous microsurgery in the literal sense. They would identify tissue damage, navigate to the affected regions, perform localized repairs, and verify the result. This remains speculative. Existing microrobotics research does not establish autonomous, general-purpose tissue repair throughout the human body, and navigation, power delivery, immune compatibility, precision manipulation, debris removal, and reliable verification each remain formidable challenges. The architecture nevertheless suggests a model of longevity different from episodic repair: instead of waiting for damage to accumulate until it becomes clinically significant, a maintenance system could attempt to keep selected damage below functional thresholds, which is the structure of the damage-balance equation above.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{p{3.2cm}p{5.2cm}p{5.2cm}}
+\toprule
+Proposed system & Longevity function & Evidential status\\
+\midrule
+Hepastitium & Distributed sensing, metabolic reserves, and auxiliary regulation & Hypothetical; individual functions have clinical analogues, the integrated organ does not\\
+Umbilicus & External nutrient delivery and waste exchange, alternating with ordinary function & Hypothetical; requires a new implanted interface with open problems of infection, thrombosis, and disconnection\\
+Skeletal adjustment & Gradual structural adaptation and reconstruction & Partly established at lower rates in distraction osteogenesis; continuous bidirectional adjustment is hypothetical\\
+Micro-repair bots & Local tissue maintenance and damage correction & Speculative; autonomous general-purpose repair is not established\\
+\bottomrule
+\end{tabular}
+\caption{The four proposed systems, their longevity functions, and their evidential status.}
+\label{tab:systems}
+\end{table}
+
+\subsection{Three modes of survival}
+
+What makes these proposals fit together is their division of physiological labor, and the resulting organism has three overlapping modes of survival: ordinary biological function, implanted auxiliary function, and external life-support infrastructure. This is not simply the familiar proposal to replace organs with machinery. The more interesting architecture is one in which biological and artificial systems progressively acquire the ability to maintain and reconstruct each other, so that tissue, artificial organs, and external infrastructure participate in a single maintenance process and the organism becomes a continuously reconfigurable physiological system. The same architecture sharpens the ethical problem. An individual whose body depends on proprietary implanted relays, external nutrient exchange, and a distributed repair network may possess extraordinary biological resilience while becoming profoundly dependent on manufacturers, software, energy supplies, clinical institutions, and maintenance technicians. A century of additional healthy life could be a genuine expansion of freedom even while the conditions required to sustain it create new forms of vulnerability, and the formal task of the following sections is to state exactly how both can be true.
+
+\subsection{Documented analogues}
+
+Although the full regime is hypothetical, its structural features have documented counterparts, and four of them are drawn on in what follows.
+
+The first concerns implanted devices whose function depends on the continued existence of a manufacturer. The best documented case is the Argus~II retinal implant of Second Sight Medical Products. According to reporting in \emph{IEEE Spectrum}, the device received European approval in 2011 and United States approval in 2013, more than 350 blind people worldwide received Second Sight implants, and in July 2019 the company told Argus users that it would phase out the implant. In March 2020 it laid off most of its remaining staff and announced a wind-down, and it stated that its reduced workforce was unable to continue the previous level of support for Argus~II centers and users, so that replacement external processing units were limited and no repairs or replacements of the implants were possible \cite{spectrum2022}. The reporting describes a patient who needed a magnetic resonance scan to rule out a brain-stem tumor and could not obtain one without the company's input, and another who kept a defunct device in place because removal surgery seemed too risky. A commentary in \emph{STAT} argued that the burden of business failure should not fall on the patient and proposed a duty of care for companies whose devices integrate with the body, the designation of successor supporters, public release of information about proprietary devices when a business fails, and fuller informed consent covering the economic and technical implications of long-term support \cite{jazwinska2022}. Each implantation in this history was a defensible single decision. What failed was the institutional continuity that the trajectory presupposed, which is exactly the kind of failure that evaluation at the unit of the intervention cannot see.
+
+The second concerns the sequences of prescriptions known as prescribing cascades, in which a new medicine is prescribed to address an adverse reaction to another medicine, whether or not the reaction is recognized as drug-caused \cite{rochon1997,chen2023}. A 2023 scoping review identified 32 studies involving more than seven million patients across 11 countries and 49 distinct cascade routes, most reported in older adults, with a calcium channel blocker leading to edema and then to a loop diuretic among the frequently reported sequences. Of the 32 studies, 17 addressed identification of cascades, 11 addressed their resolution, and 4 addressed prevention, and the study designs were mostly cross-sectional or case reports \cite{chen2023}. The evidence base is therefore descriptive and not causal, but it documents that sequences of individually reasonable prescriptions can generate further treatment and that resolution, the exit side, has received less attention than identification.
+
+The third is deprescribing, the systematic process of identifying and discontinuing drugs when existing or potential harms outweigh existing or potential benefits in the context of an individual patient's care goals, functioning, life expectancy, values, and preferences \cite{scott2015}. The protocol proposed by Scott and colleagues has five steps: ascertain every drug the patient takes and the reason for each; assess the overall risk of drug-induced harm to set the intensity of the intervention; assess each drug for eligibility for discontinuation, where one explicit criterion is that the drug is part of a prescribing cascade; prioritize drugs for discontinuation by harm and benefit, ease of withdrawal, and the patient's willingness; and implement and monitor, ceasing one drug at a time so that harms and benefits can be attributed to specific drugs \cite{scott2015}. Three features of the paper bear on the present argument. It recommends that regimens carry an expiry or ``best before'' date prompting reappraisal, which is an institutional mechanism for keeping exit available. Its list of barriers includes fragmented care among multiple prescribers and incomplete information on the past rationales for each drug, which is the practical form of the requirement, derived in Section~\ref{sec:model}, that the history of a trajectory be recorded and legible to whoever authorizes the next step. And its review of the evidence reports that, with careful selection, education, and monitoring, withdrawal of some drug classes was possible without harm in between 20\% and 100\% of patients, while noting that the studies are heterogeneous and of low to moderate quality \cite{scott2015}. Deprescribing is cited as evidence that exit is a clinical competence that must be built and maintained, and no inference about effect sizes in the regime considered here is drawn from it.
+
+The fourth is methodological. The analysis of survival data in the presence of competing risks defines a competing risk as an event whose occurrence precludes the occurrence of the primary event of interest, distinguishes cause-specific hazards from subdistribution hazards, and defines the cumulative incidence function as the probability of a specific event before time $t$ and before any competing event. It also documents that taking the complement of the Kaplan--Meier estimate overstates incidence when competing risks are present, even when the competing events are independent. In the case study of that paper, the five-year incidence of cardiovascular death was 43.0\% by the Kaplan--Meier complement and 36.8\% by the cumulative incidence function \cite{austin2016}. This matters for any regime in which an intervention is extended over decades, because the comparison class is never the absence of risk but the competing risks of disease, disability, and death.
+
+\subsection{Arguments for and against}
+
+The literature on life extension supplies the arguments between which the essay's structural claim sits. Proponents argue that death and the decline preceding it are evils that medicine should be allowed to postpone, and the argument has been stated memorably in the form of a fable in which a society tolerates a dragon that consumes a fixed fraction of its people every day \cite{bostrom2005} and defended more systematically as an extension of the aims of medicine \cite{harris2007}. A distinct line of argument concerns the allocation of life across its stages and holds that a prudent person would apportion resources over a whole life, which bears on how extension should be valued \cite{daniels1988}. Opponents argue that the acceptance of limits is part of what gives a life its shape and its moral meaning \cite{kass2001} or that a society's resources are better directed to the care of those at the end of a natural lifespan than to its extension \cite{callahan1987}. The present essay does not adjudicate this dispute. It asks a question that the dispute leaves open, which is how a regime that delivered the extension its proponents desire would have to be structured for the extension to remain a freedom, and the answer is expressed in terms of properties of trajectories that hold or fail independently of whether extension is in itself a good.
+
+\section{Quantitative Constraints of the Four Systems}\label{sec:subsystems}
+
+The longevity thesis is carried by four proposed systems, and each of them imposes a constraint that can be stated before any ethical question is asked. This section states one constraint per system. All of them are parametric and none is an estimate of a real device or tissue. Their role is to show where the dependencies analyzed later originate: in the hepastitium, redundancy trades against common-cause failure and maintenance; in the umbilicus, a mass balance couples the interface to the atrophy of native clearance; in skeletal adjustment, tissue strain rates and asymmetric return times bound what can be done and undone; and in the repair bots, a net-benefit threshold sets a floor on the damage level that can usefully be held.
+
+\subsection{Hepastitial network: viability of a distributed auxiliary organ}
+
+Let the hepastitial network consist of $N$ nodes, each of which fails independently at constant rate $\mu$ when unmaintained, so that a node is working at time $t$ with probability $p(t)=e^{-\mu t}$. A function is \emph{viable} when at least $k$ nodes are working, with $1\le k\le N$. Then
+\begin{equation}\label{eq:viable}
+P_{\mathrm{viable}}(t)=\sum_{j=k}^{N}\binom Nj p(t)^j\big(1-p(t)\big)^{N-j},
+\end{equation}
+which is nondecreasing in $N$ for fixed $k$ and $p$, because a network with one additional node can be coupled to the smaller network so that it works whenever the smaller network works. With maintenance, in which a failed node is replaced at rate $\nu$, each node is working in the long run with probability $A=\nu/(\nu+\mu)$ and viability is given by the same expression with $p=A$. The replacement rate $\nu$ is supplied by the institution that maintains the system, so that the loss of the institution corresponds to $\nu\to0$ and returns the network to the unmaintained expression.
+
+\begin{proposition}\label{prop:nodes}
+(a) For $k=1$ and unmaintained nodes, viability stays at or above $1-\epsilon$ until
+\[
+t_\epsilon(N)=\frac1\mu\ln\frac{1}{1-\epsilon^{1/N}},
+\]
+which is increasing in $N$ and satisfies $t_\epsilon(N)\sim\mu^{-1}\ln\!\big(N/\ln(1/\epsilon)\big)$ as $N\to\infty$. (b) If, in addition to independent failures, a common cause such as a shared power source, firmware, or communication channel disables all nodes at rate $\mu_c$, then $P_{\mathrm{viable}}(t)\le e^{-\mu_c t}$ for every $N$ and $k$, and consequently the time until viability falls below $1-\epsilon$ is at most $t_\epsilon^{\mathrm{cc}}=\mu_c^{-1}\ln\frac1{1-\epsilon}\approx\epsilon/\mu_c$ for small $\epsilon$.
+\end{proposition}
+
+\begin{proof}
+(a) With $k=1$ the network fails only if all nodes have failed, with probability $(1-p)^N$, and $(1-e^{-\mu t})^N\le\epsilon$ holds if and only if $e^{-\mu t}\ge1-\epsilon^{1/N}$, which gives $t_\epsilon$. Since $\epsilon^{1/N}$ increases to one, $1-\epsilon^{1/N}$ decreases and $t_\epsilon$ increases. For large $N$, $1-\epsilon^{1/N}=1-e^{-\ln(1/\epsilon)/N}\sim\ln(1/\epsilon)/N$, which gives the asymptotic form. (b) The event that the common cause has not struck by time $t$ has probability $e^{-\mu_ct}$, and viability requires it.
+\end{proof}
+
+\begin{example}
+With $\mu=0.01$ per day and $\epsilon=10^{-3}$, an unmaintained network of $N=10$, $100$, and $1000$ nodes remains viable for $69.6$, $270.7$, and $497.9$ days respectively. Each tenfold increase in the number of nodes buys about $\mu^{-1}\ln10\approx230$ further days. Redundancy therefore extends the time that the network can go unmaintained only logarithmically, and for any reliability threshold it cannot extend it past $\mu_c^{-1}\ln\frac1{1-\epsilon}$, which for $\epsilon=10^{-3}$ is about $10^{-3}/\mu_c$. The reciprocal $1/\mu_c$, the mean waiting time to common-cause failure, is a characteristic time scale and not a deadline for the viability horizon.
+\end{example}
+
+The proposition expresses the dependence that matters for the later sections in a concrete form. A redundant distributed organ postpones the consequences of the loss of maintenance by a time that grows slowly with its size, and it is bounded by the reliability of whatever is shared, through $t_\epsilon^{\mathrm{cc}}$. Nothing in this section assumes that the network displaces native function; a hepastitium that only samples and buffers could preserve native capacity, and its dependency cost would then lie in maintenance and not in atrophy. The grace period of Section~\ref{sec:ratchet} is the same kind of quantity, and the network contributes to it only through the logarithm.
+
+\subsection{Umbilicus: mass balance and the atrophy trap}
+
+For a solute or fluid component $i$ let $M_i$ be the amount held in the body. Its balance is
+\begin{equation}\label{eq:massbalance}
+\frac{dM_i}{dt}=I_i+p_i-c_i-e_i(\rho)-J_i,
+\end{equation}
+where $I_i$ is oral intake, $p_i$ endogenous production, $c_i$ metabolic consumption, $e_i(\rho)$ native excretion, which depends on the body's own clearance capacity $\rho$ as in Section~\ref{sec:ratchet}, and $J_i$ removal through the interface. Holding $M_i$ constant requires $J_i=L_i-e_i(\rho)$ with $L_i=I_i+p_i-c_i$. Where the interface also removes water from solutions of osmolarity $c_{\mathrm{osm}}$, the reversible work per unit volume of recovered pure water is bounded below by the osmotic pressure $\Pi=c_{\mathrm{osm}}RT$. At $300$~mol\,m$^{-3}$ and $310$~K this is about $0.77$ MJ\,m$^{-3}$, or $0.77$ kJ per liter, which is small compared with metabolic power. The thermodynamic limit is therefore not the binding energy constraint, and the energy dependency of a real device is set by its efficiency and its power source.
+
+The more consequential coupling is with atrophy. Suppose native excretion is linear in capacity, $e_i=\varepsilon\rho$, the interface can remove at most $J_{\max}$ while engaged, and it is engaged for a fraction $\theta$ of the time under the averaging of Section~\ref{sec:ratchet}, with full delegation of the work while engaged ($s=1$ in the notation there, so that the delegated share equals the duty cycle; for $s<1$ the argument of $\rho_{\mathrm{ss}}$ below is $s\theta$). This identification of duty cycle with delegated share is a modeling assumption, and the physiological interpretation of the trap depends on it. Then balance at duty cycle $\theta$ holds if and only if
+\begin{equation}\label{eq:trap}
+g(\theta)=\theta J_{\max}+\varepsilon\rho_{\mathrm{ss}}(\theta)-L\ \ge\ 0,
+\end{equation}
+with $\rho_{\mathrm{ss}}$ from~\eqref{eq:rhoss}. Because $\rho_{\mathrm{ss}}'(0)=-(\rho_{\max}-\rho_{\min})\alpha/\beta$, the derivative at the origin is $g'(0)=J_{\max}-\varepsilon(\rho_{\max}-\rho_{\min})\alpha/\beta$.
+
+\begin{proposition}\label{prop:trap}
+If $g'(0)<0$, then a small engagement of the interface leaves the body worse off in balance than no engagement at all: $g(\theta)<g(0)$ for small $\theta>0$. In that case, if the body alone cannot hold balance ($g(0)<0$), balance requires a duty cycle bounded away from zero, whatever the capacity of the interface at $\theta=1$.
+\end{proposition}
+
+\begin{proof}
+The first statement is the sign of the derivative of the smooth function $g$ at zero. If $g(0)<0$ and $g$ first decreases, it can reach nonnegative values only after it has turned upward, so any $\theta$ with $g(\theta)\ge0$ lies beyond the first zero crossing of $g'$, which is positive.
+\end{proof}
+
+\begin{example}
+Take the clearance parameters of the example in Section~\ref{sec:protections} ($\rho_{\max}=0.20$, $\rho_{\min}=0.02$, $\alpha=0.04$, $\beta=0.02$), $\varepsilon=1$, load $L=0.25$, and $J_{\max}=0.30$. The body alone falls short, $g(0)=-0.05$. Since $g'(0)=0.30-0.36<0$, light engagement is worse than none ($g(0.1)=-0.053$), and balance is first achieved at $\theta\approx0.63$, with $g(1)=0.07$. An interface with $J_{\max}=0.30$ is adequate at full engagement but is useful only if the patient commits to more than six-tenths of the time on it.
+\end{example}
+
+The case in which the first increments of support do not help is a version of the ratchet that appears in the physiology itself: the interface must outrun the atrophy that it causes before it can be an alternative and not merely a replacement.
+
+\subsection{Skeletal adjustment: coupled tissue constraints and asymmetric return}
+
+Let the bone be lengthened at rate $r$ (mm per day) across a limb with soft-tissue segments $i=1,\dots,m$ of rest length $L_i$ that span the gap, each with a tolerable strain rate $\dot\varepsilon_i$ (fraction per day). The strain rate of segment $i$ is $r/L_i$, and bone formation limits the rate to some $r_{\mathrm{bone}}$. The feasible rate is therefore
+\begin{equation}\label{eq:strain}
+r\le\min\Big(r_{\mathrm{bone}},\ \min_i\dot\varepsilon_iL_i\Big).
+\end{equation}
+Since the strain rate is linear in $r$, a schedule of $0.5$~mm every five hours ($r=2.4$~mm/day) imposes on every segment $2.4$ times the strain rate of a conventional schedule of $1$~mm/day, whatever the segment, and the schedule is admissible only if each tissue tolerates that multiple. For a segment of $300$~mm the strain rate is $0.8\%$ per day against $0.33\%$ per day under the conventional schedule. Whether those values are tolerable is an empirical matter that the present model does not decide, and the constraint~\eqref{eq:strain} shows that the binding quantity is set by the least tolerant tissue and not by the bone.
+
+Reversal is subject to a separate constraint. Let the rate of shortening be $r_-$, limited by the rate at which bone can be resorbed or resected and the soft tissue reconstituted. A change of length $\Delta L$ takes $\Delta L/r_+$ to make and $\Delta L/r_-$ to undo, so that the return time exceeds the forward time exactly when $r_-<r_+$. Where shortening depends on resection and reconstruction and lengthening on regeneration, $r_-<r_+$ is the expected case, and the biological component of the exit cost is greater than the cost of the original change. This asymmetry enters the withdrawal time of Section~\ref{sec:ratchet} through the biological term, and it is the reason that the skeleton is the clearest example in Section~\ref{sec:analogues} of a component whose reversibility is in question.
+
+\subsection{Micro-repair bots: a floor on useful damage}
+
+Let $n$ be the number of repair agents, each removing damage at a saturating rate $rD/(K+D)$, where $r$ is the maximal rate and $K$ the half-saturation level, and each introducing damage at rate $h$ through collateral injury and failed repairs. With the other terms of~\eqref{eq:balance},
+\begin{equation}\label{eq:bots}
+\frac{dD}{dt}=g_0+(g_1-\rho)D-n\Big(\frac{rD}{K+D}-h\Big).
+\end{equation}
+An agent is a net benefit at damage level $D$ if and only if $rD/(K+D)>h$, that is, if $r>h$ and $D>D_{\mathrm{floor}}=hK/(r-h)$. Holding a level $\bar D$ with a positive population of agents requires two conditions: $\bar D>D_{\mathrm{floor}}$, and a positive net deficit of native repair at that level, $g_0+(g_1-\rho)\bar D>0$. When both hold, the required population is
+\begin{equation}
+n(\bar D)=\frac{g_0+(g_1-\rho)\bar D}{r\bar D/(K+\bar D)-h},
+\end{equation}
+which is finite and positive and rises as the body's capacity $\rho$ falls. If $g_0+(g_1-\rho)\bar D=0$, no agents are needed to hold the level in this model, and if it is negative, native repair already drives damage below $\bar D$ and the level cannot be held by repair alone without changing another term. For $r=1$, $h=0.2$, $K=5$ the floor is $D_{\mathrm{floor}}=1.25$, and below it each agent adds more damage than it removes. The consequence for the longevity thesis is that a population of repair agents cannot be tuned to hold damage arbitrarily low; there is a level below which intervention is itself the main source of damage, and the margin to that floor is a safety quantity that a maintenance regime would have to monitor.
+
+\section{A Longitudinal Decision Model}\label{sec:model}
+
+\subsection{Definitions}
+
+Time is discrete, $t=0,1,2,\dots$, and the unit may be taken as any interval at which interventions can be scheduled. The patient's physiological state is $x_t\in\mathcal X$. A second state variable $z_t\in\mathcal Z$ records the institutional and technical conditions under which care is delivered: which devices are implanted and by whom they are supported, which records and interfaces are in use, what contracts and coverage apply, and what skills are locally available. The action at time $t$ is an intervention $a_t\in\mathcal A$, where $\mathcal A$ includes a null action. The history is $H_t=(x_0,z_0,a_0,x_1,z_1,a_1,\dots,x_t,z_t)$. A policy $\pi$ maps histories to distributions over actions, and the transition kernel $P(x_{t+1},z_{t+1}\mid x_t,z_t,a_t)$ is assumed to be Markov in the joint state, which is no restriction because any history dependence can be absorbed into $z_t$ at the cost of enlarging it. That absorption is in fact the content of Proposition~\ref{prop:local} below.
+
+The value of a policy from time $t$ is
+\begin{equation}\label{eq:value}
+V^\pi(x_t,H_t)=\E^\pi\Big[\sum_{k=t}^{T}\gamma^{k-t}\big(B_k-R_k-C_k-D_k\big)\,\Big|\,H_t\Big],
+\end{equation}
+where $B_k$ denotes the health benefit realized at step $k$, $R_k$ the expected medical harm, $C_k$ the financial and opportunity cost, and $D_k$ the burden of dependence on continued treatment, $\gamma\in(0,1]$ is a discount factor, and $T$ is the horizon, which may be random. The model is conceptual and is not a validated clinical scoring system. Its purpose is to make visible a feature that conventional evaluation suppresses: the terms $R_k$ and $B_k$ are the quantities a procedure-level assessment reports, while $D_k$, and the dependence of all later terms on the conditions $z_k$ that earlier actions create, are quantities that exist only at the level of the trajectory.
+
+The qualitative claim of the introduction can now be stated in model terms. The function $V^\pi$ can fall along a policy even when $R_k$ is decreasing in $k$, because the terms $D_k$ and $C_k$ are functions of $z_k$, and $z_k$ is a function of the actions already taken. A procedure-level assessment sees $R_k$ and $B_k$ and treats $z_k$ as a fixed background, and a trajectory-level assessment treats $z_k$ as an output of the policy.
+
+\subsection{Why local rules cannot enforce trajectory constraints}
+
+Suppose a governance body wishes to enforce a constraint on trajectories, for example that cumulative exposure to a class of procedures never exceed a cap, that no more than one procedure of a given kind occur in any five-year window, or that the exit cost of Section~\ref{sec:exit} never exceed a stated bound. Each of these is a property of the sequence of actions and not of the current state. The simplest governance device is a local rule, a function $\sigma:\mathcal X\to 2^{\mathcal A}$ that lists, for each current physiological state, the interventions permitted. The following proposition shows that no local rule can be both sound and complete for a constraint that distinguishes histories arriving at the same state.
+
+Let $C\subseteq\mathcal A^*$ be a prefix-closed set of admissible action sequences. Say that two prefixes $h,h'\in C$ are \emph{Nerode-equivalent} under $C$, written $h\sim_C h'$, if for every continuation $w\in\mathcal A^*$ we have $hw\in C$ if and only if $h'w\in C$ \cite{nerode1958}. Assume for this section that the physiological transition is deterministic, $x_{t+1}=f(x_t,a_t)$, so that two action sequences ending in the same state evolve identically under any common continuation. A local rule $\sigma$ is \emph{sound and complete} for $C$ if an action sequence $a_0a_1\cdots a_m$ lies in $C$ exactly when $a_j\in\sigma(x_j)$ for all $j\le m$, where $x_j$ is the state at which $a_j$ is taken.
+
+\begin{proposition}\label{prop:local}
+If there exist $h,h'\in C$ that end in the same state $x$ and are not Nerode-equivalent under $C$, then no local rule is sound and complete for $C$. Conversely, if $C$ has finitely many Nerode classes, then augmenting the state with the Nerode class of the history yields a local rule that is sound and complete, and the number of classes is the least amount of memory with which any such rule can be built.
+\end{proposition}
+
+\begin{proof}
+Let $h,h'\in C$ end in state $x$, and let $w=b_1\cdots b_m$ satisfy, without loss of generality, $hw\in C$ and $h'w\notin C$. Because the dynamics are deterministic and the two prefixes end in the same state, the continuation $w$ visits the same states $x^{(1)},\dots,x^{(m)}$ after $h$ as after $h'$. A local rule consults only the current state, so it returns the same verdict on each $b_j$ in both cases. If the rule is sound and complete, then $hw\in C$ implies $b_j\in\sigma(x^{(j-1)})$ for all $j$, which implies $h'w\in C$ because $h'\in C$ and every further action is permitted. This contradicts $h'w\notin C$. For the converse, the Nerode classes are the states of the minimal deterministic automaton recognizing $C$; define the augmented state as the pair of physiological state and class, and permit an action exactly when the automaton moves from the current class to a non-rejecting class. Minimality of the automaton gives the lower bound on memory.
+\end{proof}
+
+The scope of the proposition is narrow. It does not show that ordinary consent or local rules are inadequate in every longitudinal regime. It shows that a rule using only the current physiological state cannot enforce a constraint that distinguishes histories ending in the same state, and it identifies what must be recorded when such a constraint is wanted.
+
+The proposition has a practical reading. A cap on cumulative exposure with limit $N$ has $N+1$ classes together with a rejecting sink, so enforcement requires a counter. A bound on exit cost has as many classes as there are distinguishable values of the exit cost, and the exit cost is itself a function of the institutional history, so enforcement requires that the institutional state be recorded and be legible to the party that authorizes interventions. Two patients in identical physiological condition who differ in how many dependency-creating steps they have already taken must be treated differently, and a rule that sees only the clinical picture cannot do so. This is the formal sense in which the ethical unit is the trajectory: the object that must be tracked to enforce any history-dependent protection is the history, or a sufficient statistic of it, and the sufficient statistic is not the physiological state.
+
+\section{Cumulative Risk, Exposure, and Competing Risks}\label{sec:risk}
+
+An objection that arises at once against any indefinitely continued regime is that a small complication probability, repeated without end, becomes a near certainty. For independent interventions with complication probabilities $p_1,\dots,p_n$, the probability of at least one complication is $1-\prod_{i=1}^n(1-p_i)$, which for constant $p$ tends to one. The calculation is correct and the inference drawn from it is not, for three reasons that this section makes precise.
+
+\subsection{Dependence and heterogeneity}
+
+The independence assumption is doing the work. Let $A_1,\dots,A_n$ be the complication events with $P(A_i)=p_i$. Without further assumption the probability of the union satisfies the Fr\'echet bounds
+\begin{equation}\label{eq:frechet}
+\max_i p_i\;\le\;P\Big(\bigcup_{i=1}^nA_i\Big)\;\le\;\min\Big(1,\sum_{i=1}^np_i\Big),
+\end{equation}
+and both ends are attainable: the lower bound when the events are nested, as when a single susceptibility determines every complication, and the upper bound when they are mutually exclusive. If the indicators are positively associated in the sense of Esary, Proschan, and Walkup \cite{esary1967}, then $P(\bigcap_i A_i^c)\ge\prod_i(1-p_i)$ and the independent calculation overstates the risk; if they are negatively associated the independent calculation understates it, up to the upper bound in~\eqref{eq:frechet}. Shared patient susceptibility is a natural source of positive association, in which case the independence formula overstates the probability of any complication, but whether the complications of a particular procedure are positively or negatively associated is an empirical question, and no general empirical claim is made here.
+
+Heterogeneity sharpens the point. Suppose the complication indicators are exchangeable. By de~Finetti's theorem \cite{definetti1937} they are conditionally independent given a latent per-patient risk $\Theta\in[0,1]$, so that $P(\text{no complication in }n)=\E[(1-\Theta)^n]$.
+
+\begin{proposition}\label{prop:exch}
+For an exchangeable infinite sequence of Bernoulli complication indicators with mixing variable $\Theta$, the probability of at least one complication in $n$ interventions increases to $P(\Theta>0)$ as $n\to\infty$.
+\end{proposition}
+
+\begin{proof}
+For each $\theta\in[0,1]$, $(1-\theta)^n$ decreases to $\Ind\{\theta=0\}$, and it is bounded by one, so by dominated convergence $\E[(1-\Theta)^n]\to P(\Theta=0)$.
+\end{proof}
+
+If a positive share of patients carry no per-procedure risk at all, or if the distribution of $\Theta$ has an atom at zero as a model of a safe technique, the cumulative probability does not approach certainty. The independent formula is the special case in which $\Theta$ is a point mass at $p>0$.
+
+\subsection{Exposure is coupled to the life gained}
+
+The second reason is that the number of interventions is not an exogenous quantity. It is proportional to the length of life lived under the regime, and the regime exists to lengthen life. Model complications as a Poisson process of rate $\lambda$ over the patient's lifetime $T_1$, independent of the process itself. Then
+\begin{equation}\label{eq:poisson}
+P(N\ge1)=1-\E\big[e^{-\lambda T_1}\big],
+\end{equation}
+which is increasing in $T_1$ in the sense of first-order stochastic dominance, and by Jensen's inequality $P(N\ge1)\le1-e^{-\lambda\E[T_1]}$. Two consequences follow. The probability of experiencing at least one complication is larger under any regime that extends life, even if the rate $\lambda$ is unchanged, simply because more life is lived during which a complication may occur; it is therefore a statistic of exposure, and its rise is not evidence about the quality of the regime. And the quantities that do bear on quality are the expected number of complications per life-year, which equals $\lambda$, and the distribution and reversibility of the harms. A regime with a lower complication rate than the corresponding rate without it lowers the burden of complications per life-year, provided that severity, reversibility, and the other hazards of the life-year are unchanged, even though it raises the probability that a complication occurs at some time in a longer life; where severity differs, the rate is one component of the comparison and not the whole of it.
+
+\subsection{The comparison class is fixed by competing risks}
+
+The third reason is that the alternative to the regime is not a risk-free life. It is a life exposed to the hazards of the conditions that the regime postpones. In the language of competing risks, the occurrence of death or of an incapacitating disease precludes later complications of procedures, and the procedure-complication event is one of several competing events \cite{austin2016}. For two competing causes with constant cause-specific hazards $h_1$ and $h_2$, the cumulative incidence of cause 1 by time $t$ is
+\begin{equation}\label{eq:cif}
+F_1(t)=\int_0^t h_1e^{-(h_1+h_2)s}\,ds=\frac{h_1}{h_1+h_2}\Big(1-e^{-(h_1+h_2)t}\Big)\;\le\;1-e^{-h_1t},
+\end{equation}
+where the right-hand side is the complement of the Kaplan--Meier estimate that treats the competing event as censoring. With $h_1=0.10$ and $h_2=0.05$ per year, the five-year cumulative incidence is $0.352$, while the naive complement gives $0.393$; the gap widens with the horizon, because the first expression converges to $h_1/(h_1+h_2)$ and the second to one. A subdistribution-hazard analysis \cite{finegray1999} addresses the same bias from the regression side. For an indefinite regime the horizon is long by construction, so the gap is large, and the estimates that decision makers are likely to meet in practice are the naive ones.
+
+\begin{remark}
+These considerations do not show that continuous microsurgery is safe. They show that the cumulative-risk objection, in the form in which it is usually stated, is an objection to length of life and not to the regime. The correct criterion compares lifetime expected net burden, weighted by reversibility, across the two policies of entering and not entering, with the hazards of the untreated condition on the other side of the ledger. What the cumulative-risk argument does identify correctly is that complications of a single regime are borne for as long as the regime lasts, and that the distribution of harm across patients, not its mean, is what the heterogeneity result of Proposition~\ref{prop:exch} makes visible.
+\end{remark}
+
+\section{The Option to Discontinue and Its Price}\label{sec:exit}
+
+A patient who enters a regime at one time and may wish to leave it at a later time holds an option, and the value of that option is affected by every step that makes leaving more expensive. This section prices the option. The setting is deliberately simple so that the structure of the result is visible.
+
+Let a later self learn, after the decision to enter and before the decision to continue, the gross benefit $d$ of discontinuing relative to continuing, where $d$ is a random variable with survival function $S(y)=P(d>y)$. In the absence of any lock-in, leaving costs $c_0\ge0$ in ordinary friction. A lock-in of size $\kappa\ge0$ is an additional exit cost created by earlier steps, for example proprietary interfaces, atrophied function, or loss of coverage, so that the total cost of leaving is $c_0+\kappa$. The later self leaves if and only if $d>c_0+\kappa$ and then realizes $(d-c_0-\kappa)^+$. The value of the option is
+\begin{equation}\label{eq:optionvalue}
+W(\kappa)=\E\big[(d-c_0-\kappa)^+\big].
+\end{equation}
+
+\begin{proposition}\label{prop:option}
+Assume $\E[(d-c_0)^+]<\infty$. The price of lock-in of size $\kappa$, defined as the loss of option value $\Pi(\kappa)=W(0)-W(\kappa)$, is
+\[
+\Pi(\kappa)=\E\big[\min\big(\kappa,(d-c_0)^+\big)\big]=\int_0^\kappa S(c_0+s)\,ds.
+\]
+It is nondecreasing, concave, and subadditive in $\kappa$, with $\Pi(0)=0$ and $\lim_{\kappa\to\infty}\Pi(\kappa)=W(0)$. The right derivative is $\Pi'(\kappa^+)=S(c_0+\kappa)$ for every $\kappa$, and $\Pi$ is differentiable wherever the distribution of $d$ has no atom at $c_0+\kappa$. In particular, for sequential foreclosures of sizes $\kappa_1,\kappa_2$, the price of the second is $\int_{\kappa_1}^{\kappa_1+\kappa_2}S(c_0+s)\,ds\le\Pi(\kappa_2)$, the price of a foreclosure of the same size made first.
+\end{proposition}
+
+\begin{proof}
+For real $y$ and $\kappa\ge0$, $y^+-(y-\kappa)^+=\min(\kappa,y^+)$, which gives the first expression on taking expectations with $y=d-c_0$. The integral form follows from $\min(\kappa,y^+)=\int_0^\kappa\Ind\{y>s\}\,ds$ and Fubini's theorem. Since $S$ is nonincreasing, $\Pi'$ is nonincreasing, so $\Pi$ is concave, and concavity with $\Pi(0)=0$ gives subadditivity. The limit is monotone convergence. The final statement is the integral form with the range shifted.
+\end{proof}
+
+\begin{example}
+Let $d$ be exponential with mean $m$. Then $S(c_0+s)=e^{-(c_0+s)/m}$ and
+\[
+\Pi(\kappa)=m\,e^{-c_0/m}\big(1-e^{-\kappa/m}\big).
+\]
+A lock-in of size $\kappa=m$, equal to the mean gain from leaving, destroys $1-e^{-1}\approx63\%$ of the option. The price per unit of lock-in falls geometrically in $\kappa$.
+\end{example}
+
+Two features deserve comment. The first is the content of the concavity. The marginal price of foreclosure at lock-in level $\kappa$ is the probability that the later self still wants to leave at that level, and this probability is highest when no lock-in has yet been created. The precise statement concerns equal increments: a step of a given size taken first destroys at least as much of the option as a step of the same size taken later, because the price per unit of lock-in is nonincreasing as lock-in accumulates. A later step that is much larger can destroy more in absolute terms. What concavity says is that the marginal value of the remaining exit option declines as it is spent, so that the option destroyed per unit of lock-in is highest at the start and low at the end, when the option is mostly gone. The second feature is its consequence for stepwise evaluation. An evaluator who assesses each step against the current state sees a marginal price $S(c_0+\kappa_{k-1})$ that falls as the regime progresses, and each successive step of a given size therefore looks less costly than the first, although the total price $\Pi(\sum_k\kappa_k)$ is what the patient actually pays. The first step is evaluated when it matters most and its price is a statement about a possibility, and later steps are evaluated when the possibility has largely been spent. This is the formal counterpart of the observation that the knife is hardest to put down after it has been in hand for a long time.
+
+The proposition supplies a content for the dependence term $D_k$ in the value function~\eqref{eq:value}: it may be taken as the increment of $\Pi$ created at step $k$, discounted to the time of the decision. Under that identification, the dependence burden is a price that is paid in advance on behalf of a later self, and it cannot be observed by examining the step's medical risk.
+
+\section{Ratchets: Institutional, Biological, and Structural Dependence}\label{sec:ratchet}
+
+\subsection{The configuration graph}
+
+A configuration $s=(x,z)$ is a joint physiological and institutional state. Interventions are directed edges between configurations, each with a cost, and the \emph{exit set} $\mathcal E$ is the set of configurations from which the patient can live without the regime, or with a substitute available on the open market. The exit cost of configuration $s$ is the length of the shortest path from $s$ to $\mathcal E$,
+\begin{equation}\label{eq:exitcost}
+\kappa(s)=\min_{p:\,s\to\mathcal E}\ \sum_{e\in p}c(e),
+\end{equation}
+with $\kappa(s)=\infty$ if no path exists. A step $s\to s'$ is \emph{foreclosing} if $\kappa(s')>\kappa(s)$, and \emph{restoring} if the inequality is reversed. A patient is in a state of preservation if the configuration remains near the original anatomy, so that $\kappa$ stays small, and in a state of reconstruction if the configuration has moved, for example by skeletal adjustment or by replacing a metabolic route, to a place from which the original is expensive or impossible to reach. Reconstruction need not be objectionable, but it is the case in which $\kappa$ is large by design, and the protections of Section~\ref{sec:protections} are conditions on how large.
+
+Exit cost has two components with different mechanisms. The biological component $\kappa_{\mathrm{bio}}$ is the cost of restoring the physiological capacity that the patient must have outside the regime, and the institutional component $\kappa_{\mathrm{inst}}$ is the cost of transferring care, replacing proprietary components, and recovering coverage and records. Even when an intervention cannot be physically undone, $\kappa_{\mathrm{inst}}$ may be small if treatment can be transferred between providers, discontinued without penalty, or replaced by alternative care, and a biologically minor intervention can create a large $\kappa_{\mathrm{inst}}$ if it commits the patient to proprietary monitoring or consumables. We write $\kappa=\kappa_{\mathrm{bio}}+\kappa_{\mathrm{inst}}$ and treat the two separately below.
+
+\subsection{The institutional ratchet and greedy over-authorization}
+
+If institutional state accumulates monotonically, in the sense that $z_{t+1}\ge z_t$ componentwise and $\kappa_{\mathrm{inst}}$ is nondecreasing in $z$, then $\kappa_{\mathrm{inst}}(z_t)$ is nondecreasing along every trajectory, and decreases only through restoring actions that must be separately authorized and paid for. Contracts accumulate, records accumulate, integrations accumulate, and the technical ecosystem around a device accumulates, so the assumption is not special.
+
+The ratchet has a consequence for the authorization rules in current use. A common local criterion authorizes a step if its own medical risk is acceptable relative to its benefit, and the risk of successive steps in an established technology tends to fall as the technique matures. The next proposition shows that this criterion is compatible with a negative cumulative outcome.
+
+\begin{proposition}\label{prop:greedy}
+Let step $k$ have benefit $B>0$, own medical risk $R_k=r/(1+k)$ with $r>0$, and dependence burden $D_k=\lambda k$ with $\lambda>0$, reflecting a dependence that grows with the number of steps already taken. Let the local rule authorize step $k$ whenever $R_k\le B$. If $B\ge r/2$, the rule authorizes every step. The net increment of step $k$ is $u_k=B-r/(1+k)-\lambda k$ and the cumulative net value after $n$ steps is
+\[
+N(n)=nB-r\big(H_{n+1}-1\big)-\tfrac{\lambda}{2}n(n+1),
+\]
+where $H_m$ is the $m$th harmonic number. Then $N(n)\to-\infty$ as $n\to\infty$. If moreover $\lambda\ge r/4$, the increments $u_k$ are strictly decreasing, $N$ is unimodal, and its maximum is attained at the largest $n^\ast$ with $u_{n^\ast}>0$.
+\end{proposition}
+
+\begin{proof}
+Since $R_k\le r/2\le B$ for all $k\ge1$, the rule authorizes every step. Summing $u_k$ gives $N(n)$, whose leading behavior is $-\lambda n^2/2$ because the harmonic sum grows only logarithmically. The difference $u_{k+1}-u_k=r/((1+k)(2+k))-\lambda$ is at most $r/6-\lambda<0$ when $\lambda\ge r/4$, since $(1+k)(2+k)\ge6$ for $k\ge1$ so that $r/((1+k)(2+k))\le r/6$. Decreasing increments make $N$ increase while $u_n>0$ and decrease afterwards.
+\end{proof}
+
+\begin{example}
+With $B=5$, $r=2$, $\lambda=1$, the increments are
+\[
+u_1,\dots,u_6=3,\ 2.33,\ 1.5,\ 0.6,\ -0.33,\ -1.29.
+\]
+\noindent The cumulative value peaks at $n^\ast=4$ with $N(4)\approx7.43$, and after ten steps it is $N(10)\approx-9.04$. A rule that looks only at the own risk of each step, which falls from $1$ to $0.18$ over the ten steps, authorizes all ten.
+\end{example}
+
+The mechanism is general. Authorizing a step on the basis of its own risk treats $D_k$ as zero, and the fall in $R_k$ makes the rule more permissive precisely as $D_k$ rises. The correction is not to forbid steps but to evaluate each against the trajectory, with the dependence burden entering as in Section~\ref{sec:exit}.
+
+\subsection{Biological dependence: damage balance with atrophy}
+
+Section~\ref{sec:analogues} introduced the equation $dD/dt=G(t)-R(t)$. Let us now decompose the repair rate. Let $D\ge0$ be a damage burden, let generation be $g_0+g_1D$, with $g_0>0$ the baseline rate and $g_1\ge0$ the extent to which damage promotes further damage, let the body's own repair clear damage at rate $\rho D$ with capacity $\rho$, and let $R_{\mathrm{art}}$ be the repair supplied by the regime. Then
+\begin{equation}\label{eq:balance}
+\frac{dD}{dt}=g_0+(g_1-\rho)D-R_{\mathrm{art}}.
+\end{equation}
+Holding the damage at a target level $\bar D>0$ requires the maintenance load
+\begin{equation}\label{eq:load}
+R_{\mathrm{art}}=g_0+(g_1-\rho)\bar D,\qquad \frac{\partial R_{\mathrm{art}}}{\partial\rho}=-\bar D<0,
+\end{equation}
+so that any decline in the body's own repair capacity $\rho$ raises the load that the artificial system must carry, with sensitivity proportional to the damage level being held. Reliance and requirement then feed one another: the more the regime repairs, the less the body does, and the more the regime must repair.
+
+The decline of $\rho$ is an assumption of the model and not an established consequence of artificial repair. Muscle, bone, and many tissues adapt to the load placed on them, which makes use-dependent atrophy a plausible mechanism, but whether artificial repair displaces native repair or leaves it intact is an empirical question, and a system that senses, buffers, and supports without taking over work could leave $\rho$ unchanged or even support it. The results that follow are conditional on the mechanism operating: if $\alpha=0$, or if the delegated share $u$ stays near zero, then $\rho_{\mathrm{ss}}=\rho_{\max}$ and none of the atrophy-driven dependence arises. A minimal model for use-dependent atrophy lets the share $u\in[0,1]$ of the repair work carried by the regime drive $\rho$ downward toward a floor $\rho_{\min}$, and the share $1-u$ carried by the body drive it upward toward a ceiling $\rho_{\max}$:
+\begin{equation}\label{eq:atrophy}
+\dot\rho=-\alpha u(\rho-\rho_{\min})+\beta(1-u)(\rho_{\max}-\rho),\qquad \alpha,\beta>0.
+\end{equation}
+For constant $u$ the equilibrium is a weighted average of the floor and the ceiling,
+\begin{equation}\label{eq:rhoss}
+\rho_{\mathrm{ss}}(u)=\rho_{\max}-(\rho_{\max}-\rho_{\min})\,w(u),\qquad w(u)=\frac{\alpha u}{\beta(1-u)+\alpha u},
+\end{equation}
+and since $w'(u)=\alpha\beta/(\beta(1-u)+\alpha u)^2>0$, the equilibrium capacity is strictly decreasing in the share of work delegated to the regime.
+
+\textbf{Grace period.} Suppose support is lost at time zero while the damage stands at its held level $\bar D$. Set $a=\rho-g_1$ for the net endogenous clearance rate and let $D_m>\bar D$ be the damage level beyond which function fails. After the loss, $\dot D=g_0-aD$.
+
+\begin{proposition}\label{prop:grace}
+The time $T(a)$ at which damage first reaches $D_m$ after support is lost is infinite if $a\ge g_0/D_m$ and otherwise
+\[
+T(a)=\frac1a\ln\frac{g_0-a\bar D}{g_0-aD_m},\qquad T(0)=\frac{D_m-\bar D}{g_0}.
+\]
+$T$ is strictly increasing in $a$ and strictly decreasing in $\bar D$ on the range where it is finite. Consequently atrophy, which lowers $\rho$ and therefore $a$, shortens the grace period.
+\end{proposition}
+
+\begin{proof}
+Assume $0<\bar D<D_m$ and $g_0>0$. \emph{Case 1, $a<g_0/D_m$.} Then $g_0-aD>0$ for every $D\le D_m$, since this is trivial for $a\le0$ and for $a>0$ follows from $D\le D_m<g_0/a$. Damage therefore increases strictly on $[\bar D,D_m]$ and reaches $D_m$ in the finite time
+\[
+T=\int_{\bar D}^{D_m}\frac{dD}{g_0-aD}=\frac1a\ln\frac{g_0-a\bar D}{g_0-aD_m}\quad(a\ne0),\qquad T=\frac{D_m-\bar D}{g_0}\quad(a=0),
+\]
+where both arguments of the logarithm are positive, so the expression is well defined on exactly this range. \emph{Case 2, $a>g_0/D_m$.} The equilibrium $D^\ast=g_0/a$ lies below $D_m$. If $\bar D\le D^\ast$ damage rises monotonically toward $D^\ast$, and if $\bar D>D^\ast$ (the case in which damage initially decreases) it falls monotonically toward $D^\ast$; in both cases it stays below $D_m$ for all time. \emph{Case 3, $a=g_0/D_m$.} The equilibrium equals $D_m$ and is approached from below asymptotically, so the threshold is not reached in finite time. Cases 2 and 3 give $T=\infty$. For monotonicity in $a$ on the finite range, we use a comparison argument. The right-hand side of $\dot D=g_0-aD$ is strictly decreasing in $a$ for $D>0$, so the solution for a smaller $a$ lies strictly above the solution for a larger $a$ at every positive time and crosses $D_m$ earlier; hence $T$ is strictly increasing in $a$. Monotonicity in $\bar D$ follows because solutions of an autonomous scalar equation do not cross and a higher start reaches the level sooner.
+\end{proof}
+
+For $g_0=1$, $\bar D=2$, and $D_m=10$ in arbitrary units, $T=11.76$ at $a=0.05$, $T=8.00$ at $a=0$, and $T=6.20$ at $a=-0.05$; the closed form agrees with direct numerical integration of the equation to eight digits.
+
+\textbf{Alternation as a design variable.} The umbilicus makes it possible to switch between ordinary function and external support. Two variables must be kept apart. The \emph{duty cycle} $\theta\in(0,1]$ is the fraction of time the interface is engaged, and the \emph{delegated share} $u\in[0,1]$ is the fraction of the physiological work that the regime carries, averaged over time. They are related by a modeling assumption: while engaged the interface performs a share $s\in(0,1]$ of the work, so that $u=s\theta$. A device connected half the time may supply a tenth or nearly all of a function while connected, and $s$ records which. The results below take $s=1$, full delegation while engaged, unless stated; for $s<1$ one replaces $\theta$ by $s\theta$ inside $\rho_{\mathrm{ss}}$. Suppose switching is fast relative to the time constants $1/\alpha$ and $1/\beta$ of~\eqref{eq:atrophy}. By the standard averaging argument for systems with a fast periodic input, the slow variable $\rho$ follows the equation with $u$ replaced by its mean, so that $\rho\to\rho_{\mathrm{ss}}(s\theta)$. The load that the support must carry while engaged, if damage is to be held at $\bar D$ on average, is
+\begin{equation}\label{eq:Ron}
+R_{\mathrm{on}}(\theta)=\frac{\max\{0,\ g_0+(g_1-\rho_{\mathrm{ss}}(s\theta))\bar D\}}{\theta}.
+\end{equation}
+The positive part reflects a feasibility condition: support supplies nonnegative repair, and if native clearance already exceeds generation at the held level, so that the numerator is negative, no support is needed to hold $\bar D$ and the engaged load is zero. In the examples below the numerator is positive. Two quantities are therefore set by $\theta$: the grace period $T(\rho_{\mathrm{ss}}(s\theta)-g_1)$, which is decreasing in $\theta$ by~\eqref{eq:rhoss} and Proposition~\ref{prop:grace}, and the engaged load $R_{\mathrm{on}}$, which, where the numerator is positive, is decreasing in $\theta$ through the denominator and increasing in $\theta$ through the numerator, because $\rho_{\mathrm{ss}}$ falls. The duty cycle is thus a variable of the design that trades dependence against load and not a property of the technology. Preservation of the body's capacity corresponds to small $\theta$ at the cost of an engaged system that must work harder, and reconstruction to large $\theta$.
+
+\begin{remark}
+A direct simulation of~\eqref{eq:balance} and~\eqref{eq:atrophy} with switching period $0.5$ time units, $\rho_{\max}=0.20$, $\rho_{\min}=0.02$, $\alpha=0.04$, $\beta=0.02$, $g_0=1$, $g_1=0.05$, and $\bar D=2$ gives, at $\theta=0.5$, a long-run $\rho$ of $0.0803$ against the averaged prediction $0.0800$, and a mean damage near the target; at $\theta=0.25$ it gives $0.1260$ against $0.1280$. The averaged model is therefore adequate for the qualitative statements made here, with residual fluctuation that depends on the switching period.
+\end{remark}
+
+\subsection{Three kinds of exit and their horizons}
+
+The reviewer's distinction between changing supplier and ceasing dependence is a real one, and the model supports it. Three exits must be kept apart. \emph{Supplier portability} is the ability to survive the loss of the present supplier while a substitute is established. \emph{Physiological independence} is the ability to survive without the technology altogether, with no supplier at all. \emph{Planned withdrawal} is the ability to move from supported to independent function in a controlled way, by rebuilding native capacity while still supported. A patient transferred from one indispensable supplier to another has satisfied the first and not the second.
+
+Let $T(t)$ be the grace period at time $t$, determined by the clearance rate $a(t)=\rho(t)-g_1$ and the held damage level, and let $\tau(t)$ be the time required to establish a substitute source of support, which depends on $\kappa_{\mathrm{inst}}$, that is on whether components are portable, whether other providers can maintain them, and whether records can be transferred. Supplier portability holds at time $t$ if and only if $\tau(t)\le T(t)$.
+
+\begin{proposition}\label{prop:horizon}
+(a) If $T(\cdot)$ is nonincreasing and $\tau(\cdot)$ is nondecreasing, the set of times at which $\tau(t)\le T(t)$ is an initial interval. Hence the \emph{portability horizon} $t^\ast_{\mathrm{port}}=\sup\{t:\tau(t)\le T(t)\}$ is well defined, and for every $t>t^\ast_{\mathrm{port}}$ supplier portability is infeasible unless a restoring action reduces $\tau$ or increases $T$. Any change that decreases $T$ or increases $\tau$ at any time weakly decreases $t^\ast_{\mathrm{port}}$.
+(b) Let $\rho^\ast=g_1+g_0/D_m$. Physiological independence at held damage level $\bar D<D_m$ holds if and only if $\rho(t)\ge\rho^\ast$, equivalently $T(t)=\infty$. If $\rho$ is nonincreasing, the \emph{independence horizon} $t^\ast_{\mathrm{ind}}=\sup\{t:\rho(t)\ge\rho^\ast\}$ satisfies $t^\ast_{\mathrm{ind}}\le t^\ast_{\mathrm{port}}$.
+(c) If $\rho_{\max}>\rho^\ast$ and $\rho(t)<\rho^\ast$, planned withdrawal by rebuilding native capacity to $\rho^\ast$ under the dynamics~\eqref{eq:atrophy} with $u=0$ takes
+\[
+\tau_{\mathrm{bio}}(t)=\frac1\beta\ln\frac{\rho_{\max}-\rho(t)}{\rho_{\max}-\rho^\ast},
+\]
+which is increasing in the depth of atrophy and is infinite or undefined if $\rho_{\max}\le\rho^\ast$, in which case independence cannot be recovered biologically.
+\end{proposition}
+
+\begin{proof}
+(a) The difference $T(t)-\tau(t)$ is nonincreasing, so its nonnegative set is a down-set of the time axis, and the remaining statements follow from the monotone dependence of the supremum on the two functions. (b) By Proposition~\ref{prop:grace}, $T=\infty$ if and only if $a\ge g_0/D_m$, that is $\rho\ge g_1+g_0/D_m$. If $\rho$ is nonincreasing, the set where $\rho\ge\rho^\ast$ is an initial interval on which $T=\infty\ge\tau$, so portability holds throughout it and $t^\ast_{\mathrm{ind}}\le t^\ast_{\mathrm{port}}$. (c) With $u=0$, $\rho(t+r)=\rho_{\max}-(\rho_{\max}-\rho(t))e^{-\beta r}$, and solving $\rho(t+r)=\rho^\ast$ for $r$ gives the stated time.
+\end{proof}
+
+Atrophy supplies the monotonicity of $T$ and $\rho$ through Proposition~\ref{prop:grace}, and the institutional ratchet supplies the monotonicity of $\tau$. The horizons are expressed in time and are compared with times that the body fixes, which is how they differ from the exit cost of~\eqref{eq:exitcost}. A patient may have an affordable exit cost and still be beyond the portability horizon, because the support she would need cannot be assembled in the interval for which her tissues can do without it. The documented analogue is the Argus~II history. A patient who lost the support of that device lost a function and retained her life, so her grace period was unbounded and she remained physiologically independent. A patient whose survival margin is in the regime would face a finite $T$ with a supplier in the same condition, and the same failure would be an emergency of survival and not of function. The distinction among the three exits also locates the most consequential loss: after $t^\ast_{\mathrm{ind}}$ the patient cannot live without some supplier, and after $t^\ast_{\mathrm{port}}$ she cannot even change supplier safely; after that, freedom to stay alive through technological maintenance survives while freedom to stay alive without a particular dependency does not, and only the second is lost irrecoverably once $\rho_{\max}\le\rho^\ast$ or the biological rebuild time exceeds what her situation allows.
+
+\section{Consent Under Changing Preferences, and the Limits of Veto}\label{sec:consent}
+
+Informed consent is the central safeguard of the framework with which the essay began, and the claim to be tested here is that consent given step by step does not compose into consent to the sequence. Two distinct difficulties are involved. The first is that the person who consents at step $k$ may not be the person who would have consented at step one, because the interventions themselves alter what the person wants. The second is that the form that consent takes, an acceptance or refusal of a proposal made by someone else, transmits very little information.
+
+\subsection{Endogenous preferences}
+
+Let a person's evaluative standpoint be a parameter $\theta_t\in\R$ that evolves with the interventions taken, and let the physical or functional state be $s_t\in\R$. A person with standpoint $\theta$ values state $s$ at $u(s;\theta)=-(s-\theta)^2$, which expresses a preferred configuration at $\theta$. At each step the then-current self may advance the state, $s_{t+1}=s_t+1$, or decline. The intervention shifts the standpoint in the direction of the change, $\theta_{t+1}=\theta_t+\delta$ if advanced and $\theta_{t+1}=\theta_t$ otherwise, with $\delta>1$. This captures the familiar phenomenon in which aspirations rise faster than attainments, or in which a person whose capacities have been enhanced comes to want more than the enhancement delivered.
+
+A self at time $t$ advances if and only if $u(s_t+1;\theta_t)>u(s_t;\theta_t)$, which is the condition $\theta_t-s_t>\tfrac12$. Define the gap $\Delta_t=\theta_t-s_t$. If the person advances, $\Delta_{t+1}=\Delta_t+\delta-1$.
+
+\begin{proposition}\label{prop:endog}
+Let $\delta>1$, $\Delta_0>\tfrac12$, $s_0=0$, and let a self advance only when advancing is strictly preferred. (a) Every self advances, so the stepwise path continues indefinitely, with every step approved by the then-current self. (b) The initial self weakly prefers the endpoint of an $n$-step path to remaining if and only if $n\le2\Delta_0$, so for every $n>2\Delta_0$ the path is approved at every step and strictly rejected, as a whole, by the initial self. (c) Index the steps by $m=1,2,\dots$, so that step $m$ moves the state from $s_{m-1}=m-1$ to $s_m=m$, and let self $j$ ($j=0,\dots,m-1$) be the self that exists after $j$ steps, with standpoint $\theta_j=\theta_0+j\delta$. Consider the rule under which step $m$ is taken only if every existing self strictly prefers $s_m$ to $s_{m-1}$, the state immediately before the step, with each self evaluating by its own fixed $\theta_j$. (The comparator is the state before the step, not the original state $s_0$; comparison with $s_0$ would define a different rule.) Under this rule the number of steps completed is $k^\ast=\lceil\Delta_0-\tfrac12\rceil$, and the first self to object is the initial self.
+\end{proposition}
+
+\begin{proof}
+(a) The gap evolves as $\Delta_t=\Delta_0+t(\delta-1)>\tfrac12$, so each self advances. (b) The initial self evaluates the endpoint by $u(n;\theta_0)=-(n-\Delta_0)^2$ against $-\Delta_0^2$ for remaining, and $(n-\Delta_0)^2\le\Delta_0^2$ if and only if $n\le2\Delta_0$; the inequality is strict for $n>2\Delta_0$. (c) Self $j$ strictly prefers step $m$ if and only if $\theta_j-s_{m-1}>\tfrac12$, that is $\Delta_0+j\delta-(m-1)>\tfrac12$. For fixed $m$ the left side is smallest at $j=0$, so self $0$ is the first to object, and it objects to step $m$ exactly when $m-1\ge\Delta_0-\tfrac12$; the case of equality is an objection because the preference must be strict. The completed steps are those with $m-1<\Delta_0-\tfrac12$, that is $m-1\in\{0,\dots,k^\ast-1\}$, so $k^\ast$ steps are completed, with $k^\ast=\lceil\Delta_0-\tfrac12\rceil$. For an integer $\Delta_0=n\ge1$ this gives $k^\ast=n$, because step $n$ has $m-1=n-1<n-\tfrac12$ and step $n+1$ has $m-1=n>n-\tfrac12$ is rejected; for $\Delta_0=1$ one step is taken and the second is rejected, as in the indifference case.
+\end{proof}
+
+\noindent The proposition is a statement of consistency between standards of evaluation, and it carries no normative conclusion by itself. That the stepwise approvals and the initial self's evaluation disagree is a mathematical fact; whether the initial self's veto is authoritative over a later self is a different question that the model does not answer.
+
+\begin{example}
+With $\Delta_0=0.6$ and $\delta=1.5$, the initial self advances once, since $u(1)=-0.16>u(0)=-0.36$. The self at time one has standpoint $\theta_1=2.1$ against a state of $1$ and advances again. The initial self evaluates the two-step endpoint at $-1.96$, far below the starting value, and vetoes the second step: its gap to the state is $0.6-1=-0.4<\tfrac12$. The stepwise approvals continue without end while the initial self's valuation of each further step is negative.
+\end{example}
+
+Which self's standard ought to govern is not settled by the model. A person who comes to value a capacity that she did not previously value is not obviously mistaken, and the transformative character of some experiences means that the earlier self may lack the competence to evaluate them \cite{paul2014}. The unanimity rule of the proposition is therefore conservative, since it gives every existing self a veto and so forbids growth that the earlier selves would not have chosen. The proposition does not claim that the rule is correct. It claims that stepwise consent is silent about the choice of standard and that an answer must be supplied, and the answer adopted in Section~\ref{sec:protections} is to protect the ability of every self to exit, so that the standpoint that has changed can still choose to reverse.
+
+\subsection{The veto bound}
+
+The second difficulty concerns what consent as a veto can accomplish even with a stable standpoint. Suppose the patient has a private type $\Theta$, which may include preferences over configurations, and that the protocol proposes interventions according to its own objective as a function of the history of responses. The patient's response at each step is binary, $Y_k\in\{\text{accept},\text{refuse}\}$. By the standard properties of mutual information \cite{cover2006}, the information about $\Theta$ conveyed by all $n$ responses satisfies
+\begin{equation}\label{eq:veto}
+I(\Theta;Y_1,\dots,Y_n)\le H(Y_1,\dots,Y_n)\le n\ \text{bits},
+\end{equation}
+and each individual decision contributes at most one bit. If the proposals depend on $\Theta$ only through the responses, as they do for a protocol that is blind to preferences, then by the data-processing inequality $I(\Theta;\text{trajectory})\le n$ bits as well. A trajectory selected from $M$ candidates, in the sense that a designer picks one of $M$ possible long-run configurations, carries $\log_2M$ bits of design information, and veto-only consent can supply at most $n$ of them. For $n\ll\log_2M$, which holds when the space of possible configurations is large and the number of decisions is small, the preferences of the patient have little purchase on which trajectory the protocol produces; the protocol determines the trajectory, and the patient prunes it. Where the number of decisions is large, the cost is a different one, since repeated refusals are costly and each is met with a reissued proposal, a mechanism that returns in Section~\ref{sec:cascade}.
+
+The result does not show that consent is useless. Consent as veto remains necessary, since it blocks proposals the patient finds intolerable. It shows that it is not sufficient to make the trajectory the patient's own, and that something else must be supplied if the trajectory is to be authored by the patient. Section~\ref{sec:identity} identifies what: control of the target toward which the trajectory is steered.
+
+\section{Identity and the Authority Over the Trajectory}\label{sec:identity}
+
+The identity argument is reconstructed here without assuming that biological replacement destroys the person. The organism already undergoes molecular turnover, physiological adaptation, and psychological change over a lifetime, and personal persistence is not rendered mysterious by the substitution of tissue. What distinguishes the regime is a shift in who determines the direction and timing of change. The relevant question is not whether the person is numerically identical after fifty years but who holds authority over the trajectory of transformation. In the language of the standard account of psychological continuity, the question concerns connectedness, the holding of direct psychological connections between a person at one time and at another, and its decay over time \cite{parfit1984}.
+
+\subsection{Connectedness under natural change}
+
+Let $c_t\in\R$ be a trait of character measured as a deviation from its own long-run mean, evolving by the autoregression
+\begin{equation}\label{eq:ar1}
+c_{t+1}=a\,c_t+\varepsilon_t,\qquad 0<a<1,
+\end{equation}
+with independent noise of variance $\sigma^2$. The carry-over from the initial condition, the coefficient on $c_0$ in the conditional expectation of $c_n$, is $\E[c_n\mid c_0]/c_0=a^n$. The coefficient is an illustrative persistence measure and not a measure of personal identity: it records sensitivity to an initial trait value and does not capture memory, autobiographical integration, or connectedness in Parfit's full sense, and the figures below are arithmetic consequences of an assumed $a$, not psychological findings. Connectedness in this sense therefore decays geometrically even under natural change, with half-life $\ln(1/2)/\ln a$. For $a=0.98$ per year the half-life is about $34$ years and the carry-over over a century is $0.98^{100}\approx0.13$. A person living a very long life will therefore be only weakly connected to the character of her early years, with no technology involved, and the continuity that matters in an extended life is continuity of the \emph{process} of change, in which each stage grows from the previous one, and not retention of the original character.
+
+\subsection{Control toward an external target}
+
+Let a maintenance regime include an influence on the trait through a control input $u_t$, for example a pharmacological or neural intervention, with the control law
+\begin{equation}\label{eq:control}
+c_{t+1}=a\,c_t+b\,u_t+\varepsilon_t,\qquad u_t=-k\,(c_t-g),
+\end{equation}
+where $g$ is a target trait value, $k$ is the gain, and $b\ne0$ is the effectiveness of the input. The closed-loop dynamics are $c_{t+1}=(a-bk)c_t+bk\,g+\varepsilon_t$.
+
+\begin{proposition}\label{prop:control}
+Under~\eqref{eq:control} the carry-over from the initial condition is $(a-bk)^n$, and the mean converges to $c^\ast=\dfrac{bk}{1-a+bk}\,g$ when $|a-bk|<1$. For $0<bk<2a$ the carry-over is strictly smaller in magnitude than the natural carry-over $a^n$ for every $n\ge1$, and for $bk=a$ the dependence on the initial condition vanishes after one step. The stationary variance is $\sigma^2/(1-(a-bk)^2)$.
+\end{proposition}
+
+\begin{proof}
+Iterating the closed-loop equation gives $\E[c_n\mid c_0]=(a-bk)^nc_0+bk\,g\sum_{j=0}^{n-1}(a-bk)^j$. The coefficient on $c_0$ is $(a-bk)^n$ and the geometric sum converges to $1/(1-a+bk)$ when $|a-bk|<1$. For $0<bk<2a$, $|a-bk|<a$. The variance is the stationary solution of $v=(a-bk)^2v+\sigma^2$.
+\end{proof}
+
+In words, control of the kind in~\eqref{eq:control} accelerates the decay of the dependence on the person's initial character and pulls the long-run mean toward the target in proportion $bk/(1-a+bk)$ of the target distance. In a simulation of the stationary process with parameters of this kind the sample variance agrees with the formula to three significant digits. A proportional controller gives a partial approach; an integral term would bring the mean to $g$ exactly. Nothing in the formalism is evaluative: the same equations describe a person who sets her own target $g$ and installs a feedback loop to hold to it, which is an ordinary exercise of self-governance, and a regime in which $g$ is set by a clinician or an institution.
+
+\subsection{Controllability limits the reach}
+
+For several traits, $c_{t+1}=Ac_t+Bu_t$ with $c_t\in\R^m$ and $u_t\in\R^p$. The pair $(A,B)$ is controllable if and only if the matrix $[B\ AB\ \cdots\ A^{m-1}B]$ has rank $m$ \cite{kailath1980}. Iterating the dynamics gives $c_n=A^nc_0+\sum_{j=0}^{n-1}A^{n-1-j}Bu_j$. The second term, the displacement produced by control, lies in the range of the controllability matrix; the first term, produced by the initial condition and the autonomous dynamics, need not. When the rank is $r<m$, the control-induced displacement is therefore confined to an $r$-dimensional subspace, and traits outside that subspace are beyond the reach of the available channels, although they remain present in the person's state and evolve by their own dynamics. When the pair is controllable, the closed-loop eigenvalues of $A-BK$ can be assigned arbitrarily by choice of $K$ \cite{wonham1967}, so that the carry-over of every mode can be set at will. The first statement is a bound on what an intervention can do to a person and the second a measure of the power that a controllable regime would confer on whoever chooses $K$ and $g$.
+
+\begin{remark}
+The formalism therefore does not support a verdict on control in itself. It identifies the variables on which ethical assessment should concentrate: the provenance of the target $g$, whether it is set, reviewed, and revisable by the patient, and whether the patient can reduce the gain to zero, which is to say discontinue. A regime in which the patient authors $g$ and can set $K=0$ preserves authority over the trajectory however large $K$ is while it runs. A regime in which $g$ is set elsewhere and $K=0$ is unavailable has transferred the authority, even if every step along the way was freely accepted and even if the targets are benign. That is the sense in which the knife is neither the villain nor the unit of analysis: the unit is the trajectory, and the question about it is who holds $g$.
+\end{remark}
+
+\section{Pressure Without a Coercer}\label{sec:cascade}
+
+No malicious institution is needed for continuation to become compulsory in practice. A succession of competent clinicians, conscientious insurers, satisfied patients, and successful technologies can establish a system in which declining treatment becomes increasingly hard to justify socially, economically, or personally. This section shows that the effect follows from individually voluntary choices in a threshold model of the type introduced by Granovetter for collective behavior \cite{granovetter1978}.
+
+\subsection{The model}
+
+A population of agents each has an intrinsic net benefit $v_i$ of continuing the regime, relative to declining, drawn independently from a distribution with cumulative function $F$ and density. The intrinsic net benefit incorporates health benefit, burden, and personal preference, and the share of the population for whom continuation is intrinsically worthwhile is
+\[
+f_0=P(v\ge0)=1-F(0).
+\]
+In addition, declining carries a social cost that rises with the share $f$ of others who continue, because declining becomes conspicuous, because insurers and employers adjust expectations, and because the infrastructure for those who decline thins out. Let the cost be $s f$ with $s\ge0$. An agent continues if and only if $v_i+sf\ge0$. The share continuing in equilibrium solves
+\begin{equation}\label{eq:cascade}
+f=\Phi_s(f),\qquad \Phi_s(f)=1-F(-sf).
+\end{equation}
+
+\begin{proposition}\label{prop:cascade}
+The map $\Phi_s$ is nondecreasing in $f$ and in $s$, with $\Phi_s(0)=f_0$. Starting from $f^{(0)}=f_0$, the iteration $f^{(j+1)}=\Phi_s(f^{(j)})$ is nondecreasing and converges to the smallest fixed point $f^\ast(s)\ge f_0$ of~\eqref{eq:cascade}. The equilibrium share $f^\ast(s)$ is nondecreasing in $s$, and the excess
+\[
+f^\ast(s)-f_0=P\big(-sf^\ast(s)\le v<0\big)
+\]
+is the share of agents who continue although continuation is intrinsically not worthwhile for them. Their aggregate intrinsic loss is $\E\big[|v|\,\Ind\{-sf^\ast\le v<0\}\big]\ge0$.
+\end{proposition}
+
+\begin{proof}
+$F$ is nondecreasing, so $\Phi_s(f)=1-F(-sf)$ is nondecreasing in $f$ and in $s$. Since $f^{(1)}=\Phi_s(f_0)\ge\Phi_s(0)=f_0$, induction on monotonicity gives a nondecreasing sequence bounded by one. Because $F$ has a density it is continuous, so the limit is a fixed point, and it is the least fixed point above $f_0$ because any fixed point $\bar f\ge f_0$ satisfies $f^{(j)}\le\bar f$ by induction. Monotonicity in $s$ follows from the pointwise monotonicity of $\Phi_s$ in $s$ for least fixed points. The excess is the mass of agents with $v<0$ and $v\ge-sf^\ast$ who are carried across the threshold, and their loss is the expected shortfall of their intrinsic benefit.
+\end{proof}
+
+\begin{example}
+Let $v\sim\mathcal N(-0.2,1)$, so that $f_0=0.4207$: fewer than half the population finds continuation intrinsically worthwhile. Solving the fixed point for increasing social cost gives
+\begin{center}
+\begin{tabular}{cccccc}
+\toprule
+$s$ & $0$ & $0.25$ & $0.50$ & $1.00$ & $1.50$\\
+\midrule
+$f^\ast$ & $0.421$ & $0.467$ & $0.525$ & $0.687$ & $0.863$\\
+excess & $0$ & $0.046$ & $0.104$ & $0.266$ & $0.443$\\
+\bottomrule
+\end{tabular}
+\end{center}
+At $s=1.5$ the continuing share is $0.863$, of which $0.421$ is intrinsic, so that $0.443/0.863\approx51\%$ of the continuing population continues only because of the social cost. No agent has been compelled by anyone. The calculation requires only that the social cost rise with the share continuing; it requires no coercive actor and no deception.
+\end{example}
+
+The model has a policy variable, the parameter $s$. It is the cost that a decliner bears as a function of how common continuation is, and it is set in part by institutions: by whether insurance is repriced for those who decline, whether employment depends on participation, whether the infrastructure for those who choose a different path is maintained. The result therefore places a specific obligation on institutions that no single decision exhibits, namely the protection of decliners, and it ties directly to the right to discontinue in Section~\ref{sec:protections}. The combination with the veto bound of Section~\ref{sec:consent} is also instructive: when refusal is costly, the reissued proposal and the rising social cost act together, and the bit of influence that a refusal carries is bought at a price that depends on the share that has already accepted.
+
+\section{The Strongest Case: Autonomy Enlargement}\label{sec:strongest}
+
+The argument so far has concentrated on how a regime can go wrong, and an essay that did only that would misrepresent the position it addresses. The strongest case for the technology is that there is nothing intrinsically dignified about preventable vascular disease, neurodegeneration, chronic pain, or the progressive loss of independence, and that a maintenance regime which substantially postpones these conditions enlarges autonomy and does not diminish it. The problem is not that medicine refuses to let a human story end, but that medicine might eventually acquire the power to determine which continuations remain available, affordable, and socially acceptable. This section states the argument in a form that can be tested against the model and identifies the condition under which it holds.
+
+Let $\Omega$ be the set of futures that a person might pursue, and let $\kappa_\omega$ be the cost, in the person's own terms, of reaching future $\omega\in\Omega$. Without the regime the costs are $\kappa^0_\omega$ and the person with willingness to bear cost $\beta$ can attain the set $A^0(\beta)=\{\omega:\kappa^0_\omega\le\beta\}$. The regime adds a set of new futures $\Omega_{\mathrm{new}}$, such as a hundred-year healthy life, and changes the costs of the existing ones to $\kappa^1_\omega$, with attainable set $A^1(\beta)=\{\omega:\kappa^1_\omega\le\beta\}$ over $\Omega\cup\Omega_{\mathrm{new}}$.
+
+\begin{proposition}\label{prop:enlarge}
+Fix $\beta$. (a) $A^1(\beta)\supseteq A^0(\beta)$ if and only if $\kappa^1_\omega\le\beta$ for every $\omega\in A^0(\beta)$. The inclusion is strict if and only if some $\omega\in(\Omega\cup\Omega_{\mathrm{new}})\setminus A^0(\beta)$ has $\kappa^1_\omega\le\beta$, which includes new futures and also futures of the original set that were previously too costly and have become attainable. (b) If $A^1(\beta)\supseteq A^0(\beta)$, then for every utility function $u$ on futures, including every utility function that the person may come to have, $\sup_{A^1(\beta)}u\ge\sup_{A^0(\beta)}u$. (c) If $\kappa^1_\omega>\beta$ for some $\omega\in A^0(\beta)$, there exist utility functions for which $\sup_{A^1(\beta)}u<\sup_{A^0(\beta)}u$. (d) Inclusion holds for every $\beta$ if and only if $\kappa^1_\omega\le\kappa^0_\omega$ for every $\omega\in\Omega$.
+\end{proposition}
+
+\begin{proof}
+Part (a) is the definition of the attainable sets, with strictness requiring an element of $A^1(\beta)$ that lies outside $A^0(\beta)$. Part (b) holds because a supremum over a larger set is no smaller, whatever the function (the supremum is used because an arbitrary utility need not attain a maximum on an infinite set; for nonempty finite sets it is a maximum). For (c), let $\omega_0\in A^0(\beta)$ with $\kappa^1_{\omega_0}>\beta$ and take $u$ equal to one at $\omega_0$ and zero elsewhere, so that the supremum without the regime is one and the supremum with the regime is zero. For (d), pointwise cost dominance gives inclusion at every $\beta$; conversely, for $\omega\in\Omega$ take $\beta=\kappa^0_\omega$ so that $\omega\in A^0(\beta)\subseteq A^1(\beta)$ and hence $\kappa^1_\omega\le\kappa^0_\omega$.
+\end{proof}
+
+The proposition is conditional, and its content depends on what the condition says about exit. Inclusion at a given willingness $\beta$ is exactly the requirement that the regime leave every previously attainable future within the cost the person can bear. The future of leaving the regime and returning to ordinary life is one of those futures, so for that future the requirement is that the exit cost not exceed $\beta$, which is the sense in which bounded exit costs are needed. Bounded exit cost is not sufficient for inclusion, because the costs of other previously attainable futures may also rise, and it is not necessary for the strict enlargement of a particular person's options, because the regime may enlarge the set while forgoing some futures that the person does not value. The condition is also relative to $\beta$, which may itself change with age, resources, and circumstance, and part (d) gives the budget-free version, which is stronger: no previously available future becomes more costly.
+
+The result concerns attainable alternatives and not realized welfare: an enlarged opportunity set guarantees that an ideal chooser can do at least as well under any fixed utility, and it does not guarantee that actual patients, with incomplete information, switching costs, or changing decision capacity, will achieve that value. Part (b) is stronger than it looks. The inclusion of sets guarantees the benefit for every preference, so it is robust to the preference change of Section~\ref{sec:consent}: no self at any stage can be made worse off in terms of attainable value, whatever the standpoint of that self turns out to be, and when inclusion holds all standards of evaluation agree. Part (c) shows that the failure is not graded in the way that risk is. A single foreclosed future that matters to a self suffices for that self to be worse off than without the regime.
+
+The argument of Section~\ref{sec:ratchet} can be restated in these terms. Dependence on a regime raises $\kappa^1_\omega$ for the futures in which the person leaves, and the portability and independence horizons are the times after which these futures leave the attainable set for every $\beta$ that the person can reach. Additional futures are a good, and the pro-regime case holds conditionally, on the inclusion condition. An honest advocate of extension should want that condition to be monitored and enforced, since it is what makes the benefit robust to the objector's worries.
+
+\begin{remark}
+The baseline $A^0$ is itself not constant in time. In untreated aging the set of attainable futures contracts as function, mobility, and cognition decline, and the person's willingness to bear cost $\beta$ often contracts with it. A fair comparison therefore allows $A^0_t(\beta_t)$ to shrink, and the regime may enlarge autonomy at later ages even where it raises some costs, so long as the futures that it makes unreachable are fewer, or less valued, than those that decline would remove. The inclusion in the proposition is the clean sufficient condition, and the more realistic comparison is of the measure of the sets weighted by value, which the model does not attempt to estimate.
+\end{remark}
+
+\section{Three Protections and a Trajectory-Level Admissibility Condition}\label{sec:protections}
+
+The preceding sections suggest three ethical protections which are distinct from one another. The \emph{right to continue} is the guarantee that a patient who wishes to remain in the regime is not forced out by the failure or withdrawal of the institution, or by price. The \emph{right to discontinue} is the guarantee that a patient who wishes to leave can do so without disproportionate penalty and within the time that the body allows. The \emph{right not to have one's future options made unnecessarily dependent on continued intervention} is a constraint on design, which requires that among clinically equivalent ways of achieving a goal the one that creates the least dependence be used. A system can satisfy the first while systematically eroding the other two, and the following formulation shows that none of the three implies another.
+
+\subsection{Formal statements}
+
+Let a trajectory be $\tau=(s_0,a_0,s_1,a_1,\dots)$ with configurations $s_t$, exit cost $\kappa_t=\kappa(s_t)$ as in~\eqref{eq:exitcost}, grace period $T_t$, and transition time $\tau_t$ (written $\tau_t^{\mathrm{tr}}$ below to avoid confusion with the trajectory).
+
+\begin{definition}
+A trajectory satisfies:
+\begin{itemize}
+\item[\textbf{(P1)}] \emph{Continuation} if, for every $t$ at which the patient requests continuation, the probability of involuntary interruption of support within the next period is at most $\varepsilon$, and a designated successor supporter exists in every institutional state;
+\item[\textbf{(P2)}] \emph{Exit and migration} if, for all $t$ in the planning horizon, (i) exit is affordable, $\kappa^{\mathrm{inst}}_t\le\bar\kappa$, the institutional, contractual, and financial cost of ending a treatment or leaving a provider; and (ii) migration is feasible, $\tau^{\mathrm{tr}}_t\le T_t$, so that the portability horizon $t^\ast_{\mathrm{port}}$ of Proposition~\ref{prop:horizon} lies beyond the horizon;
+\item[\textbf{(P3)}] \emph{Dependence minimality}, defined over complete continuations, if the policy $\pi$ followed has expected discounted exit-cost profile $J(\pi)=\E^\pi\big[\sum_{t}\gamma^t\kappa_t\big]$ within a tolerance $\zeta$ of the minimum of $J$ over the set $\Pi_\eta$ of feasible continuation policies whose expected clinical value is within $\eta$ of the best.
+\end{itemize}
+\end{definition}
+
+(P2) deliberately does not require reconstitution, the recovery of a state that no longer depends on the intervention being withdrawn. That freedom is treated separately below, and its absence is not by itself a violation, for reasons developed in the next subsection. The definition of (P3) is at the level of policies and not of steps, which is the level at which the thesis of the essay locates ethical evaluation. A step-level rule that minimized the immediate increment of $\kappa$ would commit the error criticized in Section~\ref{sec:ratchet}: a step that raises $\kappa$ by one unit now may enable a later step that lowers it by three, so that the policy containing both has a lower profile $J$ than any policy avoiding the first, and the locally minimal rule would reject it.
+
+\begin{proposition}\label{prop:independence}
+(P1), (P2), and (P3) are logically independent: for each pair there is a trajectory satisfying both and violating the third.
+\end{proposition}
+
+\begin{proof}
+It is enough to exhibit trajectories. (i) A regime that guarantees support through a successor mechanism and allows free exit, but uses a proprietary non-portable interface where a portable one of equal clinical value exists, satisfies (P1) and (P2) with a large but bounded $\bar\kappa$ and violates (P3). (ii) A regime that uses minimal-dependence designs and allows free exit but withdraws coverage when costs rise with age satisfies (P2) and (P3) and violates (P1). (iii) A regime that guarantees continuation and uses minimal-dependence designs but penalizes discontinuation, for example by terminating coverage of unrelated care, violates (P2) through $\kappa_t>\bar\kappa$ and satisfies (P1) and (P3).
+\end{proof}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{p{4.6cm}ccc}
+\toprule
+Regime & (P1) & (P2) & (P3)\\
+\midrule
+Guaranteed, free exit, proprietary interface & yes & yes & no\\
+Free exit, minimal design, coverage withdrawn & no & yes & yes\\
+Guaranteed, minimal design, exit penalized & yes & no & yes\\
+\bottomrule
+\end{tabular}
+\caption{Three regimes illustrating the independence of the protections.}
+\label{tab:independence}
+\end{table}
+
+The \emph{trajectory admissibility condition} combines the three with a requirement of authority drawn from Section~\ref{sec:identity}: a trajectory is admissible if it satisfies (P1), (P2), and (P3), and in addition the target $g$ toward which any control on traits is directed is set and revisable by the patient, and the gain can be set to zero. The conjuncts are in tension. Continuation guarantees (P1) are often provided by long contracts and exclusive arrangements, which raise $\kappa_{\mathrm{inst}}$ and so press against (P2). Minimal dependence (P3) may choose a design that is more fragile or less supported, and so strain (P1). Free exit and migration (P2) are easiest when the technology is simple and portable, which may mean sacrificing clinical value and so (P3)'s tolerance $\eta$. The right to determine $g$ conflicts with clinical practice that treats the target as a medical datum. Satisfying the condition is therefore a matter of design and trade-off, and the contribution of the formulation is that the trade-offs are stated in terms of quantities ($\varepsilon$, $\bar\kappa$, $\eta$, $\zeta$, $t^\ast_{\mathrm{port}}$) that can be audited.
+
+\subsection{Three freedoms and governability}
+
+The framework distinguishes three freedoms that the language of continuing or stopping runs together. \emph{Exit} is the freedom to end a particular treatment or relationship at bounded institutional cost, $E(t):\kappa^{\mathrm{inst}}_t\le\bar\kappa$. \emph{Migration} is the freedom to change provider, device, or support architecture without a survival gap, $M(t):\tau^{\mathrm{tr}}_t\le T_t$. \emph{Reconstitution} is the freedom to recover a viable state that no longer depends on the intervention being withdrawn, $C(t):\rho_{\max}>\rho^\ast$ and $\tau_{\mathrm{bio}}(t)\le\bar\tau_{\mathrm{wd}}$, in the notation of Proposition~\ref{prop:horizon}. They are not equivalent. A patient can have excellent migration rights and no possibility of physiological reconstitution, as when an interoperable market of suppliers serves a body that has lost the capacity to live unsupported ($E$, $M$, not $C$). Another can recover native function and yet be contractually unable to leave a provider ($C$, not $E$). A third can be free to leave and able to recover but unable to establish a substitute within the time that the body allows when the present supplier fails ($E$, $C$, not $M$). Each pair of freedoms can therefore hold without the third.
+
+The existence of regimes with $E$ and $M$ but not $C$ matters for the thesis, because it separates two things that are easily conflated. A reconstructed body might never return to its earlier configuration, as an adult cannot return to childhood, and it does not follow that irreversible change is a loss of freedom. What the argument requires is that the system's dependencies remain governable by the patient. Say that a configuration is \emph{governable} at $t$ if $E(t)$ and $M(t)$ hold and the patient has authority $A(t)$ over the targets and policy of the maintenance arrangement, in the sense of Section~\ref{sec:identity}: she sets and can revise the targets $g$, and can set the gain to zero or change the arrangement. Governability does not require $C(t)$.
+
+\begin{proposition}\label{prop:govern}
+Let $\Omega^G$ be the set of futures that do not require reconstitution, that is, futures consistent with the person's present physiology, and $\Omega^C$ the futures that do. Interpret $E$ and $M$ as guaranteeing that, for futures in $\Omega^G$, exit and migration costs stay within the person's willingness $\beta$. (a) If the configuration is governable on $[0,t]$, then the attainable set restricted to $\Omega^G$ does not shrink, $A^t(\beta)\cap\Omega^G\supseteq A^0(\beta)\cap\Omega^G$, and for every utility $u$ on $\Omega^G$, $\sup_{A^t(\beta)\cap\Omega^G}u\ge\sup_{A^0(\beta)\cap\Omega^G}u$. (b) If $C$ fails, then futures in $\Omega^C$ that were attainable at time $0$ are no longer attainable, and for some utilities the supremum over the unrestricted attainable set is strictly smaller than at time $0$.
+\end{proposition}
+
+\begin{proof}
+Part (a) is Proposition~\ref{prop:enlarge} (a) and (b) applied to the restricted sets, with $E$ and $M$ supplying the cost bound. Part (b) is Proposition~\ref{prop:enlarge}(c): a future in $\Omega^C$ has attainment cost infinite when reconstitution is infeasible, and a utility concentrated on it gives the stated comparison.
+\end{proof}
+
+The proposition is simple, and its content is in the interpretation. Governability keeps the person's options within the class of futures consistent with the body she now has, and it does not guarantee the futures of the body she used to have. Whether the second loss is a loss of freedom depends on whether she authored it, which is the role of $A$: a transformation that she chose, reviewed, and can govern thereafter resembles development, while the same transformation imposed or entered by drift does not. This yields the sharper formulation. The danger is not necessarily that the body becomes dependent on technology. It is that the person becomes dependent on an arrangement she can no longer meaningfully govern.
+
+\subsection{A worked example}
+
+Consider an umbilical interface used in alternation with ordinary metabolism, with the parameters of the remark in Section~\ref{sec:ratchet}: $\rho_{\max}=0.20$, $\rho_{\min}=0.02$, $\alpha=0.04$, $\beta=0.02$, $g_0=1$, $g_1=0.05$, a held damage level $\bar D=2$, a failure level $D_m=10$, and time measured in days. The duty cycle $\theta$ is the design variable. By Equations~\eqref{eq:rhoss}--\eqref{eq:Ron}:
+
+\begin{center}
+\begin{tabular}{ccccc}
+\toprule
+$\theta$ & $\rho_{\mathrm{ss}}$ & $a=\rho_{\mathrm{ss}}-g_1$ & grace period $T$ (days) & engaged load $R_{\mathrm{on}}$\\
+\midrule
+$0$ & $0.200$ & $0.150$ & unbounded & (not engaged)\\
+$0.25$ & $0.128$ & $0.078$ & $17.2$ & $3.38$\\
+$0.50$ & $0.080$ & $0.030$ & $9.8$ & $1.88$\\
+$0.75$ & $0.046$ & $-0.004$ & $7.8$ & $1.35$\\
+$1.00$ & $0.020$ & $-0.030$ & $6.8$ & $1.06$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+If a substitute source of support can be established in $\tau^{\mathrm{tr}}=10$ days, which requires portable components and a second supplier, the portability component of (P2) holds for duty cycles up to about $\theta=0.49$. If the interface is proprietary and replacement takes $20$ days, the admissible range shrinks to $\theta\le0.22$, and at $30$ days to $\theta\le0.18$. If transition takes $5$ days, every duty cycle satisfies the condition, since the grace period never falls below $6.8$ days. The same biology therefore supports very different regimes depending on a purely institutional variable. At the same time the engaged load $R_{\mathrm{on}}$ rises from $1.06$ to $3.38$ as $\theta$ falls from one to one quarter, so that preserving the body's capacity has a price in the intensity of the support, which is the substance of the tolerance $\eta$ in (P3). Portability is not independence. With $\rho^\ast=g_1+g_0/D_m=0.15$, physiological independence in this example requires $\rho_{\mathrm{ss}}(\theta)\ge0.15$, which holds only for $\theta\le0.16$, so a regime at $\theta=0.5$ is portable under the $10$-day substitute and yet cannot be survived without a supplier. Planned withdrawal from $\theta=0.5$, where $\rho_{\mathrm{ss}}=0.08$, requires rebuilding capacity to $0.15$, which takes $\beta^{-1}\ln\big((0.20-0.08)/(0.20-0.15)\big)\approx43.8$ days under the atrophy dynamics. Neither the number $10$ nor any other in the example is an estimate of a real quantity; the example shows how the audit would proceed and in what units it would report.
+
+\subsection{Governance handles}
+
+The formulation suggests several institutional handles, each tied to a variable of the model. Portability requirements for components and records reduce $\tau^{\mathrm{tr}}$ and $\kappa_{\mathrm{inst}}$. Successor-support mandates and escrow of the information required to maintain implanted systems, of the kind proposed in response to the abandonment of the Argus~II implant \cite{jazwinska2022}, bear on (P1) directly. Recorded duty-cycle schedules and periodic measurement of $\rho$ make $T_t$ observable. Rehearsed discontinuation, in the manner in which a fire drill makes egress observable, tests (P2) in practice and not only on paper, and the cultivation of deprescribing competence makes exit a skill that the clinical system possesses. The deprescribing protocol supplies concrete models for two further handles: expiry or review dates attached to each component of a regime, and discontinuation of one component at a time so that harms and benefits can be attributed \cite{scott2015}. Protection of decliners against differential pricing and exclusion reduces the parameter $s$ of Section~\ref{sec:cascade}. And a requirement that patients hold, review, and can reset the targets of any control on traits secures the authority discussed in Section~\ref{sec:identity}. The notion of exit as a discipline that a system's members and managers must be able to use, and whose availability keeps the system accountable, has an old precedent in the political economy of organizations \cite{hirschman1970}.
+
+\section{Objections and Replies}\label{sec:objections}
+
+\textbf{The argument is a slippery slope.} A slippery-slope argument asserts that a first step makes later undesirable steps likely or inevitable by psychological or social momentum. The present argument makes no claim of inevitability. It identifies state variables that evolve monotonically ($z_t$ in the institutional ratchet, $\rho_t$ under atrophy), shows that certain functionals of those variables (exit cost, grace period, portability and independence horizons) move monotonically with them, and states conditions under which the movement is or is not bounded. Whether a given regime has a ratchet is an empirical matter that can be audited, and a regime that satisfies the admissibility condition does not exhibit one. The proposition on greedy authorization (Proposition~\ref{prop:greedy}) is a statement about a rule and not a prediction about behavior.
+
+\textbf{Careful consent, including advance directives, solves the problem.} An advance directive fixes the standard of the earlier self, which is one resolution of the question left open by Proposition~\ref{prop:endog} and has the costs of that resolution, namely that it forbids growth that the earlier self would not have chosen. More thorough disclosure at each step adds information to a binary response, and the veto bound~\eqref{eq:veto} concerns what the response can carry back to the protocol and not what the patient is told. Consent remains necessary, but a regime that relies on it alone to protect the trajectory has attributed to the instrument a capacity that it lacks.
+
+\textbf{Dependence is everywhere: insulin, pacemakers, and civilization itself.} The observation is correct and the framework agrees with it. The quantities $\kappa$, $T$, and $\tau^{\mathrm{tr}}$ are defined for any dependence, and many existing dependences satisfy the admissibility condition, since insulin is manufactured by several suppliers and a pacemaker is maintained in many centers. What the regime changes is breadth, because survival would rest on many subsystems at once, so that the failure of any one removes the margin; horizon, because the dependence is intended to be lifelong and indefinite, so that institutional continuity over decades becomes part of the clinical plan; and interchangeability, because the Argus~II history shows that the supporting institution of an implanted technology can fail while the patient lives. None of these is a reason to avoid the technology. Each is a reason to measure the three quantities.
+
+\textbf{The model is a toy with no estimated parameters.} This is correct, and it is stated in the introduction. The propositions are claims about the structure of a model: that a statistic is monotone in a parameter, that a bound is attained, that a condition is necessary. Such claims do not depend on values of the parameters, though the question of whether a real regime sits on one side or the other of a threshold does. The role of the model is to say what should be measured. Estimating the grace period, the transition time, and the social cost of declining are empirical projects that would have to accompany any deployment.
+
+\textbf{A person may rationally bind herself.} The objection recalls Ulysses and the sirens \cite{elster1979}: a person who foresees that her future self will want to abandon a course may bind herself against it, and a rule against irreversible commitments would forbid this. The reply has two parts. The protections are conditions on regimes and not prohibitions on a person's choice, and a competent person may waive (P2) for a bounded period after informed reflection, in the way Ulysses ordered his crew. The binding is justified in his case because he chose it at a moment of clear judgment, because it was bounded in time, and because he could be released after the danger had passed. A waiver of the right to discontinue that is permanent, that is made when the person's standpoint is the product of earlier steps, and that cannot be reviewed, lacks those features. The distinction the model draws is between a commitment whose release conditions are the person's own and a dependence whose release conditions are held by others.
+
+\section{Limitations and Conclusion}\label{sec:limits}
+
+\subsection{Limitations}
+
+Several limits on the scope of the analysis should be stated plainly. The regime is hypothetical and its components are, in the case of the micro-repair bots and the integrated hepastitium, speculative; the essay treats them as conditions of a conditional argument and not as predictions. The model is conceptual and unvalidated, and none of its parameters was estimated from data; the numerical examples serve to exhibit structure. Several simplifications were made for tractability: deterministic physiological transitions in Proposition~\ref{prop:local}, a scalar damage variable in the longevity model where aging involves many interacting processes, a single threshold for failure, a one-dimensional preference and trait space in the sections on consent and identity, and a population without heterogeneity in the social cost of declining. The averaging argument for alternation assumes that switching is fast relative to the slow variable, and the residual fluctuation, though small in the simulation reported, can matter near a threshold. The treatment of identity adopts a statistical notion of connectedness that captures one aspect of psychological continuity and no more, and it does not address the metaphysical questions. Many of the references for the broader arguments were drawn from established literature, and the documented analogues rest on the specific reports cited. The results on attainable sets concern opportunities and not realized welfare. The protection (P3) is stated at the level of policies, which makes it harder to audit than a step-level rule. The atrophy mechanism is an assumption of the model, and the results that depend on it are conditional on its operation. Finally, the analysis concerns the structure of the ethical problem; it does not weigh the benefits of extended life against its costs for a population, a question on which the literature cited in Section~\ref{sec:analogues} divides, and which the formal results hold fixed.
+
+\subsection{Conclusion}
+
+The essay began from the observation that the dominant framework of medical ethics evaluates decisions one at a time and is poorly matched to a medical relationship with no presumptive end. It has argued that the ethical character of an intervention cannot be established independently of the sequence it enters, and that the unit of analysis is the trajectory. The formal development supports that claim in several independent ways. Local rules cannot enforce history-dependent constraints; the cumulative-risk objection reduces to an objection about exposure and loses force against the competing hazards of the untreated condition; the option to discontinue has a concave price whose first increments are the largest; dependence ratchets, institutionally and biologically, and a criterion based on falling per-step risk can authorize a sequence of negative cumulative value; atrophy of the body's own repair shortens the grace period after support is lost, and together with institutional lock-in defines a portability horizon and an earlier independence horizon, which are distinct from planned withdrawal; consent as veto conveys at most one bit per decision and does not compose across endogenously changing preferences; control of a trait toward an external target is bounded by controllability and is governed ethically by the provenance of the target; and pressure to continue can arise among voluntary choices without any coercing institution.
+
+The same analysis shows the force of the case for the technology. When the regime leaves every previously attainable future within the cost the person can bear, which for the future of leaving means that exit costs stay bounded relative to that willingness, the attainable set expands and every self at every stage is weakly better off whatever its standpoint. The three protections, to continue, to discontinue, and not to be made unnecessarily dependent, together with patient authority over the targets of control, state what must be true for that condition to hold, and they are independent of one another and in tension, so that satisfying them is a design problem with auditable quantities. The longevity form of the regime makes the stakes concrete, because a hepastitial network, an umbilical interface, a continuously adjustable skeleton, and a population of repair agents would produce an organism whose structure and supporting infrastructure could change greatly over a long life, and the question is whether the person who lives that life can still put the knife down. The conclusion can be put in one distinction: autonomy under continuous reconstruction does not require that the body be able to return to an earlier configuration, but it does require that the arrangements on which it depends remain governable by the person who lives in it. The danger is not necessarily that the body becomes dependent on technology; it is that the person becomes dependent on an arrangement she can no longer meaningfully govern. The structure is not peculiar to medicine. When an operation that was once scarce becomes cheap enough to run continuously, the frequency of its use rises, state accumulates, and the governance question moves from whether a single use is justified to whether the accumulated arrangement remains legitimate, contestable, and reversible. The same pattern appears where the scarce operation is observation and not intervention, and a companion essay by the same author treats the surveillance state in those terms; in both cases the underlying problem is the continuing authority of the person affected by a system whose operations have become pervasive. The knife is neither the villain nor the ethical unit. The ethical unit is the trajectory, including the conditions under which the patient can still choose to stop.
+
+
+\begin{thebibliography}{99}\small
+\setlength{\itemsep}{0.2em}
+
+\bibitem{austin2016} Austin, P.~C., Lee, D.~S., and Fine, J.~P. (2016). Introduction to the analysis of survival data in the presence of competing risks. \emph{Circulation}, 133(6), 601--609.
+
+\bibitem{beauchamp2019} Beauchamp, T.~L., and Childress, J.~F. (2019). \emph{Principles of Biomedical Ethics}, 8th ed. Oxford University Press.
+
+\bibitem{bostrom2005} Bostrom, N. (2005). The fable of the dragon-tyrant. \emph{Journal of Medical Ethics}, 31(5), 273--277.
+
+\bibitem{callahan1987} Callahan, D. (1987). \emph{Setting Limits: Medical Goals in an Aging Society}. Simon and Schuster.
+
+\bibitem{chen2023} Chen, Z., Liu, Z., Zeng, L., Huang, L., and Zhang, L. (2023). Prescribing cascades: a scoping review of identification, resolution, and prevention. \emph{Frontiers in Pharmacology}, 14.
+
+\bibitem{cover2006} Cover, T.~M., and Thomas, J.~A. (2006). \emph{Elements of Information Theory}, 2nd ed. Wiley.
+
+\bibitem{daniels1988} Daniels, N. (1988). \emph{Am I My Parents' Keeper? An Essay on Justice Between the Young and the Old}. Oxford University Press.
+
+\bibitem{definetti1937} de~Finetti, B. (1937). La pr\'evision: ses lois logiques, ses sources subjectives. \emph{Annales de l'Institut Henri Poincar\'e}, 7, 1--68.
+
+\bibitem{elster1979} Elster, J. (1979). \emph{Ulysses and the Sirens: Studies in Rationality and Irrationality}. Cambridge University Press.
+
+\bibitem{esary1967} Esary, J.~D., Proschan, F., and Walkup, D.~W. (1967). Association of random variables, with applications. \emph{Annals of Mathematical Statistics}, 38(5), 1466--1474.
+
+\bibitem{finegray1999} Fine, J.~P., and Gray, R.~J. (1999). A proportional hazards model for the subdistribution of a competing risk. \emph{Journal of the American Statistical Association}, 94(446), 496--509.
+
+\bibitem{granovetter1978} Granovetter, M. (1978). Threshold models of collective behavior. \emph{American Journal of Sociology}, 83(6), 1420--1443.
+
+\bibitem{harris2007} Harris, J. (2007). \emph{Enhancing Evolution: The Ethical Case for Making Better People}. Princeton University Press.
+
+\bibitem{hirschman1970} Hirschman, A.~O. (1970). \emph{Exit, Voice, and Loyalty}. Harvard University Press.
+
+\bibitem{ilizarov1989} Ilizarov, G.~A. (1989). The tension-stress effect on the genesis and growth of tissues. Part I. \emph{Clinical Orthopaedics and Related Research}, 238, 249--281.
+
+\bibitem{jazwinska2022} Implant recipients shouldn't be left in the dark when a device company moves on. \emph{STAT}, 10 August 2022. \url{https://www.statnews.com/2022/08/10/implant-recipients-shouldnt-be-left-in-the-dark-when-device-company-moves-on/}
+
+\bibitem{kailath1980} Kailath, T. (1980). \emph{Linear Systems}. Prentice-Hall.
+
+\bibitem{kass2001} Kass, L.~R. (2001). L'Chaim and its limits: why not immortality? \emph{First Things}, 113, 17--24.
+
+\bibitem{nerode1958} Nerode, A. (1958). Linear automaton transformations. \emph{Proceedings of the American Mathematical Society}, 9(4), 541--544.
+
+\bibitem{parfit1984} Parfit, D. (1984). \emph{Reasons and Persons}. Oxford University Press.
+
+\bibitem{paul2014} Paul, L.~A. (2014). \emph{Transformative Experience}. Oxford University Press.
+
+\bibitem{rochon1997} Rochon, P.~A., and Gurwitz, J.~H. (1997). Optimising drug treatment for elderly people: the prescribing cascade. \emph{BMJ}, 315, 1096--1099.
+
+\bibitem{scott2015} Scott, I.~A., Hilmer, S.~N., Reeve, E., et al. (2015). Reducing inappropriate polypharmacy: the process of deprescribing. \emph{JAMA Internal Medicine}, 175(5), 827--834.
+
+\bibitem{spectrum2022} Strickland, E., and Harris, M. (2022). Their bionic eyes are now obsolete and unsupported. \emph{IEEE Spectrum}, February 2022.
+
+\bibitem{wonham1967} Wonham, W.~M. (1967). On pole assignment in multi-input controllable linear systems. \emph{IEEE Transactions on Automatic Control}, 12(6), 660--665.
+
+\end{thebibliography}
+
+
+\end{document}
