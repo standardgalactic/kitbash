@@ -141,4 +141,43 @@ assert sum(sec(*e)-sec(*b) for b,e in gaps)+30==span
 assert round(100*1598 and 926/1598*100,1)==57.9 and round(1499/5222*100,1)==28.7 and round(34.6+0 ,1)==34.6
 print("share subtitled by block:",[round(100*x[4]/d,1) for x,d in zip(blocks,dur)])
 print("0.11 dB:",round(10*math.log10(1+10**(-1.6)),3))
+# ---- Ch14: lexical perturbation, repetition-code decoder on {0,1}^5
+def dec5(w): return 1 if sum(w)>=3 else 0
+for k in (0,1,2):
+    assert all(dec5(tuple(b^(i in S) for i,b in enumerate((0,)*5)))==0 for S in itertools.combinations(range(5),k))
+flip3=[S for S in itertools.combinations(range(5),3) if dec5(tuple(1 if i in S else 0 for i in range(5)))==1]
+assert len(flip3)==math.comb(5,3)==10
+# the per-step bound over the reachable set D is 1 (a flip from 00110 changes the film), so n*eps=3 against drift <= 1
+assert dec5((0,0,1,1,0))==0 and dec5((0,0,1,1,1))==1
+for m in (1,2,3):          # general repetition code of odd length n=2m+1: radius m+1
+    n=2*m+1
+    decn=lambda w:1 if sum(w)>=m+1 else 0
+    assert all(decn(tuple(1 if i in S else 0 for i in range(n)))==1 for S in itertools.combinations(range(n),m+1))
+    assert all(decn(tuple(1 if i in S else 0 for i in range(n)))==0 for S in itertools.combinations(range(n),m))
+
+# ---- Ch16: audience-layer command (sec:triggers)
+def run3(seq):                    # akt has no precondition and no state-layer effect
+    st=set()
+    for c in seq:
+        if c=='skl': st.add('KA')
+        elif c=='skc':
+            if 'KA' not in st or 'KB' in st: return False
+            st.add('conceal')
+        elif c=='skr':
+            if 'conceal' not in st: return False
+            st.add('KB')
+        elif c=='grb':
+            if 'KB' not in st: return False
+            st.add('react')
+        elif c=='sdx':
+            if 'react' not in st: return False
+    return True
+cmds7=['skl','skc','skr','grb','sdx','smq','akt']
+valid7=[p for p in itertools.permutations(cmds7) if run3(p)]
+assert len(valid7)==42==math.factorial(7)//math.factorial(5)
+iro=[p for p in valid7 if p.index('akt')<p.index('skc')]
+assert len(iro)==14 and len(valid7)-len(iro)==28
+mid=[p for p in valid7 if p.index('skc')<p.index('akt')<p.index('skr')]
+print("akt before skc:",len(iro),"| after skc:",28,"| between skc and skr:",len(mid))
+
 print("all checks passed")

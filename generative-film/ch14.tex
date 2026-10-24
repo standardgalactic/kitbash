@@ -163,6 +163,63 @@ With $M_h=0.0755$ along this line, the first-order prediction is decisive only w
 
 A traditional observation in the study of pictures is that a small repertoire of cues, such as balance, directional guidance, repeated forms, and selective emphasis, suffices for a work to be seen as composed. The film analogue would be a repertoire of temporal cues: an anticipatory pause, a reaction shot, a delayed disclosure. In the present vocabulary the analogue is the claim that $d_{\mathrm{eff}}$ is small relative to $p$ near typical production settings, because most parameters are either redundant or masked by a few dominant cues. That is an empirical conjecture. It can be tested by estimating the singular spectrum of $J$ from controlled perturbation experiments, and a rapidly decaying spectrum would support it.
 
+\section{Lexical perturbation of scripts}\label{sec:lexical}
+
+Chapter~\ref{ch:scripts} treated a script as a description from which a film is realized, and the text-as-substrate approach rests on a decoder that turns script text into a film. This section asks how far the text can be altered before the decoded film stops being the same experience. Let $\mathcal{W}$ be a set of script texts, for instance timed subtitles with a minimal shot list, and let $G_\sigma:\mathcal{W}\to\mathcal{V}$ be a decoder with its random seed $\sigma$ fixed. Fixing the seed makes $G_\sigma$ a function, and the seed is counted among the conditions of the situation $\theta$, so that a variation in the output caused by sampling is not mistaken for a variation caused by the text. The pullback of a pseudometric $d$ on $\mathcal{V}$ along the decoder,
+\[
+d_G(w,w')=d\bigl(G_\sigma(w),\,G_\sigma(w')\bigr),
+\]
+is a pseudometric on $\mathcal{W}$, since the three axioms are inherited through composition with a function. Everything proved in \Cref{prop:quotient,prop:nontransitive,cor:drift} therefore applies to scripts with $d_G$ in place of $d$.
+
+A \emph{substitution rule} is a partial map $s:\mathcal{W}\to\mathcal{W}$ that replaces words of a script by other words. Three classes are distinguished because they are expected to behave differently. An \emph{orthographic} substitution replaces a word by a string outside the lexicon within a small edit distance, as a misspelling does. A \emph{lexical} substitution replaces a word by a different lexicon entry judged near-synonymous, as when \emph{house} becomes \emph{manor}. A \emph{nominal} substitution replaces every occurrence of one name or noun by another, consistently throughout the script, and is therefore a bijection on a part of the vocabulary.
+
+\begin{proposition}[Drift under iterated substitution]\label{prop:subdrift}
+Let $s_1,\dots,s_n$ be substitution rules and let $D\subseteq\mathcal{W}$ be closed under each $s_k$. If $d_G(w,s_kw)\le\varepsilon$ for every $w\in D$ and every $k$, then for every $w\in D$
+\[
+d_G\bigl(w,\ s_n\circ\cdots\circ s_1\,w\bigr)\le n\varepsilon .
+\]
+\end{proposition}
+
+\begin{proof}
+This is \Cref{cor:drift} applied to the pseudometric space $(\mathcal{W},d_G)$ with $T_k=s_k$ on the domain $D$.
+\end{proof}
+
+The hypothesis is required on all of $D$ and not only at the base script. A substitution that moves the film by nothing at the base script may move it substantially at a script that earlier substitutions have already altered. The next corollary is the form usable in an experiment.
+
+\begin{corollary}[Substitution radius]\label{cor:subradius}
+Under the hypotheses of \Cref{prop:subdrift}, if $w'=s_n\circ\cdots\circ s_1\,w$ satisfies $d_G(w,w')>\delta$, then $n>\delta/\varepsilon$. At least $\lfloor\delta/\varepsilon\rfloor+1$ single substitutions are therefore needed to leave a $\delta$-neighborhood of the original film.
+\end{corollary}
+
+The corollary is conditional on a uniform per-step bound $\varepsilon$, a Lipschitz-type property of the decoder on the class of substitutions considered. For some classes the property is expected to fail, and when it fails a single substitution can leave any neighborhood. The following example shows both behaviors at once.
+
+\begin{example}[A decoder with exact error correction]\label{ex:repdecoder}
+Let $\mathcal{W}=\{0,1\}^5$ and let $G$ send a word to the film $f_1$ if it contains at least three ones and to the film $f_0$ otherwise, with $d(f_0,f_1)=1$ and $d(f,f)=0$. A substitution flips one letter. Starting from $w=00000$, any one or two flips leave the decoded film unchanged, so $d_G(w,w')=0$ for all $w'$ at Hamming distance at most two. Every set of three flips changes the film, and there are $\binom{5}{3}=10$ such sets, so the radius is exactly three and the film is lost at once and not gradually. A sensitivity computed at $w$ is zero in every direction, and a first-order analysis in the manner of \Cref{prop:effdim} would report that the script has no sensitive sites. The per-step bound of \Cref{prop:subdrift} must be taken over the set $D$ of all words reachable by flips, where a flip from $00110$ changes the film, so that $\varepsilon=1$ and the bound $n\varepsilon$ equals $3$ against a true drift of at most $1$. The bound is correct and pessimistic, and the example separates two statements often run together: that every step is imperceptible at the base point, and that the composite is imperceptible.
+\end{example}
+
+A real decoder interpolates, so its transition is spread over a range of substitutions and not concentrated at a single threshold. The repetition decoder is the limiting case in which error correction is exact. It shows concretely what the exactness hypothesis of \Cref{ch:scripts} would demand of a decoder, namely that the reconstruction depend on the description only through the class it names, and it marks how far a practical decoder is likely to fall short of that.
+
+The comparison of a substitution on scripts with an edit on films is the content of naturality, and it can be graded.
+
+\begin{definition}[Commuting defect]\label{def:defect}
+Let $s$ be a substitution rule on scripts and $t:\mathcal{V}\to\mathcal{V}$ a proposed corresponding edit of versions. The \emph{commuting defect} of the pair at $w$ is
+\[
+\delta(s,t;w)=d\bigl(G_\sigma(s\,w),\ t(G_\sigma w)\bigr).
+\]
+The pair is \emph{natural at $w$} if $\delta=0$ and \emph{$\varepsilon$-natural} if $\delta\le\varepsilon$.
+\end{definition}
+
+The edit $t$ is part of the hypothesis. For a nominal substitution that renames a character, $t$ is a relabeling of that character, and it can be specified only at the semantic level of \Cref{ch:direction}, where the user works, because no operation on pixels corresponds to it. The defect is not additive without a condition on $t$, as \Cref{ex:defectcomp} shows.
+
+\begin{principle}[Classes of lexical substitution]\label{pr:lexclasses}
+For a fixed decoder, seed set, and situation, the three classes of lexical substitution differ in sensitivity, and within the nominal class the commuting defect depends on how strongly the decoder's prior ties the substituted name to a particular work or character type. Reports of substitution sensitivity should state the class, the decoder, the seeds, the tolerance, and the task.
+\end{principle}
+
+Its status is methodological with an empirical core. The mathematical part is \Cref{prop:subdrift} together with \Cref{def:defect}, which make the class-wise sensitivities well defined. The empirical part is that the classes separate, with orthographic substitutions smallest and nominal substitutions of strongly tied names largest, where the tie can be measured by the change in $d_G$ when the name is replaced by a random string of the same length. The principle would be counted against by sensitivities that do not separate by class across scripts and decoders, or by a defect that is unrelated to the measured tie.
+
+A boundary of the kind met under disclosure order in \Cref{sec:perturb} occurs here as well. Replacing \emph{forged} by \emph{old} in the script of the forged-letter scene is a single lexical substitution that alters the history layer, because it changes what $A$ knows, and a response model fitted before the change does not extrapolate across it. Substitutions of this kind change the class of version, and the honest treatment is the one given there: partition the substitutions by whether they alter the semantic fold, estimate sensitivity within each part, and compare the parts by direct experiment.
+
+\paragraph{A protocol.} The forged-letter scene serves as the testbed, since its response model and parameters are already stipulated. The noise floor $\varepsilon_0$ is first estimated as the median of $d\bigl(G_\sigma w,G_{\sigma'}w\bigr)$ over pairs of seeds for the unaltered script, and only a change exceeding the floor is attributed to a substitution. For each class and each strength $k$, the number of sites substituted, the quantity $d_G(w,s^{(k)}w)$ is recorded over several seeds, and the curve in $k$ is reported together with the radius, the least $k$ at which the median exceeds $\varepsilon_0+\varepsilon$. A per-site finite-difference matrix $J_{ij}$, giving the change in response measure $i$ when site $j$ alone is substituted, can be assembled within one class, and its singular values give an effective dimension of lexical control in the manner of \Cref{prop:effdim}. No remainder bound of the kind in \Cref{prop:taylor} is available for discrete steps, so the result is a report and not a certificate, and \Cref{pr:conditional} applies in full.
+
 \section*{Exercises}
 
 \begin{exercise}
@@ -187,4 +244,28 @@ In Section~\ref{sec:perturb}, change the weight matrix to $W=\operatorname{diag}
 
 \begin{exercise}
 For the response $q_1=\tanh((p_1+\tfrac12p_4)/6)$, find the set of $(p_1,p_4)$ with $q_1\ge0.855$ and compare it with the half-plane predicted by linearization at $(7,4)$. Where do the two differ most?
+\end{exercise}
+
+\begin{exercise}
+For the repetition decoder on $\{0,1\}^n$ with $n=2m+1$, show that the radius from $0^n$ is $m+1$, that every set of $m+1$ or more flips changes the film, and compute the number of $(m+1)$-element flipping sets.
+\end{exercise}
+
+\begin{exercise}
+Let $G$ send a word to the nearest codeword of a binary code of minimum distance $2t+1$. Show that every substitution of at most $t$ letters is absorbed, and give a code and a word for which $t+1$ substitutions need not be.
+\end{exercise}
+
+\begin{exercise}\label{ex:defectcomp}
+Let $t_2$ be $L$-Lipschitz for $d$. Show that
+\[
+\delta(s_2s_1,\ t_2t_1;\ w)\le\delta(s_2,t_2;\ s_1w)+L\,\delta(s_1,t_1;\ w),
+\]
+and conclude that defects add when the edits are isometries.
+\end{exercise}
+
+\begin{exercise}
+For the forged-letter scene, specify a nominal substitution that renames $B$, the semantic edit $t$ that corresponds to it, the response measures of \Cref{sec:perturb} on which $d$ is based, and a rule for deciding whether the substituted name carries a strong prior in the decoder.
+\end{exercise}
+
+\begin{exercise}
+Explain why \Cref{prop:effdim} does not apply to substitutions within a class, state what replaces the Jacobian, and say which conclusions of the section on effective degrees of freedom survive the replacement.
 \end{exercise}
