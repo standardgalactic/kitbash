@@ -142,6 +142,65 @@ The choices do not all enter the history. The choice between spoken and gestured
 
 \paragraph{Revision.} Suppose the user deletes \texttt{skl}. Because preconditions are read in the state the earlier commands produced, every command whose precondition depends on $\mathsf{Knows}(A,\varphi)$ becomes invalid: \texttt{skc}, then \texttt{skr}, \texttt{grb}, and \texttt{sdx}. Only \texttt{smq} survives. A system that edits at the command level should present this cascade before applying the deletion, and offer the alternatives: delete all dependents, or replace \texttt{skl} by another command that establishes the same fact. The cascade is exactly the dependency graph of the five chained commands, which the enumeration in the accompanying script reproduces.
 
+\section{Involuntary triggers and audience-layer commands}\label{sec:triggers}
+
+The command language of \Cref{sec:session} assumes a person who types commands and is told, on refusal, which precondition failed. Two further sources of direction fall outside that picture. The first is the environment: an ambient sound, or the arrival and departure of a viewer, can be arranged to select or alter what is shown. The second is a command that addresses the audience and not the story world, such as a reminder, an aside to the viewer, or a break of the fourth wall.
+
+\begin{definition}[Trigger]\label{def:trigger}
+A \emph{trigger} is a pair $(g,c)$ of a guard $g$, a predicate on a stream of environmental signals, and a command $c\in\mathcal{K}$. When $g$ holds the system receives $c$ as though it had been typed.
+\end{definition}
+
+A trigger differs from a typed command in one respect that matters for the semantics: no one is present to repair a refusal. A typed command that fails its precondition is refused with the precondition named, and the user revises the plan. A trigger that fails its precondition has no recipient for the message, and the system must therefore carry a policy for inadmissible arrivals, which may drop the trigger, defer it in a queue, or replace it by a weaker command.
+
+\begin{proposition}[Filtered trigger streams stay admissible]\label{prop:filtered}
+Let $\Adm$ be prefix-closed and let triggers arrive in a sequence $c_1,c_2,\dots$. Process them in order under the following rule: if the current history $h$ has some $w\in R(c_i)$ with $hw\in\Adm$, append one such $w$, and otherwise apply the drop policy and leave $h$ unchanged. Then every history reached lies in $\Adm$. The history reached depends on the arrival order whenever the commands do not commute.
+\end{proposition}
+
+\begin{proof}
+The empty history lies in $\Adm$ because $\Adm$ is nonempty and prefix-closed, and each step either appends a continuation that keeps the history in $\Adm$ or leaves it unchanged, so the claim follows by induction. For the second statement take the commands $c_1$ and $c_2$ of \Cref{ex:noncomm}. Under the drop policy the arrival order $c_1c_2$ produces both effects, while $c_2c_1$ drops $c_2$, whose precondition fails in the initial state, and produces only $c_1$.
+\end{proof}
+
+The deferral policy recovers the intended order in this example, since $c_2$ waits in the queue until $c_1$ has supplied its precondition. Deferral can also hold a trigger indefinitely, and a queue with a time limit restores boundedness at the price of dropping triggers whose precondition is supplied too late. The order and timing of arrivals therefore belong to the recorded history of a triggered system, in the sense of \Cref{pr:authority}, because they determine which commands were applied.
+
+A viewer's presence is a signal of a particular kind, because it changes who the audience is. \Cref{ch:selective} indexed viewer classes by a set $V$, and the audience layer can be indexed in the same way, writing $\mathsf{Knows}_v(\varphi)$ for what a viewer of class $v$ has been told. Facts committed to the state layer while class $v$ is absent do not enter $\mathsf{Knows}_v$.
+
+\begin{principle}[Unwatched continuation]\label{pr:unwatched}
+A film that continues while a viewer is absent is a branching film in the sense of \Cref{prop:branching}, with the presence signal as the selector. Material shown to an absent viewer, or shown in place of plot when no one is present, is a shared segment and is subject to \Cref{pr:shared}: it is well typed only in the intersection of the contexts of the experiences that traverse it, and so cannot carry dependencies that only some branches supply. A viewer who arrives later lacks the corresponding entries of $\mathsf{Knows}_v$, and schemas whose enabling conditions mention the audience layer, such as dramatic irony, have no instance for that viewer until an event or command supplies them.
+\end{principle}
+
+The mathematical part is the tree structure of \Cref{prop:branching} together with the indexing of the audience layer, and it is a consequence of definitions already given. The empirical part is that catch-up by an explicit audience-layer command restores the schema instances, and the response, that the viewer would have had without the absence. The principle would be counted against by recaps that fail to restore the response on the measures of \Cref{ch:equivalence}.
+
+\begin{definition}[Audience-layer command]\label{def:audcmd}
+A command is an \emph{audience-layer command} if its effect adds to the audience layer and leaves the state layer unchanged. A break of the fourth wall is such a command when its effect is to add $\mathsf{Knows}_{\mathrm{aud}}(\varphi)$ for some fact $\varphi$, or an address event directed to the viewer.
+\end{definition}
+
+\begin{proposition}[Audience-layer commands do not change the state fold]\label{prop:audfold}
+Let $c$ be an audience-layer command. Two histories that differ only in the presence or position of events realizing $c$ have the same state fold. They can differ only in the schemas whose enabling conditions mention the audience layer.
+\end{proposition}
+
+\begin{proof}
+The state fold is computed from the state-layer effects of the events and ignores the audience layer, and the events of $c$ have no state-layer effect. A schema instance depends on the state layer and, for schemas of the kind of $\mathsf{T}_{\mathrm{iro}}$, on the audience layer at the onset of its first development, so only the latter kind can differ.
+\end{proof}
+
+This is the situation of the versions $V_0$ and $V_4$ in \Cref{sec:tropeexample}, whose state-layer histories are identical while only $V_4$ has an instance of $\mathsf{T}_{\mathrm{iro}}$. An audience-layer command is the operation that moves a film from one of those versions to the other.
+
+\begin{example}[Extending the session of \Cref{sec:session}]\label{ex:audsession}
+Add to the six commands of the session the command \texttt{a k t}, meaning that the audience is told that $A$ knows the letter is forged, with no precondition and effect $\mathsf{Knows}_{\mathrm{aud}}(\varphi)$.
+\begin{center}
+\small
+\begin{tabular}{p{1.0cm}p{3.3cm}p{3.7cm}p{3.1cm}}
+\toprule
+keys & meaning & precondition & effect\\
+\midrule
+\texttt{a k t} & the audience is told $A$ knows & none & $\mathsf{Knows}_{\mathrm{aud}}(\varphi)$\\
+\bottomrule
+\end{tabular}
+\end{center}
+The key set remains prefix-free, since every command has three keys. The command \texttt{akt} is unconstrained, like \texttt{smq}, so the valid orderings are the linear extensions of the chain $\texttt{skl}<\texttt{skc}<\texttt{skr}<\texttt{grb}<\texttt{sdx}$ with two free commands, and there are $7!/5!=42$ of them, against six before the addition. All of them are admissible, and all have the same state fold. Assume that the question of \Cref{sec:tropeexample} is realized as part of the concealment \texttt{skc}. Then $\mathsf{T}_{\mathrm{iro}}$ has an instance exactly when \texttt{akt} precedes \texttt{skc}, which holds in $14$ of the $42$ orderings and fails in the other $28$. The counts are reproduced by the script \texttt{verify.py}.
+\end{example}
+
+The example exhibits a second sense in which commands fail to commute. In \Cref{ex:noncomm} the failure was one of admissibility, where one command supplies what another requires. Here the commands commute for admissibility and do not commute for observation, because the position of the audience-layer command decides which schemas have instances. An interface for hierarchical direction should therefore report, on accepting such a command, which schema instances its position creates or removes, even though no refusal occurs. That requirement is a design problem, listed in \Cref{ch:open}, and not a property proved here.
+
 \section*{Exercises}
 
 \begin{exercise}
@@ -166,4 +225,20 @@ In the command language of Section~\ref{sec:session}, add a command \texttt{s k 
 
 \begin{exercise}
 Write a trope schema for \emph{red herring} in the sense of Section~\ref{sec:tropeexample}, giving roles, enabling conditions, developments, and a timing window, and say which observable would discriminate it from a genuine clue.
+\end{exercise}
+
+\begin{exercise}
+Model a trigger queue with deferral and a time limit for the commands of \Cref{sec:session}. Show that the set of commands applied can depend on the arrival times and not only on the arrival order, and give a minimal example.
+\end{exercise}
+
+\begin{exercise}
+Represent a film that switches between plot and filler according to a presence signal as a branching film. For a binary presence signal sampled at $d$ instants, compute the number of experiences and the content that must be produced, using \Cref{prop:branching}, and identify which segments are shared.
+\end{exercise}
+
+\begin{exercise}
+Write a trope schema for a fourth-wall break, with roles, enabling conditions in the audience layer, developments, and a timing window. State which observable discriminates it from a device that is part of the story world.
+\end{exercise}
+
+\begin{exercise}
+In \Cref{ex:audsession}, find the number of orderings in which \texttt{akt} falls between \texttt{skc} and \texttt{skr}, and say whether the schemas $\mathsf{T}_{\mathrm{con}}$ and $\mathsf{T}_{\mathrm{iro}}$ differ across those orderings.
 \end{exercise}

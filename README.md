@@ -1,5 +1,7 @@
 # Self-Refactoring Crosslinking
 
+[Generative Film](https://standardgalactic.github.io/kitbash/generative-film/generative-film.pdf)
+
 [Paperbot Parliament](https://standardgalactic.github.io/kitbash/paperbot/paperbot-parliament.pdf)
 
 A novel multi-agent document analysis framework that prioritizes preservation of conceptual distinctions rather than text compression. Unlike conventional summarization, which often collapses subtle boundaries, the system uses specialized agents—such as a Nitpicker, Skeptic, and Admissibility Auditor—to analyze documents from complementary perspectives. Its primary output is a distinction ledger identifying non-equivalent concepts, formally represented as (X \neq Y).
