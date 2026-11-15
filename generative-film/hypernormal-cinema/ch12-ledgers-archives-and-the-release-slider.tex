@@ -1,0 +1,196 @@
+\documentclass[11pt,twoside,openright]{book}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{mathpazo}
+\usepackage{microtype}
+\usepackage[inner=1.35in,outer=1.1in,top=1.25in,bottom=1.35in]{geometry}
+\usepackage{booktabs}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+\usepackage{cleveref}
+
+\setlength{\parindent}{1.4em}
+\setlength{\parskip}{0pt}
+\linespread{1.07}
+\emergencystretch=3em
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE]{\small\thepage\quad\textsc{A Cinema of Individual Editions}}
+\fancyhead[RO]{\small\nouppercase{\leftmark}\quad\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\Capac}{\mathrm{Cap}}
+\newcommand{\Rob}{\mathrm{Rob}}
+\newcommand{\Inv}{\mathrm{Inv}}
+\DeclareMathOperator{\loss}{loss}
+
+\title{\Huge\bfseries A Cinema of Individual Editions\\[1.2ex]
+\large Chapter Twelve: Ledgers, Archives, and the Release Slider\\[0.4ex]
+\large Working Draft}
+\author{Flyxion\\[0.3ex]\small Independent Researcher}
+\date{November 2026}
+
+\begin{document}
+
+\frontmatter
+\maketitle
+\tableofcontents
+\mainmatter
+\setcounter{chapter}{11}
+
+\chapter{Ledgers, Archives, and the Release Slider}
+\label{ch:ledger}
+
+The preceding chapters allocate editions and correct them. All of it presupposes a record: the ledger that says which viewer was shown which edition, under which revision, and the archive of footage from which that edition can be put together again. A correction that withdraws a take does not erase what a viewer saw, and a report from a viewer is adjudicated against the edition that was played, so the record decides what can be adjudicated at all. This chapter treats what the ledger holds and how much it costs, what an archive has to retain to reconstruct a played edition, what a ledger of unique editions does to the privacy of the people in it, and what a release slider should show for each date, including a date before the premiere and a scheduled premiere to which no edition has yet been assigned.
+
+All counts are taken on the lawn scene with the allocations of Chapter~10: sixty viewers of production A, thirty of B, and two of C, drawn once at random from the premiere pool, with one take per slot drawn at random for each viewer. They show what the record costs in this scene. They do not measure storage, since no byte count of any take exists in this book.
+
+\section{The Ledger and Its Records}\label{sec:records}
+
+A \emph{record} is a viewer reference, a revision identifier, a class tuple, and a take tuple, together with the date of assignment. The revision identifier is what makes the other fields decodable: the same tuple of indices names different footage under different pools. A \emph{ledger} is the sequence of records, appended and never overwritten, so that a viewer who has been repaired once has two records and the earlier one is still there.
+
+The tuple fields are small. \Cref{tab:rec12} gives their size under two encodings. The self-describing encoding stores for each slot the index of the class and the index of the take, with as many bits as the largest pool at that slot requires. The compact encoding stores a single index into the space of take tuples, which needs $\lceil\log_2 K\rceil$ bits for $K$ take tuples, and can be decoded only with the pool of the named revision.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Production & Take tuples $K$ & Compact bits & Per slot: class + take & Total\\
+\midrule
+A & 120{,}042 & 17 & $13+10$ & 23\\
+B & 10{,}240 & 14 & $14+5$ & 19\\
+C & 204{,}800{,}000 & 28 & $5+30$ & 35\\
+\bottomrule
+\end{tabular}
+\caption{Bits needed to record one edition at the premiere, by encoding. The viewer reference, the revision identifier, and any signature are not counted.}\label{tab:rec12}
+\end{table}
+
+The length of the compact encoding is a different quantity from the numerator of the rate of Chapter~1. The rate counts perceptually distinguishable editions, $\log_2K$ for $K$ of them. The encoding names an assembly, and its length is $\lceil\log_2T\rceil$ bits for $T$ admissible take tuples. At the same revision the two can differ by the whole amount. After the lawn correction production C has $102{,}400{,}000$ take tuples, so a ledger entry costs twenty-seven bits, against one perceptual edition and zero bits of distinguishable choice. The cost of recording the film is higher than the amount that the viewer can tell about it, and in this case by the whole amount.
+
+\section{What an Archive Retains}\label{sec:archive}
+
+A record is useless without the footage it names. The pool of a production holds sixty-nine takes in A, fifty-eight in B, and four hundred in C. Some of them belong to classes that the corrections of Chapters~7 to~10 remove from the admissible pool: after the agreement rule, twelve of A's takes, fourteen of B's, and eighty of C's are in stale classes, and the admissible pool shrinks to fifty-seven, forty-four, and three hundred twenty takes. Three retention policies are possible.
+
+\begin{definition}[Retention policies]
+An \emph{archive-all} policy keeps every take ever shot. An \emph{admissible-pool} policy keeps only the takes of classes that are admissible under the current revision. A \emph{referenced} policy keeps the admissible pool and, in addition, every superseded take that some record in the ledger names.
+\end{definition}
+
+An edition can be reconstructed from a record only if every take it names is still held, so the policies differ in which viewers can be served. \Cref{tab:ret12} gives the counts after the final correction.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}lrrrp{2.1cm}p{2.2cm}p{2.4cm}@{}}
+\toprule
+ & Shot & Admissible & Stale & Stale takes named by a record & Viewers holding a stale class & Not reconstructible if stale takes are purged\\
+\midrule
+A & 69 & 57 & 12 & 12 & 31 of 60 & 31\\
+B & 58 & 44 & 14 & 12 & 20 of 30 & 20\\
+C & 400 & 320 & 80 & 1 & 1 of 2 & 1\\
+\bottomrule
+\end{tabular}
+\caption{Footage retained and viewers who can be reconstructed after the agreement rule, by policy. The last column is the number of viewers whose played edition names a take that an admissible-pool policy has discarded.}\label{tab:ret12}
+\end{table}
+
+\begin{proposition}[Cost of reconstruction]\label{prop:retain}
+Let $R$ be the set of takes named by the records of played editions. If the system must retain the ability to serve every current admissible take and to reconstruct every played edition from its recorded take references, the least archive is the union of the admissible takes of $\rho$ and $R$, which is the referenced policy. If the obligation is only to reconstruct played editions and to sustain a feasible current allocation, a smaller archive can suffice. Its size exceeds the admissible pool by the number of stale takes in $R$, and no more than the archive-all policy.
+\end{proposition}
+
+\begin{proof}
+An edition is reconstructed from the takes it names, so every take of $R$ is necessary. The admissible takes are necessary to serve the current revision, and nothing else is needed.
+\end{proof}
+
+In the lawn scene the referenced policy keeps $69$ takes in A, which is all of them, since the sixty viewers between them name every one of the twelve stale takes. In B it keeps $56$ of $58$, and in C it keeps $321$ of $400$, because the one viewer who holds a stale class in the corrected production holds one take of the eighty. Archive-all would have kept the eighty. The saving is large in production C and nil in A, and the difference is the size of the audience relative to the stale pool: sixty viewers cover twelve stale takes, and two viewers cover one of eighty.
+
+A take-level amendment sets the same trade. Withdrawing the first variant of every class in the premiere pool touches $96$ of the $300$ take slots held by the viewers of A, which is $56$ of the $60$ viewers, $72$ of $150$ in B, and $1$ of $10$ in C. The withdrawn takes cannot go back into any edition, and they have to stay in the archive for as long as a played edition names them.
+
+The retention rule has a corollary that connects to the adjudication of Chapter~7. A report about a played edition is decided against the take that was shown. Where the take has been discarded, the report can be assigned only the verdict unsupported, since there is nothing to inspect. The archive therefore has to keep a take for at least as long as a report can still be filed against it, and the retention period is the report window.
+
+\section{Privacy in a Ledger of Unique Editions}\label{sec:privacy}
+
+The promise of this book is that each viewer receives a different film. A record that identifies the film therefore identifies the viewer, and the property that makes the cinema individual makes its ledger sensitive. The question is how much of an edition a third party has to know to single out its viewer.
+
+Let a person who knows what a viewer saw at some set of $s$ slots look for that viewer in the ledger. The \emph{anonymity set} is the number of records consistent with the observation. \Cref{tab:anon12} gives its mean over viewers and over the choices of observed slots, for the allocations above, at the class level.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Observed slots $s$ & 1 & 2 & 3 & 4 & 5\\
+\midrule
+A (60 viewers) & 15.95 & 4.96 & 2.12 & 1.29 & 1.00\\
+B (30 viewers) & 7.44 & 3.13 & 1.71 & 1.23 & 1.00\\
+C (2 viewers) & 1.80 & 1.60 & 1.40 & 1.20 & 1.00\\
+\bottomrule
+\end{tabular}
+\caption{Mean number of viewers whose recorded class tuple agrees with a given viewer's at the $s$ observed slots, averaged over viewers and over all choices of the slots.}\label{tab:anon12}
+\end{table}
+
+Two things follow from the arithmetic. First, the anonymity set is one when all five slots are observed, for every production, since this is what uniqueness means. Second, it falls quickly: in A, a person who knows what a viewer saw at three of five slots is looking at about two candidates. The class tuple is a quasi-identifier, and in a population this small it is nearly a name.
+
+\begin{proposition}[The tuple is the identifier]\label{prop:ident}
+If every viewer of a release has a distinct class tuple, then a ledger that stores tuples without viewer references still partitions the audience into singletons, and any observation of a viewer's edition that fixes the whole tuple singles out the record. Singling out a record is not identifying a person: linking the record to a civil identity requires information beyond the tuple, such as the viewer reference or the receipt. Pseudonymous viewer references protect the viewer only against a party who has no observation of the edition and no means of linking one to the other. The anonymity sets of the table show how quickly the candidate set shrinks under observation, and they do not show that any such linkage exists.
+\end{proposition}
+
+This is a statement about what the design commits to and not about any attack. It has three consequences for the ledger. The mapping from a viewer to a tuple is the sensitive object, so it should be held apart from the archive and the adjudication, which need only the tuple. The viewer can hold a receipt, so that a report can be filed from the receipt alone without the ledger linking it to an account. And the ledger should record only as much of an edition as recovery and adjudication need, which for the slotwise encoding is the whole tuple, and for a slot-local complaint can be a single slot. None of this bounds what a viewer who publishes a receipt discloses about themselves, and the shared-viewing exchange of Chapter~1 depends on viewers doing just that.
+
+\section{The Release Slider}\label{sec:slider}
+
+The \emph{release slider} is the interface by which a viewer asks to see the film as of a date. It has to be defined for every date, because a viewer can move it anywhere. For a viewer $v$ with records $r_1,\dots,r_n$ of dates $d_1<\dots<d_n$, and a date $d$, the slider shows the edition of the last record dated at or before $d$, under that record's own revision. This rule gives a definite answer on each of three kinds of date.
+
+For a date before the premiere, no record has been dated at or before $d$, and the slider shows no edition. It can still show the schedule and the fact that an assignment has not been made. It must not show a preview of the edition the viewer will receive, because the premiere pool at that date may not be the pool at the premiere, and a preview would be an assignment under another name.
+
+For a scheduled premiere with no edition yet, the slider shows the booking and a sentence saying that the edition is assigned at the premiere. Whether to assign at booking or at the premiere is a design choice with a measurable difference. If assignments are made at booking and an amendment arrives before the premiere, the booked assignments that touch removed classes are invalid and have to be repaired in the ledger. In the lawn scene the first amendment alone invalidates $16$ of the sixty booked assignments in A and $8$ of thirty in B, repaired at radius one. The viewers have seen nothing, so no change is visible, and the records are nevertheless rewritten. If assignment is deferred to the premiere, the viewers receive editions from the corrected pool and no repair is needed. Deferral costs the production the ability to confirm early that its audience fits, and fitting is a capacity question (Chapter~9) that can be asked of the booking count without assigning anything.
+
+For a date after the premiere, the slider shows the record in force. This is where corrections show. \Cref{tab:slider12} follows a viewer population through the three amendments of Chapter~8 applied in sequence, with the repair of Chapter~10 at each step: the viewers who held an invalid tuple move to the nearest free valid one, and the others keep what they had.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}lrrrp{2.2cm}p{1.6cm}p{2.2cm}@{}}
+\toprule
+ & Pool, $\alpha_a$ & $\alpha_b$ & $\alpha_c$ & Moved at each step & Viewers ever moved & Cost, sequence / one shot\\
+\midrule
+A & 351 & 286 & 238 & 16, 15, 6 & 31 & 37 / 37\\
+B & 200 & 168 & 96 & 8, 3, 15 & 20 & 28 / 27\\
+C & 1 & 1 & 1 & no repair possible & --- & ---\\
+\bottomrule
+\end{tabular}
+\caption{The slider's history for the sixty, thirty, and two viewers of A, B, and C under the three amendments in sequence, with each repair at minimum total Hamming movement, survivors fixed. Moves are counted as new records.}\label{tab:slider12}
+\end{table}
+
+In A the sequence moves $37$ records for $31$ viewers, which is the same as the viewer-level revisions of Chapter~8, and no viewer's slider changes more than twice. The total movement of the sequence equals the one-shot repair of the final pool in A, and exceeds it in B by one, $28$ against $27$. The reason is that a viewer moved at the second step can land in a place the third step removes, so a viewer in the sequence may be moved more than once. Production C has a pool of one after the first amendment and an audience of two. No sequence of repairs can give both viewers distinct tuples, and the slider for C shows, after the first amendment, either one edition for two viewers or a viewer without one. The ledger records the failure, and it is a failure of capacity and not of bookkeeping.
+
+The slider also shows what anticipated allocation buys. If the premiere assignments are drawn from the pool that survives every amendment, the invariant pool of Chapter~9, A has $238$ available for $60$ viewers and B has $96$ for $30$. No viewer is ever moved, the slider is flat, and the ledger has one record per viewer. C has an invariant pool of one for two viewers, so anticipation is impossible there. The price of anticipation is that the premiere offers only $238$ of the $494$ class tuples of A, which is the capacity given up.
+
+\section{What the Chapter Establishes and What It Assumes}\label{sec:limits12}
+
+The propositions on retention and identification hold for any ledger of the kind defined here. The numbers rest on stated assumptions. The take counts stand in for storage, and no storage cost has been measured. The viewers and their takes are one random draw, so the counts of stale takes referenced, of viewers who hold them, and of the anonymity sets would differ in another draw, though the structure would not. The anonymity sets are computed at the class level and treat observation of a slot as observation of the class, which a real observer may not have. The slider semantics, finally, are a proposal about what to show and none of the numbers tests whether viewers find them intelligible.
+
+The next chapter takes the budget of a single viewer. Chapter~13 asks how a finite viewing life limits the number of editions and revisits that the ledger above will ever record for one person.
+
+The scripts \texttt{lawnmodel.py} and \texttt{verify\_ch12.py} reproduce each figure of this chapter.
+
+\begin{thebibliography}{99}
+
+\bibitem{flyxion2026gf}
+Flyxion.
+\newblock \emph{Generative Film: Categories, Sheaves, and Types for Cinema}.
+\newblock Unpublished monograph, October 2026.
+
+\end{thebibliography}
+
+\end{document}

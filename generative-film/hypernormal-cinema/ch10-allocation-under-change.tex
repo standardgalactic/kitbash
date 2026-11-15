@@ -1,0 +1,220 @@
+\documentclass[11pt,twoside,openright]{book}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{mathpazo}
+\usepackage{microtype}
+\usepackage[inner=1.35in,outer=1.1in,top=1.25in,bottom=1.35in]{geometry}
+\usepackage{booktabs}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+\usepackage{cleveref}
+
+\setlength{\parindent}{1.4em}
+\setlength{\parskip}{0pt}
+\linespread{1.07}
+\emergencystretch=3em
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE]{\small\thepage\quad\textsc{A Cinema of Individual Editions}}
+\fancyhead[RO]{\small\nouppercase{\leftmark}\quad\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\Capac}{\mathrm{Cap}}
+\newcommand{\Rob}{\mathrm{Rob}}
+\newcommand{\Inv}{\mathrm{Inv}}
+\DeclareMathOperator{\loss}{loss}
+
+\title{\Huge\bfseries A Cinema of Individual Editions\\[1.2ex]
+\large Chapter Ten: Allocation Under Change\\[0.4ex]
+\large Working Draft}
+\author{Flyxion\\[0.3ex]\small Independent Researcher}
+\date{November 2026}
+
+\begin{document}
+
+\frontmatter
+\maketitle
+\tableofcontents
+\mainmatter
+\setcounter{chapter}{9}
+
+\chapter{Allocation Under Change}
+\label{ch:repair}
+
+Chapter~9 asked whether a corrected production still has enough distinct editions for its audience, and it counted editions as if the audience could be reassigned from nothing. A real audience is not reassigned from nothing. Each viewer holds an edition, a correction invalidates some of those editions, and the production has to move the affected viewers to valid ones while disturbing as few viewers, and as little, as it can. This chapter asks whether that can be done. It takes the pools of the previous chapter and the same three audiences, and it gives a second result that the first does not imply.
+
+The result is that capacity is necessary and not sufficient. A pool can hold hundreds of unused class tuples and still fail to repair a viewer, because the unused tuples are not near enough to the viewer's edition and the nearby ones are held by other viewers. Section~\ref{sec:witness} exhibits such a viewer in the lawn scene with a spare capacity of $291$. Repairability therefore depends on the allocation that the production starts from and on the disturbance that it is allowed to cause, and the chapter gives the exact condition and two simpler sufficient ones.
+
+\section{Allocations, Disturbance, and Budgets}\label{sec:setting}
+
+The class tuples of the admissible pool before an amendment form a set $P$, and after it a subset $P'\subseteq P$, the set $\pi(X')$ of the previous chapter. An allocation is an injective map $a$ from viewers to class tuples. Disturbance is measured by a pseudometric $d$ on class tuples, which this chapter takes to be the Hamming distance, the number of slots at which two class tuples differ. A viewer moved from $a(v)$ to $a'(v)$ is disturbed by $d(a(v),a'(v))$, so a viewer who is given another take of the same class tuple is not disturbed at all.
+
+Before the amendment each viewer holds a tuple of $P$. After it, the \emph{invalid} viewers are those whose tuples lie outside $P'$ and the \emph{survivors} are the others. A \emph{repair} is an allocation $a'$ into $P'$. Three problems arise, and they differ in what may move.
+
+\begin{definition}[Repair problems]\label{def:repair}
+Given $a$ and $P'$, the \emph{survivors-fixed} problem asks for a repair $a'$ with $a'(v)=a(v)$ for every survivor $v$. The \emph{free} problem allows every viewer to move. Each comes in two forms: with a \emph{per-viewer budget} $r$, the requirement is $d(a(v),a'(v))\le r$ for every moved viewer, and with a \emph{total budget}, the requirement is that $\sum_vd(a(v),a'(v))$ be minimal or at most a stated bound. The \emph{repair radius} $r^\ast$ is the least per-viewer budget for which a repair exists, and $r^\ast_{\mathrm{fix}}$ and $r^\ast_{\mathrm{free}}$ denote it for the two problems, with $r^\ast_{\mathrm{free}}\le r^\ast_{\mathrm{fix}}$.
+\end{definition}
+
+The inequality holds because any survivors-fixed repair is a free repair. The two radii can differ, and \Cref{sec:witness} gives a case.
+
+\section{The Exact Condition}\label{sec:hall}
+
+For a per-viewer budget the problem is a matching problem. Let $B_r(t)$ denote the set of tuples of $P'$ within distance $r$ of $t$.
+
+\begin{theorem}[Repair with a per-viewer budget]\label{thm:repair}
+A survivors-fixed repair with budget $r$ exists if and only if the invalid viewers can be matched to distinct tuples of $F=P'\setminus\{a(v):v\text{ a survivor}\}$ with each viewer matched inside its ball $B_r(a(v))$. By Hall's theorem~\cite{hall1935} this holds if and only if for every set $W$ of invalid viewers
+\[
+\Bigl\lvert F\cap\bigcup_{v\in W}B_r\bigl(a(v)\bigr)\Bigr\rvert\ \ge\ \lvert W\rvert .
+\]
+A free repair with budget $r$ exists if and only if the same condition holds with all viewers in place of the invalid viewers and $P'$ in place of $F$. Either condition can be decided in time polynomial in the size of the candidate graph by maximum bipartite matching. That graph is given explicitly here, and it can itself be large relative to the stored footage. For a positive separation threshold, replacements that are distinct can still conflict with one another, so ordinary matching no longer settles the problem.
+\end{theorem}
+
+\begin{proof}
+A survivors-fixed repair gives each invalid viewer a tuple of $P'$ that no survivor holds and no other invalid viewer holds, which is a matching into $F$ within the balls, and conversely. The Hall condition is the standard characterization of the existence of such a matching. The free case is the same argument with every viewer required to receive a tuple, a survivor being allowed to keep its own because $a(v)\in B_r(a(v))$ whenever $a(v)\in P'$.
+\end{proof}
+
+A total budget is a minimum-cost assignment. The minimum total disturbance of a survivors-fixed repair is the optimum of the assignment problem between the invalid viewers and $F$ with cost $d(a(v),t)$, and for the free problem it is the assignment of all viewers into $P'$, both solved in polynomial time by the Hungarian method~\cite{kuhn1955}. A common objective adds a fixed cost $\lambda$ for each viewer who moves at all, so that a repair that disturbs few viewers a little is preferred to one that disturbs many.
+
+\subsection{Why Capacity Does Not Settle It}
+
+\begin{proposition}[Capacity is necessary, not sufficient]\label{prop:necessary}
+If a repair exists then $\lvert P'\rvert\ge U$. The converse fails: there are allocations with $\lvert P'\rvert\ge U$ and no repair of a given budget $r$.
+\end{proposition}
+
+\begin{proof}
+A repair is an injective map of $U$ viewers into $P'$. For the failure, take an invalid viewer all of whose valid tuples within distance $r$ are held by survivors. No survivors-fixed repair with budget $r$ places that viewer, whatever the size of $P'$. \Cref{sec:witness} exhibits such a viewer with $r=1$.
+\end{proof}
+
+The abstract form of the example in the outline is this. Suppose a pool holds a hundred distinguishable editions and the audience is sixty. A correction removes the editions of two viewers, and each of the two has the same sole acceptable replacement within the permitted disturbance, a single free tuple that lies in both balls. A hundred editions exist, and forty of them are unassigned, but the Hall condition fails for the set of the two viewers, because their balls hold one free tuple between them. Capacity asks whether sixty distinct editions exist, and repairability asks whether these two viewers can reach two.
+
+\section{The Shared Example}\label{sec:witness}
+
+The lawn scene supplies the audiences of Chapter~9: sixty viewers for production A, thirty for B and two for C, each drawn from the premiere pool by a fixed pseudorandom choice, standing in for the keyed permutation of the ledger. The amendments are those of Table~9.3 of the previous chapter. \Cref{tab:repair} gives for each production and amendment the number of invalid viewers, the capacity that remains, the repair radii, the minimum total disturbance of a survivors-fixed repair, and the smallest radius at which every invalid viewer's ball holds at least $U$ valid tuples.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}llrrrrrr@{}}
+\toprule
+Prod. & Amend. & Invalid & Capacity & $r^\ast_{\mathrm{fix}}$ & $r^\ast_{\mathrm{free}}$ & Total cost & Ball radius\\
+\midrule
+A & $\alpha_a$ & 16 & 351 & 1 & 1 & 16 & 3\\
+A & $\alpha_b$ & 15 & 404 & 1 & 1 & 15 & 3\\
+A & $\alpha_c$ & 6 & 422 & 1 & 1 & 6 & 3\\
+A & $G$ & 31 & 238 & 2 & 2 & 37 & 4\\
+B & $\alpha_a$ & 8 & 200 & 1 & 1 & 8 & 3\\
+B & $\alpha_b$ & 3 & 288 & 1 & 1 & 3 & 3\\
+B & $\alpha_c$ & 15 & 176 & 1 & 1 & 15 & 3\\
+B & $G$ & 20 & 96 & 2 & 2 & 27 & 4\\
+C & $\alpha_a$, $G$ & 1 & 1 & none & none & none & none\\
+C & $\alpha_b$, $\alpha_c$ & 0 & 2 & 0 & 0 & 0 & 0\\
+\bottomrule
+\end{tabular}
+\caption{Repair of one audience per production after each amendment. The ball radius is the smallest $r$ for which every invalid viewer's ball $B_r$ holds at least $U$ valid tuples, a sufficient condition for repair.}\label{tab:repair}
+\end{table}
+
+For A and B the single amendments are repaired at radius $1$ and the full agreement rule $G$ at radius $2$, and the total disturbance of the survivors-fixed repair is the number of invalid viewers plus a few extra slots: $37$ slots for the $31$ invalid viewers of A under $G$, and $27$ for the $20$ of B. For production C the audience of two sits at zero spare capacity, so Theorem~9.3 of the previous chapter decides it: $\alpha_b$ and $\alpha_c$ leave both class tuples and need no repair, while $\alpha_a$ and $G$ remove one of the two, and no repair of any radius exists. This is the second form of the failure case, and it is a failure of capacity and not of distance.
+
+\subsection{Sufficient Conditions}
+
+\begin{proposition}[The ball condition]\label{prop:ball}
+If every invalid viewer's ball $B_r(a(v))$ contains at least $U$ tuples of $P'$, then a survivors-fixed repair with budget $r$ exists.
+\end{proposition}
+
+\begin{proof}
+Survivors hold at most $U-k$ tuples of $P'$ when $k$ viewers are invalid, so for any set $W$ of invalid viewers the free tuples in the union of their balls number at least $U-(U-k)=k\ge\lvert W\rvert$. This is the Hall condition of \Cref{thm:repair}.
+\end{proof}
+
+The condition is conservative. It guarantees a repair at radius $3$ for the single amendments of \Cref{tab:repair} and at radius $4$ for $G$, where repairs in fact succeed at $1$ and $2$. Its use is that it can be checked from the pool alone, by counting tuples in balls, without reference to the allocation of the other viewers.
+
+\subsection{A Viewer That Capacity Cannot Reach}
+
+Capacity and radius come apart in an actual allocation of the lawn scene. Take the audience of sixty for production A drawn with seed $6$ in the search of \Cref{tab:worst}, and apply $\alpha_a$. Twelve viewers are invalid, $351$ class tuples remain, and $303$ of them are free, which is a spare capacity of $291$ over the audience. One invalid viewer, holding a class tuple that the amendment has removed, has exactly two valid class tuples within Hamming distance $1$, and both are held by survivors. The Hall condition fails for that single viewer at $r=1$, so $r^\ast_{\mathrm{fix}}=2$. The free problem has $r^\ast_{\mathrm{free}}=1$: a survivor can step aside by one slot, and the invalid viewer takes the tuple it vacates.
+
+Which of these the production should do is a policy matter. The first leaves every survivor exactly where the survivor was, and costs the invalid viewer a larger disturbance. The second disturbs one extra viewer by one slot to spare the invalid viewer a larger one, which the total-budget objective with a movement cost $\lambda$ weighs. \Cref{tab:worst} gives the worst survivors-fixed radius found over four hundred random audiences for each case.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}llrr@{}}
+\toprule
+Prod. & Amendment & Capacity & Worst $r^\ast_{\mathrm{fix}}$ over 400 audiences\\
+\midrule
+A & $\alpha_a$ & 351 & 2\\
+A & $\alpha_b$ & 404 & 2\\
+A & $\alpha_c$ & 422 & 2\\
+A & $G$ & 238 & 2\\
+B & $\alpha_a$ & 200 & 2\\
+B & $\alpha_b$ & 288 & 2\\
+B & $\alpha_c$ & 176 & 2\\
+B & $G$ & 96 & 3\\
+\bottomrule
+\end{tabular}
+\caption{The worst repair radius over four hundred random audiences, survivors fixed. Every row has far more capacity than audience, and every worst case needs radius at least $2$.}\label{tab:worst}
+\end{table}
+
+\section{Sequences of Amendments}\label{sec:drift}
+
+Corrections arrive one after another, and the repairs accumulate. Because the disturbance is a metric, the displacement of a viewer over a sequence of repairs is bounded by the sum of the individual displacements.
+
+\begin{proposition}[Drift]\label{prop:drift}
+If a sequence of amendments is repaired in turn with per-viewer budgets $r_1,\dots,r_n$, a viewer's final class tuple is within $\sum_ir_i$ of its original one. A single repair from the original allocation directly into the pool that results from all $n$ amendments has radius that need not equal $\sum_ir_i$, and can be smaller.
+\end{proposition}
+
+\begin{proof}
+The first statement is the triangle inequality for $d$. For the second, \Cref{tab:drift} gives an instance in which successive radii sum to more than the direct radius.
+\end{proof}
+
+Applying $\alpha_a$, $\alpha_b$ and $\alpha_c$ to production A in turn, each repair has radius $1$, and the largest accumulated movement of any viewer is $2$, with $31$ viewers moved at least once, although each repair alone moved at most the viewers it found invalid. A single repair straight into the final pool has radius $2$. For B the three repairs have radii $1$, $1$ and $2$, the largest accumulated movement is $3$, and the direct repair has radius $2$. A production that repairs promptly keeps each step small, and a production that waits and repairs once can have a smaller largest disturbance, at the price of leaving viewers on invalid editions for longer. The choice belongs to the release policy of a later chapter.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Prod. & Radii & Capacity per step & Max drift & Moved & Direct\\
+\midrule
+A & $1,1,1$ & 351, 286, 238 & 2 & 31 & 2\\
+B & $1,1,2$ & 200, 168, 96 & 3 & 20 & 2\\
+\bottomrule
+\end{tabular}
+\caption{Repair in turn under $\alpha_a$, $\alpha_b$, $\alpha_c$ for the audiences of \Cref{tab:repair}, each step a minimum-cost survivors-fixed repair.}\label{tab:drift}
+\end{table}
+
+\section{Reproducibility}\label{sec:reproduce}
+
+A repair has to be a function of the ledger. The pool after each amendment is determined by the correction events recorded in it, and the allocation before the amendment is determined by the ledger's assignment records. If the assignment problem is solved by a fixed algorithm with a fixed order on class tuples for breaking ties, the repair is determined as well, so the same ledger yields the same repaired allocation on every replay. For the lawn scene, two replays of the minimum-cost repair of the keyed allocation, with a hash-sorted audience, gave identical assignments for production A under $G$ with thirty invalid viewers and for B with twenty-three. Ties among equal-cost repairs are the only freedom, and the tie-breaking rule is part of the specification of the production.
+
+\section{What the Two Chapters Give Together}\label{sec:together}
+
+Chapter~9 gives the capacity that a production keeps and the robustness that a family of amendments leaves. This chapter gives the repairability of an allocation within that capacity. The first is a property of the corrected pool alone and the second a property of the pool together with where the viewers stand and how far each may be moved. Production C fails the first and so fails the second. Production A, after $\alpha_a$, passes the first with a spare capacity of $291$ and fails the second for one viewer at radius $1$ in the allocation of \Cref{sec:witness}. The remaining reserve question is how much of the capacity is usable from a particular allocation, which the ball condition bounds from below and the matching of \Cref{thm:repair} decides exactly.
+
+The scripts \texttt{lawnmodel.py} and \texttt{verify\_ch10.py} reproduce each figure of this chapter.
+
+\begin{thebibliography}{99}
+
+\bibitem{hall1935}
+Philip Hall.
+\newblock On Representatives of Subsets.
+\newblock \emph{Journal of the London Mathematical Society}, 10(1):26--30, 1935.
+
+\bibitem{kuhn1955}
+Harold W.\ Kuhn.
+\newblock The Hungarian Method for the Assignment Problem.
+\newblock \emph{Naval Research Logistics Quarterly}, 2(1--2):83--97, 1955.
+
+\end{thebibliography}
+
+\end{document}

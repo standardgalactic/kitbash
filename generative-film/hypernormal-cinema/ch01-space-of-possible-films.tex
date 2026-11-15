@@ -1,0 +1,503 @@
+\documentclass[11pt,twoside,openright]{book}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{mathpazo}
+\usepackage{microtype}
+\usepackage[inner=1.35in,outer=1.1in,top=1.25in,bottom=1.35in]{geometry}
+\usepackage{booktabs}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+\usepackage{cleveref}
+
+\setlength{\parindent}{1.4em}
+\setlength{\parskip}{0pt}
+\linespread{1.07}
+\emergencystretch=3em
+
+% ---------- headers ----------
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE]{\small\thepage\quad\textsc{A Cinema of Individual Editions}}
+\fancyhead[RO]{\small\nouppercase{\leftmark}\quad\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+% ---------- theorem environments ----------
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{assumption}[theorem]{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% ---------- macros (notation of the earlier volume where it applies) ----------
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Img}{\mathcal{I}}      % image space
+\newcommand{\Ren}{\mathsf{R}}       % rendering
+\newcommand{\Adm}{\mathcal{A}}      % admissible histories
+\newcommand{\Ed}{\mathrm{Ed}}       % admissible editions
+\newcommand{\one}{\mathbf{1}}
+\newcommand{\mown}{\mathsf{mown}}
+\newcommand{\unmown}{\mathsf{unmown}}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\Hom}{Hom}
+
+\title{\Huge\bfseries A Cinema of Individual Editions\\[1.2ex]
+\large Chapter One: The Space of Possible Films\\[0.4ex]
+\large Working Draft}
+\author{Flyxion\\[0.3ex]\small Independent Researcher}
+\date{November 2026}
+
+\begin{document}
+
+\frontmatter
+\maketitle
+\tableofcontents
+\mainmatter
+
+\chapter{The Space of Possible Films}
+\label{ch:space}
+
+A film of fixed duration and resolution is a finite array of bits, and the number of such arrays can be written down exactly. The number is of no use for deciding which arrays are films, and it says nothing about how a particular audience should receive one. This chapter starts from the count and uses it to separate three problems that are easily run together: enumerating films, recognizing films, and realizing a film for a particular viewer. Only the third problem yields counts that are both meaningful and computable, because it counts structured choices made while depicting a fixed course of events, and does not count bit strings.
+
+The chapter then follows one ordinary action, the mowing of a lawn, through a small scene, through three local productions that each film the scene differently, and through a viewer's report that mown grass has reappeared after a cut. The example is small enough to count exactly. It is also large enough to show how a correction spreads through the shots that depend on it, why two corrected editions can collide, and what a promise of one edition per viewer can and cannot mean. Its sharpest result is a production that can give two viewers distinct editions at the premiere and, after a valid correction, can no longer keep that promise. The result gives the book a question to carry past the opening count: how much variation can a production sustain while remaining open to correction? Each of the later chapters of the book is meant to grow from a problem that the example makes concrete, and the final section of this chapter lists them.
+
+The notation follows the earlier volume, \emph{Generative Film: Categories, Sheaves, and Types for Cinema}~\cite{flyxion2026gf}, where it applies, and every concept used here is defined again in the text.
+
+\section{Why Count Editions}\label{sec:why}
+
+The book counts distinguishable editions of a film because the count answers two questions that a production has to face, one about storage and one about an audience. The storage question is how much distinguishable choice a given amount of footage, rules, and metadata affords. The audience question is what viewers who hold different editions can still say to each other. The first gives the chapters their counting, and the second is the reason anyone would want the counting to serve a shared occasion at all. Each comes with qualifications, which are stated beside the results that need them.
+
+\subsection{A Rate for Production Designs}
+
+Suppose that two editions are perceptually equivalent exactly when they have the same class tuple, the assumption of slotwise exactness that \Cref{sec:lawn} states. Let $K$ be the number of distinguishable editions that a production can supply under its rules, and let $B$ be the storage needed to reconstruct them, which is the footage, the rules, and the metadata that assemble an edition from it. The proposed rate of the production is
+\[
+\rho \;=\; \frac{\log_2 K}{B}.
+\]
+The numerator is the number of bits of distinguishable choice that the production affords: a viewer who is given one of $K$ equally available editions has received $\log_2K$ bits of selection, and no more. The denominator is the price. Two designs with the same $K$ differ in rate if one stores the footage more cheaply, and two designs with the same $B$ differ if one makes more of its variation perceptible. This chapter does not compute $B$, which depends on codecs, on how takes share assets, and on the size of the rules, and the rate is offered as a way to compare production designs once those costs and the perceptual distinctions are known. Measuring $B$ for one design supplies a rate for that design. To show that a design improves on another requires a baseline, measured by the same method, at the same revision and the same perceptual criterion.
+
+Production C, which the chapter reaches in \Cref{sec:productions}, shows why the logarithm is taken of the perceptual count and not of the tuple count. After the agreement rule it has $102{,}400{,}000$ take tuples, which is about $26.6$ bits, and exactly one perceptual edition, which is zero bits of choice. It stores a hundred million ways of assembling the film and affords the viewer none. Productions A and B afford about $7.9$ and $6.6$ bits after correction from far smaller tuple counts, as in \Cref{tab:rate}.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Production & $K$ after correction & $\log_2K$ & Take tuples & $\log_2$ of take tuples\\
+\midrule
+A & 238 & 7.9 & 57,834 & 15.8\\
+B & 96 & 6.6 & 3,072 & 11.6\\
+C & 1 & 0.0 & 102,400,000 & 26.6\\
+\bottomrule
+\end{tabular}
+\caption{Bits of perceptual choice and bits in the take tuples, after the agreement rule of \Cref{sec:productions}. The take-tuple column measures the storage of variation, and the perceptual column measures what a viewer can experience.}\label{tab:rate}
+\end{table}
+
+Footage can be bought as a rate improvement, and the accounting is exact for part of it. If a production adds to a slot a new class that behaves like an existing one under the rules, the number of take tuples grows by exactly the number of admissible tuples through the class it copies. The credit to $K$ is different, because a copy adds a class tuple only when the new class is perceptibly distinct from the old one, and the credit to the rate also depends on the storage the copy costs. Cloning the one admissible class of production C at its last slot raises $K$ from $1$ to $2$, which is one bit, at the cost of one more class of footage. Chapter~9 treats the cloning count in general and asks the further question that corrections raise: how much of the rate survives the corrections that the production can anticipate.
+
+\subsection{An Occasion for Talk}
+
+The audience question can be put as an exchange. Take a variant of the lawn scene in which the script has the mower leave the middle strip standing. One viewer, in an edition that uses a close take, saw the strip left uncut and says so. The other, in an edition that cuts to a wide shot of the finished lawn, did not see the moment and inferred it from the standing strip at the end. They can say, truthfully and of the same film, that the character missed a strip. They can then disagree about how obvious it was, the first holding that it was plain and the second that it was easy to miss, and each has good grounds, because each judged from the evidence that the edition provided. The model of this chapter does not vary framing, so the exchange is told in words and not counted.
+
+The exchange has three parts, and each sets a requirement for the later chapters. There is a shared event, the script history in which the strip was missed, and it is what both viewers refer to. There is a difference in the evidence, which gives them something to compare and lets a conversation exist at all. And there is an occasion: a simultaneous premiere supplies a moment at which many viewers have just seen the film and want to talk about it. Chapters~11 and~14 ask what has to survive across editions for that conversation to work, which events must be common to every edition, which evidence may differ, and what opportunities for reinterpretation a later viewer must still have. The answers set the amount of variation that a society can tolerate in what its members watch.
+
+\subsection{What Is Assumed}
+
+The qualifications belong next to the claims they limit. The counts of this chapter assume exact slotwise equivalence, so that two editions are the same to a viewer if and only if their class tuples are the same. The thresholds that would replace exactness with a measured tolerance, the $\varepsilon$ of the packing results, have not been measured for any audience. The rate $\rho$ is a quantity for comparing designs, and it does not show that any production reaches a particular value or that a viewer values distinguishability at all. The rest of the chapter takes the counts as given and asks what a correction does to them.
+
+\section{The Exact Count}\label{sec:count}
+
+Consider a silent, uncompressed film of ninety minutes at twenty-four frames per second, with frames of $1920\times1080$ pixels and $24$ bits per pixel. The film has $90\cdot60\cdot24=129{,}600$ frames. Each frame has $1920\cdot1080=2{,}073{,}600$ pixels and therefore $2{,}073{,}600\cdot24=49{,}766{,}400$ bits. The whole stream has
+\[
+N_0 \;=\; 129{,}600\cdot 49{,}766{,}400 \;=\; 6{,}449{,}725{,}440{,}000
+\]
+bits. For a bit length $N$ write $\Sigma_N=\{0,1\}^N$ for the set of bit strings of length $N$, read as streams of pixel values in a fixed order.
+
+\begin{theorem}[Enumeration]\label{thm:enum}
+The map $\nu_N:\{0,1,\dots,2^N-1\}\to\Sigma_N$ sending $k$ to its binary expansion, padded on the left with zeros to length $N$, is a bijection. In particular $\lvert\Sigma_{N_0}\rvert=2^{N_0}$, a number with $1{,}941{,}560{,}821{,}238$ decimal digits. If formats are specified by finite descriptions and streams in different formats are counted as different objects, the set of all streams of all formats is countably infinite.
+\end{theorem}
+
+\begin{proof}
+Every integer in $[0,2^N)$ has a unique binary expansion of at most $N$ digits, so padding gives a well-defined injection. Every string in $\Sigma_N$ is the expansion of the integer it denotes, and that integer lies in $[0,2^N)$, so the map is surjective. The digit count is $\lfloor N_0\log_{10}2\rfloor+1$, which evaluates to the stated value. For the last claim, the set of formats is a subset of the finite strings over a finite alphabet and is therefore countable, each format has a finite set of streams, and a countable union of finite sets is countable. The union is infinite because duration is unbounded and so $N$ is unbounded.
+\end{proof}
+
+The theorem gives every film expressible in the format a name, namely an integer, and counting through the integers realizes the list. It does not make the list usable. The decimal expansion of the count runs to about $1.94$ trillion digits, and nothing is learned about cinema from the fact that a film is among them. The next section asks what could be learned.
+
+\section{Enumeration, Recognition, and Realization}\label{sec:three}
+
+\paragraph{Enumeration.} The enumeration problem asks for a canonical indexing of all objects in a class. \Cref{thm:enum} solves it for streams of a fixed format. The solution is complete and uninformative: it is indifferent to whether a stream shows a lawn, noise, or a silent frame repeated for ninety minutes.
+
+\paragraph{Recognition.} The recognition problem asks which streams a viewer would take to be a film. A \emph{situation} $\theta$ bundles a viewer or population, a task, and a context, as in the treatment of perceptual comparison in the earlier volume. A \emph{recognition criterion} is a function $\mathrm{Rec}_\theta:\Sigma_N\to\{0,1\}$, and the recognized films are $\mathrm{Rec}_\theta^{-1}(1)$. Three requirements are usually folded into such a criterion. The stream must be continuous, in the sense that nearby frames agree up to the motion they depict. This requirement is stated for frames inside a shot. Adjacent frames can disagree because a film cuts, so continuity across a cut is a different requirement, and the intelligibility of a deliberate discontinuity is a third. The criterion here is deliberately coarse and keeps the three folded together. What it shows must be intelligible, in the sense that its images can be identified as objects and actions. And it must carry consequence, in the sense that what happens at one point bears on what can be understood at a later point. The proportion $\lvert\mathrm{Rec}_\theta^{-1}(1)\rvert/2^N$ is a property of the chosen criterion and of nothing else. The format does not determine it, and this chapter assigns it no value.
+
+\paragraph{Realization.} The realization problem starts from something already recognized. A \emph{story world} consists of a set $E$ of events, a prefix-closed set $\Adm\subseteq E^*$ of admissible histories, a fold $M:\Adm\to Q$ assigning each history its current state, and an appearance map $\Ren:Q\to\Img$, as in the earlier volume's separation of history, state, and appearance. A history is authoritative once recorded, the state is derived from it, and the appearance is derived from the state and can be regenerated without changing what happened. A \emph{work} is a script history $h^\ast\in\Adm$ together with the requirements that any depiction of it must satisfy. A production \emph{realizes} the work by assembling a version that depicts $h^\ast$ and meets those requirements. Many assemblies depict the same history. The realization problem asks how many there are, which of them a viewer can tell apart, and what must stay fixed across all of them.
+
+Counting enters here for the first time with substance. The number of realizations of a scene is the number of ways to make the choices that the production leaves open, taken over a structure that fixes everything else. That structure is a small finite object, which makes the count a computation. The remainder of the chapter carries out such a count for one scene, and \Cref{sec:allocation} states the question it is meant to answer.
+
+\begin{remark}[Exclusion]\label{rem:exclusion}
+A production may declare material that its editions must not reproduce. Removing exact assets by digest is a set subtraction, and its effect on the count is exactly the removed number. Removing approximate matches depends on a dissimilarity and a threshold, removes a neighborhood around each excluded item, and interacts with the packing counts of \Cref{sec:allocation}. Whether a given edition is permitted under copyright law is a separate determination from whether it survives a declared exclusion policy. The topic returns in \Cref{sec:open}.
+\end{remark}
+
+\section{One Action in One Scene}\label{sec:lawn}
+
+\subsection{The story world}
+
+Let $S$ be a finite set of \emph{strips}, the parallel swaths of a lawn that a mower clears in single passes. The events are passes, $E=\{p_s:s\in S\}$, and the admissible histories are the words over $E$ in which no pass is repeated. This set is prefix-closed. The state of the lawn is the set of strips already mown, so $Q=2^S$ and $M(h)$ is the set of strips whose passes occur in $h$. The appearance of a strip in state $q$ is $\mown$ if the strip belongs to $q$ and $\unmown$ otherwise. We use \emph{mown} and \emph{unmown} for the grass and reserve \emph{cut} for the editing operation.
+
+The script is the history $h^\ast=p_a\,p_b\,p_c$ on three strips $S=\{a,b,c\}$. Write $h^\ast_{\le t}$ for its first $t$ letters.
+
+\subsection{Slots and required appearance}
+
+\begin{definition}[Scene plan]\label{def:plan}
+A \emph{scene plan} for the script $h^\ast$ consists of $m$ \emph{slots}. Slot $j$ has a story time $t_j\in\{0,\dots,\lvert h^\ast\rvert\}$ and a set $V_j\subseteq S$ of strips in frame. Slots are listed in screen order and $t_1\le t_2\le\cdots\le t_m$. The \emph{required appearance} at slot $j$ is the function $r_j:V_j\to\{\mown,\unmown\}$ with $r_j(s)=\mown$ if and only if $s\in M(h^\ast_{\le t_j})$.
+\end{definition}
+
+The restriction to nondecreasing story time rules out flashback, and the book returns to it in later chapters. For the example the plan has five slots, listed in \Cref{tab:plan}. The first is an establishing view of the unmown lawn. The second and third follow the first and second passes. The fourth is a close view of the last strip, still unmown, and the fifth is a view of the finished lawn.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}cclll@{}}
+\toprule
+Slot $j$ & Story time $t_j$ & In frame $V_j$ & Required appearance $r_j$ & Content \\
+\midrule
+1 & 0 & $\{a,b,c\}$ & all unmown & establishing view \\
+2 & 1 & $\{a\}$ & $a$ mown & after the first pass \\
+3 & 2 & $\{a,b\}$ & $a,b$ mown & after the second pass \\
+4 & 2 & $\{c\}$ & $c$ unmown & close view of the last strip \\
+5 & 3 & $\{a,b,c\}$ & all mown & finished lawn \\
+\bottomrule
+\end{tabular}
+\caption{The scene plan for the script $p_a\,p_b\,p_c$.}\label{tab:plan}
+\end{table}
+
+\subsection{Takes, pools, and editions}
+
+\begin{definition}[Takes and editions]\label{def:edition}
+A \emph{production} $p$ supplies for each slot $j$ a finite \emph{pool} $T^p_j$ of \emph{takes}. A take $\tau\in T^p_j$ carries three attributes. Its \emph{displayed appearance} is a function $a_\tau:V_j\to\{\mown,\unmown\}$, which records what the footage shows on each strip in frame. Its \emph{screen direction} is $d_\tau\in\{L,R,N\}$, where $N$ marks a neutral take whose direction of motion is not established. Its \emph{perceptual class} $[\tau]$ is such that takes of the same class cannot be told apart by a viewer in the situation under consideration, although the takes may be distinct files, as with re-exports or regenerated grain. An \emph{edition} is a tuple $e=(\tau_1,\dots,\tau_m)$ with $\tau_j\in T^p_j$. Its \emph{class} is the tuple $([\tau_1],\dots,[\tau_m])$.
+\end{definition}
+
+A take is \emph{stale} at slot $j$ if $a_\tau\ne r_j$, that is, if it shows some strip in an appearance that disagrees with the state the script prescribes at that point. Direction and displayed appearance are properties of the class, since takes in one class are indistinguishable.
+
+\begin{assumption}[Slotwise exactness]\label{ass:slotwise}
+Two editions are perceptually equivalent if and only if they have the same class.
+\end{assumption}
+
+This is a modeling assumption and a strong one. The ``if'' direction follows from the definition of a class. The ``only if'' direction asserts that a difference of class in any single slot is perceptible, which is an empirical claim about viewers and not a consequence of the formalism. The earlier volume shows that thresholded similarity is not transitive, and \Cref{sec:allocation} returns to what that does to the count.
+
+\begin{definition}[Rules]\label{def:rules}
+A \emph{rule set} $\mathcal R$ for a production consists of a subset $U_j\subseteq T^p_j$ of \emph{admissible takes} at each slot and a relation $C_j\subseteq T^p_j\times T^p_{j+1}$ of \emph{compatible neighbors} for each $j<m$, both depending only on the classes of the takes involved. The set of \emph{admissible editions} is
+\[
+\Ed(p,\mathcal R)=\bigl\{(\tau_1,\dots,\tau_m):\tau_j\in U_j\ \text{for all }j,\ (\tau_j,\tau_{j+1})\in C_j\ \text{for all }j<m\bigr\}.
+\]
+\end{definition}
+
+Two rules matter here. The \emph{direction rule} $D$ asks that consecutive takes agree in screen direction unless one is neutral, so that $(\tau,\tau')\in C_j$ if and only if $d_\tau=d_{\tau'}$ or $N\in\{d_\tau,d_{\tau'}\}$. This is the familiar convention that a cut must not reverse the direction in which an actor or machine appears to travel~\cite{bordwell1985classical}. The \emph{agreement rule} $G$ asks that every take agree with the required appearance, so that $U_j=\{\tau:a_\tau=r_j\}$, the set of takes that are not stale. The production begins with the rule set $\mathcal R_0=\{D\}$. Nobody has written the agreement rule down, and the first viewer report will cause it to be written. The amended rule set is $\mathcal R_1=\{D,G\}$.
+
+\begin{proposition}[Counting editions]\label{prop:count}
+Fix a rule set. Let $K_j$ be the set of classes at slot $j$ whose takes are admissible, let $w_j(k)$ be the number of takes in class $k\in K_j$, and let $A_j\in\{0,1\}^{K_j\times K_{j+1}}$ be the matrix with entry $1$ if the pair of classes is compatible and $0$ otherwise. The number of admissible class tuples is
+\[
+N^{\mathrm{perc}}=\one^{\!\top}A_1A_2\cdots A_{m-1}\one,
+\]
+and the number of admissible take tuples is
+\[
+N^{\mathrm{take}}=w_1^{\!\top}A_1\,\diag(w_2)\,A_2\,\diag(w_3)\cdots\diag(w_{m-1})\,A_{m-1}\,w_m .
+\]
+If the rendering and export map that assembles a take tuple into a file separates distinct tuples at the byte level, then $N^{\mathrm{take}}$ is also the number of byte-distinct admissible editions. Without that assumption it is only the number of tuples.
+\end{proposition}
+
+\begin{proof}
+The $(k,k')$ entry of $A_1\cdots A_{j}$ is the number of compatible class sequences from $k\in K_1$ to $k'\in K_{j+1}$, by induction on $j$: the entry of the product $A_1\cdots A_{j-1}A_j$ at $(k,k')$ is $\sum_{k''}(A_1\cdots A_{j-1})(k,k'')A_j(k'',k')$, which counts sequences by their penultimate class. Summing all entries gives $N^{\mathrm{perc}}$. In the weighted case each class $k$ at slot $j$ contributes the factor $w_j(k)$, which the diagonal matrices and the end vectors supply.
+\end{proof}
+
+This is the standard transfer-matrix count for paths in a layered graph~\cite{stanley2012ec1}. It also gives ranking and unranking for free. The number of completions from each class at each slot is the vector $A_j\cdots A_{m-1}\one$, and choosing classes slot by slot in a fixed order while subtracting these counts maps an integer in $[0,N^{\mathrm{perc}})$ to a class tuple and back.
+
+\begin{corollary}[Sustained audiences from independent choices]\label{cor:bound}
+If $\lvert K_1\rvert\ge q$ and every class in $K_j$ is compatible with at least $\kappa$ classes in $K_{j+1}$ for each $j<m$, then $N^{\mathrm{perc}}\ge q\kappa^{m-1}$. In particular a production with a single admissible opening class and two compatible choices at each of thirty later slots supports $2^{30}=1{,}073{,}741{,}824$ perceptually distinct editions, and thirty-three such slots support $2^{33}=8{,}589{,}934{,}592$.
+\end{corollary}
+
+\begin{proof}
+Every partial path through slot $j$ extends in at least $\kappa$ ways to slot $j+1$, so the number of paths multiplies by at least $\kappa$ at each of the $m-1$ transitions, starting from at least $q$.
+\end{proof}
+
+The corollary is a lower bound for a hypothetical production and not a measurement of any actual one. It shows that the number of independent, perceptible, compatible choices required to give a world audience distinct editions is small. The count that matters is not the number of bits in a film but the number of such choices, and the hypothesis that they are available at every slot is where the practical difficulty lies.
+
+\section{Three Local Productions}\label{sec:productions}
+
+Three productions film the scene of \Cref{tab:plan}. They differ in what they happened to shoot, and the differences are chosen to show three different behaviors. The pools are listed in \Cref{tab:pools}. Each entry gives the number of perceptual classes with a given direction, and the footage in each class exists in several distinct takes: three for each class in production A, two in production B, and forty in production C.
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{@{}c l l l@{}}
+\toprule
+Slot & Production A (3 takes/class) & Production B (2 takes/class) & Production C (40 takes/class)\\
+\midrule
+1 & ok: $L^2R^2N^1$ & ok: $L^2R^3$ & ok: $L^1R^1$\\
+2 & ok: $L^2R^1N^1$; stale: $L^1$ & ok: $L^2R^2$; stale: $R^2$ & ok: $L^1$; stale: $L^1$\\
+3 & ok: $L^1R^2$; stale: $R^1$ & ok: $L^3R^2$; stale: $L^2$ & ok: $L^1R^1$\\
+4 & ok: $N^2L^1$; stale: $R^1$ & ok: $L^2R^2$ & ok: $L^1R^1$\\
+5 & ok: $L^1R^2N^1$; stale: $L^1$ & ok: $L^2R^2$; stale: $R^3$ & ok: $L^1$; stale: $R^1$\\
+\bottomrule
+\end{tabular}
+\caption{Classes available to each production. A superscript is the number of perceptual classes with the given screen direction ($L$, $R$, or neutral $N$). A class is stale when its takes show some strip in frame in the wrong appearance. The numbers are the parameters of an illustrative model.}\label{tab:pools}
+\end{table}
+
+Production A shot several neutral takes, which interrupt the chain of screen directions. Production B shot no neutral takes, so every slot is committed to a direction. Production C shot very little but encoded each class in forty takes, for instance by re-exporting or by regenerating grain and compression. The counts by \Cref{prop:count} are in \Cref{tab:counts}, and they are reproduced by the script that accompanies the chapter.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+ & \multicolumn{2}{c}{Perceptual editions} & \multicolumn{2}{c}{Take tuples}\\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Production & under $\mathcal R_0$ & under $\mathcal R_1$ & under $\mathcal R_0$ & under $\mathcal R_1$\\
+\midrule
+A & 494 & 238 & 120,042 & 57,834\\
+B & 320 & 96 & 10,240 & 3,072\\
+C & 2 & 1 & 204,800,000 & 102,400,000\\
+\bottomrule
+\end{tabular}
+\caption{Admissible editions before and after the agreement rule is added.}\label{tab:counts}
+\end{table}
+
+The table shows the central difference between the two kinds of count. Production C has more than two hundred million take tuples and two perceptual editions. If the export map separates take tuples at the byte level, a promise that no two viewers receive the same file is trivially kept by C, while a promise that no two viewers receive perceptibly the same film cannot be kept by C for three viewers. The ratio of the two counts for A is about $243$, and for B it is $32$. The tuple count measures the storage of the production and the perceptual count measures what the audience can experience. The amendment from $\mathcal R_0$ to $\mathcal R_1$ halves both counts for C, and the second halving takes C from two perceptual editions to one.
+
+\section{A Reported Error and Its Footprint}\label{sec:error}
+
+\subsection{Reports and verdicts}
+
+A viewer's report is a claim about what the viewer saw, and it can be mistaken in two different ways. The viewer may misdescribe the footage, or the footage may misdepict the story. The first is settled by the footage the viewer was actually assigned, and the second by the script history. A verdict therefore needs both, and the ledger of \Cref{sec:ledger} is what connects the report to the footage.
+
+\begin{definition}[Report and verdict]\label{def:verdict}
+A \emph{report} is a tuple $(u,f,\delta,j,s,x)$ stating that viewer $u$, viewing film $f$ on date $\delta$, saw strip $s\in V_j$ in appearance $x$ at slot $j$. Its \emph{verdict} is determined in three steps. First, the edition $e=\mathrm{Ed}_{u,f}(\delta)$ that the ledger records for $u$ on date $\delta$ is resolved, and $\tau_j$ is its take at slot $j$. Second, the \emph{verified appearance} $a_{\tau_j}(s)$ is compared with the claim. The report is \emph{unsupported} if $a_{\tau_j}(s)\ne x$, and no further step is taken. Third, if the claim matches the take, the verified appearance is compared with the required appearance $r_j(s)$ of \Cref{def:plan}. The report is \emph{upheld} if $a_{\tau_j}(s)\ne r_j(s)$, which is to say that the take was stale at that slot, and \emph{rejected} otherwise.
+\end{definition}
+
+The verdict depends on the footage and the history together. A viewer who reports $b$ unmown at slot $3$ of the full script, where $b$ must be mown, is mistaken if the assigned take shows $b$ mown, and the report is unsupported. A viewer who reports $b$ mown at the same slot is describing the footage correctly, and the report is rejected, because the script requires it. A viewer whose assigned take showed $b$ unmown has a report that is upheld. A report about a superseded edition is adjudicated in the same way, since the ledger returns the take that was assigned on $\delta$ even after a repair has replaced it. Upholding such a report does not by itself call for a new rule, because the defect may already have been removed by an earlier amendment. The verdict then confirms that the earlier edition was defective and ends there.
+
+Adjudicating against the history also explains how a missed strip can be a correct depiction. If the script is $p_a\,p_c$ and the strip $b$ is skipped, the fold $M(h^\ast_{\le t})$ never contains $b$, the required appearance of $b$ is $\unmown$ at every slot, and a take that shows $b$ mown is the error. The same take is correct under the full script $p_a\,p_b\,p_c$ at slots $3$ and $5$. Whether a character skips a strip because the story requires it is fixed by the history that was committed, and a generator that repaired every unmown strip it found would erase the story that depends on it. The distinction between an error in the film and an act by a character is therefore located in the history layer, and deciding it requires the history to say which departures from competence are intended. \Cref{sec:open} lists this as a question for a later chapter.
+
+\subsection{The footprint of an amendment}
+
+The report that triggers the amendment concerns a reversion: a strip is shown unmown after its pass. For each strip $s$ let $k_s$ be the position of $p_s$ in the script, so that $k_a=1$, $k_b=2$, $k_c=3$.
+
+\begin{definition}[Footprint]\label{def:footprint}
+The \emph{footprint} of strip $s$ is $F(s)=\{j:s\in V_j\}$, the set of slots that show it. Its \emph{late footprint} is $F^{\mathrm{late}}(s)=\{j\in F(s):t_j\ge k_s\}$, the slots at which the strip must appear mown.
+\end{definition}
+
+For the plan of \Cref{tab:plan} the footprints are $F(a)=\{1,2,3,5\}$, $F(b)=\{1,3,5\}$, and $F(c)=\{1,4,5\}$, and the late footprints are $F^{\mathrm{late}}(a)=\{2,3,5\}$, $F^{\mathrm{late}}(b)=\{3,5\}$, and $F^{\mathrm{late}}(c)=\{5\}$. A reversion of strip $a$ can occur at slots $2$, $3$, or $5$ and nowhere else. The early part of the footprint is where the opposite error lives, a strip shown mown before its pass. Slot $4$ is such a slot for strip $c$: production A shot a take that shows $c$ already mown at slot $4$, and a rule that forbids only reversion would leave that take in place. The agreement rule $G$ removes both kinds of error because it compares the appearance with the state in both directions.
+
+\begin{proposition}[Effect of the amendment]\label{prop:footprint}
+Let $\mathcal R_1=\mathcal R_0\cup\{G\}$. An edition of $\Ed(p,\mathcal R_0)$ belongs to $\Ed(p,\mathcal R_1)$ if and only if none of its takes is stale. Consequently the editions invalidated by the amendment, for every viewer of the production, are exactly those that contain a stale take at some slot, and $\Ed(p,\mathcal R_1)\subseteq\Ed(p,\mathcal R_0)$.
+\end{proposition}
+
+\begin{proof}
+The compatibility relations of the two rule sets are the same, so an edition is admissible under $\mathcal R_1$ if and only if it is admissible under $\mathcal R_0$ and each take satisfies the admissibility condition added by $G$, which is that the take is not stale.
+\end{proof}
+
+The proposition makes the reach of one report explicit. The amendment is a change to the production, and so it removes the stale takes from every edition that contains one, including those of viewers who never noticed anything wrong. In production A the amendment removes $256$ of the $494$ perceptual editions, and in production B it removes $224$ of $320$.
+
+\subsection{Propagation through neighbors}
+
+The agreement rule acts slot by slot and so propagates through the footprint without chaining. The direction rule acts between neighbors, and it is the neighbor relation that makes a local repair spread. Replacing a stale take at slot $j$ by an admissible take with a different screen direction can break compatibility with the take at slot $j-1$ or $j+1$, which then has to be replaced, which can break its other neighbor in turn. A neutral take stops the chain.
+
+\begin{lemma}[Containment]\label{lem:contain}
+Let $e=(\tau_1,\dots,\tau_m)\in\Ed(p,\mathcal R)$ and suppose $a<b$ are slots with $d_{\tau_a}=d_{\tau_b}=N$, where $\mathcal R$ has the direction rule as its only relation between neighbors. Let $e'$ be any tuple that agrees with $e$ outside the slots $a+1,\dots,b-1$, whose takes are admissible, and whose neighboring pairs are compatible for the slots $a,\dots,b$. Then $e'\in\Ed(p,\mathcal R)$.
+\end{lemma}
+
+\begin{proof}
+The unary conditions hold at slots outside $(a,b)$ because $e'$ agrees with $e$ there, and they hold inside by hypothesis. The neighbor conditions for pairs of slots both outside $[a,b]$ hold because those slots are unchanged. The conditions for pairs inside $[a,b]$ hold by hypothesis. The only remaining pairs are $(a-1,a)$ and $(b,b+1)$, which involve unchanged takes. So all conditions hold.
+\end{proof}
+
+The lemma bounds the damage of a repair by the distance to the nearest neutral takes on each side, provided a completion exists inside the interval. It was also checked exhaustively on production A, over all $3{,}420$ replacements of this kind that the pools permit, with no violation. Production A has neutral takes in several slots, and so its repairs stay local. Production B has none, and its repairs can run from one end of the scene to the other. The maximum number of slots that the matched repair of \Cref{sec:allocation} changes for one viewer is $2$ in A and $3$ in B, in a scene of five slots.
+
+\section{When a Repair Collides}\label{sec:allocation}
+
+\subsection{The promise and its limit}
+
+Suppose a release promises that no two viewers of a production receive the same edition. The promise has two readings. In the first, the assembled files differ. In the second, the viewers can tell the films apart. The first is cheap to keep when the export map separates take tuples. A keyed hash of a release identifier and a private viewer identifier gives each viewer a stable seed~\cite{rfc2104}, and for $10^9$ viewers and $64$-bit keys the expected number of colliding pairs is $10^{18}/2^{65}\approx0.027$. Collisions of seeds can also be removed entirely by assigning each viewer a distinct integer and passing it through a keyed permutation of $[0,N)$, with the domain adjusted by cycle walking~\cite{blackrogaway2002}. Composing with the unranking that \Cref{prop:count} provides then gives each viewer a distinct class tuple, so long as the audience is no larger than $N^{\mathrm{perc}}$.
+
+The second reading is the one that matters for the audience. It is a promise about equivalence classes, and the following statement says when it can be kept within one production.
+
+\begin{proposition}[Feasibility of distinct editions within a production]\label{prop:feasible}
+Let $d$ be a pseudometric on the editions of a production $p$ such that editions of the same class are at dissimilarity $0$, and let \Cref{ass:slotwise} hold. An audience of $U$ viewers of $p$ can be given pairwise inequivalent editions if and only if $U\le N^{\mathrm{perc}}$. If the promise is strengthened to require that every pair of editions have dissimilarity greater than a tolerance $\varepsilon\ge0$, the largest audience that can be served is the size $M_\varepsilon$ of a largest subset of editions with pairwise dissimilarity greater than $\varepsilon$, and $M_\varepsilon\le N^{\mathrm{perc}}$.
+\end{proposition}
+
+\begin{proof}
+If $U\le N^{\mathrm{perc}}$, assign distinct classes. If $U>N^{\mathrm{perc}}$, two viewers share a class by the pigeonhole principle, and by the assumption their editions are equivalent. For the second statement, a set of editions with pairwise dissimilarity greater than $\varepsilon\ge0$ has no two members of the same class, because members of one class are at dissimilarity $0$ by hypothesis, and so its size is at most the number of classes.
+\end{proof}
+
+The pseudometric hypothesis is what the upper bound uses. Without the requirement that members of one class be at distance zero, a separated set could contain two editions of the same class and the bound by the number of classes would not follow.
+
+The strengthened promise has a smaller bound than the number of classes whenever similarity is thresholded and not exact. Take four class representatives on a line at positions $0$, $0.6$, $1.2$, and $1.8$ with dissimilarity equal to distance, and $\varepsilon=1$. There are four classes, and no three of the positions are pairwise more than $1$ apart, so $M_1=2$. The example is a toy with assumed dissimilarities, and it stands for the statement of the earlier volume that thresholded similarity is not transitive. For the present chapter the consequence is that a sustainable audience is a packing number, and that it is bounded above, but only bounded, by the count of \Cref{prop:count}.
+
+\subsection{Local and worldwide uniqueness}\label{sec:scope}
+
+The counts of \Cref{prop:count} and the statement of \Cref{prop:feasible} guarantee distinct editions within each local production. They say nothing about two viewers in different productions. A worldwide promise needs a comparison of editions across productions, and the comparison is not supplied by anything defined so far.
+
+Let $p$ range over the local productions of a release, write $\Ed_p$ for the admissible editions of $p$ under its current rules and footage, and let $d$ be a pseudometric on the disjoint union $\bigsqcup_p\Ed_p$. Two editions are \emph{equivalent} when $d=0$, and the equivalence classes are the \emph{global classes}. Write $G$ for the set of global classes and $G_p\subseteq G$ for those that some edition of $p$ realizes. Editions of different productions can be equivalent. This happens at passages in which no local actors appear, for instance an establishing view of the lawn that two productions have shot from the same position under the same conditions, or footage that the productions share. It does not happen at passages in which the cast, the language, or the setting differ perceptibly. A sufficient condition for the global classes of different productions to be disjoint is therefore that every edition of every production contains at least one slot at which the production's own cast appears and differs perceptibly from every take of every other production at that slot. Whether this holds is a fact about the footage and the viewers, and it has to be established. The scene of the running example does not model a cast, and the counts of \Cref{tab:counts} are counts within one production.
+
+\begin{proposition}[Worldwide feasibility]\label{prop:global}
+Let $U_p$ be the number of viewers in locale $p$, and suppose each viewer must receive an edition of the production of the viewer's own locale. Pairwise inequivalent editions for all viewers exist if and only if for every set $P$ of productions
+\[
+\Bigl\lvert\bigcup_{p\in P}G_p\Bigr\rvert\ \ge\ \sum_{p\in P}U_p .
+\]
+If the sets $G_p$ are pairwise disjoint, the condition reduces to $U_p\le\lvert G_p\rvert$ for each $p$ separately, and the allocation can be carried out locale by locale.
+\end{proposition}
+
+\begin{proof}
+A viewer of locale $p$ must be assigned a global class in $G_p$, and distinct viewers must receive distinct global classes. By Hall's theorem~\cite{hall1935} this is possible if and only if every set $X$ of viewers satisfies $\lvert\bigcup_{u\in X}G_{p(u)}\rvert\ge\lvert X\rvert$, where $p(u)$ is the locale of $u$. The union depends only on the set $P$ of locales that $X$ meets, and $\lvert X\rvert$ is largest when $X$ contains every viewer of those locales, namely $\sum_{p\in P}U_p$. So the condition is equivalent to the stated inequality for all $P$. If the sets are pairwise disjoint, $\lvert\bigcup_{p\in P}G_p\rvert=\sum_{p\in P}\lvert G_p\rvert$, and the inequality for all $P$ is equivalent to the inequality for singletons, since the singleton case implies every sum.
+\end{proof}
+
+If the promise is strengthened to tolerance $\varepsilon>0$, the same reading applies with $M_\varepsilon$ taken over the union. Locale-by-locale allocation is then sound when editions of different productions are more than $\varepsilon$ apart, which is a stronger requirement than disjointness of classes. The chapter's allocation results should accordingly be read as guarantees within a production, and as worldwide guarantees only under the separation condition that \Cref{prop:global} identifies.
+
+\subsection{Repairs and their collisions}
+
+A correction forces some viewers to receive a new edition, and the new edition can coincide with another viewer's. Let $I$ be the set of viewers whose edition is invalidated by \Cref{prop:footprint}, let $S$ be the remaining viewers, whom this subsection calls the survivors, and let $F$ be the set of admissible classes not held by the survivors. The model of this subsection holds the survivors' editions fixed. A repair is an injective map $f:I\to F$ with $f(u)$ lying in a set $C_u\subseteq F$ of acceptable replacements, for instance the classes within a given Hamming distance of the viewer's previous class.
+
+\begin{proposition}[Feasibility of collision-free repair with survivors held fixed]\label{prop:hall}
+An injective choice $f(u)\in C_u$ for all $u\in I$ exists if and only if for every subset $X\subseteq I$ the union $\bigcup_{u\in X}C_u$ has at least $\lvert X\rvert$ elements.
+\end{proposition}
+
+\begin{proof}
+This is Hall's theorem on systems of distinct representatives for the family $(C_u)_{u\in I}$~\cite{hall1935}.
+\end{proof}
+
+The condition fails more easily than it appears, and a sequential allocator can fail even when the condition holds. If two invalid viewers have $C_{u_1}=\{x,y\}$ and $C_{u_2}=\{x\}$, an allocator that serves $u_1$ first and tentatively gives $u_1$ the class $x$ leaves $u_2$ with nothing, although $u_1\mapsto y$ and $u_2\mapsto x$ is a valid repair. The example shows only that a tentative assignment among the viewers being repaired must be open to reconsideration. All of these viewers receive a new edition in any case, so reconsidering the tentative assignment disturbs no one.
+
+Holding the survivors fixed is itself a modeling choice, and it can be the obstruction. Suppose an invalid viewer $u$ has acceptable replacements $\{x\}$, a survivor $v$ holds $x$, and the class $y$ is admissible, unheld, and acceptable for $v$. Then $C_u\cap F=\varnothing$ and the model reports failure, although moving $v$ to $y$ would give a valid repair. Allowing survivors to move is a broader optimization. A natural form assigns to each viewer $u$ a cost $c(u,e')$ for receiving the class $e'$, with $c=0$ when $e'$ is the viewer's current valid edition and $c=\lambda+h$ otherwise, where $h$ is the number of slots in which $e'$ differs from the viewer's previous edition and $\lambda\ge0$ is the cost of disturbing a viewer at all. The problem is then a minimum-cost injective assignment of all viewers to admissible classes. It is feasible if and only if Hall's condition holds for the family of all viewers' acceptable sets, where each survivor's set contains the survivor's current class. That condition is weaker than the condition of \Cref{prop:hall}, and it makes the price of disturbing a valid edition an explicit parameter. The experiments below use the narrower model and do not measure that price.
+
+The model is run on audiences drawn at random from the editions admissible under $\mathcal R_0$, as a stand-in for the keyed permutation. Production A has $60$ viewers and production B has $30$. After the amendment the viewers whose editions are invalid are $31$ of $60$ in A and $20$ of $30$ in B. A repair that gives each invalid viewer the nearest admissible edition, with ties broken in a fixed order and no check for collisions, leaves $14$ viewers of A and $11$ viewers of B sharing an edition with someone else. A repair that processes the invalid viewers in turn and gives each the nearest edition not yet held changes $37$ slots in A, the same number as the unconstrained repair, and $27$ in B, one more than the unconstrained $26$. A repair that minimizes the total number of slots changed over all injective maps from $I$ into $F$ also changes $37$ slots in A and $27$ in B. In these instances the price of removing collisions is zero in A and one slot in B, and greedy allocation did not fail. Production C is the case that does not admit a repair at all. Its audience of two viewers is served by the two editions of $\mathcal R_0$ and cannot be served by the single edition of $\mathcal R_1$. No assignment exists, with survivors fixed or free, because $U=2>1=N^{\mathrm{perc}}$ and \Cref{prop:feasible} applies. The correction cannot take effect without either breaking the promise or adding footage.
+
+\subsection{Capacity under correction}
+
+The result for production C states the question that the book carries forward. Say that a production has, at a date $s$, a \emph{capacity} $\mathrm{Cap}(p,s)=N^{\mathrm{perc}}$ computed from the rules and the footage in force at $s$. By \Cref{prop:feasible} a promise of distinct editions to $U_p$ viewers is keepable at $s$ if and only if $U_p\le\mathrm{Cap}(p,s)$. A production is open to correction when upheld reports can add rules and replacement footage can be added. The question is how much variation a production can sustain while remaining open to correction. It has a precise form.
+
+\begin{definition}[Robustness]\label{def:robust}
+Let $\mathfrak A$ be a family of rule sets that extend the current rule set $\mathcal R$. A production $p$ with audience $U_p$ is \emph{robust to} $\mathfrak A$ if $N^{\mathrm{perc}}(p,\mathcal R')\ge U_p$ for every $\mathcal R'\in\mathfrak A$.
+\end{definition}
+
+Production C at $U=2$ is not robust to $\{\mathcal R_1\}$: it has zero spare capacity at the premiere, with $\mathrm{Cap}=2=U$, and the one correction that the first report triggers takes the capacity to $1$. Production A with $60$ viewers is robust to $\{\mathcal R_1\}$, since $238\ge60$, and so is B with $30$, since $96\ge30$. Robustness to a given family is a lower bound on the footage a production must hold before the first report, and the families of amendments that can be anticipated, and the capacity they cost, are the subject of a later chapter.
+
+\section{Editions Across Time}\label{sec:ledger}
+
+An edition is not fixed once assigned. It changes when a correction arrives, and a viewer may want to see the edition that was available on an earlier date. The earlier volume separates history, state, and appearance, and the same separation applies one level up. Distinguish the \emph{archive} of a production, which holds every take it has ever supplied, from the \emph{admissible pool} at a date, the takes that the rules in force allow. A take that is removed from admissibility is not removed from the archive.
+
+\begin{definition}[Ledger]\label{def:ledger}
+A \emph{ledger} for a film $f$ is a finite sequence of dated events of two kinds. A \emph{premiere} event $(t,f,u,e)$ assigns the edition $e$, a tuple of take identifiers, to viewer $u$. A \emph{correction} event $(t,f,\mathcal R',\Delta T,\{(u,e'_u)\}_{u\in I})$ takes effect at the single time $t$ and does three things together. It replaces the rule set by $\mathcal R'$, it adds the footage $\Delta T$ to the archive and the admissible pool, and it replaces the edition of every viewer $u\in I$ whose edition is no longer admissible by $e'_u$. The \emph{edition of $f$ available to $u$ at date $\delta$}, written $\mathrm{Ed}_{u,f}(\delta)$, is the edition named by the last premiere or correction event for $u$ with time at most $\delta$, and is undefined before the premiere.
+\end{definition}
+
+The edition is a right-continuous step function of $\delta$, and a viewer who moves the date back before a correction recovers the edition that the correction replaced. The ledger also serves the adjudication of \Cref{def:verdict}, since it returns the take a viewer was assigned on the date of viewing even when a later correction has replaced it.
+
+The amendment and its repairs are recorded as one event on purpose. Let $\mathcal R(\delta)$ and $T(\delta)$ be the rules and the admissible pool in force at $\delta$.
+
+\begin{proposition}[Admissibility invariant]\label{prop:invariant}
+If every correction event repairs every viewer whose edition it invalidates, then for every date $\delta$ and every viewer $u$ with a defined edition, $\mathrm{Ed}_{u,f}(\delta)\in\Ed(p,\mathcal R(\delta),T(\delta))$. If an amendment takes effect at a time $t$ and its repairs are recorded at a later time $t'>t$, then for dates $\delta\in[t,t')$ the slider can show an edition that the rules in force have already ruled inadmissible.
+\end{proposition}
+
+\begin{proof}
+Premiere events assign admissible editions, and each correction event leaves every viewer with an edition admissible under the rules and pool that the event installs. Between events nothing changes, so the invariant holds at every date. If the amendment is recorded alone at $t$, a viewer whose edition contains a stale take keeps it until the repair is recorded, and for $\delta\in[t,t')$ the rules in force exclude that edition while the ledger still returns it.
+\end{proof}
+
+A correction event can fail to exist. By the result for production C, if $U>N^{\mathrm{perc}}(p,\mathcal R',T\cup\Delta T)$ no set of repairs satisfies the promise, so the event cannot be formed without enough added footage in $\Delta T$.
+
+\begin{proposition}[The ledger is not a function of the seeds]\label{prop:ledger}
+The edition $\mathrm{Ed}_{u,f}(\delta)$ is in general not determined by the viewer's seed, the viewer's earlier edition, and the rule set in force at $\delta$.
+\end{proposition}
+
+\begin{proof}
+Suppose the admissible classes after an amendment are $\{x,y,z\}$ and two invalid viewers $u_1,u_2$ have $x$ as their nearest admissible class, with ties broken in favor of $x$, and $y$ is their next nearest. If the audience consists of $u_1$ and $u_2$ and they are served in this order, the repair gives $u_1$ the class $x$ and $u_2$ the class $y$. If the audience also contains a survivor $u_0$ who already holds $x$, the repair gives $u_1$ the class $y$ and $u_2$ the class $z$. Thus $u_1$ ends with $x$ in the first case and $y$ in the second, although the seed, the earlier edition, and the rule set of $u_1$ are the same in both.
+\end{proof}
+
+The proposition says that the seed and the rules do not determine the edition, so they cannot regenerate it. The recorded assignment can name the old edition, but showing it again requires more than the name. It requires the exact source assets that the recorded take identifiers reference, including takes that later rules removed from admissibility, and the assembly information, such as cut points, grading, mix, and export parameters, needed to produce the file from the tuple. If an asset or the assembly information has been discarded, the ledger still records which edition the viewer was assigned and cannot show it. In the vocabulary of the earlier volume the ledger is a history, the edition at a date is the state obtained by folding its prefix, and what the viewer sees is an appearance derived from that state, which is regenerable only so long as what it is derived from is kept.
+
+\section{The Lifetime Repertoire}\label{sec:repertoire}
+
+\subsection{A premiere, a slider, and a viewing budget}
+
+A \emph{release} is a pair $(f,t_f)$ of a film and a premiere instant common to all viewers everywhere. Each local production supplies the footage for its locale, and each viewer in a locale receives an edition from that production's admissible set. Each viewer $u$ has a finite \emph{repertoire} $F_u$ of films, selected and scheduled for $u$ from the enormous space of possible films, and the space itself never has to be enumerated. A \emph{release slider} at date $s$ shows
+\[
+\mathrm{Rep}_u(s)=\bigl\{(f,\mathrm{Ed}_{u,f}(s)):f\in F_u,\ t_f\le s\bigr\},
+\]
+together with the scheduled premieres $\{(f,t_f):f\in F_u,\ t_f>s\}$, which have no edition yet. Moving the slider back to a date before a repair shows the edition of that date, by \Cref{sec:ledger}, and moving it to a future date shows only the schedule. The viewer who reported the reverting lawn finds the edition in which the report was made at a slider position before the repair, and the corrected edition at any position after it.
+
+A viewing budget bounds the size of the repertoire. Let $B$ be the viewer's lifetime budget in hours, let $\ell_f$ be the length of film $f$ in hours, and let $n_f\ge1$ be the number of times $f$ is viewed. The repertoire is feasible if $\sum_{f\in F_u}\ell_fn_f\le B$. An illustrative budget of two hours a week over sixty years of fifty-two weeks is $2\cdot52\cdot60=6{,}240$ hours. Films of ninety minutes watched once fill $6{,}240/1.5=4{,}160$ places. If each film is viewed on average $1+r$ times, the number of distinct films falls to $B/(\ell(1+r))$, which is $2{,}080$ for $r=1$ and $1{,}386$ for $r=2$, rounding down. The budget parameters are free, and the point is that the number of films a person can watch is small next to the number of films that exist, and smaller still when revisits are allowed for.
+
+\subsection{Corrections inside a repertoire}
+
+A correction of the lawn takes effect in the viewer's repertoire at the effective time of the correction event of \Cref{def:ledger}, and not at the premiere. The edition seen at the premiere remains recoverable from the ledger, provided the assets and assembly information it references are retained, and the edition seen after the correction is the default for later viewings. The counting question then has a second face. It is no longer how many distinct films can be generated, but how many distinct editions can be kept coherent as corrections accumulate, in each production, for each film in each viewer's repertoire. The three productions above are three answers to this question for a single scene.
+
+\begin{proposition}[Monotonicity for a fixed pool]\label{prop:monotone}
+Fix the pools of takes. If rule sets satisfy $\mathcal R\subseteq\mathcal R'$ in the sense that every constraint of $\mathcal R$ is a constraint of $\mathcal R'$, then $\Ed(p,\mathcal R')\subseteq\Ed(p,\mathcal R)$, and the number of perceptual classes and the packing number $M_\varepsilon$ do not increase.
+\end{proposition}
+
+\begin{proof}
+An edition satisfying all constraints of $\mathcal R'$ satisfies all those of $\mathcal R$, so the admissible sets are nested. A class that has an admissible edition under $\mathcal R'$ has one under $\mathcal R$, so the number of classes does not increase. A separated subset of $\Ed(p,\mathcal R')$ is a separated subset of $\Ed(p,\mathcal R)$, so $M_\varepsilon$ does not increase.
+\end{proof}
+
+The proposition establishes one thing: adding constraints to a fixed pool cannot increase capacity. It does not say that capacity falls with every report. An upheld report may expose a violation of a rule already in force, in which case the defect lay in the assembly or in the assigned take and no new rule is added, and a production may add replacement footage as part of a correction, which enlarges the pool and can raise capacity above its earlier value. The ways to restore capacity after a rule has been added are to add footage, to add classes that pass the rules, or to relax a rule in a way that the history permits.
+
+\subsection{Order and sequence}
+
+The budget treats films as interchangeable items. They are not. A later film can change what an earlier one means, in the way that a revelation late in the engine scene reclassifies the opening repair as diligence, negligence, or concealment. If seeing a film again can change the meaning of an earlier scene, a repertoire that assumes each film is watched once will overestimate the distinct films a person has time for, and the order of release becomes a variable. The same film released in year ten of a viewer's life and released in year one does not do the same work for the repertoire, because what the viewer has seen already differs. This is a question about sequences of films and not about one film, and the present chapter only records it.
+
+\section{Questions the Example Opens}\label{sec:open}
+
+The example was chosen because it is small, and the questions it raises are not. Each of the following needs a chapter of its own, and the order below is the order in which the example forced them.
+
+The first is the measurement of equivalence. \Cref{ass:slotwise} treats perceptual classes as given, and \Cref{prop:feasible} shows that the correct count under thresholded similarity is a packing number that depends on a dissimilarity no one has measured. A chapter on equivalence has to say what is detected, what changes comprehension, and what changes affective response, and how each defines its own dissimilarity, so that the promise of distinct editions can be stated against one of them. It also has to define the comparison across local productions, on which the worldwide promise of \Cref{sec:scope} depends.
+
+The second is the propagation of corrections through state that crosses slots. In the example the agreement rule acts on single slots through the footprint, and the direction rule acts on neighbors. Continuity in a real film involves relations of both kinds and others that span arbitrary distances, such as a glass held in one hand across a cut. The earlier volume treats agreement on overlaps by sheaf conditions, and the question is how a correction derived from one violated overlap finds all the other overlaps it implicates.
+
+The third is the adjudication of reports, which \Cref{def:verdict} splits into the viewer's claim, the footage the ledger shows the viewer was assigned, and the script history. The distinction between an error in the film and an act of a character is located in the history. A history that records only what happened cannot say which departures from competence the story intends. The history therefore needs annotation by dramatic function, and the corresponding formalism has to guarantee that a correction cannot delete the evidence a later reinterpretation depends on.
+
+The fourth is the allocation of editions under change. \Cref{prop:hall} states when a collision-free repair exists, and \Cref{prop:ledger} shows that the edition of one viewer depends on the others. The algorithmic question is how to repair with the least disturbance, including the price $\lambda$ of moving a viewer whose edition was valid, and how to make the result reproducible from a ledger of bounded size and a retained archive. The robustness of a production to families of anticipated amendments (\Cref{def:robust}) belongs here as well.
+
+The fifth is exclusion. \Cref{rem:exclusion} separates exact subtraction by digest, which is arithmetic, from approximate subtraction, which depends on a representation and a threshold and interacts with the packing numbers above. A chapter on exclusion has to count the editions that survive a declared policy and has to keep that count apart from any question of legal status.
+
+The sixth is noise overcapture, the expense of distinguishing variations that have no bearing on what can happen, what the camera can show, or what the audience can infer. A wet plate matters if it bears on an action, a later shot, or something visible, and otherwise a generator that tracks it spends capacity on nothing. The earlier volume's quotient of histories by future equivalence is the right tool, and the chapter has to extend it from futures to what is displayed.
+
+The seventh is sequence. The repertoire budget of \Cref{sec:repertoire} treats films as items, and the order of viewing and of release changes what each film means. A chapter on sequence has to say what a repertoire is as a structure on films and not as a set.
+
+The accompanying script \texttt{verify\_ch01.py} reproduces every count in this chapter, including the transfer-matrix totals checked against exhaustive enumeration, the footprints of \Cref{sec:error}, the exhaustive check of \Cref{lem:contain}, and the audience experiments of \Cref{sec:allocation}.
+
+\begin{thebibliography}{99}
+
+\bibitem{flyxion2026gf}
+Flyxion.
+\newblock \emph{Generative Film: Categories, Sheaves, and Types for Cinema}.
+\newblock Unpublished monograph, October 2026.
+
+\bibitem{bordwell1985classical}
+David Bordwell, Janet Staiger, and Kristin Thompson.
+\newblock \emph{The Classical Hollywood Cinema: Film Style and Mode of Production to 1960}.
+\newblock Columbia University Press, New York, 1985.
+
+\bibitem{stanley2012ec1}
+Richard P.\ Stanley.
+\newblock \emph{Enumerative Combinatorics, Volume 1}, second edition.
+\newblock Cambridge University Press, Cambridge, 2012.
+
+\bibitem{hall1935}
+Philip Hall.
+\newblock On Representatives of Subsets.
+\newblock \emph{Journal of the London Mathematical Society}, 10(1):26--30, 1935.
+
+\bibitem{rfc2104}
+Hugo Krawczyk, Mihir Bellare, and Ran Canetti.
+\newblock HMAC: Keyed-Hashing for Message Authentication.
+\newblock RFC 2104, Internet Engineering Task Force, February 1997.
+
+\bibitem{blackrogaway2002}
+John Black and Phillip Rogaway.
+\newblock Ciphers with Arbitrary Finite Domains.
+\newblock In \emph{Topics in Cryptology, CT-RSA 2002}, Lecture Notes in Computer Science 2271, pages 114--130. Springer, Berlin, 2002.
+
+\end{thebibliography}
+
+\end{document}

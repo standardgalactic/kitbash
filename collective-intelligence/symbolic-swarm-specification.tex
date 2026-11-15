@@ -1,0 +1,1024 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1.15in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{microtype}
+\usepackage{booktabs,array}
+\usepackage{fancyvrb}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{algpseudocode}
+\usepackage[hidelinks]{hyperref}
+\usepackage{setspace}
+\setstretch{1.08}
+
+\floatstyle{ruled}
+\newfloat{algorithm}{tbp}{loa}
+\floatname{algorithm}{Algorithm}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{invariant}[theorem]{Invariant}
+\newtheorem{requirement}[theorem]{Requirement}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\theoremstyle{definition}
+\newtheorem{case}{Conformance Case}
+
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\Qb}{\mathbb{Q}_{\bot}}
+\newcommand{\nodef}{\bot}
+\newcommand{\den}[2]{\mathopen{[\![}#1\mathclose{]\!]}_{#2}}
+\newcommand{\eqv}[1]{\approx_{#1}}
+\newcommand{\nz}{\mathsf{nonzero}}
+\newcommand{\sz}[1]{\lvert #1\rvert}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\SHA}{\mathrm{SHA\text{-}256}}
+\newcommand{\hid}{\mathrm{id}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Doc}{\mathrm{Doc}}
+\newcommand{\Rul}{\mathcal{R}}
+\newcommand{\proves}{\vdash}
+\newcommand{\replace}[3]{#1[#2 \mathbin{:=} #3]}
+
+\title{Local Symbolic Swarm\\[0.5em]\large A Formal Specification of Certified Rewriting\\over Immutable Workspace Snapshots}
+\author{Flyxion\\Independent Researcher}
+\date{Version 0.1 \quad November 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent This document specifies the Local Symbolic Swarm, a system in which many cooperating local processes transform a workspace of symbolic documents by proposing and certifying rewrites, while a single coordinator alone decides what becomes part of the authoritative history. The authoritative state is a chain of immutable, content-addressed snapshots with one current head. Search is deliberately unconstrained: a worker may use any procedure its resource budget permits. Trust is placed instead in a small checker that validates proof objects over a fixed symbolic language of partial rational-valued expressions, and in a coordinator that applies a separate progress rule and serializes publication through an atomic replacement of the head pointer. The specification fixes an abstract state model, a canonical concrete grammar with hash-based object identity, the semantics of expressions and of the proof language, a strictly decreasing progress measure, the filesystem primitives that give publication its atomicity, four coordination algorithms, and a failure model with explicit guarantees. Soundness of the baseline rule catalog and of the proof language is established, a bound on the number of successful commits is derived, and a set of conformance cases is given together with reference identifiers computed for the worked trace. The design separates recognition, execution, verification and publication so that each has an independent meaning and an independent failure mode.
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction}
+
+A common pattern in automated symbolic work is that discovery is cheap and unreliable while acceptance must be cheap and reliable. A procedure that searches for a simplification may be heuristic, randomized, resource hungry or simply wrong, whereas the decision to alter a document that other work depends upon must rest on something that can be checked in a bounded and well understood way. The Local Symbolic Swarm applies this asymmetry to a single machine. Workers search, a checker verifies, and a coordinator publishes. No component is asked to be both creative and authoritative, and the protocol that connects them is written so that duplicated, delayed, lost or stale work cannot damage committed state.
+
+The recruitment structure follows the sequence observed in immune responses. A sentinel observes a change and publishes a fact about it. A worker recognizes a task it is able to attempt. A claim reserves one attempt at that task, so that effort is not wastefully multiplied. The worker then crosses into a private staging area and produces a candidate, a step that corresponds to execution. A checker establishes whether the candidate preserves the declared semantics, which corresponds to verification. Finally a coordinator determines whether the verified candidate still applies to the current workspace, which corresponds to publication. These five steps are given independent meanings throughout this specification, and a good deal of the protocol is concerned with keeping them independent. In particular, a candidate that is semantically correct may nonetheless be stale, and a worker that fails operationally has established nothing about the document it was examining.
+
+The specification makes the following contributions. It defines an abstract state consisting of immutable snapshots and a single head, together with the notion of a job, an attempt, a candidate and a certificate (Section~\ref{sec:state}). It defines a canonical grammar in which every object has exactly one byte representation and is referenced by the cryptographic hash of that representation (Section~\ref{sec:grammar}). It gives a denotational semantics of expressions as partial functions, a proof language for nonzero predicates, and a checker whose acceptance is proved sound with respect to that semantics (Section~\ref{sec:semantics}). It separates semantic validity from progress, and derives a bound on the number of successful rewrite commits under a fixed configuration (Section~\ref{sec:progress}). It specifies the filesystem primitives by which immutable objects and the head pointer are published atomically, and the claim and fencing discipline that tolerates workers whose attempts have been abandoned (Section~\ref{sec:spool}). It presents the observation, attempt, commit and recovery algorithms together with a transition model of the coordinator and the invariants that model preserves (Sections~\ref{sec:algorithms} and~\ref{sec:model}). It states the failure model and its guarantees (Section~\ref{sec:failure}) and provides conformance cases and reference vectors (Section~\ref{sec:conformance} and Appendix~\ref{app:vectors}).
+
+The scope is intentionally narrow. The baseline deployment is one Linux host, one local filesystem, one coordinator at a time, and workers that belong to the same operating-system account and cooperate. The specification does not address Byzantine workers, networked filesystems, multiple hosts, or distributed consensus. The proof language is deliberately incomplete, so that the failure to derive a predicate is a normal and well-defined outcome rather than an error. The baseline coordinator commits the first valid candidate it processes, so the specification does not promise that the final normal form is independent of worker timing; a separate policy that restores such independence is described in Section~\ref{sec:progress}. Stronger deployments may be built from the same objects and algorithms, but they are outside the claims made here.
+
+The remainder of the document is organized as follows. Section~\ref{sec:conventions} fixes conventions. Section~\ref{sec:execution} describes the execution model and trust assumptions. Section~\ref{sec:state} defines the abstract state. Section~\ref{sec:grammar} gives the canonical grammar and the identity of objects. Section~\ref{sec:semantics} gives the meaning of expressions, rules and proofs, and proves soundness. Section~\ref{sec:progress} treats progress and rule safety. Section~\ref{sec:spool} defines the publication primitives. Section~\ref{sec:algorithms} gives the algorithms, and Section~\ref{sec:model} the coordinator transition model and its invariants. Section~\ref{sec:quiescence} defines quiescence and terminal classification. Section~\ref{sec:failure} states the failure model and guarantees. Section~\ref{sec:conformance} gives conformance cases. Section~\ref{sec:related} places the design in relation to prior work, and Section~\ref{sec:limits} records limitations and extensions.
+
+\section{Conventions and Notation}
+\label{sec:conventions}
+
+The verbs \emph{must}, \emph{must not}, \emph{should} and \emph{may} are used with the force of the corresponding requirement levels of Bradner~\cite{bradner1997}. Statements labelled as definitions, requirements and invariants are normative. Remarks, examples, and text describing directory layouts are informative unless the text states otherwise. Where this document gives a procedure in prose and also in pseudocode, the two are intended to agree, and an implementation that finds a discrepancy should treat the prose of the relevant section as controlling.
+
+A byte string is a finite sequence of octets. The symbol $H$ denotes the SHA-256 function~\cite{fips180}, and $\hid(b)$ denotes the lowercase hexadecimal rendering of $H(b)$, which consists of exactly sixty-four digits. The set of rational numbers is written $\Q$, and $\Qb = \Q \cup \{\nodef\}$ is the same set extended with a distinguished element that denotes the absence of a value. The size of an expression $e$, written $\sz{e}$, is the number of nodes in its syntax tree, counting each operator, variable and rational literal as one node. The size of a snapshot, written $\sz{S}$, is the sum of the sizes of the expressions of its documents. A finite partial map from a set $A$ to a set $B$ is written $A \rightharpoonup_{\mathrm{fin}} B$. For a path $p$ and an expression $E$, the subterm at $p$ is written $E|_p$ and the expression obtained by replacing that subterm by $R$ is written $\replace{E}{p}{R}$.
+
+The assumption that underlies content addressing is stated once and used thereafter.
+
+\begin{requirement}[Collision resistance]
+\label{req:collision}
+The implementation assumes that distinct canonical byte strings have distinct identifiers. When publication discovers a destination that exists with different bytes than those being published, the implementation must treat the situation as a collision and halt publication, rather than overwrite or ignore either object.
+\end{requirement}
+
+Table~\ref{tab:notation} summarizes the principal symbols. Identifiers of objects are written in italic for abstract objects and in typewriter font for concrete records.
+
+\begin{table}[t]
+\centering\small
+\begin{tabular}{@{}lp{9.6cm}@{}}
+\toprule
+Symbol & Meaning \\
+\midrule
+$S,\ S'$ & snapshots, with revision $n(S)$, parent $\pi(S)$, configuration $\kappa(S)$, origin $o(S)$ and document map $\delta(S)$ \\
+$\Gamma$ & a context, a finite set of predicates, indexed by canonical order \\
+$\den{e}{\sigma}$ & the value of expression $e$ under assignment $\sigma$, an element of $\Qb$ \\
+$e \eqv{\Gamma} e'$ & equivalence of $e$ and $e'$ in every assignment admitted by $\Gamma$ \\
+$\Gamma \proves_\pi \nz(e)$ & the proof $\pi$ establishes that $e$ is nonzero in $\Gamma$ \\
+$\Rul$ & the rule catalog, a finite set of named, versioned rules \\
+$j = (S,d,r,p)$ & a job: snapshot, document name, rule name and path \\
+$\sz{e},\ \sz{S}$ & node count of an expression and of a snapshot \\
+\bottomrule
+\end{tabular}
+\caption{Principal notation.}
+\label{tab:notation}
+\end{table}
+
+\section{Execution Model}
+\label{sec:execution}
+
+\subsection{Roles}
+
+A swarm transforms a local workspace by proposing and certifying symbolic rewrites. The system has five roles, each defined by what it may observe, what it may produce, and what authority its products carry. Table~\ref{tab:roles} gives the summary. The distinction between production and authority is the central design device: every role except the coordinator can produce objects, but only the coordinator can cause one of them to become part of committed history.
+
+\begin{table}[t]
+\centering\small
+\begin{tabular}{@{}p{2.2cm}p{4.0cm}p{4.2cm}@{}}
+\toprule
+Role & Authority held & Products \\
+\midrule
+Sentinel & none; observes head advancement and spool activity & events, which are facts and carry no authority \\
+Worker & a claim and an attempt token allocated by the coordinator & obligations, candidates, certificates and results, first in a private staging area and then as immutable objects \\
+Support worker & an obligation and a bounded search budget & support records, which are proof objects offered as hints \\
+Checker & the identity recorded in the configuration & verdicts, bound to an exact job, candidate and checker identity \\
+Coordinator & exclusive lease and a fresh session token & receipts, the head pointer, authoritative stale outcomes, terminal classification \\
+\bottomrule
+\end{tabular}
+\caption{Roles and the authority attached to their products.}
+\label{tab:roles}
+\end{table}
+
+Bash orchestrates processes, files and scheduling. A parser and a certificate checker operate on typed syntax trees and are not themselves written in shell. A worker may use any search procedure that its local resource budget permits, because nothing a worker produces is trusted until the checker has examined it and the coordinator has published it.
+
+\subsection{The Recruitment Sequence}
+
+The recruitment sequence has five stages, each with its own meaning and its own way of failing.
+
+\emph{Recognition.} A sentinel observes that the head has advanced, or that a job has become ready, and publishes that fact. Recognition does not commit anyone to work. A worker that recognizes a task it can attempt has learned only that the task exists. Because announcements may be duplicated, delayed or lost, recognition is advisory, and the authoritative list of work is always reconstructible from the current snapshot.
+
+\emph{Claim.} A claim reserves one attempt at one job. Its purpose is to prevent wasteful duplication of effort, and it confers no right to publish. Claims are issued by the coordinator, which allocates a fresh attempt token for each attempt and registers the claim before the worker is started.
+
+\emph{Execution.} The worker crosses into a private staging area and produces a candidate, or an obligation, or nothing. Operational failure at this stage is distinct from a proved absence of a matching rewrite, and the distinction is preserved in the outcome vocabulary.
+
+\emph{Verification.} A checker establishes whether the candidate preserves the declared semantics in the recorded context. Verification is relative to a snapshot, a context and a checker identity, and says nothing about whether the candidate is still applicable.
+
+\emph{Publication.} The coordinator determines whether the candidate still applies to the current workspace, applies the progress rule, and, if both hold, atomically replaces the head. Publication is the only step that changes what readers see.
+
+\subsection{Deployment and Trust}
+
+The baseline deployment is one Linux host, one local filesystem and one coordinator at a time. The coordinator lease uses a process-held exclusive lock on a stable inode, so that the lease is released by the operating system when the holding process terminates for any reason. Workers share trust with the coordinator at the operating-system level, and private staging directories are a protocol convention within a single account rather than a security boundary. Record contents are always data. Executable paths come from a trusted local configuration, and no field of any record is passed to shell evaluation. These assumptions determine what kinds of fault the protocol must tolerate: a worker may be slow, may crash, may be restarted after its claim was fenced, or may produce a wrong answer, but a worker does not forge the coordinator's lock or rewrite the head by hand.
+
+\section{Abstract State}
+\label{sec:state}
+
+\subsection{Objects, Snapshots and the Head}
+
+The authoritative state of a swarm is a sequence of immutable snapshots with one current head. An \emph{object store} is a finite set of canonical byte strings, each addressed by its identifier. A \emph{snapshot} contains a monotone revision number, its parent snapshot, a configuration identifier, an origin, and a finite map from logical document names to pairs of an expression object identifier and a context object identifier.
+
+\begin{definition}[Snapshot]
+A snapshot is a tuple $S = (n, \pi, \kappa, o, \delta)$ where $n \in \mathbb{N}$ is the revision, $\pi$ is either the symbol $\mathsf{root}$ or the identifier of a snapshot, $\kappa$ is the identifier of a configuration, $o$ is either the symbol $\mathsf{import}$ or the identifier of a candidate, and $\delta \colon \mathrm{Names} \rightharpoonup_{\mathrm{fin}} \mathrm{ExprId} \times \mathrm{CtxId}$ is a finite document map. An \emph{initial} snapshot has $n = 0$, parent $\mathsf{root}$ and origin $\mathsf{import}$. Every later snapshot $S'$ has a parent $S$ with $n(S') = n(S) + 1$.
+\end{definition}
+
+The \emph{head} is one snapshot identifier, held in a single pointer. Readers resolve the head exactly once per operation and read all documents from the snapshot it names. A reader therefore never observes a mixture of two snapshots, and an operation that spans several documents sees a single consistent state.
+
+\begin{proposition}[Snapshots commit to their history]
+\label{prop:merkle}
+Under Requirement~\ref{req:collision}, the identifier of a snapshot determines its parent, revision, configuration, origin and document map, and, by induction on the parent link, determines the entire chain of snapshots up to the initial snapshot.
+\end{proposition}
+
+\begin{proof}
+The identifier is the hash of the canonical bytes of the snapshot record, and those bytes contain the revision, parent identifier, configuration identifier, origin and every document entry. Distinct tuples have distinct canonical bytes by the unambiguity of the grammar (Proposition~\ref{prop:unambiguous}), hence distinct identifiers. The parent identifier is itself a snapshot identifier, so the argument repeats at each step until the parent is $\mathsf{root}$.
+\end{proof}
+
+A consequence that the algorithms rely on is that two snapshots with identical document maps but different ancestry have different identifiers. A document that changes and later returns to the same bytes therefore does not return the workspace to an earlier snapshot, and a proposal checked against an earlier snapshot cannot be mistaken for one checked against a later snapshot whose contents happen to coincide.
+
+\subsection{Configurations and the Rule Catalog}
+
+A \emph{configuration} names a rule catalog, a checker and the set of enabled rules. The rule catalog defines each rule by a stable name, a version and an implementation identity. The configuration is recorded in each snapshot by identifier, so that every judgment made about a snapshot is made under a definite catalog and a definite checker. A change to assumptions, enabled rules, the checker or document contents is a serialized snapshot transaction. An external editable source can be imported through that interface, but its filesystem path has no authority over committed state: only the snapshot created by the transaction does.
+
+\subsection{Jobs, Attempts, Candidates and Certificates}
+
+A \emph{job} is a request to attempt one rule at one node under one context and one snapshot. An \emph{attempt} is one execution of that job, identified by a token that is never reused. A \emph{candidate} is one proposed replacement for the expression of one document, accompanied by either a certificate or a request for assistance. A \emph{certificate} is a proof object that binds the job and the proposed expression. A successful attempt may yield no rewrite, and operational failure and a proved lack of a matching rewrite have different meanings.
+
+\begin{definition}[Outcome vocabulary]
+\label{def:outcomes}
+The result of an attempt is one of five outcomes. \emph{Proposed} carries a candidate identifier. \emph{Blocked} carries the identifier of an obligation, which names a predicate that the worker could not establish. \emph{No-match} states that the configured rule has no applicable syntactic instance at the selected path. \emph{Failed} carries a diagnostic name and states only that the attempt did not complete, so that it establishes nothing about applicability. \emph{Stale} states that the head no longer equals the job snapshot, and only the coordinator may emit it as an authoritative outcome.
+\end{definition}
+
+The separation in Definition~\ref{def:outcomes} has a precise consequence for quiescence. Only a confirmed no-match contributes to a fixed point, whereas a failed attempt that exhausts its retries leaves applicability undecided and forces an incomplete classification (Section~\ref{sec:quiescence}).
+
+\subsection{Transactions}
+
+Two kinds of transaction advance the head. A \emph{rewrite commit} replaces one document expression by the certified successor expression, keeps that document's context and all other entries, sets the parent to the job snapshot, increments the revision, and records the candidate identifier as origin. An \emph{external transaction} imports a change to assumptions, enabled rules, the checker or document contents, and records the terminal \code{import} as origin. In both cases the new snapshot and any supporting objects are published as immutable objects before the head pointer is replaced, and both are serialized by the coordinator. Version~0.1 defines receipts only for rewrite commits, because the receipt record names a candidate; an external transaction is witnessed by the origin of the snapshot it creates.
+
+\section{Canonical Grammar and Object Identity}
+\label{sec:grammar}
+
+\subsection{Lexical Classes}
+
+Every object consists of exactly one record followed by a line feed. The productions below specify all spaces literally, and quoted terminals denote literal ASCII. Juxtaposition denotes concatenation, and the word \code{eps} in the displayed grammar denotes the empty string, which is written $\varepsilon$ in running text. The lexical classes are fixed as follows. An \emph{identifier} is exactly sixty-four lowercase hexadecimal digits. A \emph{token} is exactly thirty-two lowercase hexadecimal digits. A \emph{name} begins with a lowercase ASCII letter and continues with zero or more lowercase letters, ASCII digits, hyphens or underscores, with at most sixty-four characters in total. A \emph{natural number} is zero, or a nonzero digit followed by zero or more digits. A \emph{positive number} is a natural number other than zero. A \emph{signed integer} is a natural number, or a hyphen followed by a positive number. In the grammar, \code{<id>}, \code{<token>} and \code{<name>} denote the first three classes, \code{<nat>} and \code{<pos>} the next two, and \code{<int>} the last.
+
+\subsection{Grammar}
+
+The grammar is given in Backus--Naur form. It is the normative definition of concrete syntax.
+
+\begin{Verbatim}[fontsize=\footnotesize,frame=lines,framesep=3mm]
+<object> ::= <expr> | <context> | <snapshot> | <head> | <job>
+           | <claim> | <candidate> | <obligation> | <support>
+           | <certificate> | <event> | <result> | <configuration> | <receipt>
+
+<expr> ::= <rat> | "(var " <name> ")" | "(neg " <expr> ")"
+         | "(add " <expr> " " <expr> ")" | "(mul " <expr> " " <expr> ")"
+         | "(div " <expr> " " <expr> ")"
+<rat> ::= "(rat " <int> " " <pos> ")"
+<pred> ::= "(nonzero " <expr> ")"
+<preds> ::= eps | " " <pred> <preds>
+<context> ::= "(context" <preds> ")"
+
+<configuration> ::= "(config " <id> " " <id> <rules> ")"
+<rules> ::= eps | " " <name> <rules>
+<snapshot> ::= "(snapshot " <nat> " " <parent> " " <id> " " <origin> <entries> ")"
+<origin> ::= "import" | <id>
+<receipt> ::= "(receipt " <id> " " <id> " " <id> ")"
+<parent> ::= "root" | <id>
+<entries> ::= eps | " " <entry> <entries>
+<entry> ::= "(doc " <name> " " <id> " " <id> ")"
+<head> ::= "(head " <id> ")"
+
+<path> ::= "(path" <indices> ")"
+<indices> ::= eps | " " <index> <indices>
+<index> ::= "0" | "1"
+<job> ::= "(job " <id> " " <name> " " <name> " " <path> ")"
+<claim> ::= "(claim " <id> " " <token> " " <token> ")"
+<candidate> ::= "(candidate " <id> " " <token> " " <id> " " <id> ")"
+<obligation> ::= "(obligation " <id> " " <token> " " <pred> ")"
+<support> ::= "(support " <id> " " <proof> ")"
+<certificate> ::= "(cert " <id> " " <id> " " <derivation> ")"
+<derivation> ::= "(self-div " <proof> ")" | "(add-zero-right)"
+               | "(mul-one-right)" | "(rat-fold)"
+<proof> ::= "(assumed " <nat> ")" | "(literal " <rat> ")"
+          | "(product " <proof> " " <proof> ")"
+
+<event> ::= "(head-advanced " <id> ")"
+          | "(job-ready " <id> ")" | "(attempt-returned " <id> ")"
+          | "(proof-required " <id> ")" | "(proof-available " <id> ")"
+<result> ::= "(result " <id> " " <token> " " <outcome> ")"
+<outcome> ::= "(proposed " <id> ")" | "(blocked " <id> ")"
+            | "(no-match)" | "(failed " <name> ")" | "(stale)"
+\end{Verbatim}
+
+The nonterminals \code{<path>}, \code{<pred>}, \code{<proof>}, \code{<derivation>} and \code{<outcome>} occur only as components of other records and are not objects in their own right.
+
+\subsection{Well-Formedness Conditions}
+
+Derivability in the grammar is necessary but not sufficient for an object to be canonical. Four further conditions are part of the definition of a canonical object, and a parser must reject any record that violates them. First, a rational literal must have coprime numerator and denominator, and zero must be written \code{(rat 0 1)}. Second, the predicates of a context must be unique and sorted by their canonical bytes. Third, the enabled rules of a configuration must be unique and sorted by rule name. Fourth, the document entries of a snapshot must be unique and sorted by document name. Sorting is bytewise on the canonical encoding.
+
+\subsection{Unambiguity, Typing and Identity}
+
+\begin{proposition}[Unambiguity]
+\label{prop:unambiguous}
+Every canonical byte string has exactly one parse tree, and every parse tree has exactly one canonical byte string. The type of an object is determined by its leading literal.
+\end{proposition}
+
+\begin{proof}
+In each production the alternatives begin with pairwise distinct literal prefixes, or are distinguished by a single character that cannot begin the competing alternative. The top-level alternatives begin with the literals visible in the grammar, which are pairwise distinct; in particular a head record begins with \code{(head } followed by a space, whereas the corresponding announcement begins with \code{(head-advanced }. Lists are introduced by a space and terminated by a closing parenthesis, so the next character decides between continuation and termination. The terminal \code{import} begins with a letter that is not a hexadecimal digit, and \code{root} likewise, so \code{<origin>} and \code{<parent>} are decided by one character. The lexical classes have fixed width or an unambiguous terminator, since spaces and closing parentheses do not occur inside a name, an identifier or a number, and a natural number cannot begin with zero unless it is zero. A deterministic one-character lookahead therefore selects a unique production at every step, and the parse is unique. Because spaces are specified literally and no production admits optional whitespace, the printing of a parse tree is also unique.
+\end{proof}
+
+\begin{definition}[Identifier of an object]
+The identifier of a canonical object $o$ with byte string $b(o)$ is $\hid(b(o))$, where $b(o)$ includes the terminating line feed. An object reference is an identifier together with an expected object type. On lookup, an implementation must verify that the hash of the retrieved bytes equals the identifier, that the bytes are canonical, and that the type determined by the leading literal equals the expected type.
+\end{definition}
+
+\subsection{Reference Structure}
+
+Table~\ref{tab:records} lists, for each record type, the meaning of its fields in order. The role of each identifier is fixed by position, so that no field carries a type tag of its own. The two identifiers of a configuration are, in order, the identity of the rule catalog and the identity of the checker. These denote trusted local artifacts and need not themselves be objects in the store; they are included in the configuration so that a change of either alters the configuration identifier and therefore the snapshots that cite it.
+
+\begin{table}[t]
+\centering\small
+\begin{tabular}{@{}lp{9.6cm}@{}}
+\toprule
+Record & Fields in order \\
+\midrule
+\code{config} & catalog identity, checker identity, enabled rule names \\
+\code{snapshot} & revision, parent snapshot or \code{root}, configuration, origin, document entries \\
+\code{doc} & document name, expression identifier, context identifier \\
+\code{job} & snapshot identifier, document name, rule name, path \\
+\code{claim} & job identifier, attempt token, coordinator session token \\
+\code{candidate} & job identifier, attempt token, full replacement expression identifier, certificate identifier \\
+\code{cert} & job identifier, expression identifier (equal to the candidate's), derivation \\
+\code{obligation} & job identifier, attempt token, required predicate \\
+\code{support} & obligation identifier, proof \\
+\code{result} & job identifier, attempt token, outcome \\
+\code{receipt} & candidate identifier, previous snapshot identifier, accepted successor identifier \\
+\code{head} & snapshot identifier \\
+events & the single identifier of the object that the event concerns \\
+\bottomrule
+\end{tabular}
+\caption{Fields of each record type.}
+\label{tab:records}
+\end{table}
+
+A job lists the snapshot, document name, rule name and path. A claim lists the job identifier, the attempt token and the coordinator session token. A candidate lists the job, the attempt token, the full replacement expression and the certificate, and a certificate binds the job and the same full expression. An obligation names the job and the attempt and carries the required predicate, and a support record binds an obligation identifier to a proof. An attempt-returned event points to a worker result. Only the coordinator emits authoritative stale outcomes.
+
+\begin{definition}[Valid record graph]
+\label{def:graph}
+A proposed result is part of a valid record graph when every referenced object exists, has the expected type and verifies its hash, and the following agreements hold. The job identifiers of the result, the candidate and the certificate are equal. The attempt token of the result equals that of the candidate. The candidate identifier named by the \code{proposed} outcome is the identifier of the candidate. The expression identifier of the candidate equals that of the certificate.
+\end{definition}
+
+\subsection{Paths}
+
+Paths count children from zero. A unary node has child zero. Binary operators have left child zero and right child one. Variable and rational nodes have no expression children. The empty path selects the entire document, and invalid paths are rejected.
+
+\begin{definition}[Subterm and preorder enumeration]
+For an expression $E$ and path $p$, the subterm $E|_p$ is defined by $E|_{\varepsilon} = E$ and $f(E_0, \ldots, E_{k-1})|_{i\,p'} = E_i|_{p'}$ when $0 \le i < k$, and is undefined otherwise. The preorder enumeration $\mathrm{paths}(E)$ is the sequence that begins with $\varepsilon$ and continues, for each child index $i$ in increasing order, with the paths $i\,p'$ for $p'$ in $\mathrm{paths}(E_i)$. Its length equals $\sz{E}$, since every node of the syntax tree has exactly one path.
+\end{definition}
+
+\section{Semantics of Expressions, Rules and Proofs}
+\label{sec:semantics}
+
+\subsection{Denotation}
+
+Expressions denote partial rational-valued functions of rational assignments to variables. An \emph{assignment} is a function $\sigma \colon \Var \to \Q$ from variable names to rational numbers. Each operator first requires all operands to be defined, and division additionally requires a nonzero denominator. Writing $\nodef$ for the undefined value, the denotation $\den{e}{\sigma} \in \Qb$ is given by the following equations, in which each clause applies only when every operand is different from $\nodef$, and yields $\nodef$ otherwise.
+\begin{align*}
+\den{(\mathsf{rat}\ n\ d)}{\sigma} &= n/d, & \den{(\mathsf{var}\ x)}{\sigma} &= \sigma(x),\\
+\den{(\mathsf{neg}\ a)}{\sigma} &= -\den{a}{\sigma}, & \den{(\mathsf{add}\ a\ b)}{\sigma} &= \den{a}{\sigma} + \den{b}{\sigma},\\
+\den{(\mathsf{mul}\ a\ b)}{\sigma} &= \den{a}{\sigma} \cdot \den{b}{\sigma}, & \den{(\mathsf{div}\ a\ b)}{\sigma} &= \den{a}{\sigma} \,/\, \den{b}{\sigma} \quad (\text{if } \den{b}{\sigma} \ne 0).
+\end{align*}
+
+\subsection{Contexts and Equivalence}
+
+A predicate $\nz(e)$ holds under $\sigma$ exactly when $\den{e}{\sigma} \in \Q \setminus \{0\}$, which is to say when $e$ is defined and has a nonzero value. A context $\Gamma$ is a finite set of predicates, and it \emph{admits} those assignments that satisfy every predicate it contains. Contexts are supplied by the user or imported as explicit assumptions, and every accepted judgment is relative to its recorded context. The set of assignments admitted by $\Gamma$ is written $\mathrm{Adm}(\Gamma)$.
+
+\begin{definition}[Equivalence under a context]
+Expressions $e$ and $e'$ are \emph{equivalent under} $\Gamma$, written $e \eqv{\Gamma} e'$, when $\den{e}{\sigma} = \den{e'}{\sigma}$ in $\Qb$ for every $\sigma \in \mathrm{Adm}(\Gamma)$. Equality in $\Qb$ means that the two expressions have equal definedness and, whenever defined, equal value.
+\end{definition}
+
+The relation $\eqv{\Gamma}$ is an equivalence relation, because it is the kernel of a function from expressions to functions on $\mathrm{Adm}(\Gamma)$. This is the property that makes a sequence of checked rewrites preserve meaning.
+
+\begin{lemma}[Replacement]
+\label{lem:replacement}
+Let $E$ be an expression, $p$ a path valid in $E$, and $R$ an expression with $E|_p \eqv{\Gamma} R$. Then $E \eqv{\Gamma} \replace{E}{p}{R}$.
+\end{lemma}
+
+\begin{proof}
+By induction on the length of $p$. When $p$ is empty the claim is the hypothesis. Otherwise $E = f(E_0,\ldots,E_{k-1})$ and $p = i\,p'$. For every $\sigma \in \mathrm{Adm}(\Gamma)$, the value $\den{E}{\sigma}$ is determined by the values $\den{E_j}{\sigma}$ through the clause for $f$, and the replacement leaves $E_j$ unchanged for $j \ne i$. By the induction hypothesis $\den{\replace{E_i}{p'}{R}}{\sigma} = \den{E_i}{\sigma}$, so the arguments to the clause for $f$ are unchanged and so is the result.
+\end{proof}
+
+\begin{remark}
+There are no binding constructs in the language, so no variable capture can arise, and the context of a subterm is the context of the whole document. The strictness of the operators is not needed for Lemma~\ref{lem:replacement}, but it matters for which rules are sound. A rule that discarded an operand whose definedness is not known, such as rewriting $(\mathsf{mul}\ e\ (\mathsf{rat}\ 0\ 1))$ to $(\mathsf{rat}\ 0\ 1)$, would change an undefined expression into a defined one, and it is accordingly absent from the baseline catalog.
+\end{remark}
+
+\subsection{The Baseline Rule Catalog}
+
+For a document expression $E$, an occurrence $p$ and a proposed replacement $T$, a valid certificate proves that $E$ and $T$ have equal definedness and equal value whenever defined, in every assignment admitted by the context. The checker reads $E$ and the context from the job snapshot, retrieves the selected subterm $S = E|_p$, computes a replacement subterm $R$ from the named derivation, constructs $\replace{E}{p}{R}$, and compares canonical bytes against $T$. This keeps the scope of the candidate within the certified occurrence.
+
+Table~\ref{tab:rules} defines the four baseline rules by pattern, replacement and proof obligation. For the rule $\mathsf{self\text{-}div}$ the two occurrences of $e$ must have identical canonical syntax, and the checker discharges the obligation $\nz(e)$ with the proof carried in the derivation. The rules for right addition of zero and right multiplication by one return their left operand, and both preserve undefinedness because the discarded operand is a defined literal. The rule $\mathsf{rat\text{-}fold}$ evaluates a unary or binary operator whose immediate operands are rational literals, using exact rational arithmetic, and it writes the result as a canonical literal. A division with a zero denominator yields no fold. An enabled rule name must agree with the derivation tag under the recorded configuration, and the derivation tags have the same spelling as the rule names.
+
+\begin{table}[t]
+\centering\small
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}p{2.7cm}p{3.9cm}p{2.7cm}p{1.8cm}@{}}
+\toprule
+Rule and derivation & Pattern $S$ & Replacement $R$ & Obligation \\
+\midrule
+\code{self-div} $\pi$ & $(\mathsf{div}\ e\ e)$ & $(\mathsf{rat}\ 1\ 1)$ & $\nz(e)$ \\
+\code{add-zero-right} & $(\mathsf{add}\ e\ (\mathsf{rat}\ 0\ 1))$ & $e$ & none \\
+\code{mul-one-right} & $(\mathsf{mul}\ e\ (\mathsf{rat}\ 1\ 1))$ & $e$ & none \\
+\code{rat-fold} & $f(\ell_1)$ or $f(\ell_1,\ell_2)$ with $\ell_i$ literals, $f \in \{\mathsf{neg}, \mathsf{add}, \mathsf{mul}, \mathsf{div}\}$, and $\ell_2$ not zero when $f = \mathsf{div}$ & the exact value as a canonical literal & none \\
+\bottomrule
+\end{tabular}
+\caption{The baseline rule catalog.}
+\label{tab:rules}
+\end{table}
+
+\begin{definition}[Match test]
+For each rule $r$ the catalog supplies a decidable predicate $M_r(E,p)$ that holds exactly when $E|_p$ is a syntactic instance of the pattern of $r$ in Table~\ref{tab:rules}, including the side conditions stated there. A rule \emph{matches} at $p$ when $M_r(E,p)$ holds, and \emph{has no applicable instance} otherwise. For $\mathsf{rat\text{-}fold}$ the match test includes the requirement that a divisor literal be nonzero, so that division by a zero literal is a non-match and not a match without a certificate.
+\end{definition}
+
+\begin{lemma}[Rule soundness]
+\label{lem:rules}
+Let $r$ be a baseline rule with $M_r(E,p)$, let $S = E|_p$, let $R$ be the replacement that Table~\ref{tab:rules} associates with $S$, and suppose the obligation of $r$, if any, holds at every assignment in $\mathrm{Adm}(\Gamma)$. Then $S \eqv{\Gamma} R$.
+\end{lemma}
+
+\begin{proof}
+Fix $\sigma \in \mathrm{Adm}(\Gamma)$. For $\mathsf{self\text{-}div}$ the obligation gives $\den{e}{\sigma} \in \Q\setminus\{0\}$, so $\den{(\mathsf{div}\ e\ e)}{\sigma} = 1 = \den{(\mathsf{rat}\ 1\ 1)}{\sigma}$, and both sides are defined. For $\mathsf{add\text{-}zero\text{-}right}$ the literal $(\mathsf{rat}\ 0\ 1)$ is always defined with value $0$, so the sum is defined exactly when $e$ is defined and then equals $\den{e}{\sigma}$. The case of $\mathsf{mul\text{-}one\text{-}right}$ is identical with the literal $1$. For $\mathsf{rat\text{-}fold}$ the operands are literals and therefore defined, the match test excludes division by zero, and exact rational arithmetic yields a defined value that the canonical literal denotes.
+\end{proof}
+
+\subsection{The Proof Language}
+
+A proof establishes that an expression is nonzero in a context. The proof language has three constructors. For $(\mathsf{assumed}\ i)$ the demanded predicate must equal the predicate at zero-based index $i$ in the canonical context. For $(\mathsf{literal}\ r)$ the demanded predicate must be $\nz(r)$ and the numerator of $r$ must be nonzero. For $(\mathsf{product}\ A\ B)$ the demanded predicate must be $\nz((\mathsf{mul}\ a\ b))$, and the checker recursively checks $A$ against $\nz(a)$ and $B$ against $\nz(b)$. These requirements are summarized by the following derivation rules, in which $\Gamma_i$ denotes the $i$th predicate of $\Gamma$ in canonical order.
+\begin{gather*}
+\frac{\Gamma_i = \nz(e)}{\Gamma \proves_{(\mathsf{assumed}\ i)} \nz(e)}
+\qquad
+\frac{n \ne 0}{\Gamma \proves_{(\mathsf{literal}\ (\mathsf{rat}\ n\ d))} \nz((\mathsf{rat}\ n\ d))}
+\\[1ex]
+\frac{\Gamma \proves_{A} \nz(a) \qquad \Gamma \proves_{B} \nz(b)}{\Gamma \proves_{(\mathsf{product}\ A\ B)} \nz((\mathsf{mul}\ a\ b))}
+\end{gather*}
+
+\begin{lemma}[Proof soundness]
+\label{lem:proofs}
+If $\Gamma \proves_\pi \nz(e)$ then $\den{e}{\sigma} \in \Q \setminus \{0\}$ for every $\sigma \in \mathrm{Adm}(\Gamma)$.
+\end{lemma}
+
+\begin{proof}
+By induction on $\pi$. For $(\mathsf{assumed}\ i)$ the predicate $\nz(e)$ is a member of $\Gamma$, and every admitted assignment satisfies every member. For $(\mathsf{literal}\ r)$ the value is $n/d$ with $n \ne 0$ and $d > 0$, hence nonzero. For $(\mathsf{product}\ A\ B)$ the induction hypothesis gives that $a$ and $b$ are defined and nonzero, so their product is defined and is nonzero because $\Q$ has no zero divisors.
+\end{proof}
+
+The proof language is deliberately incomplete. Failing to derive a predicate leaves it unresolved, and an unresolved predicate yields a blocked outcome and not a rewrite. Incompleteness is easily exhibited. In the context $\Gamma = (\nz(x))$ the predicate $\nz((\mathsf{mul}\ x\ x))$ is derived by $(\mathsf{product}\ (\mathsf{assumed}\ 0)\ (\mathsf{assumed}\ 0))$. The predicate $\nz((\mathsf{neg}\ x))$ is semantically valid in every admitted assignment, but it has no derivation, because the language has no constructor that mentions negation, and the predicate $\nz((\mathsf{div}\ x\ x))$ is likewise valid but underivable. A richer proof language can be introduced by a new configuration and a new checker identity, and Lemma~\ref{lem:proofs} is the property that any such extension must preserve.
+
+\subsection{The Checker}
+
+The checker accepts or rejects a triple consisting of a job $j = (S,d,r,p)$, a candidate $c$ and a certificate $\chi$, and it proceeds in four steps.
+
+First, it resolves the job snapshot and its configuration, verifies that the rule $r$ is enabled in the configuration, and verifies that the graph of $c$ and $\chi$ is valid in the sense of Definition~\ref{def:graph} with respect to $j$. Second, it reads the expression $E$ and the context $\Gamma$ of document $d$ from $S$, and obtains $S_p = E|_p$. A path invalid in $E$ causes rejection. Third, it dispatches on the derivation tag of $\chi$, which must agree with $r$. For $\mathsf{self\text{-}div}$ the subterm must have the form $(\mathsf{div}\ a\ b)$ with $a$ and $b$ byte-identical, the proof carried by the derivation must satisfy $\Gamma \proves_\pi \nz(a)$ under the checking rules above, and $R = (\mathsf{rat}\ 1\ 1)$. For $\mathsf{add\text{-}zero\text{-}right}$ and $\mathsf{mul\text{-}one\text{-}right}$ the subterm must match the pattern of the rule and $R$ is its left operand. For $\mathsf{rat\text{-}fold}$ the subterm must match the pattern and $R$ is computed by exact arithmetic. Fourth, it constructs $\replace{E}{p}{R}$ and compares its canonical bytes with those of the expression named by the candidate, accepting exactly when they are equal.
+
+\begin{theorem}[Soundness of the checker]
+\label{thm:checker}
+If the checker accepts a job $j$, candidate $c$ and certificate $\chi$, and $T$ is the expression named by $c$, then $E \eqv{\Gamma} T$, where $E$ and $\Gamma$ are the expression and context of document $d$ in the snapshot of $j$.
+\end{theorem}
+
+\begin{proof}
+Acceptance entails $T = \replace{E}{p}{R}$ for the replacement $R$ computed from the derivation. By Lemma~\ref{lem:proofs}, where an obligation is present it holds at every admitted assignment, and so by Lemma~\ref{lem:rules} the equivalence $E|_p \eqv{\Gamma} R$ holds. Lemma~\ref{lem:replacement} then gives $E \eqv{\Gamma} \replace{E}{p}{R} = T$.
+\end{proof}
+
+\begin{remark}[Syntax and semantics are separate checks]
+The grammar can encode expressions on which a semantically invalid rewrite looks syntactically plausible. The document $(\mathsf{mul}\ (\mathsf{div}\ (\mathsf{rat}\ 1\ 1)\ (\mathsf{rat}\ 0\ 1))\ (\mathsf{rat}\ 0\ 1))$ is undefined at every assignment, while the literal $(\mathsf{rat}\ 0\ 1)$ is defined and denotes zero. Both are well-formed objects, yet the second cannot be certified as a replacement for the first, because no derivation of the baseline catalog produces it from the first. This is the reason a certificate is checked against semantics and not merely parsed.
+\end{remark}
+
+\subsection{Support Records}
+
+A support record may guide certificate construction, and its publication confers no authority to change a document or add an assumption. A support worker that completes a proof publishes a support record, and a resumed attempt of the same job may consume it as an input hint. The checker nevertheless verifies the proof again in the exact job context. An accepted certificate establishes equivalence only, and the coordinator then applies a separate progress rule, which is the subject of the next section.
+
+\section{Progress and Rule Safety}
+\label{sec:progress}
+
+\subsection{The Progress Measure}
+
+Semantic validity does not by itself guarantee that a sequence of rewrites ends. The baseline normalizer therefore accepts only rewrites that strictly decrease the number of expression nodes in the affected document, counting each operator, variable and rational literal as one node. The check is applied after semantic verification and before publication.
+
+\begin{definition}[Progress rule]
+A verified candidate with replacement expression $T$ for a document with current expression $E$ satisfies the progress rule when $\sz{T} < \sz{E}$.
+\end{definition}
+
+\begin{lemma}[Baseline rules decrease size]
+\label{lem:decrease}
+For every baseline rule $r$ and every match, the replacement $R$ satisfies $\sz{R} < \sz{S}$, and consequently $\sz{\replace{E}{p}{R}} < \sz{E}$.
+\end{lemma}
+
+\begin{proof}
+For $\mathsf{self\text{-}div}$ the sizes are $\sz{S} = 2\sz{e} + 1 \ge 3$ and $\sz{R} = 1$. For $\mathsf{add\text{-}zero\text{-}right}$ and $\mathsf{mul\text{-}one\text{-}right}$ the sizes are $\sz{S} = \sz{e} + 2$ and $\sz{R} = \sz{e}$. For $\mathsf{rat\text{-}fold}$ the subterm has two or three nodes and the result has one. Replacing a subterm by a smaller one reduces the size of the whole by exactly the difference of the sizes of the subterms.
+\end{proof}
+
+\begin{theorem}[Bound on successful commits]
+\label{thm:bound}
+Fix a configuration whose rules all satisfy the conclusion of Lemma~\ref{lem:decrease}, and suppose that no external transaction occurs. Let $S$ be a snapshot with $m$ documents and total size $N = \sz{S}$. Then the number of successful rewrite commits that can follow $S$ is at most $N - m$.
+\end{theorem}
+
+\begin{proof}
+A rewrite commit changes exactly one document expression, leaves the document set unchanged, and by the progress rule decreases the total size by at least one. Every document expression has at least one node, so the total size never falls below $m$. A decreasing sequence of integers bounded below by $m$ and beginning at $N$ has at most $N - m$ strict steps.
+\end{proof}
+
+The bound concerns commits and not attempts. If each job is permitted at most $b$ attempts, including attempts resumed after support, then the number of attempts at a snapshot of size $N'$ with $\rho$ enabled rules is at most $\rho N' b$, since every node of every document has one path and each path is paired with each enabled rule. Because snapshot size is non-increasing along rewrite commits, the total number of attempts over a run is at most $(N - m + 1)\,\rho\,N\,b$. This bound is far from tight and gives no estimate of the work a particular run requires.
+
+\subsection{Overlap and Order Dependence}
+
+Rules may overlap, and normal forms may depend on the order of accepted candidates. The baseline coordinator may commit the first valid candidate it processes. Exact replay uses the committed snapshot chain and its recorded receipts, with no need to repeat a scheduling decision. The size measure makes every rewriting sequence finite, so the rewriting relation is terminating. A terminating relation that is also locally confluent has unique normal forms by Newman's lemma~\cite{newman1942,baader1998}, but local confluence is a property of a catalog to be established separately, and this specification makes no confluence claim, either for the baseline catalog or in general. Where it fails, the final snapshot depends on commit order.
+
+\subsection{A Timing-Independent Commit Policy}
+
+A run whose outcome must be independent of worker timing needs a separate policy. Let $\prec$ be the total order on the jobs of a snapshot given by document name, then the position of the path in the preorder enumeration, then the position of the rule in the sorted list of enabled rules; this is the order in which Algorithm~A creates jobs. Under the \emph{ordered commit policy}, the coordinator commits the $\prec$-least job whose result is a verified proposal, and only after every earlier job has a definitive result, meaning a confirmed no-match, an exhausted blocked obligation, an exhausted operational failure, or a rejected candidate. The sequence of commits then depends only on the definitive result of each job. It is independent of timing provided each of those results is itself independent of timing, which holds for the baseline rules when workers construct proofs deterministically and are given budgets that do not depend on the clock. The ordered policy trades throughput for reproducibility, since a late result for an early job delays every later commit.
+
+\subsection{The Meaning of No-Match}
+
+The result $\code{(no-match)}$ means that the configured rule has no applicable syntactic instance at the selected path. A rule that matches but lacks a certificate yields either a blocked result with a named predicate or an operational failure. The coordinator confirms definitive structural no-match outcomes using the catalog's match test $M_r$, and does not rely on the word of a worker. A failed worker cannot establish that a path is irreducible, and a worker-reported no-match that the match test contradicts is treated as an operational failure of the attempt.
+
+\section{Spool and Publication Primitives}
+\label{sec:spool}
+
+\subsection{Layout}
+
+Immutable objects, the head file, claim directories, attempt staging directories, announcements and receipts are kept below one workspace root. Paths are derived by the implementation from validated hashes, tokens and fixed directory names, so that no field of any record can select a location outside the workspace. An implementation must validate the length and alphabet of every identifier and token before using it in a path. The layout of Table~\ref{tab:layout} is informative, and any layout that satisfies the requirements of this section is permitted.
+
+\begin{table}[t]
+\centering\small
+\begin{tabular}{@{}p{4.8cm}p{8.4cm}@{}}
+\toprule
+Location below the root & Content \\
+\midrule
+\code{objects/} & immutable objects, one file per identifier \\
+\code{head} & the single pointer record \code{(head <id>)} \\
+\code{coordinator.lock} & the stable inode on which the exclusive lease is held \\
+\code{claims/<session>/<job>/} & one directory per job and session, holding immutable claim records \\
+\code{attempts/<token>/} & private staging area of one attempt, never reused \\
+\code{spool/} & announcements, which are events published as immutable objects \\
+\code{receipts/<successor>} & receipt of the commit that produced the named snapshot \\
+\bottomrule
+\end{tabular}
+\caption{An informative workspace layout.}
+\label{tab:layout}
+\end{table}
+
+\subsection{The Primitive Put}
+
+The primitive \textsc{Put} validates and hashes a record, writes its bytes to a temporary file beside the object destination, and publishes the complete file by an atomic no-replace operation, such as creating a hard link at the destination, which fails if the destination exists, or a rename that refuses to replace. If the destination exists, the bytes are compared. A byte difference is a collision and halts publication (Requirement~\ref{req:collision}). Because identifiers are derived from content, \textsc{Put} is idempotent, and two processes that publish the same record concurrently both succeed and leave one file.
+
+\begin{algorithm}
+\caption{The primitives \textsc{Put} and \textsc{ReplaceHead}.}
+\label{alg:primitives}
+\begin{algorithmic}[1]
+\Function{Put}{record $o$}
+  \State validate $o$ against the grammar and the well-formedness conditions
+  \State $b \gets$ canonical bytes of $o$;\quad $i \gets \hid(b)$;\quad $\delta \gets$ destination derived from $i$
+  \State write $b$ to a temporary file $\theta$ beside $\delta$
+  \State \textbf{durable profile:} flush $\theta$
+  \State publish $\theta$ at $\delta$ by an atomic no-replace operation
+  \If{$\delta$ already exists}
+    \State compare the bytes at $\delta$ with $b$;\ if they differ, halt publication;\ remove $\theta$
+  \EndIf
+  \State \textbf{durable profile:} flush the directory that contains $\delta$
+  \State \Return $i$
+\EndFunction
+\Statex
+\Function{ReplaceHead}{identifier $i$} \Comment{coordinator only}
+  \State write the record $(\mathsf{head}\ i)$ to a temporary file beside the head pointer
+  \State \textbf{durable profile:} flush the temporary file
+  \State rename the temporary file over the head pointer
+  \State \textbf{durable profile:} flush the directory that contains the head pointer
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Replacing the Head}
+
+\textsc{ReplaceHead} writes a temporary pointer beside the head and atomically renames it over the old pointer. Only the coordinator calls it. The rename is the visibility boundary: before it, readers resolve the old head, and after it, they resolve the new one, and no reader observes an intermediate state. A Bash implementation uses a small filesystem helper for these operations, because the shell has no portable means of flushing files and directories or of an atomic no-replace publication.
+
+\subsection{Durability Profiles}
+
+For machine-crash durability, an implementation must flush object bytes and their containing directories before it publishes references to them, and it must flush the replacement pointer and its containing directory in the appropriate order around the rename. The difficulty of obtaining crash-consistent updates from the interfaces that file systems actually provide is well documented~\cite{pillai2014}, which is why the ordering is stated as a requirement and not left to convention. A process-crash-only implementation may omit durability flushing and must identify that profile when it starts. The guarantees of Section~\ref{sec:failure} are stated separately for the two profiles.
+
+\subsection{Claims, Sessions and Fencing}
+
+Claims are exclusive per job and coordinator session. A claim is reserved by atomic directory creation, which fails if the directory exists, and its immutable claim record is then published into that directory. The coordinator allocates attempt tokens and registers the claim in its active-attempt table before it spawns the worker. A coordinator session begins with the acquisition of the lease and the allocation of a fresh session token, and it ends when the coordinator process ends. Old-session claim directories cannot prevent recruitment in a fresh session, because the session token is part of the path.
+
+Only the coordinator reclaims an attempt. On timeout it first \emph{fences} the token in its active-attempt table, which means that it removes the token from the set of tokens whose results may be accepted, then requests termination of the worker, and may allocate a fresh token within the retry budget. A late result from the fenced token cannot be accepted, whatever the physical state of the process that produced it. This is the familiar discipline of fencing tokens~\cite{kleppmann2017}, applied here with the coordinator as the only party that checks the token. Attempt tokens are never reused.
+
+\begin{proposition}[At most one eligible token per job]
+\label{prop:token}
+Within one session, at every moment, at most one attempt token for each job is eligible, meaning that it is in the active-attempt table and not fenced.
+\end{proposition}
+
+\begin{proof}
+The claim directory for a job and session is created at most once, so only one reservation succeeds. The coordinator publishes a further claim record into that directory only after it has fenced the previous token for the job, and it allocates tokens itself, so there is no concurrent allocation. Hence the set of eligible tokens for a job has at most one element throughout.
+\end{proof}
+
+A fenced worker may still be running. The protocol tolerates this, because everything such a worker can do is either confined to its private staging directory or consists of publishing immutable, content-addressed objects, and neither affects committed state. Acceptance is serial, and the protocol tolerates duplicate computation.
+
+\subsection{Retention and Cleanup}
+
+While work is running, every object reachable from the head history or from a live attempt must be retained. The first implementation can retain all immutable objects. Deletion of a staging directory must wait for process reaping, or must use session isolation, so that late activity of a worker cannot write into a reused directory. Because tokens are never reused and the staging directory is named by token, a directory is never reused in any case.
+
+\subsection{Announcements}
+
+Announcements are events published as immutable objects in the spool. They may be duplicated, delayed or lost. On coordinator restart, pending work is rebuilt from the current snapshot, optionally reusing verified immutable objects. The coordinator treats an event as a hint that something may have changed, never as a record of what has changed.
+
+\begin{proposition}[Announcements are idempotent hints]
+\label{prop:dup}
+Processing any announcement any number of times, in any order, and the loss of any announcement, leave the committed chain unchanged.
+\end{proposition}
+
+\begin{proof}
+An announcement can cause only three kinds of action. A head announcement causes a rescan of the current head, which registers each job once and is stateless with respect to the chain. A result announcement causes consumption of a result, which requires an active token for the job; the first consumption retires the token, so any later consumption finds none and discards the result. A proof announcement registers a support request once per current job and predicate, and cannot reopen completed work. None of these actions can change the head except through a commit that has passed every check of Algorithm~C. A lost announcement is recovered by the polling that Algorithm~D performs, which depends only on the spool and on the active workers.
+\end{proof}
+
+\section{Algorithms}
+\label{sec:algorithms}
+
+\subsection{Algorithm A: Observe and Recruit}
+
+On startup, and on every advancement of the head, the coordinator reads the head pointer once, validates the snapshot that it names, fences or cancels every active attempt whose job snapshot differs from it, and enumerates the jobs of the snapshot. Documents are visited in canonical name order, nodes in preorder, and rules in canonical order. Each job is published and registered once in the state for the snapshot. A job at which the catalog confirms a structural mismatch is marked as confirmed no-match, and every other job is placed in the ready queue. While a worker slot is available and the queue holds a job for the current snapshot, the coordinator allocates a fresh attempt token, reserves the claim, registers the active attempt, and launches the rule worker with the job identifier and the token.
+
+\begin{algorithm}
+\caption{Observe and recruit.}
+\label{alg:recruit}
+\begin{algorithmic}[1]
+\Procedure{Recruit}{} \Comment{on startup or head advancement}
+  \State $S \gets$ the snapshot named by one read of the head pointer, validated
+  \State fence every active attempt whose job snapshot differs from $S$
+  \ForAll{documents $d$ of $S$ in canonical name order}
+    \State parse the expression $E$ of $d$
+    \ForAll{$p \in \mathrm{paths}(E)$}
+      \ForAll{enabled rules $r$ in canonical order}
+        \State $J \gets \textsc{Put}(\mathrm{job}(S,d,r,p))$ and register $J$ once in the state for $S$
+        \If{the catalog confirms $\neg M_r(E,p)$}
+          \State mark $J$ as confirmed no-match
+        \Else
+          \State append $J$ to the ready queue
+        \EndIf
+      \EndFor
+    \EndFor
+  \EndFor
+  \While{a worker slot is free and the ready queue holds a job for $S$}
+    \State take the next ready job $J$ and allocate a fresh attempt token $t$
+    \State reserve the claim for $J$ and register $(t,J)$ as an active attempt
+    \State launch the rule worker with the identifier of $J$ and with $t$
+  \EndWhile
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\begin{lemma}[Complete enumeration]
+\label{lem:enum}
+When Algorithm~A completes without interruption at a snapshot $S$ with $\rho$ enabled rules, it has registered exactly $\rho\,\sz{S}$ jobs, one for each triple of document, node path and enabled rule.
+\end{lemma}
+
+\begin{proof}
+Each document contributes $\sz{E}$ paths by the definition of the preorder enumeration, and each path is paired with each enabled rule exactly once. Registration is once per job, since the job identifier is a function of the quadruple of snapshot, document, rule and path.
+\end{proof}
+
+A sentinel may avoid rescanning when it sees a duplicate notification for the same snapshot. The baseline deliberately rebuilds jobs on head change, even for documents whose bytes remain identical. A later incremental scheduler may reuse results only with evidence that all their relevant inputs are identical, and the identifiers of expressions, contexts and configurations are the natural form of such evidence.
+
+\subsection{Algorithm B: Attempt a Rewrite and Obtain Support}
+
+A worker resolves and checks the job snapshot and its configuration, reads the document expression and context, and locates the selected subterm. It then applies the match test of the configured rule. If there is no structural match it publishes a no-match result. Otherwise, if the rule requires a predicate, it tries to construct a proof under the job context. If a proof is unavailable it publishes the obligation and a blocked result, and if a proof is found it publishes the candidate, the certificate and a proposed result. A rule that requires no predicate proceeds directly to the candidate.
+
+\begin{algorithm}
+\caption{Attempt a rewrite.}
+\label{alg:attempt}
+\begin{algorithmic}[1]
+\Procedure{Attempt}{job $J = (S,d,r,p)$, token $t$}
+  \State resolve and check $S$ and its configuration
+  \State read the expression $E$ and the context $\Gamma$ of $d$;\ locate the subterm $E|_p$
+  \If{$\neg M_r(E,p)$}
+    \State publish a result $\code{(no-match)}$
+  \ElsIf{$r$ requires a predicate $\varphi$}
+    \State try to construct a proof of $\varphi$ under $\Gamma$, consulting any support record for $J$
+    \If{no proof is found}
+      \State publish the obligation for $\varphi$ and a result $\code{(blocked }\ldots\code{)}$
+    \Else
+      \State publish the candidate, the certificate and a result $\code{(proposed }\ldots\code{)}$
+    \EndIf
+  \Else
+    \State publish the candidate, the certificate and a result $\code{(proposed }\ldots\code{)}$
+  \EndIf
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+The coordinator can dispatch blocked obligations to local support workers. In the baseline, a support worker searches the recorded context and the finite proof tree induced by the demanded term. A completed proof can resume the same job with a fresh attempt, which consumes it as an input hint. Each support request is registered once per current job and predicate. Exhausted proof searches are recorded, and finite attempt and support budgets are enforced, so that a duplicate proof announcement cannot reopen completed work.
+
+\begin{remark}
+For the proof language of Section~\ref{sec:semantics} the proof tree induced by a demanded term is finite. A demanded predicate $\nz(e)$ can be established by an assumption equal to it, by a literal when $e$ is a literal, or, when $e = (\mathsf{mul}\ a\ b)$, by a product of proofs of $\nz(a)$ and $\nz(b)$. The search therefore terminates after exploring at most one product split per multiplication node of $e$ together with a scan of the context at each node.
+\end{remark}
+
+\subsection{Algorithm C: Verify and Commit}
+
+The coordinator consumes a proposed result by validating the record graph and all object identities, and by requiring a current active attempt for its job and token and agreement among the result, candidate and certificate links. It then compares the head with the job snapshot, and if they differ it retires the attempt as stale and stops. Otherwise it runs the certificate checker against the job snapshot, requires strict decrease of the expression node count, and checks that the attempt remains active and that the head still equals the job snapshot. The new snapshot replaces one document expression, keeps its context and all other entries, sets the parent to the job snapshot, sets the revision to that of the parent plus one, and records the candidate as origin. The immutable snapshot and a receipt keyed by its identifier are published, and the head is replaced with the new snapshot identifier. Finally the accepted attempt is retired and the new head is announced.
+
+\begin{algorithm}
+\caption{Verify and commit.}
+\label{alg:commit}
+\begin{algorithmic}[1]
+\Procedure{Commit}{result $\mathsf{r}$ for job $J = (S,d,r,p)$ with token $t$, candidate $c$, certificate $\chi$}
+  \State validate the record graph of $\mathsf{r}$ and every object identity
+  \If{$t$ is not an active token for $J$} \State \Return \EndIf
+  \If{head $\ne S$} \State retire the attempt as stale;\ \Return \EndIf
+  \State run the checker on $(J, c, \chi)$ against $S$;\ if it rejects, record an operational failure and \Return
+  \State \textbf{require} $\sz{T} < \sz{E}$, where $T$ is the expression of $c$ and $E$ that of $d$ in $S$
+  \State \textbf{begin} indivisible coordinator step
+  \State \quad \textbf{require} $t$ still active and head $= S$
+  \State \quad $S' \gets (n(S)+1,\ S,\ \kappa(S),\ c,\ \delta(S)[d \mapsto (\hid(T), \Gamma_d)])$
+  \State \quad $\textsc{Put}(S')$;\ \ $\textsc{Put}(\mathrm{receipt}(c, S, S'))$
+  \State \quad $\textsc{ReplaceHead}(\hid(S'))$
+  \State \textbf{end} indivisible coordinator step
+  \State retire the accepted attempt and announce the new head
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+The receipt names the candidate, the previous snapshot and the accepted successor. A prepared receipt counts as committed only when its successor is reachable from the head. Receipts are written by immutable publication before the head is replaced. A failed publication leaves a candidate or receipt available for inspection, and the head continues to determine committed history. The authority of the single coordinator covers the final comparison and replacement. A parallel checker can do preliminary verification, provided that the coordinator binds that verdict to the exact immutable job, candidate and checker identity and performs the final checks itself.
+
+\begin{remark}[No revival of earlier proposals]
+The snapshot comparison includes revision and ancestry through its identifier. An expression that changes and later returns to the same bytes therefore cannot revive a proposal from an earlier revision, as Proposition~\ref{prop:merkle} shows.
+\end{remark}
+
+\begin{remark}[Rejected candidates]
+Version~0.1 does not name a distinct outcome for a candidate that the checker or the progress rule rejects. This specification treats the rejection as an operational failure of the attempt, with the same retry treatment as any other failure, because a rejection establishes nothing about whether another candidate for the same job would be accepted.
+\end{remark}
+
+\subsection{Algorithm D: Recover and Determine Quiescence}
+
+On startup the coordinator acquires the lock, allocates a fresh session token, validates the head and its referenced state, and reconstructs the committed receipt view from the head ancestry. It ignores claims and worker results from earlier sessions, rebuilds the jobs for the current snapshot, and polls active workers and the spool until no work can advance. It then rechecks the current head and all job classifications under coordinator control, and reports the current snapshot identifier and the terminal classification defined in Section~\ref{sec:quiescence}.
+
+\begin{algorithm}
+\caption{Recover and determine quiescence.}
+\label{alg:recover}
+\begin{algorithmic}[1]
+\Procedure{Recover}{}
+  \State acquire the coordinator lock and allocate a fresh session token
+  \State validate the head and its referenced state
+  \State reconstruct the committed receipt view from the ancestry of the head
+  \State ignore claims and worker results from earlier sessions
+  \State run \textsc{Recruit} for the current snapshot
+  \State poll active workers and the spool until no work can advance
+  \State recheck the current head and every job classification under coordinator control
+  \State report the identifier of the current snapshot and its terminal classification
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\section{The Coordinator Transition Model}
+\label{sec:model}
+
+The algorithms of the previous section describe the coordinator operationally. This section restates them as a transition system over an abstract coordinator state, so that the safety properties can be stated and argued once, independently of scheduling.
+
+\subsection{State}
+
+The abstract coordinator state consists of the following components. The session token $\varsigma$ is allocated at the start of the session. The head $h$ is the snapshot identifier read from the head pointer. The registry $\mathrm{Reg}$ maps each job of $h$ to one of the statuses $\mathsf{ready}$, $\mathsf{active}$, $\mathsf{nomatch}$, $\mathsf{blocked}$ and $\mathsf{exhausted}$. The table $\mathrm{Act}$ is a partial map from attempt tokens to jobs and contains exactly the eligible tokens. The set $\mathrm{Fen}$ holds fenced tokens and the set $\mathrm{Used}$ holds every token allocated in the session. The counter $\mathrm{Cnt}(J)$ is the number of attempts made for job $J$, and $b$ is the attempt budget per job. The status $\mathsf{exhausted}$ covers a job whose attempts or support budget are spent without a definitive result.
+
+\subsection{Transitions}
+
+Table~\ref{tab:transitions} gives the transitions. Each transition is one indivisible step of the coordinator, and the coordinator takes one step at a time, so that the compare-and-replace of the head in \textsc{Commit} cannot interleave with another change of $h$.
+
+\begin{table}[t]
+\centering\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}p{2.0cm}p{5.4cm}p{6.0cm}@{}}
+\toprule
+Transition & Guard & Effect \\
+\midrule
+Recruit & startup, or $h$ differs from the head pointer & $h \gets$ head pointer; $\mathrm{Reg} \gets$ enumeration of $h$ (Algorithm~A); every token of $\mathrm{Act}$ whose job snapshot differs from $h$ moves to $\mathrm{Fen}$ \\
+Launch & $\mathrm{Reg}(J) = \mathsf{ready}$, no token of $\mathrm{Act}$ maps to $J$, $\mathrm{Cnt}(J) < b$ & choose $t \notin \mathrm{Used}$; reserve the claim; $\mathrm{Act}(t) \gets J$; $\mathrm{Used} \gets \mathrm{Used} \cup \{t\}$; increment $\mathrm{Cnt}(J)$; $\mathrm{Reg}(J) \gets \mathsf{active}$ \\
+NoMatch & $t \in \mathrm{Act}$ with job $J$; result is \code{(no-match)}; the match test confirms $\neg M_r$ & retire $t$; $\mathrm{Reg}(J) \gets \mathsf{nomatch}$ \\
+Block & $t \in \mathrm{Act}$ with job $J$; result is \code{(blocked ...)} with a valid obligation & retire $t$; $\mathrm{Reg}(J) \gets \mathsf{blocked}$ until a support record resumes it or the support budget is spent \\
+Commit & $t \in \mathrm{Act}$ with job $J$ at snapshot $h$; valid record graph; checker accepts; progress rule holds & publish $S'$ and the receipt; replace the head; retire $t$; then Recruit \\
+Stale & $t \in \mathrm{Act}$ with job snapshot different from $h$ & retire $t$; record \code{(stale)} \\
+Fence & $t \in \mathrm{Act}$ and the attempt exceeds its duration limit & $\mathrm{Fen} \gets \mathrm{Fen} \cup \{t\}$; remove $t$ from $\mathrm{Act}$; request termination; set $\mathrm{Reg}(J)$ to $\mathsf{ready}$ if $\mathrm{Cnt}(J) < b$, else $\mathsf{exhausted}$ \\
+Import & an external transaction is requested & publish the new snapshot with origin \code{import}; replace the head; then Recruit \\
+\bottomrule
+\end{tabular}
+\caption{Transitions of the coordinator.}
+\label{tab:transitions}
+\end{table}
+
+\subsection{Invariants}
+
+\begin{invariant}[Published head]
+\label{inv:head}
+Every object reachable from the head by reference is published, verified and immutable.
+\end{invariant}
+
+\begin{invariant}[Linear history]
+\label{inv:linear}
+Whenever the head changes from $h$ to $h'$, the snapshot $h'$ has parent $h$ and revision $n(h)+1$.
+\end{invariant}
+
+\begin{invariant}[Provenance]
+\label{inv:prov}
+Every snapshot with a candidate as origin was produced from a job whose snapshot is its parent, by a candidate that the checker accepted against that parent and that satisfied the progress rule.
+\end{invariant}
+
+\begin{invariant}[Fencing and uniqueness]
+\label{inv:fence}
+The sets $\mathrm{Act}$ and $\mathrm{Fen}$ are disjoint, no token is allocated twice, and at most one token of $\mathrm{Act}$ maps to any job.
+\end{invariant}
+
+\begin{theorem}[Safety]
+\label{thm:safety}
+Invariants~\ref{inv:head} to~\ref{inv:fence} hold in every reachable state of the transition system.
+\end{theorem}
+
+\begin{proof}
+The initial state is the state after recovery, in which the head has been validated, $\mathrm{Act}$ and $\mathrm{Fen}$ are empty, and no token has been allocated. Each transition is checked in turn. Recruit and Stale only move tokens from $\mathrm{Act}$ to $\mathrm{Fen}$ or retire them, which preserves disjointness. Launch chooses a token outside $\mathrm{Used}$, so no token is allocated twice, and its guard requires that no token of $\mathrm{Act}$ already maps to the job, which preserves uniqueness (compare Proposition~\ref{prop:token}). Fence moves a token from $\mathrm{Act}$ to $\mathrm{Fen}$, and any later token for the job is allocated by Launch only after this move. For Commit, the guard and the indivisible step together require that the head still equals the job snapshot, that the token is still in $\mathrm{Act}$, and that the checker and the progress rule have accepted the candidate against that snapshot, so Invariant~\ref{inv:prov} holds for the new snapshot. The new snapshot has the job snapshot, which equals the head, as parent and one more than its revision, and this establishes Invariant~\ref{inv:linear}. Both the snapshot and the receipt are published by \textsc{Put} before \textsc{ReplaceHead} is applied, and every object they reference already existed or was published earlier, so Invariant~\ref{inv:head} holds after the rename and was not disturbed before it. Import has the same shape as Commit with the import origin and no checker step. The lease ensures that no second coordinator takes any of these steps concurrently, since the operating system releases the lock only when the holding process ends.
+\end{proof}
+
+\begin{theorem}[Preservation of meaning along rewrite histories]
+\label{thm:preserve}
+Let $S_a$ be an ancestor of $S_b$ in the committed chain, let every snapshot strictly after $S_a$ up to $S_b$ have a candidate as origin, and let $d$ be a document of $S_a$ with context $\Gamma$. Then the expression of $d$ in $S_a$ is equivalent under $\Gamma$ to its expression in $S_b$.
+\end{theorem}
+
+\begin{proof}
+By induction on the number of commits between $S_a$ and $S_b$. In the step, the snapshot has a candidate as origin, so by Invariant~\ref{inv:prov} the checker accepted the candidate against its parent. If the rewritten document is $d$, then Theorem~\ref{thm:checker} gives equivalence of the two expressions under the context of $d$ in the parent, which is $\Gamma$ because a rewrite commit keeps the context of the document. If another document was rewritten, the expression of $d$ is unchanged. Since $\eqv{\Gamma}$ is an equivalence relation, transitivity composes the steps. The configuration is the same throughout because a rewrite commit keeps the configuration identifier of the parent.
+\end{proof}
+
+An assumption change starts a new context for subsequent judgments, and Theorem~\ref{thm:preserve} does not cross an import. A consequence of Invariant~\ref{inv:prov} and of content addressing is that any party holding the object store can audit a committed chain by replaying the checker over each non-import snapshot and its candidate, certificate and job, without access to the workers that produced them.
+
+\section{Quiescence and Terminal Classification}
+\label{sec:quiescence}
+
+\subsection{Job Status at a Snapshot}
+
+Fix a snapshot $S$ and configuration $\kappa$. Each job of $S$ has, at the moment the coordinator decides that no work can advance, one of the following statuses. A job is \emph{confirmed no-match} when the catalog's match test establishes that the rule has no applicable instance at the path. It is \emph{blocked} when an attempt returned an obligation and the support search for it was exhausted. It is \emph{exhausted} when its attempts or support budget were spent without a definitive result, as after repeated worker crashes, timeouts, rejected candidates or resource cutoffs. A job that is ready, active, or the subject of a pending support request is \emph{unfinished}.
+
+\begin{definition}[Complete enumeration]
+The enumeration of $S$ is \emph{complete} when Algorithm~A has registered all $\rho\,\sz{S}$ jobs of $S$ without interruption by a crash, a limit, or an unavailable checker.
+\end{definition}
+
+\subsection{Classification}
+
+\begin{definition}[Terminal classification]
+\label{def:classes}
+Let the coordinator be quiescent at snapshot $S$, with no ready job, no live attempt and no pending support request. The terminal classification of $S$ under $\kappa$ is defined by the first of the following cases that applies. The classification is \emph{incomplete} when the enumeration of $S$ is not complete, or some job is exhausted, or the checker is unavailable, or a resource cutoff leaves the applicability of some rule undecided, and an incomplete report may also list the blocked obligations that are known. Otherwise it is \emph{blocked} when the enumeration is complete, no job is exhausted, and at least one job is blocked, so that all unfinished alternatives are known and include unsupported proof obligations. Otherwise the enumeration is complete and every job is confirmed no-match, and the classification is \emph{fixed point}.
+\end{definition}
+
+For an empty workspace or an empty enabled rule set, complete enumeration registers no jobs, and the classification is a vacuous fixed point. These classifications describe one snapshot under one configuration. A subsequent import or configuration transaction creates a new snapshot and therefore a new question.
+
+\begin{proposition}[Totality and exclusivity]
+\label{prop:classes}
+At a quiescent snapshot exactly one classification applies.
+\end{proposition}
+
+\begin{proof}
+At quiescence every job is confirmed no-match, blocked, or exhausted, because no job is unfinished. The cases of Definition~\ref{def:classes} are ordered, so at most one applies. If the enumeration is incomplete or some job is exhausted, the first case applies. Otherwise every job is confirmed no-match or blocked, and the second case applies if some job is blocked and the third if none is.
+\end{proof}
+
+The order of the cases carries the conservative principle of the design: an undecided applicability can never be reported as irreducibility. A fixed point is a positive claim that every rule has been shown not to apply at every node, and it can be established only from confirmed outcomes. A failed worker cannot supply one.
+
+\section{Failure Model and Guarantees}
+\label{sec:failure}
+
+\subsection{Resource Limits}
+
+The coordinator enforces finite limits on record size, parse depth, arithmetic digit count, live worker count, attempt duration and total retries. A limit breach produces an incomplete outcome if it leaves applicable work undecided. Arithmetic is exact, either with checked input bounds or with a dedicated arbitrary-precision evaluator. Bash's machine integer arithmetic is suitable for bounded orchestration counters and for nothing else. Worker errors preserve their diagnostics in staging, and the authoritative outcome is expressed through the record protocol, so that a diagnostic that exists only in a log cannot influence a classification.
+
+\subsection{Crash Analysis}
+
+A commit consists of a fixed sequence of publication steps, and the effect of a crash depends only on where in the sequence it falls. Table~\ref{tab:crash} gives the state that a restarted coordinator finds. In every row the previous head is authoritative until the rename completes, and the successor is authoritative afterwards, regardless of which auxiliary objects exist and regardless of whether an announcement was sent.
+
+\begin{table}[t]
+\centering\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}p{4.9cm}p{4.6cm}p{2.9cm}@{}}
+\toprule
+Crash point & Objects present after restart & Authoritative head \\
+\midrule
+Before any publication of the commit & none of the commit & $S$ \\
+After the successor is published, before the receipt & successor, unreachable & $S$ \\
+After the receipt, before the rename & successor and receipt, unreachable & $S$ \\
+During the rename & old pointer or new pointer, never a mixture & $S$ or $S'$ \\
+After the rename, before the announcement & successor and receipt, reachable & $S'$ \\
+After the announcement & as above & $S'$ \\
+\bottomrule
+\end{tabular}
+\caption{Effect of a crash at each point of a commit from $S$ to $S'$.}
+\label{tab:crash}
+\end{table}
+
+\begin{proposition}[Head authority]
+\label{prop:headauth}
+After any crash the head pointer names either $S$ or $S'$. A fully prepared successor can exist without publication, and therefore the head cannot be reconstructed by selecting the snapshot of largest revision on disk.
+\end{proposition}
+
+\begin{proof}
+The pointer is changed only by an atomic rename of a complete temporary file, so a restarted reader finds the old pointer or the new one. In the second and third rows of Table~\ref{tab:crash} the successor snapshot has revision $n(S)+1$ and is present on disk, yet it is not the head. A rule that chose the largest revision would name the unpublished successor and would thereby publish a commit that the coordinator never completed, and that a competing proposal from the same snapshot might have preempted.
+\end{proof}
+
+In the durable profile, a commit that has been acknowledged, which is to say one whose pointer file and containing directory have been flushed after the rename, survives a machine crash. A machine crash before the acknowledgement leaves one of the rows of Table~\ref{tab:crash}, because the flush ordering of Section~\ref{sec:spool} ensures that no reachable reference precedes the bytes it names. In the process-crash-only profile the table holds for process crashes, and a machine crash may lose or reorder unflushed writes, which is why the profile must be declared at startup.
+
+\subsection{Guarantees}
+
+Each visible head references fully published immutable state, by Invariant~\ref{inv:head}. The parent link serializes successful mutations, by Invariant~\ref{inv:linear}. For rewrite-only history at a fixed context and configuration, transitivity of checked equivalence preserves the partial rational function of every document across the sequence, by Theorem~\ref{thm:preserve}. A claim guarantees at most one live eligible token per job within a session, by Proposition~\ref{prop:token}, though a fenced worker may still be physically running. The protocol tolerates duplicate computation while making acceptance serial. A spool notification can be dropped and reconstructed, by Proposition~\ref{prop:dup}, whereas the head cannot be reconstructed from the snapshots on disk, by Proposition~\ref{prop:headauth}.
+
+If the filesystem becomes unreadable, or if an authoritative object fails an identity or grammar check, the coordinator must stop and surface the invalid state, and must not attempt to continue by repair. An implementation may offer a separate recovery tool, but a tool of that kind is outside the protocol and has no authority to alter the head.
+
+\begin{theorem}[Termination of a session]
+\label{thm:termination}
+Assume that expressions and the rule catalog are finite, that external input is fixed during the session, that the attempt budget $b$, the support budget and the retry budget are finite, and that every attempt and every support search has bounded duration. Then a coordinator session performs a finite number of attempts and a finite number of accepted rewrites, and it reaches a quiescent state and reports a terminal classification.
+\end{theorem}
+
+\begin{proof}
+By Theorem~\ref{thm:bound} the number of accepted rewrites is at most $N - m$. At each of the at most $N - m + 1$ snapshots, Lemma~\ref{lem:enum} bounds the number of jobs by $\rho N$, and each job receives at most $b$ attempts, each of bounded duration, so that the number of attempts at a snapshot, and with it the time spent at that snapshot, is finite. Support requests are registered once per job and predicate and are bounded by the support budget. When no ready job, live attempt or pending support request remains, Proposition~\ref{prop:classes} gives a classification.
+\end{proof}
+
+These assumptions give a finite number of attempts per version and a finite number of accepted rewrites. A run can terminate with unresolved obligations or operational failures, and the classification then reports blocked or incomplete and not fixed point.
+
+\section{Conformance}
+\label{sec:conformance}
+
+An implementation conforms to version~0.1 of this specification if it satisfies every requirement stated in the normative text, declares at startup whether it provides the durable profile or the process-crash-only profile, and exhibits the behaviour described by each of the following conformance cases under the baseline catalog. The cases are stated as observable behaviour at the level of snapshots, heads, receipts and classifications, so that they can be exercised by a test harness that injects crashes, delays and duplicate announcements. Reference identifiers for the objects of the first case are given in Appendix~\ref{app:vectors}.
+
+\begin{case}[Obligation, import and fixed point]
+Let the workspace contain the document \code{sample} with expression \code{(div (var x) (var x))} and the empty context. Recruitment registers twelve jobs, three paths with four rules each, of which eleven are confirmed no-match and one, the rule \code{self-div} at the empty path, is ready. The worker recognizes the form and demands $\nz(x)$. The support search exhausts the available proofs, the head remains at revision zero, and the coordinator reports the classification blocked together with the obligation. Importing the context \code{(context (nonzero (var x)))} creates a snapshot of revision one with origin \code{import}, and a new set of twelve jobs whose identifiers differ from the earlier ones. The worker now builds the derivation \code{(self-div (assumed 0))}. The checker accepts the replacement \code{(rat 1 1)}, the coordinator verifies that the size decreases from three to one, and the head moves to a snapshot of revision two whose origin is the candidate. Enumeration at that head registers four jobs, all confirmed no-match, and the classification is fixed point.
+\end{case}
+
+\begin{case}[Competing rewrites]
+Let the document be \code{(add (mul (var x) (rat 1 1)) (rat 0 1))}, of size five, so that recruitment registers twenty jobs. Exactly two match: \code{mul-one-right} at the path to the multiplication, and \code{add-zero-right} at the empty path. Two workers can propose eliminating the multiplication or the addition from the same snapshot. After one succeeds, the other result is stale and is retired without effect. Recruitment under the next head finishes the remaining simplification, and the final expression is \code{(var x)} after two commits, within the bound of four given by Theorem~\ref{thm:bound}. Each receipt names the snapshot from which its accepted candidate was checked, so that the first receipt names revision zero and the second names revision one.
+\end{case}
+
+\begin{case}[Undefinedness]
+Let the document be \code{(mul (div (rat 1 1) (rat 0 1)) (rat 0 1))}. The expression is undefined, and the baseline catalog admits no rewrite of it: all twenty jobs are confirmed no-match, including \code{rat-fold} at the division, whose divisor is a zero literal, and the classification is fixed point. A test harness that submits to the checker the triple consisting of the root job, a certificate with derivation \code{(rat-fold)}, and the replacement \code{(rat 0 1)} must observe rejection, because the subterm does not match the pattern of the rule, and a rewrite to zero would in any case change an undefined value into a defined one.
+\end{case}
+
+\begin{case}[Scope confinement]
+Let the document be \code{(add (mul (var x) (rat 1 1)) (var y))} and let the job be \code{mul-one-right} at the path to the multiplication. A candidate whose expression is \code{(add (var x) (var y))} is accepted. A candidate that carries the same certificate but the expression \code{(add (var x) (var z))} has the same size and satisfies the progress rule, and is nevertheless rejected, because its canonical bytes differ from the replacement computed by the checker outside the certified occurrence.
+\end{case}
+
+\begin{case}[Crash before head replacement]
+Terminate the coordinator after the successor snapshot and the receipt of a commit have been published and before the head pointer is replaced. On restart the head names the previous snapshot, the successor and the receipt are present but unreachable, the coordinator acquires a fresh session, ignores earlier claims and results, and rebuilds jobs for the previous snapshot. An implementation that selects the snapshot of largest revision on disk is nonconforming.
+\end{case}
+
+\begin{case}[Crash after head replacement]
+Terminate the coordinator after the head pointer has been replaced and before the new head has been announced. On restart the head names the successor, recruitment proceeds from it, and no announcement is needed.
+\end{case}
+
+\begin{case}[Delayed result through a fenced token]
+Let a worker hold token $t$ for a job and exceed its attempt duration. The coordinator fences $t$, requests termination, and allocates a fresh token $t'$. Suppose the worker for $t'$ succeeds and its commit is accepted, and the worker for $t$, which is still running, then publishes a proposed result. The result through $t$ is not accepted, the committed chain contains exactly one commit for the job, and the receipt of that commit cites $t'$ through its candidate.
+\end{case}
+
+\begin{case}[Duplicate and reordered announcements]
+Deliver each announcement three times and in reverse order of publication, and compare the committed chain, meaning the sequence of heads and the receipts, with that of a run in which each announcement is delivered once. The two chains are identical.
+\end{case}
+
+\begin{case}[Exhausted retries]
+Let the document be \code{(add (var x) (rat 0 1))}, for which eleven of twelve jobs are confirmed no-match and one, \code{add-zero-right} at the empty path, matches. Terminate the worker on every attempt until the attempt budget is spent. The coordinator reports incomplete, and does not report fixed point, although every other job has returned no-match.
+\end{case}
+
+\begin{case}[Return to identical bytes]
+Let a snapshot $S_a$ contain a document with expression $e$, and let two successive imports first replace $e$ by another expression and then restore $e$ with the same context. The resulting snapshot has the same document map as $S_a$ and a different identifier and revision. A proposal checked against $S_a$ and delivered after the second import is retired as stale.
+\end{case}
+
+\begin{case}[Restart with live claims from an earlier session]
+Terminate the coordinator while claim directories exist and workers are running. On restart the coordinator allocates a new session token and launches new attempts for the ready jobs of the current snapshot despite the presence of the old claim directories, and results published by the earlier workers are ignored.
+\end{case}
+
+\begin{case}[Identifier collision]
+Place at the destination of an identifier $i$ a file whose bytes differ from the record whose identifier is $i$, and then publish that record. Publication halts, the condition is surfaced, and the head is unchanged.
+\end{case}
+
+\begin{case}[Arithmetic bound]
+Let the document contain a \code{rat-fold} instance whose literals have more digits than the configured arithmetic limit. The implementation performs no unchecked fixed-width arithmetic, produces no fold, and after the attempt budget reports incomplete.
+\end{case}
+
+\section{Relation to Prior Work}
+\label{sec:related}
+
+The rewriting relation of the baseline catalog is an ordinary terminating term rewriting system, enriched by the use of a context to discharge side conditions, and the questions of termination and confluence treated in Section~\ref{sec:progress} are those of the standard theory~\cite{dershowitz1990,baader1998,newman1942}. The division of labour between a search procedure of unknown reliability and a small checker of proof objects has the structure of proof-carrying code~\cite{necula1997}, and it reflects the long-standing practice in computer mathematics of trusting only a kernel small enough to be examined~\cite{barendregt2005}. The recruitment structure, in which workers react to facts that have been left in a shared place and coordinate through their effects on it, is an instance of the coordination through a common medium that Grass\'e called stigmergy~\cite{grasse1959} and that tuple-space systems implement computationally~\cite{gelernter1985}. The hash-linked chain of snapshots belongs to the family of authenticated data structures that descends from Merkle's hash trees~\cite{merkle1988}, although here the hash chain provides identity and auditability and not a signature scheme. The replacement of the head conditional on the job snapshot is optimistic concurrency control with validation at commit~\cite{kung1981}, with the coordinator as the single validator. The lease taken on a stable inode is a local analogue of the coarse-grained locks of distributed lock services~\cite{burrows2006}, and the fencing of tokens addresses the hazard, familiar from those services, that a party whose lease has lapsed may continue to act~\cite{kleppmann2017}.
+
+\section{Limitations and Extensions}
+\label{sec:limits}
+
+The proof language is deliberately small, and Section~\ref{sec:semantics} exhibits true predicates that it cannot derive. Enlarging it, for instance with constructors for negation and division, is a matter of defining a new checker identity and proving the analogue of Lemma~\ref{lem:proofs} for the new constructors. Enlarging the rule catalog requires, for each new rule, a soundness argument of the kind given in Lemma~\ref{lem:rules}, and a progress argument. A rule that does not decrease the node count, such as one that distributes multiplication over addition, needs a different measure, and Theorem~\ref{thm:bound} then does not apply without a new bound.
+
+The baseline commits the first valid candidate and promises no confluence. The ordered commit policy of Section~\ref{sec:progress} restores timing independence at the price of throughput, and a catalog for which local confluence has been established would make the order irrelevant to the final snapshot. The baseline rebuilds all jobs at every head advancement, and an incremental scheduler would reduce the cost of rescanning, provided that it reuses a result only on evidence that all of its inputs are identical. Version~0.1 defines receipts only for rewrite commits, and a later version may define a receipt for external transactions so that imports can be audited in the same manner as rewrites. A rejected candidate is treated as an operational failure, and a later version may introduce a distinct outcome for it so that the diagnosis of a faulty worker is separate from that of a crashed one.
+
+The trust model is that of cooperating processes in one account on one machine. Extending the design to several hosts would require a replacement for the process-held lock, a replicated or consensus-backed head, and a rethinking of the atomicity assumptions on which Section~\ref{sec:spool} rests, and none of the guarantees of Section~\ref{sec:failure} should be assumed for such a deployment. Finally, every classification is relative to one snapshot under one configuration, so that the report of a fixed point is a statement about a particular question and is not invalidated, nor preserved, by a later import.
+
+\appendix
+
+\section{Reference Vectors for the Worked Trace}
+\label{app:vectors}
+
+This appendix gives the canonical objects of Conformance Case~1, with identifiers computed by the procedure of Section~\ref{sec:grammar}. The rule catalog identity and the checker identity, which the grammar leaves to the implementation, are taken for the purpose of these vectors to be the SHA-256 digests of the ASCII strings \code{baseline-catalog-0.1} and \code{baseline-checker-0.1}, without terminating line feed. They are illustrative and have no normative status. The attempt tokens are $T_1$, which consists of thirty-two digits \code{1}, and $T_2$, which consists of thirty-two digits \code{2}. In the displayed text of each object, an identifier is abbreviated to a number sign followed by its first eight digits, and a token is written $T_1$ or $T_2$ in typewriter font. The full identifier of the object is given beneath its text. Every identifier is the SHA-256 digest of the canonical bytes of the object including the terminating line feed, and any entry can be checked by supplying the unabbreviated record, with its line feed, to a standard hash utility.
+
+The objects appear in order of creation. The expression $e_0$ and the contexts $\Gamma_0$ and $\Gamma_1$ are the document expression and the two contexts of the trace, and $\kappa$ is the configuration. The snapshot $S_0$ is initial, and $j_1$ is the job at the empty path for \code{self-div}, which yields the obligation $\omega_1$. The import of $\Gamma_1$ creates $S_1$, and the job $j_2$ is the same quadruple at the new snapshot. The expression $e_1$ is the literal one, $\chi$ is the certificate, $c$ the candidate, $r$ the result, $S_2$ the snapshot produced by the commit, $\rho$ the receipt, and $h$ the head record that the coordinator installs.
+
+\newcommand{\vecentry}[3]{\par\medskip\noindent\textbf{#1}\quad{\scriptsize #2}\par\noindent\hspace*{2em}{\scriptsize #3}\par}
+
+\vecentry{$e_0$}{\texttt{(div (var x) (var x))}}{\texttt{1bb3127aef6da25b220c31db911b5c1677b06b13868a8dafb1d6fdd45c42e5a9}}
+\vecentry{$\Gamma_0$}{\texttt{(context)}}{\texttt{9dce0b2a3e8d5a0496858e403c5b0d967c49d3557b9ed3367faec342fa99b59e}}
+\vecentry{$\Gamma_1$}{\texttt{(context (nonzero (var x)))}}{\texttt{375c602e55104f5bc760a3c5053779ff17810467aa06ccefb601475d7d79be8c}}
+\vecentry{$\kappa$}{\texttt{(config \#d123c37d \#b0341c22 add-zero-right mul-one-right rat-fold self-div)}}{\texttt{8f4d955f48389e4ad8b69857745ffd5788d20ab37d18b0288b6807824f05d581}}
+\vecentry{$S_0$}{\texttt{(snapshot 0 root \#8f4d955f import (doc sample \#1bb3127a \#9dce0b2a))}}{\texttt{0dcd6da0cf7e67686fc29caf9e7b1dbc98c04b72a4fc5929529dd640524e805a}}
+\vecentry{$j_1$}{\texttt{(job \#0dcd6da0 sample self-div (path))}}{\texttt{33367d513e6673b1674962fef866d289a456a67029ee33a53220a66aa8dabba2}}
+\vecentry{$\omega_1$}{\texttt{(obligation \#33367d51 T1 (nonzero (var x)))}}{\texttt{a729d7326ea6ab6efbe16b0e561d2f89e6a9721abc481330d246a12075e0eee6}}
+\vecentry{$S_1$}{\texttt{(snapshot 1 \#0dcd6da0 \#8f4d955f import (doc sample \#1bb3127a \#375c602e))}}{\texttt{24276d0fabd4ed612372b09bd8793aac5b30f3ce94a6ab74bc895f7d21e7030b}}
+\vecentry{$j_2$}{\texttt{(job \#24276d0f sample self-div (path))}}{\texttt{f47e889a3170ff1777f41c593c9bf8cde79ae819d9813373fb73bfdbe8f4b2d1}}
+\vecentry{$e_1$}{\texttt{(rat 1 1)}}{\texttt{99ddb0389cab5a9543ca3fb89d2102bbbde8758a20c33128d0d9c24d262253cc}}
+\vecentry{$\chi$}{\texttt{(cert \#f47e889a \#99ddb038 (self-div (assumed 0)))}}{\texttt{733914812b66213ba2295c5ba20203e781eb95d431bfd988def55882717b477a}}
+\vecentry{$c$}{\texttt{(candidate \#f47e889a T2 \#99ddb038 \#73391481)}}{\texttt{636be26345a16eb3046466de60f43ba791d4e42e98d33dd2a44b21f86643847b}}
+\vecentry{$r$}{\texttt{(result \#f47e889a T2 (proposed \#636be263))}}{\texttt{fba45974b6985186f07afd2280a9a7a5b206e334f9606b3cb7d98337e0c42ccf}}
+\vecentry{$S_2$}{\texttt{(snapshot 2 \#24276d0f \#8f4d955f \#636be263 (doc sample \#99ddb038 \#375c602e))}}{\texttt{9b6f1bd1153035296a7020120b1ba844b86a02935a19eac26b4f88c91a3bc200}}
+\vecentry{$\rho$}{\texttt{(receipt \#636be263 \#24276d0f \#9b6f1bd1)}}{\texttt{3f77ea22c99fa130b8808a12bb20e5552d5a35e9e5da93f85ea705f3d2965b6b}}
+\vecentry{$h$}{\texttt{(head \#9b6f1bd1)}}{\texttt{1a744d425ab06b3a513f58d7965950e8622c9863e5473df13c5d0bb71e1898ae}}
+
+\begin{thebibliography}{99}
+
+\bibitem{baader1998}
+F.~Baader and T.~Nipkow, \emph{Term Rewriting and All That}, Cambridge University Press, 1998.
+
+\bibitem{barendregt2005}
+H.~Barendregt and F.~Wiedijk, The Challenge of Computer Mathematics, \emph{Philosophical Transactions of the Royal Society A} 363(1835), 2351--2375, 2005.
+
+\bibitem{bradner1997}
+S.~Bradner, Key Words for Use in RFCs to Indicate Requirement Levels, RFC 2119 (BCP 14), Internet Engineering Task Force, 1997.
+
+\bibitem{burrows2006}
+M.~Burrows, The Chubby Lock Service for Loosely-Coupled Distributed Systems, in \emph{Proceedings of the 7th USENIX Symposium on Operating Systems Design and Implementation}, 335--350, 2006.
+
+\bibitem{dershowitz1990}
+N.~Dershowitz and J.-P.~Jouannaud, Rewrite Systems, in J.~van Leeuwen (ed.), \emph{Handbook of Theoretical Computer Science, Volume B: Formal Models and Semantics}, Elsevier, 243--320, 1990.
+
+\bibitem{fips180}
+National Institute of Standards and Technology, Secure Hash Standard (SHS), Federal Information Processing Standards Publication 180-4, 2015.
+
+\bibitem{gelernter1985}
+D.~Gelernter, Generative Communication in Linda, \emph{ACM Transactions on Programming Languages and Systems} 7(1), 80--112, 1985.
+
+\bibitem{grasse1959}
+P.-P.~Grass\'e, La Reconstruction du Nid et les Coordinations Interindividuelles chez Bellicositermes Natalensis et Cubitermes sp., \emph{Insectes Sociaux} 6(1), 41--80, 1959.
+
+\bibitem{kleppmann2017}
+M.~Kleppmann, \emph{Designing Data-Intensive Applications}, O'Reilly Media, 2017.
+
+\bibitem{kung1981}
+H.~T.~Kung and J.~T.~Robinson, On Optimistic Methods for Concurrency Control, \emph{ACM Transactions on Database Systems} 6(2), 213--226, 1981.
+
+\bibitem{merkle1988}
+R.~C.~Merkle, A Digital Signature Based on a Conventional Encryption Function, in \emph{Advances in Cryptology, CRYPTO '87}, Lecture Notes in Computer Science 293, Springer, 369--378, 1988.
+
+\bibitem{necula1997}
+G.~C.~Necula, Proof-Carrying Code, in \emph{Proceedings of the 24th ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages}, 106--119, 1997.
+
+\bibitem{newman1942}
+M.~H.~A.~Newman, On Theories with a Combinatorial Definition of ``Equivalence'', \emph{Annals of Mathematics} 43(2), 223--243, 1942.
+
+\bibitem{pillai2014}
+T.~S.~Pillai, V.~Chidambaram, R.~Alagappan, S.~Al-Kiswany, A.~C.~Arpaci-Dusseau and R.~H.~Arpaci-Dusseau, All File Systems Are Not Created Equal: On the Complexity of Crafting Crash-Consistent Applications, in \emph{Proceedings of the 11th USENIX Symposium on Operating Systems Design and Implementation}, 433--448, 2014.
+
+\end{thebibliography}
+
+\end{document}

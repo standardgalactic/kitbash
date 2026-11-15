@@ -1,0 +1,164 @@
+\documentclass[11pt,twoside,openright]{book}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{mathpazo}
+\usepackage{microtype}
+\usepackage[inner=1.35in,outer=1.1in,top=1.25in,bottom=1.35in]{geometry}
+\usepackage{booktabs}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+\usepackage{cleveref}
+
+\setlength{\parindent}{1.4em}
+\setlength{\parskip}{0pt}
+\linespread{1.07}
+\emergencystretch=3em
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE]{\small\thepage\quad\textsc{A Cinema of Individual Editions}}
+\fancyhead[RO]{\small\nouppercase{\leftmark}\quad\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\Capac}{\mathrm{Cap}}
+\newcommand{\Rob}{\mathrm{Rob}}
+\newcommand{\Inv}{\mathrm{Inv}}
+\DeclareMathOperator{\loss}{loss}
+
+\title{\Huge\bfseries A Cinema of Individual Editions\\[1.2ex]
+\large Chapter Seven: Reports and Adjudication\\[0.4ex]
+\large Working Draft}
+\author{Flyxion\\[0.3ex]\small Independent Researcher}
+\date{November 2026}
+
+\begin{document}
+
+\frontmatter
+\maketitle
+\tableofcontents
+\mainmatter
+\setcounter{chapter}{6}
+
+\chapter{Reports and Adjudication}
+\label{ch:reports}
+
+A viewer reports that the grass has reappeared after the cut. Before any correction, the production has to decide what the report is worth. The viewer may have described the film wrongly, the film may be right and the viewer's inference mistaken, or the film may really contain the defect, in which case the defect may be a failure to follow a rule already in force or a sign that the rules are incomplete. Chapter~1 gave a three-step verdict for this decision. This chapter develops it into an account of reports: what the ledger must hold for the verdict to be reached, how the edition that was assigned differs from the edition that was played, which defects a report can describe, what many reports about one slot add, and why the production must keep the footage that it withdraws.
+
+The chapter uses the lawn scene and the audiences of Chapters~9 and~10, and its counts come from the same pools. Production C yields a result that is worth stating at the outset. Its two perceptual editions differ at one slot only, the second slot, and the class that makes them differ is a stale class. The second edition is the edition with the continuity error. The production's capacity of two before the correction consists of one correct edition and one defective one, and what a report from the viewer of the second edition sets in motion is the loss of the variation.
+
+\section{What the Ledger Holds}\label{sec:ledger}
+
+The assignment ledger records, for each viewer, the revision of the production at which the edition was assigned and the take tuple assigned. A revision is the pair of the rules in force and the pool of takes at a time. Two things are therefore recoverable from the ledger for any viewer: the take that the production assigned, and the rules under which it was admissible.
+
+The edition that the viewer actually played is a separate matter. A viewer may play a cached copy of an earlier revision, an offline file, or a segment that streamed before a repair was pushed. The ledger holds the assignment and cannot show the playback. Playback has to report a \emph{revision identifier}, which names the revision of the file that was played, and the identifier together with the take tuple of that revision fixes the played edition. When the two differ, the verdict is reached against the played edition.
+
+\section{The Verdict}\label{sec:verdict}
+
+A report is a \emph{claim} $(j,s,\mathsf{ap})$: at slot $j$, strip $s$ appears in the appearance $\mathsf{ap}$, mown or unmown. The script requires an appearance of $s$ at each time, constant between its events, and the played take shows some appearance of $s$ at slot $j$, which differs from the requirement exactly when the take's class is stale for $s$.
+
+\begin{definition}[Verdict]\label{def:verdict7}
+Let $\mathsf{shown}$ be the appearance of $s$ at slot $j$ in the played take and $\mathsf{req}$ the appearance that the script requires. The report is \emph{unsupported} if $\mathsf{ap}\neq\mathsf{shown}$. It is \emph{rejected} if $\mathsf{ap}=\mathsf{shown}=\mathsf{req}$, so that the viewer saw correctly and nothing is wrong. It is \emph{upheld} if $\mathsf{ap}=\mathsf{shown}\neq\mathsf{req}$. An upheld report is a \emph{violation} if the played take's class was inadmissible under the rules in force at its revision, and \emph{evidence for an amendment} if the class was admissible under them.
+\end{definition}
+
+The verdict is a function of four things that the ledger and the script supply: the claim, the played take, the script's requirement, and the rules at the revision of play. No judgment is needed beyond comparison.
+
+\begin{proposition}[Trichotomy]\label{prop:trichotomy}
+Every claim receives exactly one of the outcomes unsupported, rejected, upheld as a violation, or upheld as evidence for an amendment, whenever the played take and the rules at its revision can be recovered, and the outcome is then computed from the ledger entry of the played revision and the script. When they cannot be recovered the claim is \emph{unjudged}. That outcome is a fact about the ledger and not about the film, and it differs from a claim that fails verification, which is unsupported. A claim about a showing is unsupported for exactly one of the two appearances, and for the other it is rejected or upheld according as the played take is correct or stale at that showing.
+\end{proposition}
+
+\begin{proof}
+Exactly one of $\mathsf{ap}=\mathsf{shown}$ and $\mathsf{ap}\neq\mathsf{shown}$ holds, since there are two appearances, and in the first case $\mathsf{shown}$ equals $\mathsf{req}$ or does not. In the upheld case the rules at the revision either exclude the class or admit it.
+\end{proof}
+
+To see the proportions, take the premiere audiences of the lawn scene and file every possible claim about every showing from every viewer. Production A has ten showings, so twenty claims per viewer and $1{,}200$ in all for its audience of sixty. Of these, $600$ are unsupported, as the proposition says half of them must be, $563$ are rejected, and $37$ are upheld. The $37$ upheld claims are the stale showings that the audience actually holds. They are evidence for an amendment if the audience was assigned under the direction rule alone, and they are violations if the rules in force already included the agreement rule, in which case the assembly delivered an inadmissible edition. \Cref{tab:verdicts} gives all three productions.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Production & Claims & Unsupported & Rejected & Upheld\\
+\midrule
+A (60 viewers) & 1,200 & 600 & 563 & 37\\
+B (30 viewers) & 600 & 300 & 274 & 26\\
+C (2 viewers) & 40 & 20 & 19 & 1\\
+\bottomrule
+\end{tabular}
+\caption{Every possible claim about every showing, adjudicated against the premiere assignment. The upheld claims are amendment evidence under the direction rule and violations under the agreement rule.}\label{tab:verdicts}
+\end{table}
+
+The count of unsupported claims is a feature of the setup and says nothing about viewers' accuracy: it is the number of showings times the number of viewers, because exactly one of the two claims about a showing agrees with the take. Real reports are not exhaustive claims, and the exhaustive count serves to show how few of the possible claims can be upheld.
+
+\section{Assigned Versus Played}\label{sec:played}
+
+Suppose a correction is made, the invalid viewers are repaired as in Chapter~10, and a viewer plays an old file. The viewer reports a stale class that they saw, and the report is judged against the ledger's current assignment. The assigned take is the repaired one, which is correct at that showing, and the claim does not match it.
+
+\begin{proposition}[Judging the played edition]\label{prop:played}
+Let a viewer's played revision differ from the assigned revision, and let the two takes show different appearances of the reported strip at the claimed showing, so that they disagree on the reported feature and not merely in framing or grain. A truthful claim about the played take is unsupported when judged against the assigned take, and is upheld when judged against the played take, if the played take was stale there.
+\end{proposition}
+
+\begin{proof}
+A truthful claim matches the played take, and the assigned take shows a different appearance at that showing, which makes the first comparison fail. The second comparison is the definition of upheld.
+\end{proof}
+
+The lawn scene gives the size of the effect. After the agreement rule is adopted, the $31$ invalid viewers of production A and the $20$ of production B are repaired to correct editions. If each of them reports the stale class that they saw at the earlier revision, then judged against the assigned revision all $31$ and all $20$ reports are unsupported, and judged against the played revision all of them are upheld. A production that adjudicates against assignments alone will therefore dismiss the truthful reports that are most likely to follow a correction, from the viewers who still have the old file.
+
+\section{A Taxonomy of Defects}\label{sec:taxonomy}
+
+The kinds of defect that a report can describe correspond to the constraints of Chapters~4 and~5. An \emph{absolute defect} is a showing that departs from the script. It comes in two kinds: a \emph{reappearance}, in which an entity shows its state from before an event after the event, and a \emph{premature} defect, in which it shows its state from after an event before the event. A \emph{relative defect} is a disagreement between showings of an entity on a free attribute, such as a glass in different hands. A \emph{direction defect} is a violation of the direction rule between consecutive slots, which concerns the edit and not a depicted entity. A \emph{description error} is a report that does not match the played take, which the verdict marks as unsupported.
+
+The distinctions matter for what follows from an upheld report. An upheld absolute defect has an interval footprint by Proposition~5.4 of Chapter~5. A relative defect leads to an equality or opposite relation on the showings in an interval. A direction defect is always a violation of a rule that every production has in force, and the remedy is repair and not amendment. A description error leads to nothing, though a pattern of description errors about one slot is a sign that the slot is ambiguous to viewers, which is information of another kind.
+
+\section{Many Reports About One Slot}\label{sec:aggregate}
+
+Two viewers who hold the same stale class report the same defect. The class is the unit of evidence, because the take variants within a class are perceptually equivalent and show the same defect. Audience size therefore controls what can be found out. In the audience of production A, the four stale classes of the pool are held by $6$, $6$, $10$ and $15$ viewers, thirty-seven viewer-holdings in all, and every stale class in the pool has been reached. In B, the seven stale classes are held by between $1$ and $6$ viewers each, and again every stale class is reached. In C the audience has two viewers, one of whom holds a stale class and one of whom holds none, so one of the two stale classes of the pool is held, and the defect on strip $c$ at the last slot is held by nobody.
+
+The same view applies at the level of the amendment. The reports of A reveal a defect on strip $a$ after its event, on strip $b$ after its event, and on strip $c$ before its event, which is every pair of entity and persistence interval that the pool contains. The reports of B reveal all three of its pairs. The audience of C reveals one of its two: strip $a$ after its event, and not strip $c$. An amendment derived from the reports of C would repair the defect on $a$ and leave a defect on $c$ that no viewer has yet been shown.
+
+This is the point at which the standard of proof for a rule becomes concrete. A single verified instance is enough for the interval-level amendment by Proposition~5.4 of Chapter~5, since it removes the stale classes of that entity in that interval and nothing else. It is not evidence about the other intervals of the entity, or about other entities, and a production that wants to adopt the entity-level or type-level rule on one instance has made a decision that the instance does not support. Chapter~8 treats the choice.
+
+\section{What Must Be Retained}\label{sec:retention}
+
+A verdict about a past edition can be reached only if the played take can be identified and recovered, and if the rules at its revision can be reconstructed. The first requires that the assets themselves be kept after they stop being assigned.
+
+The take-level amendment $\omega$ of Chapter~9 withdraws one take from every class, and it was shown to cost no perceptual capacity. For adjudication it is not free. The premiere audience of production A holds $68$ of the $69$ takes in the pool, so almost the whole pool has been played by someone. Take variant $0$, which $\omega$ withdraws from each class, appears in $96$ of the $300$ assigned take slots of the audience of A, in $72$ of $150$ for B and in $1$ of $10$ for C. Fifty-six of A's sixty viewers hold at least one such take. If the withdrawn takes are deleted, a report from any of them about their premiere edition cannot be judged, and the production loses the ability to distinguish a truthful claim from a mistaken one.
+
+\begin{proposition}[Retention]\label{prop:retention}
+A verdict about the edition that a viewer played at a past revision can be reached if and only if the take tuple of that revision and the rules at that revision can both be recovered. A withdrawal that deletes an assigned take makes every verdict about the viewers who held it unreachable. A withdrawal that moves the take to an archive, out of the admissible pool but still recoverable, does not. Claims that become unjudged by such a withdrawal are recorded as unjudged, and a proposed correction that cannot be formed for the same reason is recorded as a failed proposal, separately from any effective correction.
+\end{proposition}
+
+\begin{proof}
+The verdict is a function of the claim, the played take, the script, and the rules at the revision of play, and the claim and script are available. If either of the other two cannot be recovered the function cannot be evaluated. The archive preserves the take, and the ledger preserves the revision's rules.
+\end{proof}
+
+The distinction between the admissible pool and the archive is the one drawn in Chapter~1. The pool decides what may be assigned, and the archive decides what may be adjudicated. A production that confuses the two will either keep serving a withdrawn take or lose the evidence needed to rule on reports about it.
+
+\section{What the Chapter Gives the Others}\label{sec:gives7}
+
+Chapter~8 begins from an upheld report and asks what rule it supports, how far its footprint reaches, and whether the correction can be formed. The tally above supplies its inputs: which of the stale classes a given audience reveals, which reports are violations and which are evidence for a rule, and the assets that must remain recoverable. Chapters~9 and~10 treat what the correction costs and whether the viewers can be moved. The three chapters share the pools and the audiences, so a single report can be followed through all of them.
+
+The scripts \texttt{lawnmodel.py} and \texttt{verify\_ch07.py} reproduce each figure of this chapter.
+
+\begin{thebibliography}{99}
+
+\bibitem{flyxion2026gf}
+Flyxion.
+\newblock \emph{Generative Film: Categories, Sheaves, and Types for Cinema}.
+\newblock Unpublished monograph, October 2026.
+
+\end{thebibliography}
+
+\end{document}

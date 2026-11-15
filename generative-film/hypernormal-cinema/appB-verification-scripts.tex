@@ -1,0 +1,132 @@
+\documentclass[11pt,twoside,openright]{book}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{mathpazo}
+\usepackage{microtype}
+\usepackage[inner=1.35in,outer=1.1in,top=1.25in,bottom=1.35in]{geometry}
+\usepackage{booktabs}
+\usepackage{longtable,array}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+\usepackage{cleveref}
+
+\setlength{\parindent}{1.4em}
+\setlength{\parskip}{0pt}
+\linespread{1.07}
+\emergencystretch=3em
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE]{\small\thepage\quad\textsc{A Cinema of Individual Editions}}
+\fancyhead[RO]{\small\nouppercase{\leftmark}\quad\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\Capac}{\mathrm{Cap}}
+\newcommand{\Rob}{\mathrm{Rob}}
+\newcommand{\Inv}{\mathrm{Inv}}
+\DeclareMathOperator{\loss}{loss}
+
+\title{\Huge\bfseries A Cinema of Individual Editions\\[1.2ex]
+\large Appendix B: Verification Scripts\\[0.4ex]
+\large Working Draft}
+\author{Flyxion\\[0.3ex]\small Independent Researcher}
+\date{November 2026}
+
+\begin{document}
+
+\frontmatter
+\maketitle
+\tableofcontents
+\mainmatter
+\appendix
+\setcounter{chapter}{1}
+
+\chapter{Verification Scripts}
+\label{app:scripts}
+
+Each chapter that states a count has a script that reproduces it, and this appendix says what the scripts are, what they were run on, and what running them does and does not establish. It states the instances plainly, because every count in the book is a count on a particular instance and the instance is part of the result.
+
+\section{Running the Scripts}\label{sec:running}
+
+The scripts are Python programs written for Python 3 with the packages numpy, scipy, and, for the two scripts that read the measured data, pandas. They were run under Python 3.13 with numpy 2.5, scipy 1.18, and pandas 3.0. Thirteen of them import \texttt{lawnmodel.py}, the shared model of the lawn scene, and so must be run from the folder that contains it and without Python's isolated-mode flag; the six that are self-contained are the scripts for Chapters~1, 3, 4, 6, and~14 and the supplementary script for Chapter~17. The scripts for Chapters~6 and~17 read the per-second table and the block list in the folder \texttt{data}, and take their paths relative to the folder they are run from. The script \texttt{run\_all.sh} runs every script in order, writes each output to a log, and reports the exit status and the time. Its variable \texttt{SKIP} leaves chosen scripts out, which is useful because four of them take more than half a minute.
+
+\begin{verbatim}
+./run_all.sh
+SKIP="verify_ch02 verify_ch09 verify_ch10 verify_ch11" ./run_all.sh
+\end{verbatim}
+
+Chapter~18 and Appendix~C contain no counts and have no script, and the script \texttt{verify\_ch17\_shared.py} supplements \texttt{verify\_ch17.py} with the figures on shared discussion in Chapter~17. Appendix~A has one, \texttt{verify\_appA.py}, which checks the statements of that appendix.
+
+\section{The Scripts and Their Instances}\label{sec:instances}
+
+\Cref{tab:scripts} lists each script with the instance it computes on, its sources of randomness, and the seconds it took on the machine used. Seeds are fixed in the code, so a rerun gives the same numbers. Times are for one run on one machine and are a guide only.
+
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{6.0cm}>{\raggedright\arraybackslash}p{2.4cm}r@{}}
+\caption{The verification scripts, their instances, and their running times.}\label{tab:scripts}\\
+\toprule
+Script & Instance and randomness & Solver and data & Seconds\\
+\midrule
+\endfirsthead
+\toprule
+Script & Instance and randomness & Solver and data & Seconds\\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\texttt{verify\_ch01} & the three lawn productions A, B, C with their own definition of the pools, the script, the five slots, and the audiences $60$, $30$, $2$; seeds $2026+\mathrm{ord}$ of the production letter, and $7$ & none & 1\\
+\texttt{verify\_ch02} & the corrected pools of A and B; Hamming dissimilarity on class tuples; tolerances $0$ to $2$ & integer program, time-limited & 235\\
+\texttt{verify\_ch03} & the engine scene of $22$ histories, $126$ class tuples; no randomness & none & 0\\
+\texttt{verify\_ch04} & the lawn scene with its own pools, frontier tables and unranking; seeds $11$ and $3$ & none & 10\\
+\texttt{verify\_ch05} & the lawn scene with interval-closure rules and synthetic scenes of varying width; no randomness & none & 0\\
+\texttt{verify\_ch06} & the per-second table of the measured film, $5{,}222$ rows, and the block list & \texttt{data/} files & 1\\
+\texttt{verify\_ch07} & claims on the lawn scene, with allocations drawn at seeds $2026+\mathrm{ord}$ and $7000+\mathrm{ord}$ & none & 1\\
+\texttt{verify\_ch08} & order paths of the three amendments for A and B; seed $2026+\mathrm{ord}$ & none & 0\\
+\texttt{verify\_ch09} & capacity, robust and invariant capacity of the lawn pools; exhaustive enumeration & none & 33\\
+\texttt{verify\_ch10} & repair of the allocations of A, B, C; seed $2026+\mathrm{ord}$, and explicit seeds in the witness search & assignment routine & 34\\
+\texttt{verify\_ch11} & two locales with the pool of A after the agreement rule; codes over three, four and eight symbols & integer program, time-limited & 33\\
+\texttt{verify\_ch12} & allocations at seed $2026+\mathrm{ord}$, takes at $7000+\mathrm{ord}$, a draw at $99$ & assignment routine & 1\\
+\texttt{verify\_ch13} & viewing budget with the measured film length of $5{,}222$ s; the corrected pools; packing numbers of Chapter~2 entered by hand; synthetic scenes of random compatibility, seed $1$ & none & 0\\
+\texttt{verify\_ch14} & the engine scene and later films defined by what they commit to; no randomness & none & 0\\
+\texttt{verify\_ch15} & the corrected pools; random corpora, seeds $15$ and $150$ & integer program, time-limited & 9\\
+\texttt{verify\_ch16} & the lawn pools; $500$ random orders for greedy packing, seed $16$ & none & 2\\
+\texttt{verify\_ch17} & the engine scene with three locales of thirty, seed $17$; a two-scene film, seed $1700$, with an invented dishwashing scene; the measured passage, seed $5$ for take draws & assignment routine; \texttt{data/} files & 1\\
+\texttt{verify\_ch17\_\allowbreak shared} & the engine scene with its $32$ faithful editions and the pairs of them; no randomness & none & 0\\
+\texttt{verify\_appA} & the six lawn pools; $3{,}000$ random bipartite graphs, $400$ cost matrices, a Hamming-space packing, seed $3$ & integer program, 120 s limit & 2\\
+\end{longtable}
+
+Three instances need a word. The lawn scene's pools are defined once in \texttt{lawnmodel.py} and separately inside the scripts for Chapters~1 and~4, so those two chapters are computed independently of the model that the later scripts share, and the two definitions give the same counts: $494$ editions of A at the premiere and $238$ after the agreement rule. The dishwashing scene of Chapter~17 is defined only in \texttt{verify\_ch17.py}, with pools that were invented for that study. And the measured film is represented only by the table of per-second levels and the list of occupation blocks that were produced by the analysis of Chapter~6; the soundtrack itself is not part of the distribution.
+
+\section{What a Run Establishes}\label{sec:establish}
+
+A run establishes that the text's counts follow from the instance as the script defines it. It does not establish more. The scripts that import the shared model share its errors, if it has any, and the agreement of the independent definitions in Chapters~1 and~4 with the shared model is the only cross-check of the pools. Many scripts print their results for comparison with the text and do not assert them. Some contain assertions, such as the checks on the number of blocks and windows in Chapter~6, but most counts are checked only by comparing what is printed with what is written. The script \texttt{check\_counts.py} adds a regression check for the headline counts of the quick scripts: it runs them and fails if a count that the text states is missing from the output. It covers a fraction of the counts, and a pass says that those counts still match the text. A disagreement between a script and the text indicates an error in one of them, and it does not say which.
+
+Two further limits apply to the solver-based scripts. Where an integer program is solved within a time limit, the result is either optimal or a bound, and the scripts print which. In Chapter~2 the covering number of production A at tolerance one is reported as a range from $25$ to $31$ because the solver did not close the gap in its limit, and it was not closed by any later run, which is one of the open problems of Chapter~18. On a slower machine a result reported as optimal here might be reported as a bound. And the random draws are single seeds or a stated number of draws, so the counts that depend on them, such as the anonymity sets of Chapter~12 and the survivors of Chapter~15, are values for those draws and would differ in others, though the structure would not.
+
+\section{What the Appendix Assumes}\label{sec:limits-b}
+
+The appendix describes the scripts as they stood when it was written. Their running times and package versions are those of one machine on one day, and a later change to any script or to a package could change a result without changing this text. The sources of the data of Chapter~6 are the analysis cited there, and the appendix does not distribute the film or its soundtrack.
+
+\begin{thebibliography}{99}
+
+\bibitem{flyxion2026gf}
+Flyxion.
+\newblock \emph{Generative Film: Categories, Sheaves, and Types for Cinema}.
+\newblock Unpublished monograph, October 2026.
+
+\end{thebibliography}
+
+\end{document}

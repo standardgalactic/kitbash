@@ -1,0 +1,160 @@
+\documentclass[11pt,twoside,openright]{book}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{mathpazo}
+\usepackage{microtype}
+\usepackage[inner=1.35in,outer=1.1in,top=1.25in,bottom=1.35in]{geometry}
+\usepackage{booktabs}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+\usepackage{cleveref}
+
+\setlength{\parindent}{1.4em}
+\setlength{\parskip}{0pt}
+\linespread{1.07}
+\emergencystretch=3em
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE]{\small\thepage\quad\textsc{A Cinema of Individual Editions}}
+\fancyhead[RO]{\small\nouppercase{\leftmark}\quad\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\Capac}{\mathrm{Cap}}
+\newcommand{\Rob}{\mathrm{Rob}}
+\newcommand{\Inv}{\mathrm{Inv}}
+\DeclareMathOperator{\loss}{loss}
+
+\title{\Huge\bfseries A Cinema of Individual Editions\\[1.2ex]
+\large Chapter Six: Sound, Dialogue, and Time\\[0.4ex]
+\large Working Draft}
+\author{Flyxion\\[0.3ex]\small Independent Researcher}
+\date{November 2026}
+
+\begin{document}
+
+\frontmatter
+\maketitle
+\tableofcontents
+\mainmatter
+\setcounter{chapter}{5}
+
+\chapter{Sound, Dialogue, and Time}
+\label{ch:sound}
+
+Image and sound do not occupy a film in the same way. A shot can be replaced by another of the same class without moving anything else, and the counts of the earlier chapters have treated slots as if that were always so. Sound occupies time. A line of dialogue takes a certain number of seconds, a music cue lasts until it ends, and a stretch of loud material either leaves room for the listener to recover or it does not. A repair that fits the picture can break the soundtrack, because the picture's repair changes how long something takes.
+
+This chapter extends the model of editions from discrete classes to continuous timing. A slot gets a duration, constrained by the takes and by the sound anchored to them, and an edition is a class tuple together with a timing. The chapter then takes the analysis of acoustic occupation in an existing film as a second worked case, with measured data, and asks how much a cut can be shifted before a recovery window or an occupation block changes. It ends with the asymmetry that a saturating response gives to those tolerances, which is the reason the tolerance of a cut to a timing shift is a different kind of quantity from the tolerance of a class to a substitution.
+
+\section{Timing as a Second Kind of Choice}\label{sec:timing}
+
+Each slot of a scene plan has a duration $\tau_j$ in seconds. A take has a length and some handle at either end that lets an editor trim it, so a slot has a feasible interval $[\ell_j,u_j]$ of durations, the lower end set by the least that the content needs and the upper end by how much footage the take offers. A line of dialogue anchored to the slot raises the lower end, since the line has to fit.
+
+\begin{definition}[Timed edition]\label{def:timed}
+A \emph{timed edition} is a class tuple together with a duration vector $\tau=(\tau_1,\dots,\tau_m)$ in the feasible region $\mathcal T\subseteq\prod_j[\ell_j,u_j]$. The feasible region is the box of the slot intervals cut by any constraints that tie durations together, the commonest being that the total duration of the scene is fixed so that the scene stays aligned with the reel around it.
+\end{definition}
+
+Two timings are not distinguishable to a viewer if they differ by less than a tolerance $\varepsilon_t$, and this is the timing analogue of the tolerance of Chapter~2. For a slot with an interval of length $u_j-\ell_j$ the number of timings that a viewer can tell apart is about $\lfloor(u_j-\ell_j)/\varepsilon_t\rfloor+1$ if two timings count as different when they differ by at least $\varepsilon_t$. Over the whole scene the timings that can be told apart form a packing in $\mathcal T$. The distance between two duration vectors is taken here as the largest difference in any slot, and two timings count as different when that distance is at least $\varepsilon_t$. This convention differs at the boundary from the packing of Chapter~2, which asks for separation strictly greater than the tolerance, under which a grid spaced exactly at the tolerance would not be a packing. The counts of this chapter are for the convention of at least, and are not directly comparable with a packing number of Chapter~2.
+
+To see the scale, give the five slots of the lawn scene nominal durations of $4$, $3$, $5$, $3$ and $6$ seconds and a handle of one second either way, and take a tolerance of half a second. Each slot has five distinguishable durations and the box has $5^5=3{,}125$ timings, which is $11.6$ bits. If the total duration is held to its nominal $21$ seconds, the number of timings drops to $381$, or $8.6$ bits, since a shot that runs long must be paid for by another running short. Now let the second and fourth slots hold lines of dialogue that cannot be trimmed below their nominal length. Their intervals shorten to one second, the box falls to $1{,}125$ timings, and with the total fixed there are $126$, or $7.0$ bits.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}p{8cm}rr@{}}
+\toprule
+Constraint on the timings & Distinguishable timings & Bits\\
+\midrule
+Handles of $\pm1$ s, no other constraint & 3,125 & 11.6\\
+Total duration fixed & 381 & 8.6\\
+Dialogue at slots 2 and 4 cannot be trimmed, no other constraint & 1,125 & 10.1\\
+Dialogue at slots 2 and 4, total fixed & 126 & 7.0\\
+\bottomrule
+\end{tabular}
+\caption{Grid timings of the lawn scene at tolerance $0.5$ s. These count points of a grid with spacing equal to the tolerance, so they are lower bounds on the packing numbers of the same regions.}\label{tab:timing}
+\end{table}
+
+The timing bits add to the class bits under two assumptions: that the feasible region of timings is the same for every class tuple, and that two timed editions count as different when their classes differ or their timings differ by at least the tolerance, which is a joint comparison rule and not a consequence of the two separate ones. In an actual edit the handles and the dialogue anchors belong to takes, so the feasible region can depend on the take chosen, and the product of the two counts is then an upper bound on what the independence assumption gives and not a count of the edits available. Production A has $7.9$ bits from its $238$ classes after the agreement rule and could have $7.0$ more from timing, giving $29{,}988$ timed editions. Production B has $6.6$ and $12{,}096$. Production C has none from its classes and the same $7.0$ from timing, $126$ timed editions. Timing can therefore supply distinguishability that the footage cannot. Whether it does depends entirely on the tolerance: if viewers cannot tell a cut that is half a second late from one that is on time, the extra bits are zero, and if they can, production C has a hundred and twenty-six perceptibly different editions from a single class tuple. The tolerance of half a second is assumed. It is not a measurement.
+
+\section{The Acoustic Occupation of an Existing Film}\label{sec:occupation}
+
+The measured case is the analysis of the soundtrack of a 2026 action film, \emph{Drive Through Fire}, in the monograph on acoustic occupation~\cite{flyxion2026ao}. The analysis computes the momentary loudness of the film's audio second by second, takes as a reference the loudness of the seconds that subtitles mark as dialogue, and measures how far the rest of the soundtrack stands above it. The film's per-second table has $5{,}222$ rows. The dialogue reference is $-34.6$ LUFS, and the integrated loudness of the film is $-21.6$ LUFS.
+
+The analysis defines two structures, both under stated parameters. A second is \emph{occupied} if its loudness exceeds the dialogue reference by at least $\delta=10$ dB. An \emph{occupation block} is a run of occupied seconds, with gaps of at most five seconds merged, lasting at least a minute. A \emph{recovery window} is a stretch of at least five seconds in which the loudness is at or below the dialogue reference, or the soundtrack is inaudible. The film has nine occupation blocks, totalling $16.7$ minutes, the longest $4.7$ minutes. It has $105$ recovery windows, totalling $1{,}526$ seconds, with a median length of $11$ seconds.
+
+The passage from $1{:}00{:}39$ to $1{:}20{:}51$, a span of $1{,}212$ seconds bounded by the longest stretches without a qualifying window, contains six of the blocks and three recovery windows, of $9$, $7$ and $13$ seconds, $29$ seconds in all. The last two windows are separated by a single second above the reference.
+
+These figures are acoustic opportunities for recovery under the stated rules. They are not measurements of a listener's recovery, which would require listeners, and the parameters $\delta$, the merge gap, the minimum block length and the window length are the analysis's choices and have not been validated on an audience. The film is one film.
+
+\section{Tolerance of a Cut to a Shift}\label{sec:tolerance}
+
+A repair that changes the length of a shot changes the length of whatever stretch of sound it falls in. The measured structures say how much each can lose before it changes.
+
+A recovery window of length $w$ seconds stops being a window when it falls below five, so a cut inside it can remove at most $w-5$ seconds, and the window's slack is that amount. Over the film the $105$ windows have a total slack of $1{,}001$ seconds. The slack is far from evenly spread. Twenty-three of the windows are five or six seconds long, within a second of ceasing to qualify. In the passage the three windows have slack of $4$, $2$ and $8$ seconds, $14$ in all, and a cut that removed the single second between the last two windows would merge them into one window of $21$ seconds and reduce the number of windows in the passage from three to two.
+
+An occupation block of duration $b$ seconds stops being a block when it falls below the minimum of sixty, so its slack is $b-60$. The nine blocks last $72$, $62$, $111$, $101$, $92$, $79$, $130$, $73$ and $284$ seconds, with slack of $12$, $2$, $51$, $41$, $32$, $19$, $70$, $13$ and $224$. One block has a slack of two seconds. The gaps between consecutive blocks matter in the other direction. Two blocks merge into one if the gap between them falls to the merge gap of five seconds. The gaps in the film are $641$, $910$, $1{,}354$, $115$, $50$, $79$, $131$ and $11$ seconds, and only the last is within reach of a short cut: removing six or more seconds from the eleven-second gap that ends at $1{:}15{:}09$ would merge the two blocks on either side, which last $73$ seconds and $284$ seconds, into a single block of about six minutes. The count of blocks would fall from nine to eight.
+
+\begin{proposition}[Slack]\label{prop:slack}
+Let a structure be defined by a threshold on length, so that it exists when a stretch has length at least $L$. A cut that shortens the stretch by $s$ preserves the structure if and only if $s\le w-L$, where $w$ is the present length, and lengthening never destroys it. For a structure defined by a gap at most $g$ that merges neighbors, a cut that shortens the gap by $s$ preserves the separation if and only if $s<w-g$, and lengthening the gap never merges.
+\end{proposition}
+
+\begin{proof}
+Both statements restate the thresholds. A stretch of length $w-s$ is at least $L$ exactly when $s\le w-L$, and a gap of length $w-s$ exceeds $g$ exactly when $s<w-g$. Lengthening increases the stretch and the gap respectively.
+\end{proof}
+
+The proposition gives the asymmetry that the analysis exposes. Shortening and lengthening are not mirror images. A window can be lengthened without limit and shortened by its slack, and a block likewise, and a gap can be lengthened without limit and shortened only until it merges the blocks beside it. A timing shift that moves content later is a lengthening of whatever lies before it and a shortening of whatever lies after, and so it is permitted by the sound only within the slack of both.
+
+\section{Saturating Responses and Asymmetric Tolerance}\label{sec:saturating}
+
+The slack above is about whether a structure survives. A second asymmetry concerns how much a viewer notices. The earlier volume's stipulated response model for a pause before a character's question has the anticipation that the pause builds as $q_1=\tanh\bigl((p_1+\tfrac12p_4)/6\bigr)$, in which $p_1$ is the pause in seconds and $p_4$ is the duration of the reaction shot. The function is a stipulation chosen for transparency, and it is not fitted to viewers. At the base values $p_1=7$ and $p_4=4$, the anticipation is $0.9051$.
+
+For a tolerance of $0.05$ in anticipation, the linearization predicts a symmetric tolerance of $\pm1.66$ seconds. The model itself says that the pause can be shortened by $1.35$ seconds, to $5.65$, and lengthened by $2.32$ seconds, to $9.32$. A reduction of four seconds is predicted by the linearization to cost $0.120$ and costs $0.223$. The reason is that $\tanh$ is concave: it flattens as the pause grows, so extra pause buys little, and it steepens as the pause shortens, so a cut costs more than the slope at the base point suggests.
+
+\begin{proposition}[Asymmetry of a saturating response]\label{prop:asym}
+If a response $q$ is increasing and concave in a timing $p$, then the tolerance region $\{p:\lvert q(p)-q(p_0)\rvert\le\varepsilon\}$ is not symmetric about $p_0$ unless $q$ is linear on it: the shortening that is tolerated is shorter than the lengthening that is tolerated.
+\end{proposition}
+
+\begin{proof}
+Concavity gives $q(p_0-h)\le q(p_0)-hq'(p_0)$ and $q(p_0+h)\le q(p_0)+hq'(p_0)$ with strict inequalities unless $q$ is linear. The first says that a shortening by $h$ costs at least $hq'(p_0)$ and the second that a lengthening by $h$ gains at most that. A lengthening by $h$ therefore stays within $\varepsilon$ of the base for at least as long as the shortening does, and for longer when $q$ is strictly concave.
+\end{proof}
+
+The two asymmetries have different sources and different consequences. The slack of \Cref{prop:slack} is a fact of the soundtrack and is the same for every viewer: a window of seven seconds can lose two. The asymmetry of \Cref{prop:asym} is a property of a response model, and it depends on the viewer and on how the model is fitted. A cut that has to be shortened is limited by both, and the limit that binds is the smaller.
+
+\section{What the Chapter Gives the Others}\label{sec:gives6}
+
+The extension to continuous timing changes what a slot is. Chapter~4's constraint structures had classes at slots and relations between them, and a timed edition adds a coordinate at each slot with constraints that tie the coordinates together. The width arguments of that chapter carry over, since a constraint on durations between two slots is a relation between them, and the cost of counting depends on the same frontier. What changes is that the domain at each slot is an interval and the relations are inequalities, and the counting of distinguishable timings is a packing in a polytope.
+
+Chapter~8's footage and relaxation options gain a third: a correction can be made by changing timing, within the slack the sound allows, and this costs no new footage. A repair that needs a shot to run longer by two seconds is formable when some structure in the scene has two seconds of slack to give, and not otherwise. Chapters~9 and~10 count capacity and repair radius in class tuples. A timed edition has a larger space in which to repair, and a viewer whose class is unavailable might be moved in time and not in class, at a disturbance that is measured in the timing tolerance.
+
+The limits of the chapter are the limits of its inputs. The timing tolerance of half a second is an assumption. The measured structures are from one film, defined by stated parameters, and they are opportunities and not recoveries. The response model is stipulated. The propositions hold for any thresholds and any concave response, and the numbers show what they look like for these.
+
+The scripts \texttt{verify\_ch06.py}, with the per-second table and block list that it reads, reproduce each figure of this chapter.
+
+\begin{thebibliography}{99}
+
+\bibitem{flyxion2026gf}
+Flyxion.
+\newblock \emph{Generative Film: Categories, Sheaves, and Types for Cinema}.
+\newblock Unpublished monograph, October 2026.
+
+\bibitem{flyxion2026ao}
+Flyxion.
+\newblock \emph{Acoustic Occupation: Salience, Recovery, and the Temporal Organization of Film Sound}.
+\newblock Unpublished monograph, September 2026.
+
+\end{thebibliography}
+
+\end{document}

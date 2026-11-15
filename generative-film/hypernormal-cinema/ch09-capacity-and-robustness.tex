@@ -1,0 +1,294 @@
+\documentclass[11pt,twoside,openright]{book}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{mathpazo}
+\usepackage{microtype}
+\usepackage[inner=1.35in,outer=1.1in,top=1.25in,bottom=1.35in]{geometry}
+\usepackage{booktabs}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+\usepackage{cleveref}
+
+\setlength{\parindent}{1.4em}
+\setlength{\parskip}{0pt}
+\linespread{1.07}
+\emergencystretch=3em
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE]{\small\thepage\quad\textsc{A Cinema of Individual Editions}}
+\fancyhead[RO]{\small\nouppercase{\leftmark}\quad\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\Capac}{\mathrm{Cap}}
+\newcommand{\Rob}{\mathrm{Rob}}
+\newcommand{\Inv}{\mathrm{Inv}}
+\DeclareMathOperator{\loss}{loss}
+
+\title{\Huge\bfseries A Cinema of Individual Editions\\[1.2ex]
+\large Chapter Nine: Capacity and Robustness\\[0.4ex]
+\large Working Draft}
+\author{Flyxion\\[0.3ex]\small Independent Researcher}
+\date{November 2026}
+
+\begin{document}
+
+\frontmatter
+\maketitle
+\tableofcontents
+\mainmatter
+\setcounter{chapter}{8}
+
+\chapter{Capacity and Robustness}
+\label{ch:capacity}
+
+The question that the book carries is how much variation a production can sustain while remaining open to correction. It has two precise answers. The first concerns capacity: after a correction, does the production still have enough distinct editions to serve its audience from scratch? The second concerns repairability: can the viewers reach those editions from the editions they hold now, within the disturbance that is permitted? This chapter gives the first answer and the next chapter gives the second. The two answers are different, and the chapter ends by showing why the first cannot stand in for the second.
+
+The result that gives the chapter its shape is about the extreme case. A production with no spare capacity at all, one in which every admissible perceptual class is assigned to a viewer, can survive an amendment. It survives precisely when every class retains at least one admissible realization. A correction can therefore remove takes, even most of the takes, without removing an edition class, and a viewer whose assigned take is withdrawn can be given another take of the same class without any perceptible change. The failure case is the one the first chapter found in production C, where a valid correction eliminates an entire class and leaves one class for two viewers. The same test, applied to a perceptual threshold instead of exact equivalence, asks whether the corrected pool still admits a separated set large enough for the audience.
+
+The chapter treats an amendment as a specified change to the set of admissible editions. Where the specification comes from, which constraints a continuity defect implicates and which shots it touches, is the subject of Chapter~5. Here the specification is given, and the question is what it costs.
+
+\section{Capacity and Spare Capacity}\label{sec:cap}
+
+The setting is that of the first chapter. A production has a pool $T_j$ of takes at each of $m$ slots, and a map sending each take to its perceptual class. The \emph{realizations} are the take tuples that the rules in force admit, and we write $X\subseteq\prod_jT_j$ for the set of them. The \emph{class map} $\pi$ sends a realization $\tau=(\tau_1,\dots,\tau_m)$ to its class tuple $\pi(\tau)=([\tau_1],\dots,[\tau_m])$. Under the assumption of the first chapter that two editions are perceptually equivalent exactly when they have the same class tuple, the number of perceptually distinct editions that the production can supply is the following.
+
+\begin{definition}[Capacity]\label{def:capacity}
+The \emph{capacity} of a set $X$ of realizations is $\Capac(X)=\lvert\pi(X)\rvert$, the number of class tuples that have at least one realization in $X$.
+\end{definition}
+
+An \emph{allocation} for an audience of $U$ viewers is an assignment of a realization in $X$ to each viewer such that no two assigned realizations have the same class tuple. By the pigeonhole argument of the first chapter, an allocation exists if and only if $U\le\Capac(X)$. The \emph{spare capacity} is $\Capac(X)-U$, and a production has \emph{zero spare capacity} when every class tuple that $X$ realizes is assigned to some viewer.
+
+For the lawn scene of the first chapter the premiere capacities and audiences are those of \Cref{tab:premiere}. Production C has two class tuples and two viewers, so it has none to spare. Productions A and B have a great deal.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Production & Capacity & Audience & Spare capacity & Take tuples\\
+\midrule
+A & 494 & 60 & 434 & 120,042\\
+B & 320 & 30 & 290 & 10,240\\
+C & 2 & 2 & 0 & 204,800,000\\
+\bottomrule
+\end{tabular}
+\caption{The lawn scene at the premiere, under the direction rule alone. These are the figures of the first chapter.}\label{tab:premiere}
+\end{table}
+
+\section{Amendments as Specified Changes}\label{sec:amend}
+
+An amendment in this chapter is a change that removes realizations from the admissible set and is specified in advance.
+
+\begin{definition}[Amendment]\label{def:amend}
+An \emph{amendment} to a set $X$ of realizations is a subset $X'\subseteq X$, the realizations that survive it. Its \emph{loss} is $\loss(X')=\Capac(X)-\Capac(X')$, the number of class tuples that lose every realization.
+\end{definition}
+
+Amendments that add footage are treated in \Cref{sec:reserve}. Three kinds of removal arise in practice, and they behave differently.
+
+A \emph{class-level} amendment removes every take of a class, usually because a rule excludes the class. The agreement rule of the first chapter is of this kind: it removes the takes that misdepict a strip. A \emph{take-level} amendment removes particular takes by name, for instance because the rights to a shot have been withdrawn, because a file is corrupt, or because an asset has been excluded by digest. A \emph{tuple-level} amendment forbids a combination of takes, for instance two takes that share a sound asset that may not be used twice, without removing either take from every combination.
+
+For the lawn scene the amendments of \Cref{tab:amendments} are used here and in the next chapter. Each stale class misdepicts one strip, and \Cref{tab:stale} records which. The agreement rule $\alpha(S,J)$ for a set of strips $S$ and a set of slots $J$ removes every class at a slot in $J$ that misdepicts a strip in $S$. The slot sets are given and not derived here, and Chapter~5 shows how a defect determines them.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}lll@{}}
+\toprule
+Production & Stale classes at slot $j$ (screen direction, strip misdepicted) & Count\\
+\midrule
+A & $2$ ($L$, $a$); $3$ ($R$, $a$); $4$ ($R$, $c$); $5$ ($L$, $b$) & 1 each\\
+B & $2$ ($R$, $a$); $3$ ($L$, $b$); $5$ ($R$, $c$) & 2, 2, 3\\
+C & $2$ ($L$, $a$); $5$ ($R$, $c$) & 1 each\\
+\bottomrule
+\end{tabular}
+\caption{The stale classes of the first chapter, with the strip that each one shows in the wrong appearance.}\label{tab:stale}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}llp{9cm}@{}}
+\toprule
+Name & Kind & Specification\\
+\midrule
+$\alpha_a$ & class-level & $\alpha(\{a\},\{2,3,5\})$, strip $a$ at the slots where it must appear mown\\
+$\alpha_b$ & class-level & $\alpha(\{b\},\{3,5\})$\\
+$\alpha_c$ & class-level & $\alpha(\{c\},\{1,4,5\})$, strip $c$ at every slot that shows it\\
+$G$ & class-level & $\alpha(\{a,b,c\},\{1,\dots,5\})$, the agreement rule of the first chapter\\
+$\omega$ & take-level & withdraw one take from every class at every slot\\
+$x^\ast$ & class-level & withdraw every take of the single class that lies on the most class tuples\\
+\bottomrule
+\end{tabular}
+\caption{The amendments used as running examples.}\label{tab:amendments}
+\end{table}
+
+The capacities after each amendment are in \Cref{tab:after}. The amendment $\omega$ withdraws a take from each class and loses no class in any production, because every class has at least two takes: three in A, two in B, and forty in C. The take tuples fall from $120{,}042$ to $15{,}808$ in A, from $10{,}240$ to $320$ in B, and from $204{,}800{,}000$ to $180{,}448{,}398$ in C.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Production & Premiere & $\alpha_a$ & $\alpha_b$ & $\alpha_c$ & $G$ & $\omega$\\
+\midrule
+A & 494 & 351 & 404 & 422 & 238 & 494\\
+B & 320 & 200 & 288 & 176 & 96 & 320\\
+C & 2 & 1 & 2 & 2 & 1 & 2\\
+\bottomrule
+\end{tabular}
+\caption{Capacity of each production after each amendment of \Cref{tab:amendments}.}\label{tab:after}
+\end{table}
+
+Production C shows that touching a class and losing an edition are different things. The amendment $\alpha_b$ touches nothing in C, because C has no class that misdepicts strip $b$. The amendment $\alpha_c$ removes C's stale class at slot $5$, a right-facing class that no direction-compatible edition of C could use, so it lay on no class tuple and capacity stays at $2$. Only $\alpha_a$ and $G$ remove the stale class at slot $2$, which lies on one of C's two class tuples.
+
+\section{Survival at Zero Spare Capacity}\label{sec:zero}
+
+\begin{theorem}[Survival of an amendment]\label{thm:survive}
+Let $X'\subseteq X$ be an amendment and let $U\le\Capac(X)$ be the audience. The promise of pairwise inequivalent editions can be kept after the amendment if and only if $\Capac(X')\ge U$. In particular, if the production has zero spare capacity, so that $U=\Capac(X)$, it survives the amendment if and only if $\pi(X')=\pi(X)$, which is to say that every class tuple retains at least one admissible realization. In that case every viewer can keep the class tuple the viewer already holds, and a viewer whose assigned realization was removed receives another realization of the same class tuple.
+\end{theorem}
+
+\begin{proof}
+An allocation in $X'$ exists if and only if $U\le\Capac(X')$ by the pigeonhole argument. If $U=\Capac(X)$ then $\Capac(X')\ge\Capac(X)$ forces $\lvert\pi(X')\rvert=\lvert\pi(X)\rvert$, and since $\pi(X')\subseteq\pi(X)$ this means $\pi(X')=\pi(X)$. Conversely, if $\pi(X')=\pi(X)$ then each viewer's class tuple has a realization in $X'$, and assigning one realization of that class tuple to each viewer gives an allocation. Viewers whose assigned realization lies in $X'$ keep it, and the others receive a different realization of the class tuple they held.
+\end{proof}
+
+The theorem separates two things that a correction can do. It can remove realizations, and it can remove classes. A production with zero spare capacity cannot afford to lose a class, but it can lose realizations without limit, short of losing the last realization of a class. The viewer whose take was withdrawn is not disturbed perceptually, because the replacement take is in the same class, and the ledger of the first chapter records the change of file without recording any change of edition.
+
+\begin{corollary}[Take-level amendments]\label{cor:take}
+Suppose the admissible set is defined by class-level rules, so that $X=\pi^{-1}(\pi(X))$, and let a take-level amendment withdraw a set of takes. A class tuple of $\pi(X)$ survives if and only if each of its slot classes retains at least one take. Consequently $\Capac(X')$ is the number of admissible class tuples all of whose slot classes retain a take, and a take-level amendment is free for a production with zero spare capacity if and only if it exhausts no class that lies on an admissible class tuple.
+\end{corollary}
+
+\begin{proof}
+The realizations of a class tuple $\kappa$ are the products of the takes of its slot classes. After the withdrawal this product is nonempty if and only if every factor is nonempty. The rest follows from \Cref{thm:survive}.
+\end{proof}
+
+A tuple-level amendment is the intermediate case. It removes some realizations of a class tuple and spares the others, and the class tuple survives if and only if at least one of its realizations is not forbidden.
+
+\begin{example}[Production C]\label{ex:C}
+Production C has two class tuples and two viewers, so its spare capacity is zero. The amendment $\omega$ withdraws one take from each of its classes and leaves $39^5\cdot2=180{,}448{,}398$ take tuples and both class tuples, so by \Cref{thm:survive} the production survives it and no viewer perceives a change. The amendments $\alpha_b$ and $\alpha_c$ also leave both class tuples. The amendments $\alpha_a$ and $G$ remove the stale class at slot $2$, which lies on one of the two class tuples, and the production is left with one class tuple for two viewers. The promise cannot be kept, although the production holds more than a hundred million take tuples. This is the failure case of the first chapter, and it is now an instance of a general test.
+\end{example}
+
+\subsection{How much is lost}
+
+The loss of a class-level amendment is a count that the methods of Chapter~4 compute.
+
+\begin{proposition}[Loss from exhausted classes]\label{prop:loss}
+Let an amendment exhaust a set $W$ of classes, and suppose the admissible set is defined by class-level rules. Then $\loss(X')$ is the number of admissible class tuples that pass through at least one class of $W$. For a single exhausted class $k$ at slot $j$ this number is the count obtained by running the frontier method on the structure in which the set of classes at slot $j$ is restricted to $\{k\}$. All these numbers, for every class $k$ at every slot $j$, come from the forward tables $T_{j-1}$ and the backward tables $C_j$ of Chapter~4 at the cost of building them, together with one pass over the classes.
+\end{proposition}
+
+\begin{proof}
+A class tuple survives if and only if none of its slot classes is exhausted, so those that do not survive are exactly those through $W$. For the single class, the class tuples through $k$ at slot $j$ are the admissible class tuples of the restricted structure. For the last statement, the number through $k$ at slot $j$ is the sum, over assignments $z$ of the frontier at $j-1$ that satisfy the constraints with largest slot $j$ together with $k$, of $T_{j-1}(z)\,C_j(z')$, where $z'$ is the resulting frontier at $j$, and this is a single pass over the entries of the tables.
+\end{proof}
+
+The class that lies on the most admissible class tuples is the one whose withdrawal costs the most, and it is the amendment $x^\ast$ of \Cref{tab:amendments}. In production A it is the neutral class at slot $2$, which lies on $260$ of the $494$ class tuples, because a neutral take is compatible with any neighbor. In B it is a right-facing class at slot $3$ with $120$ of $320$, and in C it is the left-facing class at slot $1$, which lies on both class tuples, so that withdrawing it leaves C with none. Each of these figures was checked by recomputing the capacity after the withdrawal.
+
+\section{Survival Under a Separation Threshold}\label{sec:threshold}
+
+If the promise is that editions differ by more than a tolerance $\varepsilon$ under a pseudometric $d$ on the realizations, the test is different. Assume as in the first chapter that realizations of the same class tuple are at distance $0$. By the triangle inequality the distance between two realizations then depends only on their class tuples. Write $M_\varepsilon(X)$ for the size of a largest subset of $X$ whose members are pairwise more than $\varepsilon$ apart, the packing number of the first chapter.
+
+\begin{proposition}[Survival under separation]\label{prop:sepsurvive}
+Under the hypothesis above, an allocation with pairwise dissimilarity greater than $\varepsilon$ exists in $X'$ for an audience of $U$ if and only if $M_\varepsilon(X')\ge U$, and $M_\varepsilon(X')\le M_\varepsilon(X)$. If $U=M_\varepsilon(X)$, so that the audience exactly fills a largest separated set, the production survives the amendment if and only if the class tuples retained in $\pi(X')$ contain a set of $U$ class tuples that are pairwise more than $\varepsilon$ apart. Retention of every class tuple is sufficient for this and is not necessary.
+\end{proposition}
+
+\begin{proof}
+The first two statements restate the definition of the packing number and the fact that a separated subset of $X'$ is a separated subset of $X$. For the third, because distances depend only on class tuples, a separated set of realizations in $X'$ corresponds to a separated set of class tuples in $\pi(X')$ with one realization chosen for each. If every class tuple of $\pi(X)$ is retained, a largest separated set of class tuples of $\pi(X)$ is retained. For the failure of necessity, a largest separated set can lie entirely in a proper subset of the classes.
+\end{proof}
+
+The toy example of the first chapter shows the failure of necessity. Four class tuples lie on a line at positions $0$, $0.6$, $1.2$, and $1.8$, the dissimilarity is the distance, and $\varepsilon=1$. A largest separated set has two members, for example $\{0,1.2\}$. Withdrawing any single class tuple leaves a separated pair, so the production at $U=2$ survives each of the four withdrawals although it has lost a class tuple each time. It does not survive every withdrawal of two class tuples: withdrawing $\{0,0.6\}$ or $\{0,1.8\}$ or $\{1.2,1.8\}$ leaves a packing of one.
+
+The lawn scene gives a computed instance. Take the dissimilarity between class tuples to be the number of slots at which their classes differ, which is a pseudometric under which realizations of one class tuple are at distance zero, and take $\varepsilon=1$, so that two editions count as separated if they differ at two or more slots. Production B at $\varepsilon=1$ has $M_1=64$ at the premiere. With an audience of $64$ it has zero spare capacity in the sense of this section. The results are in \Cref{tab:threshold}. The amendment $\alpha_b$ removes $32$ of the $320$ class tuples and leaves a separated set of $64$, so B survives it, while $\alpha_a$, $\alpha_c$, and $G$ leave $40$, $40$, and $32$. A separated set of the full size survives the loss of classes that it did not use.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}llrrrrr@{}}
+\toprule
+Production & $\varepsilon$ & Premiere & $\alpha_a$ & $\alpha_b$ & $\alpha_c$ & $G$\\
+\midrule
+A & 1 & 105 & 75 & 94 & 87 & 54\\
+A & 2 & 29 & 21 & 28 & 23 & 16\\
+B & 1 & 64 & 40 & 64 & 40 & 32\\
+B & 2 & 20 & 16 & 18 & 16 & 12\\
+\bottomrule
+\end{tabular}
+\caption{The packing number $M_\varepsilon$ of the admissible class tuples under the Hamming dissimilarity, at the premiere and after each amendment.}\label{tab:threshold}
+\end{table}
+
+Computing the packing number is a maximum independent set problem on the graph whose vertices are the class tuples and whose edges join tuples at distance at most $\varepsilon$, which is NP-hard in general~\cite{garey1979}. The figures above were obtained by integer programming on instances of a few hundred vertices. For larger scenes only bounds are available, for instance a greedy separated set from below.
+
+\section{Robust Capacity}\label{sec:robust}
+
+An anticipated family of amendments is a set of subsets of $X$. The question of how much a production can take is then a question about the worst member.
+
+\begin{definition}[Robust capacity]\label{def:robust}
+Let $\mathfrak A=\{X'_1,\dots,X'_n\}$ be a family of amendments to $X$, regarded as alternatives, any one of which may occur. The \emph{robust capacity} of the production for $\mathfrak A$ is $\Rob(\mathfrak A)=\min_i\Capac(X'_i)$, and the production is \emph{robust to $\mathfrak A$ at audience $U$} if $U\le\Rob(\mathfrak A)$. The \emph{invariant capacity} is $\Inv(\mathfrak A)=\Capac\bigl(\bigcap_iX'_i\bigr)$.
+\end{definition}
+
+The two quantities answer different questions, and the definition keeps them apart. Robustness allows each amendment to have its own allocation.
+
+\begin{proposition}[Robustness and invariance]\label{prop:robinv}
+The production is robust to $\mathfrak A$ at $U$ if and only if for each $i$ there is an allocation $a_i$ in $X'_i$, and the allocations $a_i$ may differ from one another. A single allocation that lies in every $X'_i$ exists if and only if $U\le\Inv(\mathfrak A)$. Moreover $\Inv(\mathfrak A)\le\Rob(\mathfrak A)\le\Capac(X)$, and $\Inv(\mathfrak A)$ is also the capacity after all the amendments have been applied in turn.
+\end{proposition}
+
+\begin{proof}
+The first two statements apply \Cref{thm:survive} to each $X'_i$ and to the intersection. The inequalities follow from $\bigcap_iX'_i\subseteq X'_i\subseteq X$ and monotonicity of capacity. Applying removal amendments one after another leaves the intersection of the survivor sets.
+\end{proof}
+
+The gap between the two can be large. For the family $\mathfrak A=\{\alpha_a,\alpha_b,\alpha_c,\omega\}$ the figures are in \Cref{tab:robust}. Production A is robust at audience $60$, since its robust capacity is $351$, and it also keeps $238$ class tuples after all four amendments have been applied in turn. Production B is robust at $30$ with robust capacity $176$ and invariant capacity $96$. Production C is not robust at its audience of $2$, since $\alpha_a$ leaves it with $1$, and its invariant capacity is also $1$. If the worst-class withdrawal $x^\ast$ is added to the family, robust and invariant capacities become $234$ and $108$ for A, $176$ and $72$ for B, and $0$ and $0$ for C.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Production & Audience & Premiere capacity & Robust capacity & Invariant capacity\\
+\midrule
+A & 60 & 494 & 351 & 238\\
+B & 30 & 320 & 176 & 96\\
+C & 2 & 2 & 1 & 1\\
+\bottomrule
+\end{tabular}
+\caption{Robust and invariant capacity for $\mathfrak A=\{\alpha_a,\alpha_b,\alpha_c,\omega\}$.}\label{tab:robust}
+\end{table}
+
+A production's required reserve for a family follows. It must hold enough spare capacity at the premiere to absorb the largest loss in the family, $\max_i\loss(X'_i)$, and if the amendments may all be applied in turn, the loss of the intersection. The family above has losses of at most $143$ for A, $144$ for B, and $1$ for C, and the cumulative losses are $256$, $224$, and $1$. The spare capacities of $434$, $290$, and $0$ cover the first two and not the last.
+
+\section{Replacement Footage as Reserve}\label{sec:reserve}
+
+A correction can also add takes. A production that finds itself short of capacity can shoot more, and the amount of capacity that new footage buys depends on where it goes.
+
+\begin{proposition}[Cloning a class]\label{prop:clone}
+Suppose the admissible set is defined by class-level rules and a production adds to slot $j$ a new perceptual class that has the same screen direction and displayed appearance as an existing class $k$, so that it satisfies exactly the same constraints. The capacity increases by the number of admissible class tuples through $k$ at slot $j$.
+\end{proposition}
+
+\begin{proof}
+The new class tuples are those that use the new class at slot $j$. By the hypothesis, such a tuple is admissible if and only if the tuple obtained by replacing the new class with $k$ is admissible, so they are in bijection with the admissible class tuples through $k$ at slot $j$, and none of them was counted before.
+\end{proof}
+
+The quantity is the same one that measured the cost of withdrawing the class. Footage in the class that lies on the most admissible tuples is the footage whose loss hurts most and whose duplication helps most. After the agreement rule, production C has capacity $1$ and each of its class tuples passes through every class that remains. Adding one perceptually distinct clone of its admissible class at slot $5$ raises the capacity to $2$, which is exactly enough for its audience. In production A after $G$, a clone of the neutral class at slot $2$ adds $130$ class tuples, and in B a clone of the first class at slot $1$ adds $24$. Each increase was checked by recomputation.
+
+The proposition gives a unit in which reserve footage can be priced. If a family of amendments requires a reserve of $s$ class tuples, a production can buy it by shooting variants of the classes that lie on the most tuples, and by the proposition the number of variants needed is at most $\lceil s/m\rceil$, where $m$ is the smallest number of tuples through the classes chosen, rounded up because a fraction of a variant cannot be shot. A qualification applies. A clone inherits every constraint of its source, so it can be vulnerable to the same amendment as the class it copies, and the capacity it adds counts as reserve only in the scenario where the amendment leaves it admissible. Useful reserve is the capacity that the footage adds in the scenario where it is needed. The minimal footage for a given reserve is a covering problem that this chapter does not solve.
+
+\section{Capacity Is Not Repairability}\label{sec:notrepair}
+
+All the statements of this chapter are about the existence of an allocation. They say that, after an amendment, some assignment of realizations to viewers has distinct classes. They do not say that the viewers can be moved to that assignment from where they are. Production A after $\alpha_a$ has capacity $351$ for an audience of $60$, and a spare capacity of $291$, and yet a viewer whose edition is invalid may find that the nearby admissible editions are all held by others. Whether the reserve is usable from a particular allocation depends on how the viewers are distributed among the classes and on how far each is permitted to move. That is the subject of the next chapter, and the two chapters together give the book's central question its two answers: the capacity that a production keeps under correction, and the repairability of the allocation that it starts from.
+
+The accompanying scripts \texttt{lawnmodel.py} and \texttt{verify\_ch09.py} reproduce every figure of this chapter, including the exhaustive checks of capacity after each amendment, the loss of the worst class, the packing numbers by integer programming, and the effect of cloning a class.
+
+\begin{thebibliography}{99}
+
+\bibitem{garey1979}
+Michael R.\ Garey and David S.\ Johnson.
+\newblock \emph{Computers and Intractability: A Guide to the Theory of NP-Completeness}.
+\newblock W.\ H.\ Freeman, San Francisco, 1979.
+
+\end{thebibliography}
+
+\end{document}

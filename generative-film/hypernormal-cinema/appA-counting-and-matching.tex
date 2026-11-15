@@ -1,0 +1,185 @@
+\documentclass[11pt,twoside,openright]{book}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{mathpazo}
+\usepackage{microtype}
+\usepackage[inner=1.35in,outer=1.1in,top=1.25in,bottom=1.35in]{geometry}
+\usepackage{booktabs}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+\usepackage{cleveref}
+
+\setlength{\parindent}{1.4em}
+\setlength{\parskip}{0pt}
+\linespread{1.07}
+\emergencystretch=3em
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE]{\small\thepage\quad\textsc{A Cinema of Individual Editions}}
+\fancyhead[RO]{\small\nouppercase{\leftmark}\quad\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\Capac}{\mathrm{Cap}}
+\newcommand{\Rob}{\mathrm{Rob}}
+\newcommand{\Inv}{\mathrm{Inv}}
+\DeclareMathOperator{\loss}{loss}
+
+\title{\Huge\bfseries A Cinema of Individual Editions\\[1.2ex]
+\large Appendix A: Counting and Matching\\[0.4ex]
+\large Working Draft}
+\author{Flyxion\\[0.3ex]\small Independent Researcher}
+\date{November 2026}
+
+\begin{document}
+
+\frontmatter
+\maketitle
+\tableofcontents
+\mainmatter
+\appendix
+\setcounter{chapter}{0}
+
+\chapter{Counting and Matching}
+\label{app:counting}
+
+This appendix gives the finite mathematics that the text uses, with complete proofs for the cases the text needs. It covers transfer matrices, ranking and unranking, Hall's theorem and its worldwide form, minimum-cost assignment, and packing and covering numbers. Where a result is cited and not proved, the appendix says so. Each statement that the text applies to the lawn scene was also checked by computation, and the checks are listed at the end.
+
+Throughout, a scene has $m$ slots. At slot $j$ there is a finite set $L_j$ of live classes, and a class $k\in L_j$ has a weight $\mu_j(k)$, its number of takes. Adjacent slots are related by a compatibility matrix $M_j\in\{0,1\}^{L_j\times L_{j+1}}$, whose entry is one when the two classes may follow each other. An \emph{admissible tuple} is a choice of one live class at each slot with every adjacent pair compatible.
+
+\section{Transfer Matrices}\label{sec:transfer}
+
+\begin{proposition}[Counting by matrix product]\label{prop:transfer}
+The number of admissible tuples is $\mathbf 1^{\top}M_1M_2\cdots M_{m-1}\mathbf 1$. The number of admissible take tuples, in which each class is weighted by its takes, is $\mathbf 1^{\top}D_1M_1D_2M_2\cdots M_{m-1}D_m\mathbf 1$, where $D_j=\operatorname{diag}(\mu_j)$.
+\end{proposition}
+
+\begin{proof}
+Let $v_1=\mathbf 1^{\top}$ and $v_{j+1}=v_jM_j$. We show by induction that $v_j(k)$ is the number of admissible prefixes of length $j$ that end in the class $k$. For $j=1$ every class is a prefix of length one. If the claim holds for $j$, then an admissible prefix of length $j+1$ ending in $k'$ is an admissible prefix of length $j$ ending in some $k$ with $M_j(k,k')=1$, followed by $k'$, and distinct pairs give distinct prefixes. So $v_{j+1}(k')=\sum_kv_j(k)M_j(k,k')$, which is the $k'$-th entry of $v_jM_j$. The total is the sum of the entries of $v_m$. For the weighted count, each prefix carries the product of the weights of its classes, and the same induction applies to $w_1=\mathbf 1^{\top}D_1$ and $w_{j+1}=w_jM_jD_{j+1}$.
+\end{proof}
+
+When admissibility depends on a window of $w$ consecutive classes, as in the rules of Chapter~5 whose frontier has width $w$, the same argument applies to a transfer matrix indexed by windows: a state is the last $w$ classes, and a transition appends one class and drops the first. The matrices are larger, with at most $q^w$ rows for $q$ classes at a slot, and the induction is unchanged. This is the sense in which the frontier width governs the cost.
+
+\section{Ranking and Unranking}\label{sec:rank}
+
+Order the live classes at each slot, and order admissible tuples lexicographically. For a class $k$ at slot $j$ let $s_j(k)$ be the number of admissible completions from slot $j$ onward that begin with $k$. Then $s_m(k)=1$ and $s_j(k)=\sum_{k'}M_j(k,k')s_{j+1}(k')$, which is the vector $M_jM_{j+1}\cdots M_{m-1}\mathbf 1$ computed from the right.
+
+\begin{proposition}[Unranking]\label{prop:unrankapp}
+Let $T$ be the number of admissible tuples. The procedure that, given $0\le r<T$, chooses at slot $j$ the first class $k$, in order, that is compatible with the previous choice and satisfies $r<s_j(k)$ after subtracting from $r$ the values $s_j(k')$ of every earlier compatible class $k'$, and then continues with the reduced $r$, returns the $r$th admissible tuple in lexicographic order. It is a bijection from $\{0,\dots,T-1\}$ onto the admissible tuples, and its inverse sends a tuple $t$ to $\sum_j\sum_{k'<t_j,\ k'\text{ compatible}}s_j(k')$.
+\end{proposition}
+
+\begin{proof}
+At slot $j$, with the prefix fixed, the admissible completions are partitioned by the class chosen, and the classes appear in order, so the completions through the first $a$ compatible classes occupy exactly the positions below $\sum s_j(k')$ over those classes. The $r$th completion therefore lies in the block of the class at which the running sum first exceeds $r$, and its position inside the block is the remainder. By induction on the number of remaining slots, the procedure returns the $r$th completion of the block. The inverse formula adds the sizes of the blocks that precede the tuple at each slot, which is its position. Each map undoes the other, so both are bijections.
+\end{proof}
+
+The table of $s_j$ is computed in $O(m q^2)$ additions for $q$ classes at a slot, and each rank or unrank takes $O(mq)$ comparisons.
+
+\section{Hall's Theorem and Its Worldwide Form}\label{sec:hallapp}
+
+\begin{theorem}[Hall]\label{thm:hallapp}
+Let $X$ and $Y$ be finite sets and $E\subseteq X\times Y$, and for $S\subseteq X$ let $N(S)$ be the set of elements of $Y$ adjacent to some element of $S$. There is an injective map $f:X\to Y$ with $(x,f(x))\in E$ for all $x$ if and only if $\lvert N(S)\rvert\ge\lvert S\rvert$ for every $S\subseteq X$.
+\end{theorem}
+
+\begin{proof}
+If $f$ exists, then $f$ maps $S$ injectively into $N(S)$, so $\lvert N(S)\rvert\ge\lvert S\rvert$. For the converse we use induction on $\lvert X\rvert$. If $\lvert X\rvert=1$ the condition says that the single element has a neighbor. Suppose $\lvert X\rvert>1$ and the condition holds. There are two cases.
+
+First suppose $\lvert N(S)\rvert\ge\lvert S\rvert+1$ for every nonempty proper subset $S$ of $X$. Choose $x\in X$ and a neighbor $y$ of $x$, which exists because $\lvert N(\{x\})\rvert\ge1$. Delete $x$ and $y$. For a nonempty $S\subseteq X\setminus\{x\}$, deleting $y$ removes at most one neighbor, so its new neighborhood has at least $\lvert N(S)\rvert-1\ge\lvert S\rvert$ elements. By induction the rest has a matching, and adding $(x,y)$ completes it.
+
+Otherwise some nonempty proper subset $S$ has $\lvert N(S)\rvert=\lvert S\rvert$. The condition holds in the graph restricted to $S$ and $N(S)$, since the neighborhood of a subset of $S$ lies in $N(S)$, so by induction $S$ is matched into $N(S)$. In the graph on $X\setminus S$ and $Y\setminus N(S)$ the condition also holds: for $T\subseteq X\setminus S$ the new neighborhood is $N(T)\setminus N(S)$, whose size is $\lvert N(T\cup S)\rvert-\lvert N(S)\rvert\ge\lvert T\cup S\rvert-\lvert S\rvert=\lvert T\rvert$. By induction it has a matching, and the two matchings use disjoint elements of $Y$, so together they match $X$.
+\end{proof}
+
+\begin{corollary}[Worldwide feasibility]\label{cor:globalapp}
+Let viewers be grouped by locale $p$ with $U_p$ viewers, each adjacent to exactly the set $G_p$ of global classes that locale can realize. Pairwise distinct editions exist for all viewers if and only if for every set $P$ of locales, $\bigl\lvert\bigcup_{p\in P}G_p\bigr\rvert\ge\sum_{p\in P}U_p$. If the sets $G_p$ are pairwise disjoint, the condition reduces to $U_p\le\lvert G_p\rvert$ for each locale.
+\end{corollary}
+
+\begin{proof}
+For a set $S$ of viewers let $P(S)$ be the set of locales that $S$ meets. Then $N(S)=\bigcup_{p\in P(S)}G_p$ depends on $S$ only through $P(S)$, and for a fixed $P$ the set $S$ with the smallest $\lvert N(S)\rvert-\lvert S\rvert$ is the one containing all viewers of the locales of $P$, so it is the worst case. Hall's condition for all $S$ is therefore the stated condition for all $P$. For disjoint $G_p$ the union has size $\sum\lvert G_p\rvert$, and the condition for $P$ follows from the conditions for its members.
+\end{proof}
+
+\begin{corollary}[Repair at a given radius]\label{cor:radiusapp}
+Let the viewers whose tuples are invalid be adjacent to the free valid tuples within Hamming distance $r$ of their own. A repair that moves only invalid viewers, to distinct free valid tuples, at radius at most $r$, exists if and only if Hall's condition holds in this graph.
+\end{corollary}
+
+This is Hall's theorem for the graph of the statement, and the least radius for which the condition holds is the quantity called $r^*$ in Chapter~10.
+
+\section{Minimum-Cost Assignment}\label{sec:assignapp}
+
+Let $n\le N$, and let $c_{ij}$ be real costs for $i\in\{1,\dots,n\}$, $j\in\{1,\dots,N\}$. An \emph{assignment} is an injective map $f$ from rows to columns, and its cost is $\sum_ic_{i,f(i)}$. In Chapter~10 the rows are the viewers who must move, the columns are the free valid tuples, and $c_{ij}$ is the Hamming distance.
+
+\begin{proposition}[Optimality certificate]\label{prop:certapp}
+Suppose numbers $u_i$ and $v_j\le0$ satisfy $u_i+v_j\le c_{ij}$ for all $i,j$. Then every assignment costs at least $\sum_iu_i+\sum_jv_j$. If an assignment $f$ has $c_{i,f(i)}=u_i+v_{f(i)}$ for all $i$, and $v_j=0$ for every column not used by $f$, then $f$ is optimal.
+\end{proposition}
+
+\begin{proof}
+For any assignment $g$, $\sum_ic_{i,g(i)}\ge\sum_i(u_i+v_{g(i)})=\sum_iu_i+\sum_{j\in g(\text{rows})}v_j\ge\sum_iu_i+\sum_jv_j$, the last step because the omitted $v_j$ are nonpositive. For $f$ as described the first inequality is an equality, and the sum over used columns equals the sum over all columns, since the unused $v_j$ are zero. So $f$ attains the bound.
+\end{proof}
+
+\begin{theorem}[Cycle criterion and existence of certificates]\label{thm:cycleapp}
+Let $n=N$ and let $f$ be a bijection. Define on the rows the weights $W_{ii'}=c_{i,f(i')}-c_{i,f(i)}$. Then $f$ is optimal if and only if the graph on the rows with these edge weights has no cycle of negative total weight, and in that case certificates $u,v$ as in Proposition~\ref{prop:certapp} exist. The case $n<N$ reduces to this one by adding $N-n$ rows of zero cost to every column.
+\end{theorem}
+
+\begin{proof}
+Suppose a cycle $i_1\to i_2\to\cdots\to i_k\to i_1$ has negative weight. Define $g$ to agree with $f$ off the cycle and to send $i_s$ to $f(i_{s+1})$, indices modulo $k$. It is a bijection, and its cost differs from that of $f$ by the weight of the cycle, so $f$ is not optimal. Conversely suppose there is no negative cycle. Then shortest-path distances $d(i)$ from an added source joined to every row by an edge of weight zero are finite, and they satisfy $d(i')\le d(i)+W_{ii'}$ for every pair. Put $u_i=c_{i,f(i)}-d(i)$ and $v_{f(i)}=d(i)$. Then $u_i+v_{f(i)}=c_{i,f(i)}$, and for any $i'$, $u_i+v_{f(i')}=c_{i,f(i)}-d(i)+d(i')\le c_{i,f(i)}+W_{ii'}=c_{i,f(i')}$, where the inequality is the shortest-path inequality $d(i')-d(i)\le W_{ii'}$, so $u,v$ satisfy the inequalities. For $n=N$ every bijection $g$ uses every column, so $\sum_ic_{i,g(i)}\ge\sum_i(u_i+v_{g(i)})=\sum_iu_i+\sum_jv_j$ with no sign condition on $v$, and equality holds for $f$, which is therefore optimal. For $n<N$ add the dummy rows. An optimal assignment of the real rows, with the dummy rows placed on the unused columns, is an optimal bijection of the padded problem, since a dummy row costs nothing wherever it goes. The certificate of the padded problem has the sign condition of Proposition~\ref{prop:certapp} after one normalization. A dummy row $k$ placed on an unused column $j_k$ has $u_k+v_{j_k}=0$ and $u_k+v_j\le0$ for every column $j$, so $v_j\le v_{j_k}$ for all $j$. This holds for every dummy row, so all unused columns share one value $v^\ast$, and $v_j\le v^\ast$ for every column. Subtracting $v^\ast$ from every $v_j$ and adding it to every $u_i$ of the real rows keeps every inequality and every equality, makes the unused columns zero and the used columns nonpositive, and leaves the sum unchanged.
+\end{proof}
+
+The theorem is the strong duality of the assignment problem, proved here through shortest paths. It does not give an algorithm, and the Hungarian method of Kuhn~\cite{kuhn1955} finds an optimal assignment and a certificate in time cubic in the number of rows. The text uses a library routine for the assignment, and the check of the previous theorem, that no negative cycle remains, is the independent test of its output.
+
+\section{Packing and Covering}\label{sec:packapp}
+
+Let $\mathcal P$ be a finite set with a distance $d$, and let $\varepsilon\ge0$ be an integer. A subset is an \emph{$\varepsilon$-packing} if its points are pairwise more than $\varepsilon$ apart, and its largest size is the packing number $M_\varepsilon$. A subset is an \emph{$\varepsilon$-covering} if every point of $\mathcal P$ is within $\varepsilon$ of one of its points, and its smallest size is the covering number $N_\varepsilon$.
+
+\begin{proposition}[Packing and covering]\label{prop:pcapp}
+For every $\varepsilon\ge0$, $N_\varepsilon\le M_\varepsilon\le N_{\lfloor\varepsilon/2\rfloor}$.
+\end{proposition}
+
+\begin{proof}
+A maximal $\varepsilon$-packing is an $\varepsilon$-covering, since a point farther than $\varepsilon$ from all of its members could be added, so $N_\varepsilon\le M_\varepsilon$. For the other inequality take a $\lfloor\varepsilon/2\rfloor$-covering and an $\varepsilon$-packing. Each packing point lies within $\lfloor\varepsilon/2\rfloor$ of some covering point. Two packing points with the same covering point would be within $2\lfloor\varepsilon/2\rfloor\le\varepsilon$ of each other by the triangle inequality, contrary to the packing condition, so the assignment of packing points to covering points is injective, and $M_\varepsilon\le N_{\lfloor\varepsilon/2\rfloor}$.
+\end{proof}
+
+\begin{proposition}[Singleton bound]\label{prop:singapp}
+Let $\mathcal P\subseteq A_1\times\cdots\times A_m$ with the Hamming distance, and let $q=\max\lvert A_j\rvert$. An $\varepsilon$-packing has at most $q^{m-\varepsilon}$ points whenever $\varepsilon<m$.
+\end{proposition}
+
+\begin{proof}
+Two points of an $\varepsilon$-packing differ in at least $\varepsilon+1$ coordinates. Delete the same $\varepsilon$ coordinates from every point. Two points that agreed on the remaining $m-\varepsilon$ coordinates would differ in at most $\varepsilon$ coordinates, so the restricted points are distinct, and there are at most $q^{m-\varepsilon}$ restrictions.
+\end{proof}
+
+The bound is attained when there is a code with those parameters. For $m\le q+1$ and $q$ a prime power, the Reed--Solomon codes of Reed and Solomon~\cite{reed1960} attain it for every $\varepsilon<m$, and the text uses them without reproducing the construction. The two smallest cases that the text mentions are within reach of direct computation, and the largest ternary codes of length four with distance two and three have $27$ and $9$ words, which equal $3^{4-1}$ and $3^{4-2}$.
+
+\section{What Was Checked}\label{sec:checkapp}
+
+The script \texttt{verify\_appA.py} checks the statements of this appendix by computation. It confirms Proposition~\ref{prop:transfer} against enumeration for all six pools of the lawn scene, with counts of $494$, $238$, $320$, $96$, $2$ and $1$ and take-tuple counts of $120{,}042$, $57{,}834$, $10{,}240$, $3{,}072$, $204{,}800{,}000$ and $102{,}400{,}000$. It checks Hall's condition against a maximum matching on $3{,}000$ random bipartite graphs, of which $1{,}177$ satisfied the condition, with no disagreement. It checks the output of the assignment routine against brute force on $400$ random matrices of side two to six, and finds no negative cycle at the routine's optimum in any. It checks the inequalities of Proposition~\ref{prop:pcapp} on $120$ random subsets of a Hamming space, with no violation. And it solves exactly the largest ternary codes of length four with distance two and three, which have $27$ and $9$ words, the Singleton values. These checks are evidence about the implementations and the instances, and the proofs above are what establish the statements.
+
+\begin{thebibliography}{99}
+
+\bibitem{hall1935}
+Philip Hall.
+\newblock On Representatives of Subsets.
+\newblock \emph{Journal of the London Mathematical Society}, 10(1):26--30, 1935.
+
+\bibitem{kuhn1955}
+Harold W. Kuhn.
+\newblock The Hungarian Method for the Assignment Problem.
+\newblock \emph{Naval Research Logistics Quarterly}, 2(1--2):83--97, 1955.
+
+\bibitem{reed1960}
+Irving S. Reed and Gustave Solomon.
+\newblock Polynomial Codes over Certain Finite Fields.
+\newblock \emph{Journal of the Society for Industrial and Applied Mathematics}, 8(2):300--304, 1960.
+
+\end{thebibliography}
+
+\end{document}

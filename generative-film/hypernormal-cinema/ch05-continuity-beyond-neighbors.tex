@@ -1,0 +1,199 @@
+\documentclass[11pt,twoside,openright]{book}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{mathpazo}
+\usepackage{microtype}
+\usepackage[inner=1.35in,outer=1.1in,top=1.25in,bottom=1.35in]{geometry}
+\usepackage{booktabs}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+\usepackage{cleveref}
+
+\setlength{\parindent}{1.4em}
+\setlength{\parskip}{0pt}
+\linespread{1.07}
+\emergencystretch=3em
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE]{\small\thepage\quad\textsc{A Cinema of Individual Editions}}
+\fancyhead[RO]{\small\nouppercase{\leftmark}\quad\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\Capac}{\mathrm{Cap}}
+\newcommand{\Rob}{\mathrm{Rob}}
+\newcommand{\Inv}{\mathrm{Inv}}
+\DeclareMathOperator{\loss}{loss}
+
+\title{\Huge\bfseries A Cinema of Individual Editions\\[1.2ex]
+\large Chapter Five: Continuity Beyond Neighbors\\[0.4ex]
+\large Working Draft}
+\author{Flyxion\\[0.3ex]\small Independent Researcher}
+\date{November 2026}
+
+\begin{document}
+
+\frontmatter
+\maketitle
+\tableofcontents
+\mainmatter
+\setcounter{chapter}{4}
+
+\chapter{Continuity Beyond Neighbors}
+\label{ch:continuity}
+
+Chapter~4 counted editions under constraints between slots, and its glass example already showed a constraint between two shots that are not adjacent: the hand that holds a glass before an insert and the hand that holds it after. Chapters~9 and~10 then took amendments as given, each one a rule applied at a stated set of slots. This chapter supplies what both left open. It says where continuity constraints come from, how they are written as the constraint structures of Chapter~4 with the cheapest width, and, when a viewer reports a continuity defect, which slots the resulting amendment has to touch.
+
+The organizing idea is that continuity is a property of an entity across the showings in which it appears, and that an event in the story changes an entity at one moment and leaves it alone before and after. The slots that an amendment must touch are the showings of the entity within a stretch that no event interrupts. The chapter derives from this the three slot sets used as running examples in Chapter~9, $\{2,3,5\}$ for strip $a$, $\{3,5\}$ for strip $b$, and $\{1,4,5\}$ for strip $c$, and it shows why the third is the union of two stretches.
+
+\section{Entities, Events, and Showings}\label{sec:entities}
+
+A story world has \emph{entities}, the things whose appearance a viewer can track from shot to shot: the strips of the lawn, a glass, a coat. It has \emph{events}, the occurrences of the script that change entities, each with an \emph{effect set}, the entities it changes, and a time. A \emph{showing} is a pair of a slot and an entity visible in it. The slots of the lawn scene are those of the first chapter, with times $0,1,2,2,3$ and visible strips $\{a,b,c\}$, $\{a\}$, $\{a,b\}$, $\{c\}$, $\{a,b,c\}$. The script mows strip $a$ between times $0$ and $1$, strip $b$ between $1$ and $2$, and strip $c$ between $2$ and $3$.
+
+\begin{definition}[Persistence interval and footprint]\label{def:interval}
+For an entity $e$, let the events whose effect sets contain $e$ have times $t_1<\dots<t_k$. The \emph{persistence intervals} of $e$ are the maximal stretches of time that contain none of these event times in their interior, namely $(-\infty,t_1)$, $[t_1,t_2)$, and so on. The \emph{footprint} $F(e)$ is the set of slots that show $e$, and the \emph{interval footprint} of $e$ at a slot $s$ is the set of slots of $F(e)$ whose times lie in the same persistence interval as the time of $s$.
+\end{definition}
+
+For the lawn each strip has one event, so two intervals, before and after the mowing. The showings and intervals are in \Cref{tab:intervals}. Strip $a$ is shown in slots $1,2,3,5$, once before it is mown and three times after. Strip $c$ is shown at slots $1$ and $4$ before and only at slot $5$ after. The \emph{late footprint} of Chapter~1 is the interval footprint after the event.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Strip & Footprint $F$ & Before its event & After its event\\
+\midrule
+$a$ & $\{1,2,3,5\}$ & $\{1\}$ & $\{2,3,5\}$\\
+$b$ & $\{1,3,5\}$ & $\{1\}$ & $\{3,5\}$\\
+$c$ & $\{1,4,5\}$ & $\{1,4\}$ & $\{5\}$\\
+\bottomrule
+\end{tabular}
+\caption{Showings of each strip and the two persistence intervals that its mowing event creates.}\label{tab:intervals}
+\end{table}
+
+\section{Absolute and Relative Continuity}\label{sec:kinds}
+
+Two kinds of continuity constraint arise, and they are written differently.
+
+\emph{Absolute} continuity compares a showing with the script. The script says what a strip looks like at each time, mown or unmown, and a take that shows the strip otherwise is stale in the sense of Chapter~1. The constraint has a scope of one slot, so it restricts the domain of that slot and creates no edge in the scope graph. The agreement rule $G$ is the conjunction of these constraints.
+
+\emph{Relative} continuity compares showings with each other, for an attribute that the script does not fix. The hand that holds a glass is the standing case: the script does not say which hand, and the requirement is only that the glass is in the same hand in every showing within a persistence interval. Such a constraint has a scope of several slots and an equality relation. Across an event that is declared to pass the glass from one hand to the other, the relation between the showings on the two sides is the opposite of equality. Both are relations in the sense of Chapter~4, and the equalities are the overlap conditions of the sheaf of takes in the earlier volume~\cite{flyxion2026gf}: two takes that show the same entity must agree on the overlap where both show it.
+
+\subsection{Path and Clique Representations}
+
+Within a persistence interval an entity shown at $k$ slots can be constrained in two natural ways. The \emph{clique} representation writes an equality between every pair of showings, $k(k-1)/2$ binary relations. The \emph{path} representation writes one between each pair of consecutive showings, $k-1$ relations.
+
+\begin{proposition}[The path suffices]\label{prop:path}
+Equality is transitive, so the path and clique representations of the same interval have the same solutions, and the same holds for any relation family that composes along the path, such as an opposite relation across a pass-over event. The frontier width of the path form is at most the frontier width of the clique form, and the difference can be unbounded.
+\end{proposition}
+
+\begin{proof}
+If consecutive showings agree then all agree, which gives the first statement, and the clique constraints are implied by the path. The frontier at a cut of the scope graph is the set of slots at or before the cut that share a relation with a later slot. Every path edge is in the clique form, so every slot live in the path form is live in the clique form, giving the inequality. For the unboundedness, take an entity shown at every slot of an $n$-slot chain. The path edges coincide with chain edges and the frontier width stays at $1$, while the clique form makes all earlier slots live at every cut, a width of $n-1$.
+\end{proof}
+
+The lawn glass shows the same effect on a small scale. Let the glass appear at slots $1$, $2$ and $5$ and let its hand alternate between left and right in the listing order of the classes of each slot, as in Chapter~4. The path form has relations on slots $\{1,2\}$ and $\{2,5\}$ and the clique form adds $\{1,5\}$. The solution counts agree, as the proposition says: $125$ class tuples for A, $84$ for B and $1$ for C under the direction rule, and $57$, $24$ and $1$ once the agreement rule $G$ is added. The frontier width is $1$ for the chain, $2$ with the path edges, and $3$ with the clique. \Cref{tab:widths} gives the synthetic case, in which the table of partial assignments at a cut has $q^{w}$ entries for $q$ classes per slot and width $w$, so that for $q=4$ and $n=8$ the path form has $4$ entries and the clique form $16{,}384$.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}rrrrr@{}}
+\toprule
+$n$ & Path width & Clique width & Path table ($q=4$) & Clique table ($q=4$)\\
+\midrule
+3 & 1 & 2 & 4 & 16\\
+4 & 1 & 3 & 4 & 64\\
+5 & 1 & 4 & 4 & 256\\
+6 & 1 & 5 & 4 & 1,024\\
+7 & 1 & 6 & 4 & 4,096\\
+8 & 1 & 7 & 4 & 16,384\\
+\bottomrule
+\end{tabular}
+\caption{One entity shown at every slot of an $n$-slot chain, in path and clique form.}\label{tab:widths}
+\end{table}
+
+An event with an effect set that passes the glass from one hand to the other changes the relation and not the representation. Suppose the script has the glass change hands between slots $2$ and $5$. The relation on $\{2,5\}$ becomes the opposite of equality and the relation on $\{1,2\}$ stays equality. For A the counts are $122$ and, with $G$, $57$. For B they are $76$ and $24$. Production C falls to $0$: the only admissible classes at slots $2$ and $5$ after $G$ both carry the left hand, so no edition of C satisfies the opposite relation. The production would need a footage change before the script could be filmed this way.
+
+\section{From a Defect to the Slots It Touches}\label{sec:defects}
+
+A viewer reports a defect: in slot $j$ the entity $e$ appears otherwise than it should. The report is adjudicated as in Chapter~7, and if it is upheld as evidence for an amendment, the amendment has to say which slots it governs. The rule of this chapter is that it governs the persistence interval of the defect.
+
+\begin{definition}[Touched slots]\label{def:touched}
+An \emph{absolute defect} is a pair $(e,j)$ such that a class at slot $j$ shows $e$ in an appearance that differs from the script's. The slots \emph{touched} by an amendment answering it are the interval footprint of $e$ at $j$. A \emph{relative defect} is a pair $(e,\{j,j'\})$ of two showings of $e$ in one persistence interval that disagree on a free attribute, and the slots touched are the interval footprint of $e$ at $j$, which contains $j'$.
+\end{definition}
+
+The rule is sound in that it never crosses an event boundary. A strip that is mown at time $1$ is shown unmown before it, correctly, and an amendment about the reappearance of grass after the cut must not remove the unmown classes of earlier shots. It is complete in the following sense.
+
+\begin{proposition}[Soundness and completeness]\label{prop:sound}
+Let $e$ be an entity and $I$ a persistence interval of $e$. A class at a slot of $F(e)$ can be stale for $e$ in the way a defect in $I$ shows only if its slot lies in $I$, because the required appearance is constant on $I$ and a class is judged against the requirement at its own time. The requirement outside $I$ may happen to equal the value on $I$, since an attribute can return to an earlier value, so the interval is the declared scope of the repair and not a claim that the requirement differs elsewhere. Consequently the amendment $\alpha(\{e\},J)$ with $J$ the interval footprint of a defect removes every class that is stale for $e$ in that interval and no class that is correct for $e$ at its slot. For a relative defect, the amendment that imposes the interval's equality relation on $J$ rules out the disagreeing pair and every other disagreement within $I$. That is a continuity policy for the whole interval. The smallest amendment that blocks the reported witness is a condition on the pair $(j,j')$ alone, and it leaves other pairs in $I$ free to disagree.
+\end{proposition}
+
+\begin{proof}
+The script fixes the required appearance of $e$ at each time, and it changes only at event times of $e$. A class at a slot in $I$ is stale for $e$ exactly when its displayed appearance differs from the value that holds on all of $I$. A class at a slot outside $I$ is compared with the requirement at its own time, and removing it for this defect would remove a class that is correct there. For the relative case, a pair disagreeing on a free attribute is ruled out by an equality relation on any scope containing both showings, and the interval footprint is the scope that covers every pair in the interval. A condition on the reported pair alone also rules out that pair, with a smaller scope and a weaker guarantee.
+\end{proof}
+
+\subsection{The Three Slot Sets of Chapter 9}
+
+The stale classes of Table~9.2 of Chapter~9 determine the slot sets of its amendments. Every stale class of strip $a$, in every production, lies after $a$'s mowing, at slots $2$ and $3$, so its defect touches the interval footprint $\{2,3,5\}$. The stale classes of strip $b$ are at slots $3$ and $5$ and touch $\{3,5\}$. Strip $c$ is the interesting case. In production A its stale class is at slot $4$, which shows $c$ already mown at time $2$, before the script mows it. That is a premature defect, in the interval before the event, with interval footprint $\{1,4\}$. In productions B and C the stale classes are at slot $5$, after the event, with interval footprint $\{5\}$. The amendment that answers all the reported defects on $c$ is the union $\{1,4\}\cup\{5\}=\{1,4,5\}$, which is the whole footprint and the slot set of $\alpha_c$. Applying all three derived amendments is the type-level rule $G$ on every pool, which was checked.
+
+The distinction matters in the counts. \Cref{tab:levels} gives the capacity after the amendment on each interval of $c$ and after the entity-level amendment. For production A the premature defect lies in the interval $\{1,4\}$ and the late interval alone removes nothing, leaving $494$ class tuples; for B the opposite holds and the early interval alone removes nothing, leaving $320$. An amendment that confused the two intervals would repair the wrong half.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Production & Premiere & $c$ before $\{1,4\}$ & $c$ after $\{5\}$ & $c$ entity $\{1,4,5\}$\\
+\midrule
+A & 494 & 422 & 494 & 422\\
+B & 320 & 320 & 176 & 176\\
+C & 2 & 2 & 2 & 2\\
+\bottomrule
+\end{tabular}
+\caption{Capacity after the amendment on each interval of strip $c$, and on its whole footprint.}\label{tab:levels}
+\end{table}
+
+\section{Levels of Amendment}\label{sec:levels}
+
+An amendment can govern the interval of the defect, every showing of the entity, or every entity of the same kind. These are nested.
+
+\begin{definition}[Levels]\label{def:levels}
+For an absolute defect $(e,j)$ the \emph{interval level} is the interval footprint of $e$ at $j$, the \emph{entity level} is $F(e)$, and the \emph{type level} is the set of all slots, with the agreement rule applied to every entity of the type. Then interval $\subseteq$ entity $\subseteq$ type.
+\end{definition}
+
+The loss grows with the level, and so does the protection. For strip $a$ the interval level $\{2,3,5\}$ and the entity level $\{1,2,3,5\}$ differ only by slot $1$, where no class shows $a$ in a stale appearance, so their capacities are equal in every production: $351$, $200$ and $1$ for A, B and C. The same holds for strip $b$ with $404$, $288$ and $2$. Strip $c$ separates the levels, as above. The type level is $G$ and leaves $238$, $96$ and $1$.
+
+The choice of level is a decision about evidence. An interval amendment responds to a defect that has been seen, and leaves unconstrained a stale class that could be reported next. An entity amendment closes every interval of the entity at once. A type amendment treats the report as evidence of a rule for the whole production. Chapter~8 describes the decision, and its result bears directly on the capacity of Chapter~9: the lower the level, the smaller the loss, and the more correction events the production must expect.
+
+\section{Coupled Entities}\label{sec:coupled}
+
+An event whose effect set contains several entities couples them. If the script has strip $b$ mown at the same moment that the glass changes hands, then moving that event in time moves the change of hand along with it, and a defect about the time of the event concerns both. The footprint of an event is therefore the union of the footprints of the entities in its effect set. Here that is $F(b)\cup F(\text{glass})=\{1,3,5\}\cup\{1,2,5\}=\{1,2,3,5\}$, one slot more than $F(b)$ alone. The coupled amendment on strip $b$ at slots $\{1,2,3,5\}$ leaves the same capacity as the entity amendment, $404$, $288$ and $2$, because no class at slot $2$ misdepicts $b$, so the extra slot costs nothing in this pool. In a pool with such a class it would.
+
+The closure rule is the general one. Starting from the entity of the defect, take the interval footprint; add every entity that shares an event with the entity in that interval; take their interval footprints in turn; repeat until nothing is added. The closure is finite because there are finitely many entities and intervals. It is sound in that it adds a slot only through a shared event, and so it does not reach entities that merely appear in the same shot.
+
+\section{What the Chapter Gives the Others}\label{sec:gives}
+
+Chapter~4 gave the cost of counting editions in terms of width, and this chapter shows how the width of a real scene is fixed by how its continuity is written: a path through the showings of an entity keeps the frontier at one slot per live entity, and a clique makes it grow with the number of showings. Chapter~9 took its slot sets as given, and this chapter derives them from the pools and the script. Chapter~10 took its pools as given as well, and the level of the amendment now bears on its repair problem: a lower level removes fewer classes, so the pool is larger and fewer viewers hold an invalid edition, at the price of more amendments over time.
+
+The scripts \texttt{lawnmodel.py} and \texttt{verify\_ch05.py} reproduce each figure of this chapter, including the equality of path and clique counts, the widths of \Cref{tab:widths}, the derivation of the slot sets, and the capacities of \Cref{tab:levels}.
+
+\begin{thebibliography}{99}
+
+\bibitem{flyxion2026gf}
+Flyxion.
+\newblock \emph{Generative Film: Categories, Sheaves, and Types for Cinema}.
+\newblock Unpublished monograph, October 2026.
+
+\end{thebibliography}
+
+\end{document}

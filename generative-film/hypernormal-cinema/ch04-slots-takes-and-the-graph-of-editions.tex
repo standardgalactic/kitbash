@@ -1,0 +1,347 @@
+\documentclass[11pt,twoside,openright]{book}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{mathpazo}
+\usepackage{microtype}
+\usepackage[inner=1.35in,outer=1.1in,top=1.25in,bottom=1.35in]{geometry}
+\usepackage{booktabs}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+\usepackage{cleveref}
+
+\setlength{\parindent}{1.4em}
+\setlength{\parskip}{0pt}
+\linespread{1.07}
+\emergencystretch=3em
+
+% ---------- headers ----------
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE]{\small\thepage\quad\textsc{A Cinema of Individual Editions}}
+\fancyhead[RO]{\small\nouppercase{\leftmark}\quad\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+% ---------- theorem environments ----------
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% ---------- macros ----------
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Fr}{\mathrm{Fr}}
+\newcommand{\one}{\mathbf{1}}
+\newcommand{\mown}{\mathsf{mown}}
+\newcommand{\unmown}{\mathsf{unmown}}
+\DeclareMathOperator{\diag}{diag}
+
+\title{\Huge\bfseries A Cinema of Individual Editions\\[1.2ex]
+\large Chapter Four: Slots, Takes, and the Graph of Editions\\[0.4ex]
+\large Working Draft}
+\author{Flyxion\\[0.3ex]\small Independent Researcher}
+\date{November 2026}
+
+\begin{document}
+
+\frontmatter
+\maketitle
+\tableofcontents
+\mainmatter
+\setcounter{chapter}{3}
+
+\chapter{Slots, Takes, and the Graph of Editions}
+\label{ch:graph}
+
+The first chapter counted editions by multiplying matrices, and the method worked because every constraint tied a slot to its neighbor. A scene rarely behaves that way. A glass picked up in the second shot is still in the actor's hand in the fifth, whatever the inserts between them show, and a viewer who sees it change hands has found an error that no neighbor-to-neighbor rule can express. This chapter replaces the chain of constraints by a constraint structure in which a relation may join any set of slots. It gives a counting method that reduces to the matrix product when the structure is a chain, and it asks how the cost of counting and of ranking editions depends on the shape of the structure.
+
+Two tests decide whether the generalization earns its place. The first is that, applied to the lawn scene of the first chapter with its chain of direction rules, the method must return exactly the totals already computed. The second is that it must handle a relation between two nonadjacent shots, namely the hand that holds a glass before and after an insert, and the example must show what a long-range relation costs and why. Both tests are run in the text and reproduced by the accompanying script. The chapter does not measure the width of any real scene, which is an empirical matter for the production that has one.
+
+\section{Constraint Structures}\label{sec:structures}
+
+The setting is that of the first chapter. A scene plan has $m$ slots numbered $1,\dots,m$. At slot $j$ a production has a finite set $K_j$ of perceptual classes of takes that pass the unary rules, and each class $k\in K_j$ has a weight $w_j(k)$, the number of takes in the class. A \emph{class tuple} is a choice $\kappa=(\kappa_1,\dots,\kappa_m)$ of one class at each slot. The first chapter counted the class tuples that satisfy a chain of neighbor relations. The definition below drops the restriction to neighbors.
+
+\begin{definition}[Constraint structure]\label{def:structure}
+A \emph{constraint structure} on $m$ slots consists of the sets $K_1,\dots,K_m$ together with a finite family $\mathcal C$ of \emph{constraints}. A constraint is a pair $c=(\sigma_c,R_c)$ of a nonempty \emph{scope} $\sigma_c\subseteq\{1,\dots,m\}$ and a relation $R_c\subseteq\prod_{j\in\sigma_c}K_j$. A class tuple $\kappa$ is \emph{admissible} if $\kappa|_{\sigma_c}\in R_c$ for every $c\in\mathcal C$, where $\kappa|_{\sigma}$ is the restriction of $\kappa$ to the slots of $\sigma$. The \emph{scope graph} of the structure has the slots as vertices and an edge $\{i,k\}$ whenever some scope contains both $i$ and $k$.
+\end{definition}
+
+A constraint with a one-element scope is a unary rule and can be absorbed into the sets $K_j$, so the sets $K_j$ already reflect it. Two examples are used throughout.
+
+\begin{example}[The chain]\label{ex:chain}
+The direction rule of the first chapter has one constraint $(\{j,j+1\},R_j)$ for each $j<m$, where $R_j$ contains the pairs of classes whose screen directions agree or one of which is neutral. The scope graph is a path on the $m$ slots, and the number of admissible class tuples is the number $N^{\mathrm{perc}}$ of the first chapter. With the weights $w_j(k)$ the weighted count is the number $N^{\mathrm{take}}$ of take tuples.
+\end{example}
+
+\begin{example}[The glass]\label{ex:glass}
+In the lawn scene the actor carries a glass of water and holds it in one hand whenever the actor is in frame. Slots $2$ and $5$ show the actor with the glass. Slots $3$ and $4$ are inserts that show the lawn and not the actor. A viewer will notice if the glass has changed hands across the inserts, so the production adds a \emph{hand rule}. Each class at slots $2$ and $5$ carries an attribute $\eta\in\{l,r\}$, the hand that holds the glass, and the constraint $(\{2,5\},R_H)$ asks that $\eta(\kappa_2)=\eta(\kappa_5)$. This is a relation between two shots that are not neighbors. The scope graph is the path on five slots together with the extra edge $\{2,5\}$, which closes a cycle through slots $2,3,4,5$.
+\end{example}
+
+To have a definite example, the classes at slots $2$ and $5$ in the pools of the first chapter are given hand attributes alternately, left first, in the order in which the classes are listed at the slot. The labeling is arbitrary and is made only to fix the numbers. \Cref{tab:hands} gives the resulting counts.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+ & \multicolumn{2}{c}{Slot 2: classes with hand $l$ / $r$} & \multicolumn{2}{c}{Slot 5: classes with hand $l$ / $r$}\\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Production & all classes & not stale & all classes & not stale\\
+\midrule
+A & 3 / 2 & 2 / 2 & 3 / 2 & 2 / 2\\
+B & 3 / 3 & 2 / 2 & 4 / 3 & 2 / 2\\
+C & 1 / 1 & 1 / 0 & 1 / 1 & 1 / 0\\
+\bottomrule
+\end{tabular}
+\caption{Hand attributes of the classes at the two slots that show the glass. A class is stale if its takes show some strip in the wrong appearance, as in the first chapter.}\label{tab:hands}
+\end{table}
+
+\section{Counting by Frontier Tables}\label{sec:frontier}
+
+The first chapter's matrix product keeps, at each slot, one number for every class at that slot. That is enough for a chain because the only information that the past passes to the future is the class at the latest slot. When a relation reaches over several slots the past passes more, and the method has to keep one number for every combination of what it passes. The \emph{frontier} names what has to be kept.
+
+\begin{definition}[Frontier]\label{def:frontier}
+For $\ell=0,1,\dots,m$ the \emph{frontier} $\Fr_\ell$ is the set of slots $i\le\ell$ for which some slot $k>\ell$ shares a scope with $i$. The \emph{frontier width} of the structure is $f=\max_\ell\lvert\Fr_\ell\rvert$.
+\end{definition}
+
+The frontier $\Fr_\ell$ consists of the slots already chosen that still have an unfinished relation with a slot to come. For the chain of \Cref{ex:chain}, $\Fr_\ell=\{\ell\}$ for $0<\ell<m$, and the width is $1$. For the glass of \Cref{ex:glass} the frontiers are
+\[
+\Fr_0=\varnothing,\quad \Fr_1=\{1\},\quad \Fr_2=\{2\},\quad \Fr_3=\{2,3\},\quad \Fr_4=\{2,4\},\quad \Fr_5=\varnothing,
+\]
+and the width is $2$. The slot $2$ remains in the frontier across the inserts because its hand has not yet been compared with the hand at slot $5$.
+
+\begin{lemma}[Frontier sufficiency]\label{lem:suff}
+Let $x=(x_1,\dots,x_\ell)$ satisfy every constraint whose scope lies in $\{1,\dots,\ell\}$. Whether a completion $y=(y_{\ell+1},\dots,y_m)$ makes $(x,y)$ admissible depends on $x$ only through $x|_{\Fr_\ell}$.
+\end{lemma}
+
+\begin{proof}
+Constraints whose scope lies in $\{1,\dots,\ell\}$ hold by hypothesis, and constraints whose scope lies in $\{\ell+1,\dots,m\}$ do not involve $x$. A constraint whose scope meets both sides involves slots $i\le\ell$ that share the scope with a slot beyond $\ell$, and every such $i$ lies in $\Fr_\ell$ by definition. Its satisfaction therefore depends on $x$ only through $x|_{\Fr_\ell}$.
+\end{proof}
+
+Define for each $\ell$ a table $T_\ell$ on assignments $z$ of classes to the slots of $\Fr_\ell$ by
+\[
+T_\ell(z)=\sum_{x}\ \prod_{i=1}^{\ell}w_i(x_i),
+\]
+where the sum runs over the assignments $x$ to slots $1,\dots,\ell$ that satisfy every constraint with scope in $\{1,\dots,\ell\}$ and satisfy $x|_{\Fr_\ell}=z$. The table starts as $T_0(\varnothing)=1$.
+
+\begin{theorem}[Counting by frontier tables]\label{thm:frontier}
+The tables satisfy the recurrence
+\[
+T_\ell(z')=\sum_{(z,k)}T_{\ell-1}(z)\,w_\ell(k),
+\]
+where the sum runs over the assignments $z$ to $\Fr_{\ell-1}$ and the classes $k\in K_\ell$ such that every constraint whose largest slot is $\ell$ holds on $(z,k)$ and $(z,k)|_{\Fr_\ell}=z'$. The weighted number of admissible class tuples is $T_m(\varnothing)$, and setting all weights to $1$ gives the number of admissible class tuples. The number of table updates is
+\[
+\sum_{\ell=1}^m\lvert K_\ell\rvert\prod_{i\in\Fr_{\ell-1}}\lvert K_i\rvert\ \le\ m\,q^{f+1},\qquad q=\max_j\lvert K_j\rvert .
+\]
+\end{theorem}
+
+\begin{proof}
+A slot $i<\ell$ that shares a scope with $\ell$ shares it with a slot beyond $\ell-1$, so it lies in $\Fr_{\ell-1}$. Hence every constraint with largest slot $\ell$ has its other slots in $\Fr_{\ell-1}$, and it can be checked on $(z,k)$. Also $\Fr_\ell\subseteq\Fr_{\ell-1}\cup\{\ell\}$, since a slot $i<\ell$ with a partner beyond $\ell$ has a partner beyond $\ell-1$. These two facts make the recurrence well defined. Its correctness is induction on $\ell$: an assignment to slots $1,\dots,\ell$ is admissible so far if and only if its restriction to $1,\dots,\ell-1$ is admissible so far and the constraints with largest slot $\ell$ hold, and by \Cref{lem:suff} the latter depends on the earlier slots only through the restriction to $\Fr_{\ell-1}$. At $\ell=m$ every constraint has been checked and the frontier is empty. Each update is one choice of $(z,k)$, which gives the count.
+\end{proof}
+
+When the structure is a chain, the theorem returns the matrix product of the first chapter. The frontier $\Fr_\ell=\{\ell\}$ makes $T_\ell$ a vector indexed by the classes at slot $\ell$, and the recurrence reads $T_\ell(k')=\sum_kT_{\ell-1}(k)\,A_{\ell-1}(k,k')\,w_\ell(k')$, which is the row-vector form of the product. The numbers confirm it. On the three productions of the first chapter the frontier method returns $494$ and $238$ perceptual editions for production A before and after the agreement rule, $320$ and $96$ for B, and $2$ and $1$ for C. It returns $120{,}042$ and $57{,}834$ take tuples for A, $10{,}240$ and $3{,}072$ for B, and $204{,}800{,}000$ and $102{,}400{,}000$ for C. All of these agree with exhaustive enumeration of the unweighted counts and with the totals of the first chapter. The first test is passed.
+
+\section{A Constraint Between Nonadjacent Shots}\label{sec:glass}
+
+Add the hand rule of \Cref{ex:glass} to the chain. The tables must now carry, across slots $3$ and $4$, both the class at slot $2$, which fixes the hand, and the class at the slot just chosen, which fixes the direction. The frontier at $\ell=3$ is $\{2,3\}$ and at $\ell=4$ is $\{2,4\}$, so the tables at those two stages are indexed by pairs of classes. For production A, after the agreement rule, there are $4$ classes at slot $2$, $3$ at slot $3$, and $3$ at slot $4$, so the two tables have $4\cdot3=12$ entries each, against at most $5$ entries for the chain.
+
+The counts with the hand rule are in \Cref{tab:glasscounts}. They agree with exhaustive enumeration. The frontier method needs $170$ table updates for production A before the agreement rule and $102$ after, against $86$ and $58$ for the chain alone.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+ & \multicolumn{2}{c}{Perceptual editions} & \multicolumn{2}{c}{Take tuples}\\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Production & before agreement rule & after & before & after\\
+\midrule
+A & 241 & 119 & 58,563 & 28,917\\
+B & 160 & 48 & 5,120 & 1,536\\
+C & 1 & 1 & 102,400,000 & 102,400,000\\
+\bottomrule
+\end{tabular}
+\caption{Admissible editions under the direction rule and the hand rule, before and after the agreement rule of the first chapter, with the hand labeling of \Cref{tab:hands}.}\label{tab:glasscounts}
+\end{table}
+
+Two features of the table are worth recording. The first is that a new rule can lower capacity before any viewer reports anything. With the labeling used here, production C, which supported two perceptual editions at the premiere under the direction rule alone, supports one once the hand rule is added, because its only stale class at slot $2$ carries the hand $r$, and no class at slot $5$ that is compatible in direction with its neighbors carries it. The first chapter's result that a valid correction can break a promise was stated for corrections that follow a report, and the table shows that a rule adopted in advance has the same effect. The second feature is that the hand rule roughly halves the count for A and B. With two hands and alternating labels, a typical pair of classes at slots $2$ and $5$ agrees about half the time, and the exact counts are $241$ of $494$ for A before the agreement rule and $160$ of $320$ for B.
+
+\section{Width}\label{sec:width}
+
+The cost bound of \Cref{thm:frontier} grows as $q^{f+1}$, so the width $f$ decides whether counting is feasible for a scene with many slots. Three notions of width are in play, and they answer different questions.
+
+\subsection{Frontier width and the order of slots}
+
+The frontier of \Cref{def:frontier} was defined for the screen order. Any linear order $\pi$ of the slots defines frontiers in the same way, namely the slots that precede a cut in $\pi$ and share a scope with a slot that follows it, and the corresponding width $f(\pi)$. The least value of $f(\pi)$ over all orders equals the pathwidth of the scope graph~\cite{kinnersley1992}. For the chain it is $1$. For the glass the scope graph contains a cycle, and a cycle has pathwidth $2$, so the screen order is optimal and no reordering of the slots reduces the frontier width below $2$.
+
+\begin{remark}[Beyond a line]\label{rem:tree}
+If the scope graph is tree-like and not path-like, as when two threads of action are intercut and each has its own internal continuity, counting by variable elimination along a tree decomposition of width $t$ costs $O(mq^{t+1})$~\cite{dechter1999,robertsonseymour1984}. The treewidth is at most the pathwidth. Computing the treewidth is intractable in general~\cite{arnborg1987} but takes time linear in the number of vertices when the width is fixed~\cite{bodlaender1996}. These are the guarantees to invoke when a scene's relations are not laid out along its screen order.
+\end{remark}
+
+\subsection{The cost of unrestricted structures}
+
+Width matters because without a bound on it the count is hard.
+
+\begin{proposition}[Hardness]\label{prop:hard}
+Counting the admissible class tuples of a constraint structure is $\#$P-hard, even when every set $K_j$ has two classes and every constraint has a scope of two slots.
+\end{proposition}
+
+\begin{proof}
+Given a graph with vertices $1,\dots,m$, let $K_j=\{0,1\}$ and for each edge $\{i,k\}$ add the constraint that $(\kappa_i,\kappa_k)\ne(1,1)$. The admissible class tuples are exactly the indicator vectors of independent sets of the graph. Counting independent sets is $\#$P-complete~\cite{provanball1983}.
+\end{proof}
+
+The proposition says nothing against the structures that arise in scenes, where relations come from objects and people that persist across a few cuts. It says that no method can be fast on all structures, and that the width is the parameter on which the method of \Cref{thm:frontier} depends. A check on the claim for a small case is in the script: the frontier method counts independent sets correctly on random graphs of seven vertices.
+
+\subsection{Carry width}
+
+The frontier tables are indexed by the classes of the slots in the frontier, and for the glass that indexing is wasteful. The relation at slot $5$ cares about the hand and not about which of the several classes at slot $2$ carries it. What the future needs from the past is smaller than what the frontier stores. The earlier volume has the right notion, the quotient of histories by future equivalence, applied here to prefixes of editions~\cite{flyxion2026gf,hopcroft2006}.
+
+\begin{definition}[Carry width]\label{def:carry}
+A prefix $x=(x_1,\dots,x_\ell)$ is \emph{viable} if it satisfies every constraint whose scope lies in $\{1,\dots,\ell\}$ and has at least one admissible completion. Two viable prefixes of length $\ell$ are \emph{future-equivalent} if they have the same set of admissible completions. The \emph{carry width at $\ell$}, written $c_\ell$, is the number of future-equivalence classes of viable prefixes of length $\ell$, and the \emph{carry width} of the structure is $c=\max_\ell c_\ell$.
+\end{definition}
+
+\begin{proposition}[Carry is at most the frontier table]\label{prop:carryfront}
+For every $\ell$, $c_\ell\le\prod_{i\in\Fr_\ell}\lvert K_i\rvert$. The carry width is the size of the smallest state space through which the counting and unranking of this chapter can be carried out, in the sense that any fold from viable prefixes that determines their admissible completions factors through the future-equivalence classes.
+\end{proposition}
+
+\begin{proof}
+By \Cref{lem:suff}, viable prefixes with the same restriction to $\Fr_\ell$ have the same admissible completions, so the classes of future equivalence are unions of the fibers of the restriction map, and there are at most as many classes as there are restrictions. The second statement is the proposition on fold sufficiency of the earlier volume, applied to the prefixes of admissible editions, in which a fold that determines futures has a kernel contained in future equivalence.
+\end{proof}
+
+The values for the lawn scene, computed by grouping all viable prefixes by their sets of completions, are in \Cref{tab:carry}. Chain and glass are shown for productions A and B after the agreement rule, and production C has carry width $1$ at every stage.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}llcccccc@{}}
+\toprule
+Production & Structure & $\ell=0$ & $1$ & $2$ & $3$ & $4$ & $5$\\
+\midrule
+A & chain, carry width $c_\ell$ & 1 & 3 & 3 & 2 & 2 & 1\\
+A & chain, frontier table size & 1 & 5 & 4 & 3 & 3 & 1\\
+A & glass, carry width $c_\ell$ & 1 & 3 & 4 & 4 & 4 & 1\\
+A & glass, frontier table size & 1 & 5 & 4 & 12 & 12 & 1\\
+\midrule
+B & chain, carry width $c_\ell$ & 1 & 2 & 2 & 2 & 2 & 1\\
+B & chain, frontier table size & 1 & 5 & 4 & 5 & 4 & 1\\
+B & glass, carry width $c_\ell$ & 1 & 2 & 4 & 4 & 4 & 1\\
+B & glass, frontier table size & 1 & 5 & 4 & 20 & 16 & 1\\
+\bottomrule
+\end{tabular}
+\caption{Carry width and the size of the frontier table at each prefix length, after the agreement rule. The frontier table size is $\prod_{i\in\Fr_\ell}\lvert K_i\rvert$.}\label{tab:carry}
+\end{table}
+
+For the chain, the carry width is at most $3$ in every production and at every stage, the number of screen-direction states, even though the frontier table at slot $1$ has $5$ entries. For the glass, the carry width at the stages across the inserts is $4$ for both productions, while the frontier tables have $12$ and $20$ entries. The extra state beyond the chain is the hand. The carry width does not grow with the number of classes at slot $2$, because every class with the same hand and direction behaves the same way for the future.
+
+The saving can be stated in general for relations that act through an attribute.
+
+\begin{proposition}[Attribute compression]\label{prop:attr}
+Consider a structure consisting of the direction chain and $h$ constraints, each requiring that an attribute of slot $a_t$ equal an attribute of slot $b_t$, where $a_t<b_t$ and the attributes take at most $v$ values. At a cut $\ell$ crossed by $h_\ell$ of these constraints, meaning $a_t\le\ell<b_t$, the carry width satisfies $c_\ell\le3v^{h_\ell}$.
+\end{proposition}
+
+\begin{proof}
+For a viable prefix of length $\ell$, the admissible completions depend on the prefix only through the direction of its last take, which can take three values $L$, $R$, and $N$, and the values of the $h_\ell$ attributes of the slots $a_t$ that the crossing constraints refer to. Prefixes that agree on these quantities have the same completions, and there are at most $3v^{h_\ell}$ combinations.
+\end{proof}
+
+The glass has $h_\ell=1$ across the inserts and $v=2$, so $c_\ell\le6$. The exact value is $4$, which is below the bound because not every combination of direction and hand occurs among the viable prefixes of these pools.
+
+The advantage of the carry width over the frontier width shows when several relations cross the same cut. A synthetic scene of ten slots with four classes at each slot, a random direction at each class, and $h$ nested relations that tie the attribute $t$ of slot $t$ to that of slot $11-t$ for $t=1,\dots,h$ gives the figures of \Cref{tab:synthetic}. Each relation adds one slot to the frontier, which multiplies the frontier table by the number of classes, while each adds one attribute to the carry, which multiplies it by two.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}cccrr@{}}
+\toprule
+Relations $h$ & Width $f$ & Frontier table & Attribute states & Updates\\
+\midrule
+0 & 1 & 4 & 3 & 148\\
+1 & 2 & 16 & 6 & 532\\
+2 & 3 & 64 & 12 & 1,684\\
+3 & 4 & 256 & 24 & 3,348\\
+\bottomrule
+\end{tabular}
+\caption{A synthetic scene with $m=10$ slots and $q=4$ classes per slot, with nested long-range relations. The columns give the frontier width, the largest frontier table, the largest set of attribute states, and the table updates of the frontier method. Counts agree with exhaustive enumeration over all $4^{10}$ class tuples and with the counts of the attribute-state method.}\label{tab:synthetic}
+\end{table}
+
+The frontier table grows as $q^{f}$ and the attribute states as $3\cdot2^{h}$, so the second is smaller as soon as $q^{h+1}$ exceeds $3\cdot2^h$, which for four classes holds in every row of the table. The comparison shows what a long-range relation costs. It costs a factor $q$ in the method of \Cref{thm:frontier}, and when the relation acts through a small attribute it costs only the size of that attribute's range in a method built on the carry.
+
+\section{Counting and Unranking at Cost Set by Width}\label{sec:unrank}
+
+The first chapter described a pipeline in which a viewer receives a distinct integer, a keyed permutation sends it to another integer below the number of editions, and unranking turns that integer into a class tuple. Unranking was stated for the chain. The frontier tables make it work for any constraint structure.
+
+Fix a total order on the classes at each slot. The \emph{rank} of an admissible class tuple is its position, counted from $0$, in the lexicographic order of the admissible class tuples.
+
+\begin{theorem}[Ranking and unranking]\label{thm:rank}
+Let $N$ be the number of admissible class tuples and $f$ the frontier width. After building the completion tables $C_\ell(z)$, the number of admissible completions of a prefix of length $\ell$ whose restriction to $\Fr_\ell$ is $z$, in at most $mq^{f+1}$ table updates and with memory $\sum_\ell\prod_{i\in\Fr_\ell}\lvert K_i\rvert\le mq^f$ entries, the class tuple of rank $r\in[0,N)$ and the rank of a given class tuple can each be computed with $O(mqf)$ table lookups and constraint checks, whatever the value of $f$. The integers involved have at most $m\log_2q$ bits.
+\end{theorem}
+
+\begin{proof}
+The tables are built backward from $C_m(\varnothing)=1$ by the same recurrence as in \Cref{thm:frontier}, run from the last slot, and the bound on updates and memory is the same. To unrank $r$, choose the class at slot $\ell$ by walking through $K_\ell$ in its order. For each class that satisfies the constraints with largest slot $\ell$ given the choices so far, compare $r$ with the table entry $C_\ell(z')$ for the resulting frontier assignment $z'$. If $r<C_\ell(z')$, choose that class, and otherwise subtract $C_\ell(z')$ from $r$ and continue. Each of the $m$ steps looks at most $q$ classes and assembles a frontier key of at most $f$ slots, which gives the bound. Ranking is the same computation read in the other direction, adding the table entries of the classes that precede the chosen one at each slot. The integer bound follows from $N\le q^m$.
+\end{proof}
+
+The theorem states how width enters the cost, and what it counts. The frontier bound controls the number of candidate table transitions. Total running time also depends on the cost of evaluating the constraints at each transition and on arithmetic with integers that can run to thousands of digits, neither of which the bound includes. It sets the preprocessing and memory, which grow as $q^{f+1}$ and $q^f$, and it does not enter the per-viewer cost beyond the length of a frontier key. A production with a bounded width can therefore build its tables once per rule set and serve any number of viewers at a cost that depends only on the length of the scene. When the tables are built over the future-equivalence classes in place of the frontier assignments, and the transition function between classes has been tabulated, the memory is $\sum_\ell c_\ell$ entries and each slot of a viewer's unranking needs a constant number of lookups per class.
+
+For the lawn scene the unranking is checked exhaustively. After the agreement rule, there are $238$ class tuples for production A and $96$ for B under the chain, and $119$ and $48$ under the chain with the hand rule. In each case unranking every rank from $0$ to $N-1$ produces every admissible class tuple exactly once, in lexicographic order.
+
+\subsection{What an amendment costs}
+
+A rule that is added after a report changes the constraint structure, so the completion tables have to be rebuilt, and the cost of the rebuild is set by the width of the amended structure. A new relation between two slots adds an edge to the scope graph. If both endpoints already lie on the frontier at every cut that the edge crosses, the width does not change. If they do not, the width can grow by one, which multiplies the preprocessing by up to $q$. Amendments that tie slots that are far apart, such as the glass, are the expensive ones. The first chapter's agreement rule is unary and costs nothing in width.
+
+Ranks are not stable across amendments. The lexicographic order of the admissible tuples changes when a rule removes some of them, and a viewer's rank under the old rules need not be the rank of the same edition under the new ones. The repair of the first chapter was therefore stated on class tuples, and it is the class tuple and not the rank that the ledger must record.
+
+\section{What the Chapter Establishes and Leaves Open}\label{sec:chapter-end}
+
+The chapter gives a counting method for editions under constraints between any slots, shows that it reproduces the totals of the first chapter when the constraints form a chain, and applies it to a relation between nonadjacent shots, the hand holding a glass across two inserts. It defines two widths, the frontier width of the scope graph and the carry width of future equivalence, and it shows how they bear on the cost of counting and unranking. It also shows that an unrestricted structure is intractable, so that the width is a property to be assumed and checked and not a convenience.
+
+Three questions lead on from it. The first concerns the origin of long-range relations. In a real scene they come from objects and people that persist, and the earlier volume treats such agreement on overlaps by sheaf conditions. The next chapter takes a relation like the glass back to the overlaps from which it is derived, and asks how a correction that touches one overlap finds every other overlap it implicates. The second concerns the use of capacity. The methods of this chapter compute the number of editions that remain after a rule is added, and the cost of doing so after each amendment is a function of width. Whether a production can survive a family of amendments is the question of robustness, and whether its editions can be reached from the current assignments is the question of repairability, which counts alone do not answer. The third concerns the width of real scenes. The chapter's results are conditional on a bound on width, and what widths actual scenes have, and how they grow with the number of persistent objects, is a measurement that a production can make on its own footage.
+
+The accompanying script \texttt{verify\_ch04.py} reproduces every count of this chapter, including the chain totals of the first chapter, the counts with the hand rule, the carry widths by exhaustive grouping of prefixes, the unranking of every rank, the independent-set check, and the synthetic scene.
+
+\begin{thebibliography}{99}
+
+\bibitem{flyxion2026gf}
+Flyxion.
+\newblock \emph{Generative Film: Categories, Sheaves, and Types for Cinema}.
+\newblock Unpublished monograph, October 2026.
+
+\bibitem{hopcroft2006}
+John E.\ Hopcroft, Rajeev Motwani, and Jeffrey D.\ Ullman.
+\newblock \emph{Introduction to Automata Theory, Languages, and Computation}, third edition.
+\newblock Pearson, 2006.
+
+\bibitem{kinnersley1992}
+Nancy G.\ Kinnersley.
+\newblock The Vertex Separation Number of a Graph Equals Its Path-Width.
+\newblock \emph{Information Processing Letters}, 42(6):345--350, 1992.
+
+\bibitem{dechter1999}
+Rina Dechter.
+\newblock Bucket Elimination: A Unifying Framework for Reasoning.
+\newblock \emph{Artificial Intelligence}, 113(1--2):41--85, 1999.
+
+\bibitem{robertsonseymour1984}
+Neil Robertson and Paul D.\ Seymour.
+\newblock Graph Minors. III. Planar Tree-Width.
+\newblock \emph{Journal of Combinatorial Theory, Series B}, 36(1):49--64, 1984.
+
+\bibitem{arnborg1987}
+Stefan Arnborg, Derek G.\ Corneil, and Andrzej Proskurowski.
+\newblock Complexity of Finding Embeddings in a $k$-Tree.
+\newblock \emph{SIAM Journal on Algebraic Discrete Methods}, 8(2):277--284, 1987.
+
+\bibitem{bodlaender1996}
+Hans L.\ Bodlaender.
+\newblock A Linear-Time Algorithm for Finding Tree-Decompositions of Small Treewidth.
+\newblock \emph{SIAM Journal on Computing}, 25(6):1305--1317, 1996.
+
+\bibitem{provanball1983}
+J.\ Scott Provan and Michael O.\ Ball.
+\newblock The Complexity of Counting Cuts and of Computing the Probability That a Graph Is Connected.
+\newblock \emph{SIAM Journal on Computing}, 12(4):777--788, 1983.
+
+\end{thebibliography}
+
+\end{document}

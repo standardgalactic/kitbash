@@ -1,0 +1,185 @@
+\documentclass[11pt,twoside,openright]{book}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{mathpazo}
+\usepackage{microtype}
+\usepackage[inner=1.35in,outer=1.1in,top=1.25in,bottom=1.35in]{geometry}
+\usepackage{booktabs}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+\usepackage{cleveref}
+
+\setlength{\parindent}{1.4em}
+\setlength{\parskip}{0pt}
+\linespread{1.07}
+\emergencystretch=3em
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE]{\small\thepage\quad\textsc{A Cinema of Individual Editions}}
+\fancyhead[RO]{\small\nouppercase{\leftmark}\quad\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\Capac}{\mathrm{Cap}}
+\newcommand{\Rob}{\mathrm{Rob}}
+\newcommand{\Inv}{\mathrm{Inv}}
+\DeclareMathOperator{\loss}{loss}
+
+\title{\Huge\bfseries A Cinema of Individual Editions\\[1.2ex]
+\large Chapter Sixteen: Generation Under Constraint\\[0.4ex]
+\large Working Draft}
+\author{Flyxion\\[0.3ex]\small Independent Researcher}
+\date{November 2026}
+
+\begin{document}
+
+\frontmatter
+\maketitle
+\tableofcontents
+\mainmatter
+\setcounter{chapter}{15}
+
+\chapter{Generation Under Constraint}
+\label{ch:generation}
+
+The preceding chapters describe editions assembled from takes. The pool of a production has been a fixed list of classes, each with its takes, and an edition has been a path through it. This chapter asks what a generator must represent to produce takes on demand under the same rules, so that the pool is not fixed in advance. A generator has a support, which is everything it can produce, and rules, which say what it must not. The editions of a generative production are the elements of the support that the rules admit, and the count of the book is the size of that set.
+
+The chapter treats three things. How a generator can be made to respect the rules, and what each way costs. How a correction reaches a generator that has already been built. And how a director's instructions, given at the level of a scene, a group of shots, and a single shot, narrow the set of editions in nested stages. The counts are on the lawn scene after the agreement rule, with the class tuples of earlier chapters standing for what a generator would emit. A generator of continuous footage has no such finite list, and the chapter states where that matters.
+
+\section{Support, Rules, and Correction}\label{sec:support16}
+
+Let a generator emit an edition by choosing a class at each slot, and let its \emph{support} be the product of the classes it can choose from, which in production A is $5\cdot5\cdot4\cdot4\cdot5=2{,}000$ tuples. The rules of Chapters~1 and~7 to~10 are constraints on tuples: the direction rule on adjacent slots, and the agreement rule removing stale classes. The \emph{admissible set} is the part of the support that satisfies the rules, and for A it has $494$ tuples at the premiere and $238$ after the agreement rule. A correction, in this setting, changes the rules, and the generator has to be told.
+
+There are three ways to make a generator respect the rules. It can propose from the whole support and reject what violates them. It can build its proposal slot by slot, allowing at each slot only what agrees with the slot before. Or it can carry a table that counts the admissible completions of every partial edition and sample from the table, so that it never proposes a violation. The next three sections cost them in turn.
+
+\section{Rejection}\label{sec:reject16}
+
+If proposals are uniform over the support, each is admissible with probability equal to the ratio of the admissible set to the support, and the number of proposals before an acceptance has expectation the reciprocal of that ratio. \Cref{tab:rej16} gives the ratio for each production at the premiere and after the agreement rule.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}lrrrp{3.6cm}@{}}
+\toprule
+Prod. & Support & Admissible, premiere & Admissible, after rule & Proposals per accepted edition, premiere $\to$ after rule\\
+\midrule
+A & 2{,}000 & 494 & 238 & $4.0\to8.4$\\
+B & 5{,}880 & 320 & 96 & $18.4\to61.2$\\
+C & 32 & 2 & 1 & $16.0\to32.0$\\
+\bottomrule
+\end{tabular}
+\caption{Cost of rejection sampling from the class product. The expected number of proposals is the support divided by the admissible set.}\label{tab:rej16}
+\end{table}
+
+A correction that removes admissible tuples raises the cost of every acceptance by the same ratio, so the cost of rejection is the cost of the correction paid on every future edition. In B it is sixty-one proposals for each edition delivered. The cost has a second part when an audience is served. To give sixty viewers of A sixty different editions by drawing from the corrected set takes $69.0$ draws in expectation, since later draws collide with earlier ones, and rejection from the support takes about $580$ proposals for it. For the thirty viewers of B the draws are $35.7$ and the proposals are $2{,}189$.
+
+\section{Local Constraints Without Lookahead}\label{sec:local16}
+
+A generator that builds an edition from left to right and checks each slot against the one before it does not reject whole editions. It chooses uniformly among the classes that agree with the preceding choice. The probability that it produces a given tuple is the product, over the slots, of the reciprocal of the number of classes that were allowed at that slot, and that product depends on the tuple.
+
+\begin{proposition}[Local sampling]\label{prop:local16}
+A left-to-right generator with no lookahead produces each admissible tuple $t$ with probability $\prod_j1/n_j(t)$, where $n_j(t)$ is the number of classes allowed at slot $j$ after the choices that $t$ makes before it. It is uniform over the admissible tuples that it produces if and only if this product is the same for all of them. It fails, with the remaining probability, whenever some prefix leaves no class allowed at the next slot.
+\end{proposition}
+
+The proposition is immediate from the definition and the lawn scene shows what it does. \Cref{tab:local16} gives, for each production at the premiere and after the rule, the probability that the generator reaches a dead end, the total variation distance of its output from the uniform distribution over the admissible set, and the factor by which it over-samples the most favored tuple.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}llrrr@{}}
+\toprule
+Production & Stage & Dead end & Distance from uniform & Most favored tuple\\
+\midrule
+A & premiere & 0.000 & 0.243 & 2.74 times\\
+A & after rule & 0.000 & 0.186 & 2.64 times\\
+B & premiere & 0.000 & 0.150 & 1.60 times\\
+B & after rule & 0.000 & 0.100 & 1.20 times\\
+C & premiere & 0.500 & 0.000 & 1.00 times\\
+C & after rule & 0.500 & 0.000 & 1.00 times\\
+\bottomrule
+\end{tabular}
+\caption{Left-to-right sampling without lookahead, computed exactly by enumerating its paths. Distances are over the tuples that the generator completes.}\label{tab:local16}
+\end{table}
+
+In A and B the generator never fails and yet it is not fair: after the agreement rule its output is $0.19$ away in total variation from the uniform distribution on A's $238$ tuples, and it produces one tuple $2.64$ times as often as uniform would. A bias of this kind matters to a cinema of individual editions, because the count of the book assumes that editions are handed out without favoring any, and a favored tuple is an edition given to more viewers than its share. In C the generator fails half of the time, because its first choice can leave no class allowed at a later slot. A generator without lookahead is thus either biased or incomplete in every production here, and not both in the same one.
+
+\section{Exact Sampling by Table}\label{sec:table16}
+
+The table of Chapter~13 removes both defects. It counts, for each class at each slot, the number of admissible completions, and a generator that chooses each class with probability proportional to its count produces each admissible tuple with equal probability and never reaches a dead end. This is uniform sampling by unranking, with a random rank drawn from the admissible count. It costs one table, built once, and $O(mq)$ operations per edition.
+
+A correction changes the table, and the cost of the change is the cost of rebuilding it. The table needs one compatibility check for each pair of live classes at adjacent slots. In A the check count falls from $81$ before the agreement rule to $53$ after it, and in B from $128$ to $76$. These are the costs of telling an exact generator about a correction, and they are paid once per correction, in place of a factor on every edition as in rejection.
+
+The saving has a limit. The table represents rules that act on adjacent slots, and the rules of Chapter~5 that reach further widen the table by the width of the frontier. A rule that cannot be stated as a constraint on a bounded neighborhood, such as a rule on the whole edition, has no table of this kind unless it admits a compact sufficient state. Some global predicates do: a parity, or a bounded counter of how many times a class has been used, can be carried along the slots as extra state, and the table is then indexed by that state as well. The computational question is whether the rule has a manageable representation across the frontier. A rule with none brings the generator back to rejection.
+
+\section{Generating a Distinguishable Audience}\label{sec:audience16}
+
+Chapter~2 asked for editions more than a tolerance apart. A generator can meet it by proposing and rejecting, keeping each proposal that is far enough from those already chosen. This is random greedy packing, and it stops when no admissible tuple remains that is far enough. \Cref{tab:greedy16} gives the size of the set it reaches over $500$ random orders, against the optimal packing number of Chapter~2.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}llrrrr@{}}
+\toprule
+Production & Tolerance & Optimum & Mean reached & Range & Optimal in\\
+\midrule
+A & 1 & 54 & 49.6 & 43 to 54 & 3 of 500\\
+A & 2 & 16 & 13.5 & 10 to 16 & 12 of 500\\
+B & 1 & 32 & 28.7 & 23 to 32 & 101 of 500\\
+B & 2 & 12 & 8.5 & 8 to 12 & 15 of 500\\
+\bottomrule
+\end{tabular}
+\caption{Size of the separated set reached by random greedy selection from the corrected pool, over $500$ random orders.}\label{tab:greedy16}
+\end{table}
+
+A generator that selects as it goes reaches about nine tenths of the optimum in A at tolerance one and about seven tenths in B at tolerance two, and hits the optimum rarely. The consequence for a production is that a tolerance promised from the packing number of Chapter~2 will not be delivered by a generator that selects at random. A generator that is to deliver it needs a designed set of editions, as in the codes of Chapter~11, and not a stream of draws.
+
+\section{Hierarchical Direction}\label{sec:direct16}
+
+A director gives instructions at several levels. A command about the scene constrains every slot. A command about a group of shots constrains some of them. A command about a shot fixes it. Nested commands narrow the admissible set in stages, and each stage is a restriction of the domains of slots, so the table of the previous sections counts the editions that remain.
+
+Take production A after the agreement rule, and four nested commands. The scene command forbids rightward movement at any slot. The group command requires that the character move at the second slot. The next command fixes the first slot to its first remaining class, and the last fixes the third slot in the same way. \Cref{tab:cmd16} gives the number of editions after each command, for A and for B.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+ & None & Scene & Group & Shot 1 fixed & Shot 3 fixed\\
+\midrule
+A (audience 60) & 238 & 54 & 36 & 12 & 12\\
+B (audience 30) & 96 & 48 & 48 & 24 & 8\\
+\bottomrule
+\end{tabular}
+\caption{Editions remaining after each nested command, by the table of the previous sections.}\label{tab:cmd16}
+\end{table}
+
+In A the scene command alone leaves $54$ editions for sixty viewers, so the first instruction a director gives already makes the exact promise impossible. In B the audience of thirty fits until the first shot is fixed, which halves the pool to twenty-four. A command that is harmless to the story can be fatal to the capacity, and a generator that accepts commands should check the count after each one, which the table does at no extra cost. A command that restricts the domain of a slot is an intersection, so two such commands give the same pool in either order. The last two commands of the example, which fix a slot to its first remaining class, depend on what the earlier commands left, and that is a convenience of the example.
+
+\section{What the Chapter Establishes and What It Assumes}\label{sec:limits16}
+
+The statements on rejection, local sampling, and the table hold for any rules that act on adjacent slots, and the proposition on local sampling holds for any pool. The counts rest on assumptions stated beside them: that a generator emits class tuples, so its support is a finite product, whereas a generator of continuous footage has a support that cannot be counted and for which the cost of rejection is not the ratio of two finite sets; that the proposals are uniform, whereas a trained generator proposes from a distribution that concentrates, so the acceptance rates here are those of a naive proposal and not of any real model; and that the commands of the table were chosen to show the narrowing, and not as those a director would give. How a trained generator is told of a correction, by retraining, by masking at proposal, or by constraining its decoding, is not computed here, because nothing in this book is a trained generator.
+
+The next chapter carries the machinery through three complete studies. Chapter~17 follows the engine scene, the lawn and a dishwashing scene, and a measured passage of an existing film through a correction to their records.
+
+The script \texttt{verify\_ch16.py} reproduces each figure of this chapter.
+
+\begin{thebibliography}{99}
+
+\bibitem{flyxion2026gf}
+Flyxion.
+\newblock \emph{Generative Film: Categories, Sheaves, and Types for Cinema}.
+\newblock Unpublished monograph, October 2026.
+
+\end{thebibliography}
+
+\end{document}
