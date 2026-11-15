@@ -12,9 +12,9 @@ Implemented as a lightweight Unix shell pipeline, the architecture minimizes inf
 
 [Dynamic Readability](https://github.com/standardgalactic/kitbash/blob/main/processing/README.md)
 
-[Inference as Constraint Closure](https://standardgalactic.github.io/kitbash/thesis/constraint_closure.pdf)
+[Inference as Constraint Closure](https://standardgalactic.github.io/kitbash/constraint_closure.pdf)
 
-* [Audio Overview](https://standardgalactic.github.io/kitbash/thesis/)
+* [Audio Overview](https://standardgalactic.github.io/kitbash/constraint_closure.html)
 
 ---
 
